@@ -6,7 +6,7 @@ please bring it to our attention by contacting the repository owner.
 
 yaramod uses the following third-party libraries or other resources:
 1) Google Test: https://github.com/google/googletest
-2) tl-cpputils: https://git.int.avast.com/viruslab/retdec/tl-cpputils
+2) tl-cpputils: https://github.com/avast-tl/tl-cpputils
 3) optional_lite: https://github.com/martinmoene/optional-lite
 
 These third-party libraries or other resources are licensed under the
