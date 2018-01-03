@@ -1218,5 +1218,7 @@ regexp_single
 // Bison expects implementation of error method by us
 void yy::Parser::error(const yy::location& loc, const std::string& message)
 {
-	driver.getErrorStream() << "Error at " << loc << ": " << message << '\n';
+	std::ostringstream os;
+	os << "Error at " << loc << ": " << message;
+	throw ParserError(os.str());
 }

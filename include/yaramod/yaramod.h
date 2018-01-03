@@ -15,11 +15,6 @@
 namespace yaramod {
 
 std::unique_ptr<YaraFile> parseFile(const std::string& filePath, ParserMode parseMode = ParserMode::Regular);
-std::unique_ptr<YaraFile> parseFile(const std::string& filePath, const std::string& errorLogPath, ParserMode parseMode = ParserMode::Regular);
-std::unique_ptr<YaraFile> parseFile(const std::string& filePath, std::ostream& errorLogStream, ParserMode parseMode = ParserMode::Regular);
-
 std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parseMode = ParserMode::Regular);
-std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, const std::string& errorLogPath, ParserMode parseMode = ParserMode::Regular);
-std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, std::ostream& errorLogStream, ParserMode parseMode = ParserMode::Regular);
 
 }

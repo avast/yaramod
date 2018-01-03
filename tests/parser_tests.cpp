@@ -75,11 +75,17 @@ rule same_named_rule {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ("Error at 7.6-20: Redefinition of rule 'same_named_rule'\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 7.6-20: Redefinition of rule 'same_named_rule'", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -636,12 +642,18 @@ rule hex_string_with_jump_at_beginning {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 4.16: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.16: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -656,12 +668,18 @@ rule hex_string_with_jump_at_end {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 4.31: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.31: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1072,12 +1090,17 @@ rule regexp_with_undefined_range {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 4.20: Range in regular expression does not have defined lower bound nor higher bound\n", error.str());
+	try
+	{
+		driver.parse();
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.20: Range in regular expression does not have defined lower bound nor higher bound", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1092,12 +1115,17 @@ rule regexp_with_invalid_range {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 4.22: Range in regular expression has greater lower bound than higher bound\n", error.str());
+	try
+	{
+		driver.parse();
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.22: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1174,13 +1202,19 @@ rule dummy_rule {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(0u, driver.getParsedFile().getImports().size());
-	EXPECT_EQ("Error at 2.15: Unrecognized module 'module' imported\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		ASSERT_EQ(0u, driver.getParsedFile().getImports().size());
+		EXPECT_EQ("Error at 2.15: Unrecognized module 'module' imported", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1697,12 +1731,18 @@ rule strings_and_arithmetic_operations {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 5.1: operator '+' expects integer or float on the right-hand side\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.1: operator '+' expects integer or float on the right-hand side", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1715,12 +1755,18 @@ rule bool_and_arithmetic_operations {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 4.14-17: syntax error, unexpected BOOL_TRUE\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.14-17: syntax error, unexpected BOOL_TRUE", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1733,12 +1779,18 @@ rule contains_and_non_string {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 5.1: operator 'contains' expects string on the right-hand side of the expression\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.1: operator 'contains' expects string on the right-hand side of the expression", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1753,12 +1805,18 @@ rule contains_and_non_string {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 7.1: Reference to undefined string '$2'\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 7.1: Reference to undefined string '$2'", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1798,12 +1856,18 @@ rule string_wildcard_condition_with_no_matching_string {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 8.21-23: No string matched with wildcard '$c*'\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 8.21-23: No string matched with wildcard '$c*'", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1818,12 +1882,18 @@ rule same_variable_in_nested_for_loops {
 }
 )");
 
-	std::ostringstream error;
-	ParserDriver driver(input, error);
+	ParserDriver driver(input);
 
-	EXPECT_FALSE(driver.parse());
-	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-	EXPECT_EQ("Error at 6.41: Redefinition of identifier 'i'\n", error.str());
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 6.41: Redefinition of identifier 'i'", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,

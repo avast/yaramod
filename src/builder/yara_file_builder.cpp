@@ -32,10 +32,16 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
 	{
 		// Recheck the file by parsing it again
 		// We are not able to perform all semantic checks while building so we need to do this
-		std::ostringstream error;
-		ParserDriver driver(ss, error);
-		if (!driver.parse())
+		ParserDriver driver(ss);
+
+		try
+		{
+			driver.parse();
+		}
+		catch (const ParserError&)
+		{
 			return nullptr;
+		}
 
 		return std::make_unique<YaraFile>(std::move(driver.getParsedFile()));
 	}

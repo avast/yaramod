@@ -18,6 +18,29 @@
 namespace yaramod {
 
 /**
+ * Represents error during parsing.
+ */
+class ParserError : public std::exception
+{
+public:
+	ParserError(const std::string& errorMsg) : _errorMsg(errorMsg) {}
+	ParserError(const ParserError&) = default;
+
+	const std::string& getErrorMessage() const noexcept
+	{
+		return _errorMsg;
+	}
+
+	virtual const char* what() const noexcept override
+	{
+		return _errorMsg.c_str();
+	}
+
+private:
+	std::string _errorMsg;
+};
+
+/**
  * Specifies different parsing modes.
  */
 enum class ParserMode
@@ -39,9 +62,7 @@ public:
 	/// @name Constructors
 	/// @{
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
-	explicit ParserDriver(const std::string& filePath, std::ostream& error, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
-	explicit ParserDriver(std::istream& input, std::ostream& error, ParserMode parserMode = ParserMode::Regular);
 	/// @}
 
 	/// @name Destructor
@@ -56,7 +77,6 @@ public:
 	const yy::location& getLocation() const;
 	YaraFile& getParsedFile();
 	const YaraFile& getParsedFile() const;
-	std::ostream& getErrorStream();
 	/// @}
 
 	/// @name Parsing methods
@@ -116,7 +136,6 @@ private:
 	yy::Lexer _lexer; ///< Flex lexer
 	yy::Parser _parser; ///< Bison parser
 	yy::location _loc; ///< Location
-	std::ostream& _error; ///< Error stream
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names

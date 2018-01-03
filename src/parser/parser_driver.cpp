@@ -19,19 +19,8 @@ namespace yaramod {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : ParserDriver(filePath, std::cerr, parserMode)
-{
-}
-
-/**
- * Constructor.
- *
- * @param filePath Input file path.
- * @param error Output error stream.
- * @param parserMode Parsing mode.
- */
-ParserDriver::ParserDriver(const std::string& filePath, std::ostream& error, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
-	_loc(nullptr), _error(error), _valid(true), _filePath(filePath), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
+	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
@@ -41,7 +30,6 @@ ParserDriver::ParserDriver(const std::string& filePath, std::ostream& error, Par
 	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
 	if (!includeFileImpl(filePath))
 		_valid = false;
-
 }
 
 /**
@@ -50,19 +38,8 @@ ParserDriver::ParserDriver(const std::string& filePath, std::ostream& error, Par
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : ParserDriver(input, std::cerr, parserMode)
-{
-}
-
-/**
- * Constructor.
- *
- * @param input Input stream.
- * @param error Output error stream.
- * @param parserMode Parsing mode.
- */
-ParserDriver::ParserDriver(std::istream& input, std::ostream& error, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
-	_loc(nullptr), _error(error), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
+	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
@@ -97,16 +74,6 @@ yy::Parser& ParserDriver::getParser()
 const yy::location& ParserDriver::getLocation() const
 {
 	return _loc;
-}
-
-/**
- * Returns the output error stream.
- *
- * @return Error stream.
- */
-std::ostream& ParserDriver::getErrorStream()
-{
-	return _error;
 }
 
 /**
