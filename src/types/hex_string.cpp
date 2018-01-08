@@ -4,9 +4,8 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
-#include <tl-cpputils/string.h>
-
 #include "yaramod/types/hex_string.h"
+#include "yaramod/utils/utils.h"
 
 namespace yaramod {
 
@@ -68,7 +67,7 @@ std::string HexString::getPureText() const
 	}
 
 	// Remove last space from the result.
-	return tl_cpputils::trim(ss.str());
+	return trim(ss.str());
 }
 
 /**

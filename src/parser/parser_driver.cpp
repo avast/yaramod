@@ -6,10 +6,8 @@
 
 #include <string>
 
-#include <tl-cpputils/filesystem_path.h>
-#include <tl-cpputils/string.h>
-
 #include "yaramod/parser/parser_driver.h"
+#include "yaramod/utils/filesystem.h"
 
 namespace yaramod {
 
@@ -148,7 +146,7 @@ void ParserDriver::moveLocation(std::uint64_t moveLength)
 bool ParserDriver::includeFile(const std::string& includePath)
 {
 	auto totalPath = includePath;
-	if (tl_cpputils::FilesystemPath(includePath).isRelative())
+	if (pathIsRelative(includePath))
 	{
 		// We are not running ParserDriver from file input, just from some unnamed istream, therefore we need to forbid relative includes from
 		// the top of the istream hierarchy
@@ -157,11 +155,7 @@ bool ParserDriver::includeFile(const std::string& includePath)
 
 		// Take the topmost file path from the stack.
 		// This allows us to nest includes forming hierarchy of included files.
-		totalPath = tl_cpputils::FilesystemPath(_includedFileNames.back()).getParentPath() +
-			tl_cpputils::FilesystemPath::separator() +
-			includePath;
-
-		totalPath = tl_cpputils::FilesystemPath(totalPath).getAbsolutePath();
+		totalPath = absolutePath(joinPaths(parentPath(_includedFileNames.back()), includePath));
 	}
 
 	return includeFileImpl(totalPath);
@@ -214,7 +208,7 @@ bool ParserDriver::stringExists(const std::string& id) const
 		return false;
 
 	// Is wildcard identifier
-	if (tl_cpputils::endsWith(id, "*"))
+	if (endsWith(id, '*'))
 	{
 		auto idNonWild = id.substr(0, id.length() - 1);
 		return currentStrings->isPrefix(idNonWild);
@@ -308,7 +302,7 @@ void ParserDriver::removeLocalSymbol(const std::string& name)
 
 bool ParserDriver::isAlreadyIncluded(const std::string& includePath)
 {
-	return _includedFilesCache.find(tl_cpputils::FilesystemPath(includePath).getAbsolutePath()) != _includedFilesCache.end();
+	return _includedFilesCache.find(absolutePath(includePath)) != _includedFilesCache.end();
 }
 
 bool ParserDriver::includeFileImpl(const std::string& includePath)
@@ -325,7 +319,7 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)
 	_lexer.includeFile(includedFile.get());
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
-	_includedFilesCache.emplace(tl_cpputils::FilesystemPath(includePath).getAbsolutePath());
+	_includedFilesCache.emplace(absolutePath(includePath));
 	return true;
 }
 

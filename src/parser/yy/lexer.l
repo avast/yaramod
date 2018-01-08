@@ -7,10 +7,9 @@
 %{
 #include <cctype>
 
-#include <tl-cpputils/conversion.h>
-
 #include "yaramod/parser/lexer.h"
 #include "yaramod/parser/parser_driver.h"
+#include "yaramod/utils/utils.h"
 
 using namespace yaramod::yy;
 
@@ -143,7 +142,7 @@ whitespace  [ \v\r]
 <STR>\\a                  { _strLiteral += '\a'; }
 <STR>\\x{hexdigit}{2}     {
 	std::uint64_t num = 0;
-	tl_cpputils::strToNum(std::string(yytext + 2, yyleng - 2), num, std::hex);
+	strToNum(std::string(yytext + 2, yyleng - 2), num, std::hex);
 	_strLiteral += static_cast<char>(num);
 }
 <STR>\\\"                 { _strLiteral += '\"'; }
@@ -183,7 +182,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR_JUMP>{digit}*              {
 	std::string numStr = std::string(yytext, yyleng);
 	std::uint64_t num = 0;
-	tl_cpputils::strToNum(numStr, num, std::dec);
+	strToNum(numStr, num, std::dec);
 	return Parser::make_HEX_INTEGER(num, CURRENT_LOC);
 }
 <HEXSTR_JUMP>"-"                   { return Parser::make_DASH(CURRENT_LOC); }
@@ -215,12 +214,12 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 
 	std::uint64_t lowNum = 0;
 	nonstd::optional<std::uint64_t> low;
-	if (tl_cpputils::strToNum(lowStr, lowNum, std::dec))
+	if (strToNum(lowStr, lowNum, std::dec))
 		low = lowNum;
 
 	std::uint64_t highNum = 0;
 	nonstd::optional<std::uint64_t> high;
-	if (tl_cpputils::strToNum(highStr, highNum, std::dec))
+	if (strToNum(highStr, highNum, std::dec))
 		high = highNum;
 
 	return Parser::make_REGEXP_RANGE(std::make_pair(low, high), CURRENT_LOC);
@@ -230,7 +229,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 
 	nonstd::optional<std::uint64_t> range;
 	std::uint64_t num = 0;
-	if (tl_cpputils::strToNum(numStr, num, std::dec))
+	if (strToNum(numStr, num, std::dec))
 		range = num;
 
 	return Parser::make_REGEXP_RANGE(std::make_pair(range, range), CURRENT_LOC);

@@ -4,13 +4,11 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
-#include <tl-cpputils/conversion.h>
-#include <tl-cpputils/string.h>
-
 #include "yaramod/builder/yara_expression_builder.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/types/symbols.h"
+#include "yaramod/utils/utils.h"
 
 namespace yaramod {
 
@@ -491,7 +489,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(bool bigEndian)
  */
 YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult)
 {
-	std::string strValue = tl_cpputils::numToStr(value);
+	std::string strValue = numToStr(value);
 	switch (mult)
 	{
 		case IntMultiplier::Kilobytes:
@@ -517,7 +515,7 @@ YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult)
  */
 YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
 {
-	std::string strValue = tl_cpputils::numToStr(value);
+	std::string strValue = numToStr(value);
 	switch (mult)
 	{
 		case IntMultiplier::Kilobytes:
@@ -542,7 +540,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
  */
 YaraExpressionBuilder hexIntVal(std::uint64_t value)
 {
-	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(tl_cpputils::toHex(value, true)));
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(numToStr(value, std::hex, true)));
 }
 
 /**
@@ -603,7 +601,7 @@ YaraExpressionBuilder paren(const YaraExpressionBuilder& other, bool linebreak)
  */
 YaraExpressionBuilder stringRef(const std::string& id)
 {
-	if (tl_cpputils::endsWith(id, "*"))
+	if (endsWith(id, '*'))
 		return YaraExpressionBuilder(std::make_shared<StringWildcardExpression>(id));
 	else
 		return YaraExpressionBuilder(std::make_shared<StringExpression>(id));

@@ -6,9 +6,8 @@
 
 #include <iterator>
 
-#include <tl-cpputils/string.h>
-
 #include "yaramod/types/yara_file.h"
+#include "yaramod/utils/utils.h"
 
 namespace yaramod {
 
@@ -138,7 +137,7 @@ std::string YaraFile::getText() const
 		ss << rule->getText() << "\n\n";
 
 	// Remove last "\n\n" from the text.
-	return tl_cpputils::trim(ss.str());
+	return trim(ss.str());
 }
 
 /**

@@ -4,12 +4,11 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
-#include <tl-cpputils/conversion.h>
-
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
+#include "yaramod/utils/utils.h"
 
 namespace yaramod {
 
@@ -114,7 +113,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
  */
 YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value)
 {
-	_metas.emplace_back(key, Literal(tl_cpputils::numToStr(value), Literal::Type::Int));
+	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
 	return *this;
 }
 
@@ -128,7 +127,7 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
  */
 YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value)
 {
-	_metas.emplace_back(key, Literal(tl_cpputils::numToStr(value), Literal::Type::Int));
+	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
 	return *this;
 }
 
@@ -142,7 +141,7 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
  */
 YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value)
 {
-	_metas.emplace_back(key, Literal(tl_cpputils::toHex(value, true), Literal::Type::Int));
+	_metas.emplace_back(key, Literal(numToStr(value, std::hex, true), Literal::Type::Int));
 	return *this;
 }
 
