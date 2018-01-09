@@ -74,9 +74,9 @@ if(NOT TARGET yaramod)
 	target_include_directories(yaramod SYSTEM PUBLIC "${YARAMOD_DEPS_DIR}")
 
 	# Platform dependant defines.
-	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	if(WIN32)
 		target_compile_definitions(yaramod PRIVATE -DYARAMOD_OS_WINDOWS)
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	elseif(UNIX)
 		target_compile_definitions(yaramod PRIVATE -DYARAMOD_OS_LINUX)
 	endif()
 
