@@ -1,0 +1,52 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      compiler: gcc-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - build-essential
+            - gcc-4.9
+            - g++-4.9
+            - cmake
+            - flex
+            - bison
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && NPROC=$(nproc)"
+    - os: osx
+      osx_image: xcode8.3
+      env:
+        - MATRIX_EVAL="NPROC=$(sysctl -n hw.physicalcpu)"
+
+install:
+  # We need to install newer versions of Flex and Bison on MacOS X.
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison; fi
+
+before_script:
+  - eval "${MATRIX_EVAL}"
+  # We need to use newer versions of Flex and Bison on MacOS X (the ones from Homebrew).
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE_INCLUDE_PATH="/usr/local/opt/flex/include"; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE_LIBRARY_PATH="/usr/local/opt/flex/lib;/usr/local/opt/bison/lib"; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PATH="/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH"; fi
+
+script:
+  - mkdir build && cd build
+  - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="$(pwd)/install" -DYARAMOD_TESTS=ON ..
+  - cmake --build . -- -j $NPROC
+  - tests/yaramod_tests
+
+branches:
+  only:
+    # Pushes and PRs to the master branch.
+    - master
+    # Version tags.
+    - /^v?\d+\.\d+.*$/
+
+notifications:
+  email:
+    on_success: never
