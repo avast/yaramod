@@ -1,5 +1,7 @@
 # yaramod
 
+[![Build Status](https://travis-ci.org/avast-tl/yaramod.svg?branch=master)](https://travis-ci.org/avast-tl/yaramod)
+
 `yaramod` is a library that provides parsing of [YARA](https://github.com/VirusTotal/yara) rules into AST and a C++ programming interface to build new YARA rulesets. This project is not associated with the YARA project.
 
 ## Usage Example
