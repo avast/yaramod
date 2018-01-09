@@ -12,6 +12,8 @@
 #include <shlwapi.h>
 #else
 #include <libgen.h>
+#include <limits.h>
+#include <stdlib.h>
 #endif
 
 #include "yaramod/utils/filesystem.h"
@@ -27,7 +29,7 @@ std::string normalizePath(std::string path)
 	return endsWith(path, pathSeparator()) ? path.substr(0, path.length() - 1) : path;
 }
 
-#ifdef OS_WINDOWS
+#ifdef YARAMOD_OS_WINDOWS
 char pathSeparator()
 {
 	return '\\';
@@ -45,7 +47,16 @@ std::string parentPath(const std::string& path)
 	PathRemoveFileSpec(parentPathStr);
 	return parentPathStr;
 }
-#elif OS_LINUX
+
+std::string absolutePath(const std::string& path)
+{
+	char absolutePathStr[MAX_PATH] = { '\0' };
+	if (GetFullPathName(path.c_str(), MAX_PATH, absolutePathStr, nullptr) == 0)
+		return {};
+
+	return absolutePathStr;
+}
+#elif YARAMOD_OS_LINUX
 char pathSeparator()
 {
 	return '/';
@@ -67,6 +78,15 @@ std::string parentPath(const std::string& path)
 	delete[] copyPathStr;
 
 	return result;
+}
+
+std::string absolutePath(const std::string& path)
+{
+	char absolutePathStr[PATH_MAX] = { '\0' };
+	if (realpath(path.c_str(), absolutePathStr) == nullptr)
+		return {};
+
+	return absolutePathStr;
 }
 #endif
 
@@ -117,6 +137,18 @@ std::string parentPath(const std::string& path)
 std::string joinPaths(const std::string& first, const std::string& second)
 {
 	return detail::normalizePath(first) + pathSeparator() + detail::normalizePath(second);
+}
+
+/**
+ * Returns absolute path of the provided path. Does nothing if path is already absolute.
+ *
+ * @param path Path to convert.
+ *
+ * @return Absolute path.
+ */
+std::string absolutePath(const std::string& path)
+{
+	return detail::absolutePath(path);
 }
 
 }

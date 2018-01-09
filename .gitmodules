@@ -1,6 +1,0 @@
-[submodule "deps/googletest"]
-	path = deps/googletest
-	url = https://github.com/avast-tl/googletest
-[submodule "deps/tl-cpputils"]
-	path = deps/tl-cpputils
-	url = https://github.com/avast-tl/tl-cpputils

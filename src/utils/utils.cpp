@@ -82,4 +82,37 @@ std::string escapeString(const std::string& str)
 	return result;
 }
 
+bool endsWith(const std::string& str, const std::string& withWhat)
+{
+	return (str.length() >= withWhat.length()) &&
+		(str.compare(str.length() - withWhat.length(), withWhat.length(), withWhat) == 0);
+}
+
+bool endsWith(const std::string& str, char withWhat)
+{
+	return !str.empty() && str.back() == withWhat;
+}
+
+std::string trim(std::string str)
+{
+	// Based on
+	// http://www.codeproject.com/Articles/10880/A-trim-implementation-for-std-string
+	const std::string toTrim = " \n\r\t\v";
+	std::string::size_type pos = str.find_last_not_of(toTrim);
+	if (pos != std::string::npos)
+	{
+		str.erase(pos + 1);
+		pos = str.find_first_not_of(toTrim);
+		if (pos != std::string::npos)
+			str.erase(0, pos);
+	}
+	else
+	{
+		str.erase(str.begin(), str.end());
+	}
+
+	return str;
+}
+
+
 }

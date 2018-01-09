@@ -23,6 +23,7 @@ set(SOURCES
 	types/plain_string.cpp
 	types/rule.cpp
 	types/yara_file.cpp
+	utils/filesystem.cpp
 	utils/utils.cpp
 	yaramod.cpp
 )
@@ -60,9 +61,6 @@ if(NOT TARGET yaramod)
 	# Library
 	add_library(yaramod ${SOURCES})
 
-	# Linking
-	target_link_libraries(yaramod tl-cpputils)
-
 	# Library includes and interface.
 	target_include_directories(yaramod PRIVATE "${YARAMOD_INCLUDE_DIR}")
 	target_include_directories(yaramod SYSTEM INTERFACE "${YARAMOD_INCLUDE_DIR}")
@@ -74,6 +72,13 @@ if(NOT TARGET yaramod)
 	# least for MSVC 2015):
 	target_include_directories(yaramod SYSTEM PUBLIC "${FLEX_INCLUDE_DIRS}")
 	target_include_directories(yaramod SYSTEM PUBLIC "${YARAMOD_DEPS_DIR}")
+
+	# Platform dependant defines.
+	if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		target_compile_definitions(yaramod PRIVATE -DYARAMOD_OS_WINDOWS)
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		target_compile_definitions(yaramod PRIVATE -DYARAMOD_OS_LINUX)
+	endif()
 
 	# Linking.
 	if(WIN32)
