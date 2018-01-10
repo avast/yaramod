@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
-#ifdef OS_WINDOWS
+#ifdef YARAMOD_OS_WINDOWS
 #include <windows.h>
 #include <shlwapi.h>
 #else
