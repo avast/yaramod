@@ -1,6 +1,7 @@
 language: cpp
 
 matrix:
+  fast_finish: true
   include:
     - os: linux
       dist: trusty
