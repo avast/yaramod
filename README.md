@@ -12,6 +12,7 @@ See the [wiki](https://github.com/avast-tl/yaramod/wiki).
 ## Requirements
 
 * C++ compiler with C++14 support
+  * On Windows, only Microsoft Visual C++ is supported (version >= Visual Studio 2015).
 * CMake (version >= 3.6)
 * Flex 2.6+
 * Bison 3.0+
