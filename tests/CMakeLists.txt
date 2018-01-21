@@ -11,14 +11,12 @@ set(SOURCES
 )
 
 if(NOT TARGET yaramod_tests)
-
 	# Executable.
 	add_executable(yaramod_tests ${SOURCES})
-	
+
 	# Linking.
 	target_link_libraries(yaramod_tests yaramod gtest gtest_main)
-	
+
 	# Includes.
 	target_include_directories(yaramod_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 endif()

@@ -1,8 +1,6 @@
-
 cmake_minimum_required(VERSION 3.6)
 
 if (NOT TARGET googletest)
-
 	find_package(Threads REQUIRED)
 
 	include(ExternalProject)
@@ -75,5 +73,4 @@ if (NOT TARGET googletest)
 	target_link_libraries(gmock_main INTERFACE optimized ${binary_dir}/googlemock/${RELEASE_DIR}${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} ${CMAKE_THREAD_LIBS_INIT})
 	target_include_directories(gmock_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
 	add_dependencies(gmock_main googletest)
-
 endif()

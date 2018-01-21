@@ -29,7 +29,6 @@ set(SOURCES
 )
 
 if(NOT TARGET yaramod)
-
 	# Setup automatic generation of lexer and parser source files.
 	FLEX_TARGET(YaraLexer parser/yy/lexer.l "${CMAKE_CURRENT_BINARY_DIR}/yy_lexer.cpp")
 	BISON_TARGET(YaraParser parser/yy/parser.y "${CMAKE_CURRENT_BINARY_DIR}/yy_parser.cpp")
