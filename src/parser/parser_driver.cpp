@@ -191,6 +191,18 @@ bool ParserDriver::ruleExists(const std::string& name) const
 }
 
 /**
+ * Adds the rule into the YARA file and properly sets up its location.
+ *
+ * @param rule Rule to add.
+ */
+void ParserDriver::addRule(Rule&& rule)
+{
+	if (!_includedFileNames.empty())
+		rule.setLocation(_includedFileNames.back());
+	_file.addRule(std::move(rule));
+}
+
+/**
  * Returns whether string with given identifier already exists in the current rule context.
  *
  * @param id Identifier of the string.

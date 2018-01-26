@@ -69,11 +69,13 @@ public:
 	const std::vector<std::string>& getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
+	const std::string& getLocation() const;
 	/// @}
 
 	/// @name Setter methods
 	/// @{
 	void setCondition(const std::shared_ptr<Expression>& condition);
+	void setLocation(const std::string& location);
 	/// @}
 
 	/// @name Detection methods
@@ -95,6 +97,7 @@ private:
 	std::shared_ptr<Expression> _condition; ///< Condition expression
 	std::vector<std::string> _tags; ///< Tags
 	std::shared_ptr<Symbol> _symbol; ///< Symbol representing rule
+	std::string _location; ///< Which file was this rule included from
 };
 
 }

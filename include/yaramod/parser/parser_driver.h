@@ -105,6 +105,7 @@ protected:
 	/// @name Methods for handling rules
 	/// @{
 	bool ruleExists(const std::string& name) const;
+	void addRule(Rule&& rule);
 	/// @}
 
 	/// @name Methods for handling strings

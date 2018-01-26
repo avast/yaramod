@@ -25,7 +25,8 @@ namespace yaramod {
 Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		std::shared_ptr<Expression>&& condition, std::vector<std::string>&& tags)
 	: _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
-		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool))
+		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
+		_location("[stream]")
 {
 }
 
@@ -189,6 +190,19 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
 }
 
 /**
+ * Returns the absolute path of a file in which this rule was located.
+ * Returns "[stream]" in case this rule was parsed from input stream and not a file,
+ * or if this file was created with `YaraRuleBuilder`.
+ *
+ * @return Location of the rule.
+ */
+const std::string& Rule::getLocation() const
+{
+	return _location;
+}
+
+
+/**
  * Sets the condition expression of the YARA rule.
  *
  * @param condition Condition expression.
@@ -196,6 +210,16 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
 void Rule::setCondition(const std::shared_ptr<Expression>& condition)
 {
 	_condition = condition;
+}
+
+/**
+ * Sets the location of the rule.
+ *
+ * @param location Location to set.
+ */
+void Rule::setLocation(const std::string& location)
+{
+	_location = location;
 }
 
 /**

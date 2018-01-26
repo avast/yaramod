@@ -220,7 +220,7 @@ rule
 		}
 		tags LCB metas strings condition RCB
 		{
-			driver._file.addRule(Rule(std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver.addRule(Rule(std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
 		}
 	;
 
