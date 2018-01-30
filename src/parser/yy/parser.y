@@ -210,7 +210,11 @@ import
 	;
 
 rule
-	: rule_mod RULE ID[id]
+	: rule_mod RULE
+		{
+			driver.markStartOfRule();
+		}
+		ID[id]
 		{
 			if (driver.ruleExists($id))
 			{

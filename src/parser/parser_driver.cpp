@@ -170,7 +170,12 @@ bool ParserDriver::includeFile(const std::string& includePath)
 bool ParserDriver::includeEnd()
 {
 	if (!_includedFileNames.empty())
+	{
 		_includedFileNames.pop_back();
+		_loc = _includedFileLocs.back();
+		_includedFileLocs.pop_back();
+	}
+
 	return _lexer.includeEnd();
 }
 
@@ -198,8 +203,16 @@ bool ParserDriver::ruleExists(const std::string& name) const
 void ParserDriver::addRule(Rule&& rule)
 {
 	if (!_includedFileNames.empty())
-		rule.setLocation(_includedFileNames.back());
+		rule.setLocation(_includedFileNames.back(), _startOfRule);
 	_file.addRule(std::move(rule));
+}
+
+/**
+ * Marks the line number where the rule starts.
+ */
+void ParserDriver::markStartOfRule()
+{
+	_startOfRule = getLocation().end.line;
 }
 
 /**
@@ -331,7 +344,12 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)
 	_lexer.includeFile(includedFile.get());
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
+	_includedFileLocs.push_back(_loc);
 	_includedFilesCache.emplace(absolutePath(includePath));
+
+	// Reset location se we can keep track of line numbers in included files
+	_loc.begin.initialize(_loc.begin.filename, 1, 1);
+	_loc.end.initialize(_loc.end.filename, 1, 1);
 	return true;
 }
 

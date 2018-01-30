@@ -26,7 +26,7 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 		std::shared_ptr<Expression>&& condition, std::vector<std::string>&& tags)
 	: _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
 		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
-		_location("[stream]")
+		_location({"[stream]", 0})
 {
 }
 
@@ -196,7 +196,7 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
  *
  * @return Location of the rule.
  */
-const std::string& Rule::getLocation() const
+const Rule::Location& Rule::getLocation() const
 {
 	return _location;
 }
@@ -217,9 +217,9 @@ void Rule::setCondition(const std::shared_ptr<Expression>& condition)
  *
  * @param location Location to set.
  */
-void Rule::setLocation(const std::string& location)
+void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
 {
-	_location = location;
+	_location = { filePath, lineNumber };
 }
 
 /**

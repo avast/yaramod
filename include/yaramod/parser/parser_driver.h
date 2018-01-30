@@ -106,6 +106,7 @@ protected:
 	/// @{
 	bool ruleExists(const std::string& name) const;
 	void addRule(Rule&& rule);
+	void markStartOfRule();
 	/// @}
 
 	/// @name Methods for handling strings
@@ -140,6 +141,7 @@ private:
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
+	std::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
 	std::unordered_set<std::string> _includedFilesCache; ///< Cache of already included files
 
 	bool _valid; ///< Validity
@@ -151,6 +153,8 @@ private:
 	std::weak_ptr<Rule::StringsTrie> _currentStrings; ///< Context storage of current strings trie
 	bool _stringLoop; ///< Context storage of for loop indicator
 	std::unordered_map<std::string, std::shared_ptr<Symbol>> _localSymbols; ///< Context storage of local symbols
+
+	std::uint64_t _startOfRule; ///< Holds the line number where the last parsed rule starts
 };
 
 }
