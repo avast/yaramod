@@ -1,3 +1,7 @@
 /doc/html/
 /doc/doxygen.log
 /build/
+
+dist/
+env/
+*.egg-info/
