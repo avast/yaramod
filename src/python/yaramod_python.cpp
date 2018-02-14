@@ -67,24 +67,30 @@ void addEnums(py::module& module)
 		.value("None", IntMultiplier::None)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
+
+	py::enum_<Rule::Modifier>(module, "RuleModifier")
+		.value("None", Rule::Modifier::None)
+		.value("Global", Rule::Modifier::Global)
+		.value("Private", Rule::Modifier::Private);
+
+	py::enum_<String::Modifiers>(module, "StringModifiers", py::arithmetic())
+		.value("None", String::Modifiers::None)
+		.value("Ascii", String::Modifiers::Ascii)
+		.value("Wide", String::Modifiers::Wide)
+		.value("Nocase", String::Modifiers::Nocase)
+		.value("Fullword", String::Modifiers::Fullword)
+		.export_values();
 }
 
 void addBasicClasses(py::module& module)
 {
 	py::class_<YaraFile>(module, "YaraFile")
-		.def_property_readonly("rules",
-				[](const YaraFile& self) {
-					// It is impossible to return vector of unique_ptrs in pybind11 so we need to transform it
-					// into vector of pointer and let Python make its own copy.
-					std::vector<Rule*> result;
-					std::transform(self.getRules().begin(), self.getRules().end(), std::back_inserter(result),
-							[](const auto& rule) {
-								return rule.get();
-							});
-					return result;
-				}, py::return_value_policy::reference);
+		.def_property_readonly("text", &YaraFile::getText)
+		.def_property_readonly("rules", &YaraFile::getRules)
+		.def_property_readonly("imports", &YaraFile::getImports);
 
-	py::class_<Rule>(module, "Rule")
+	py::class_<Rule, std::shared_ptr<Rule>>(module, "Rule")
+		.def_property_readonly("text", &Rule::getText)
 		.def_property_readonly("name", &Rule::getName)
 		.def_property_readonly("metas", &Rule::getMetas)
 		.def_property_readonly("condition", &Rule::getCondition);
@@ -96,6 +102,9 @@ void addBasicClasses(py::module& module)
 	py::class_<Literal>(module, "Literal")
 		.def_property_readonly("text", &Literal::getText)
 		.def_property_readonly("pure_text", &Literal::getPureText);
+
+	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
+		.def_property_readonly("name", &Module::getName);
 }
 
 void addExpressionClasses(py::module& module)
@@ -200,6 +209,33 @@ void addExpressionClasses(py::module& module)
 
 void addBuilderClasses(py::module& module)
 {
+	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
+		.def(py::init<>())
+		.def("get", &YaraFileBuilder::get, py::arg("recheck") = false)
+		.def("with_module", &YaraFileBuilder::withModule)
+		.def("with_rule", [](YaraFileBuilder& self, const Rule& rule) {
+				return self.withRule(Rule{rule});
+			});
+
+	py::class_<YaraRuleBuilder>(module, "YaraRuleBuilder")
+		.def(py::init<>())
+		.def("get", [](YaraRuleBuilder& self) {
+				// We use unique_ptr in YaraRuleBuilder::get() but pybind does not support unique_ptrs in return values
+				return std::shared_ptr<Rule>(self.get());
+			})
+		.def("with_name", &YaraRuleBuilder::withName)
+		.def("with_modifier", &YaraRuleBuilder::withModifier)
+		.def("with_tag", &YaraRuleBuilder::withTag)
+		.def("with_string_meta", &YaraRuleBuilder::withStringMeta)
+		.def("with_int_meta", &YaraRuleBuilder::withIntMeta)
+		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
+		.def("with_hex_int_meta", &YaraRuleBuilder::withHexIntMeta)
+		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
+		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"), py::arg("mods") = String::Modifiers::Ascii)
+		.def("with_hex_string", &YaraRuleBuilder::withHexString)
+		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = "", py::arg("mods") = String::Modifiers::Ascii)
+		.def("with_condition", py::overload_cast<const std::shared_ptr<Expression>&>(&YaraRuleBuilder::withCondition));
+
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
 		.def(py::init<>())
 		.def(py::init<const std::shared_ptr<Expression>&>())
