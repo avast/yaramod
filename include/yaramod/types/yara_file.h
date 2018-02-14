@@ -36,15 +36,16 @@ public:
 	bool addImport(const std::string& import);
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
+	void addRule(const std::shared_ptr<Rule>& rule);
+	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
 	bool addImports(const std::vector<std::string>& imports);
-	void addRules(std::vector<std::unique_ptr<Rule>>&& rules);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	/// @}
 
 	/// @name Getter methods
 	/// @{
 	const std::vector<std::shared_ptr<Module>>& getImports() const;
-	const std::vector<std::unique_ptr<Rule>>& getRules() const;
+	const std::vector<std::shared_ptr<Rule>>& getRules() const;
 	/// @}
 
 	/// @name Removing methods
@@ -77,7 +78,7 @@ public:
 
 private:
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
-	std::vector<std::unique_ptr<Rule>> _rules; ///< Rules
+	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 
 	static const std::vector<std::shared_ptr<Symbol>> globalVariables; ///< Global variables
 };

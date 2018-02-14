@@ -187,6 +187,26 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
 }
 
 /**
+ * Adds the rule to the YARA file.
+ *
+ * @param rule Rule to add.
+ */
+void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
+{
+	_rules.emplace_back(rule);
+}
+
+/**
+ * Adds the rules to the YARA file.
+ *
+ * @param rules Rules to add.
+ */
+void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
+{
+	std::copy(rules.begin(), rules.end(), std::back_inserter(_rules));
+}
+
+/**
  * Adds the imports of the modules to the YARA file. Modules need
  * to exist and be defined in @c types/modules folder.
  *
@@ -203,16 +223,6 @@ bool YaraFile::addImports(const std::vector<std::string>& imports)
 	}
 
 	return true;
-}
-
-/**
- * Adds the rules to the YARA file.
- *
- * @param rules Rules to add.
- */
-void YaraFile::addRules(std::vector<std::unique_ptr<Rule>>&& rules)
-{
-	std::move(rules.begin(), rules.end(), std::back_inserter(_rules));
 }
 
 /**
@@ -242,7 +252,7 @@ const std::vector<std::shared_ptr<Module>>& YaraFile::getImports() const
  *
  * @return All rules.
  */
-const std::vector<std::unique_ptr<Rule>>& YaraFile::getRules() const
+const std::vector<std::shared_ptr<Rule>>& YaraFile::getRules() const
 {
 	return _rules;
 }

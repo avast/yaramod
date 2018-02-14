@@ -20,7 +20,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
 {
 	auto yaraFile = std::make_unique<YaraFile>();
 	yaraFile->addImports(_modules);
-	yaraFile->addRules(std::move(_rules));
+	yaraFile->addRules(_rules);
 
 	_modules.clear();
 	_rules.clear();
@@ -85,6 +85,19 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
 	_rules.emplace_back(std::move(rule));
+	return *this;
+}
+
+/**
+ * Adds rule to YARA file.
+ *
+ * @param rule Rule.
+ *
+ * @return Builder.
+ */
+YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
+{
+	_rules.emplace_back(rule);
 	return *this;
 }
 

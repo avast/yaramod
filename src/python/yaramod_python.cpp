@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 
 #include <yaramod/builder/yara_expression_builder.h>
+#include <yaramod/builder/yara_rule_builder.h>
 #include <yaramod/yaramod.h>
 
 #include "py_visitor.h"
