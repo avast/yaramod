@@ -35,6 +35,31 @@ build_script:
 test_script:
   - cmd: tests\%configuration%\yaramod_tests.exe
 
+branches:
+  only:
+    # Pushes and PRs to the master branch.
+    - master
+    # Version tags.
+    - /^v?\d+\.\d+.*$/
+
+skip_commits:
+  files:
+    # Exact files.
+    - .travis.yml
+    - LICENSE
+    - LICENSE-THIRD-PARTY
+    # All .gitignore files within repository.
+    - '**/.gitignore'
+    # All *.md files within repository.
+    - '**/*.md'
+    # All README files within repository.
+    - '**/README'
+    - '**/README.txt'
+    - '**/readme'
+    - '**/readme.txt'
+    # All files within doc directory, recursive.
+    - doc/
+
 notifications:
   - provider: Email
     to:
