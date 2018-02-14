@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <yaramod/builder/yara_expression_builder.h>
 #include <yaramod/yaramod.h>
 
 #include "py_visitor.h"
@@ -60,9 +61,14 @@ void addEnums(py::module& module)
 	py::enum_<ParserMode>(module, "ParserMode")
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
+
+	py::enum_<IntMultiplier>(module, "IntMultiplier")
+		.value("None", IntMultiplier::None)
+		.value("Kilobytes", IntMultiplier::Kilobytes)
+		.value("Megabytes", IntMultiplier::Megabytes);
 }
 
-void addClasses(py::module& module)
+void addBasicClasses(py::module& module)
 {
 	py::class_<YaraFile>(module, "YaraFile")
 		.def_property_readonly("rules",
@@ -89,7 +95,10 @@ void addClasses(py::module& module)
 	py::class_<Literal>(module, "Literal")
 		.def_property_readonly("text", &Literal::getText)
 		.def_property_readonly("pure_text", &Literal::getPureText);
+}
 
+void addExpressionClasses(py::module& module)
+{
 	py::class_<Visitee, std::shared_ptr<Visitee>>(module, "Visitee")
 		.def("accept", &Visitee::accept);
 	py::class_<Expression, Visitee, std::shared_ptr<Expression>>(module, "Expression")
@@ -188,6 +197,99 @@ void addClasses(py::module& module)
 		.def_property_readonly("regexp_string", &RegexpExpression::getRegexpString);
 }
 
+void addBuilderClasses(py::module& module)
+{
+	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
+		.def(py::init<>())
+		.def(py::init<const std::shared_ptr<Expression>&>())
+		.def("get", &YaraExpressionBuilder::get)
+		.def("__invert__", &YaraExpressionBuilder::operator~)
+		.def("__neg__", py::overload_cast<>(&YaraExpressionBuilder::operator-))
+		.def("__eq__", &YaraExpressionBuilder::operator==)
+		.def("__neq__", &YaraExpressionBuilder::operator!=)
+		.def("__lt__", &YaraExpressionBuilder::operator<)
+		.def("__gt__", &YaraExpressionBuilder::operator>)
+		.def("__le__", &YaraExpressionBuilder::operator<=)
+		.def("__ge__", &YaraExpressionBuilder::operator>=)
+		.def("__add__", &YaraExpressionBuilder::operator+)
+		.def("__sub__", py::overload_cast<const YaraExpressionBuilder&>(&YaraExpressionBuilder::operator-))
+		.def("__mul__", &YaraExpressionBuilder::operator*)
+		.def("__truediv__", &YaraExpressionBuilder::operator/)
+		.def("__mod__", &YaraExpressionBuilder::operator%)
+		.def("__xor__", &YaraExpressionBuilder::operator^)
+		.def("__and__", &YaraExpressionBuilder::operator&)
+		.def("__or__", &YaraExpressionBuilder::operator|)
+		.def("__lshift__", &YaraExpressionBuilder::operator<<)
+		.def("__rshift__", &YaraExpressionBuilder::operator>>)
+		.def("__call__", [](YaraExpressionBuilder& self, py::args args) {
+				std::vector<YaraExpressionBuilder> call_args;
+				std::transform(args.begin(), args.end(), std::back_inserter(call_args),
+						[](const auto& obj) {
+							return py::cast<YaraExpressionBuilder>(obj);
+						});
+				return self.call(call_args);
+			})
+		.def("__getitem__", &YaraExpressionBuilder::operator[])
+		.def("access", &YaraExpressionBuilder::access)
+		.def("contains", &YaraExpressionBuilder::contains)
+		.def("matches", &YaraExpressionBuilder::matches)
+		.def("read_int8", &YaraExpressionBuilder::readInt8)
+		.def("read_int16", &YaraExpressionBuilder::readInt16)
+		.def("read_int32", &YaraExpressionBuilder::readInt32)
+		.def("read_uint8", &YaraExpressionBuilder::readUInt8)
+		.def("read_uint16", &YaraExpressionBuilder::readUInt16)
+		.def("read_uint32", &YaraExpressionBuilder::readUInt32);
+
+	module.def("not_", [](YaraExpressionBuilder& exprBuilder) {
+				return !exprBuilder;
+			});
+
+	module.def("int_val", &intVal, py::arg("value"), py::arg("mult") = IntMultiplier::None);
+	module.def("uint_val", &uintVal, py::arg("value"), py::arg("mult") = IntMultiplier::None);
+	module.def("hex_int_val", &hexIntVal);
+	module.def("string_val", &stringVal);
+	module.def("bool_val", &boolVal);
+
+	module.def("id", &id);
+	module.def("paren", &paren);
+
+	module.def("string_ref", &stringRef);
+	module.def("match_count", py::overload_cast<const std::string&>(&matchCount));
+	module.def("match_length", py::overload_cast<const std::string&>(&matchLength));
+	module.def("match_offset", py::overload_cast<const std::string&>(&matchOffset));
+	module.def("match_length", py::overload_cast<const std::string&, const YaraExpressionBuilder&>(&matchLength));
+	module.def("match_offset", py::overload_cast<const std::string&, const YaraExpressionBuilder&>(&matchOffset));
+	module.def("match_at", py::overload_cast<const std::string&, const YaraExpressionBuilder&>(&matchAt));
+	module.def("match_in_range", py::overload_cast<const std::string&, const YaraExpressionBuilder&>(&matchInRange));
+
+	module.def("for_loop", py::overload_cast<
+			const YaraExpressionBuilder&,
+			const std::string&,
+			const YaraExpressionBuilder&,
+			const YaraExpressionBuilder&
+		>(&forLoop));
+	module.def("for_loop", py::overload_cast<
+			const YaraExpressionBuilder&,
+			const YaraExpressionBuilder&,
+			const YaraExpressionBuilder&
+		>(&forLoop));
+	module.def("of", &of);
+
+	module.def("set", &set);
+	module.def("range", &range);
+
+	module.def("conjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&conjunction), py::arg("terms"), py::arg("linebreaks") = false);
+	module.def("disjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&disjunction), py::arg("terms"), py::arg("linebreaks") = false);
+
+	module.def("filesize", &filesize);
+	module.def("entrypoint", &entrypoint);
+	module.def("all", &all);
+	module.def("any", &any);
+	module.def("them", &them);
+
+	module.def("regexp", &regexp);
+}
+
 void addMainFunctions(py::module& module)
 {
 	module.def("parse_file", &parseFile);
@@ -197,7 +299,9 @@ void addMainFunctions(py::module& module)
 PYBIND11_MODULE(yaramod, module)
 {
 	addEnums(module);
-	addClasses(module);
+	addBasicClasses(module);
+	addExpressionClasses(module);
 	addMainFunctions(module);
 	addVisitorClasses(module);
+	addBuilderClasses(module);
 }
