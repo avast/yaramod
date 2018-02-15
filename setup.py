@@ -34,12 +34,17 @@ class BuildExtCommand(build_ext):
         os.makedirs(build_dir, exist_ok=True)
 
         with WorkingDirectory(build_dir):
-            subprocess.check_call(['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON', root_dir])
+            configure_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON', root_dir]
             build_cmd = ['cmake', '--build', '.', '--']
             if 'win' in self.plat_name:
+                if self.plat_name == 'win-amd64':
+                    configure_cmd.extend(['-A', 'x64'])
+                elif self.plat_name == 'win32':
+                    configure_cmd.extend(['-A', 'x86'])
                 build_cmd.append('/m{}'.format(os.cpu_count()))
             else:
                 build_cmd.append('-j{}'.format(os.cpu_count()))
+            subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
 
 setup(
