@@ -238,6 +238,18 @@ void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 }
 
 /**
+ * Insert single rule at the specified position to the YARA file.
+ *
+ * @param position Position to insert rule at.
+ * @param rule Rule to insert.
+ */
+void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rule)
+{
+	position = std::min(position, _rules.size());
+	_rules.insert(_rules.begin() + position, rule);
+}
+
+/**
  * Returns all imported modules from the YARA file in order they were added.
  *
  * @return All imported modules.

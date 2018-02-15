@@ -2,6 +2,7 @@
 #include <iterator>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
 #include <yaramod/builder/yara_expression_builder.h>
@@ -80,6 +81,15 @@ void addEnums(py::module& module)
 		.value("Nocase", String::Modifiers::Nocase)
 		.value("Fullword", String::Modifiers::Fullword)
 		.export_values();
+
+	py::enum_<Expression::Type>(module, "ExpressionType")
+		.value("Undefined", Expression::Type::Undefined)
+		.value("Bool", Expression::Type::Bool)
+		.value("Int", Expression::Type::Int)
+		.value("String", Expression::Type::String)
+		.value("Regexp", Expression::Type::Regexp)
+		.value("Object", Expression::Type::Object)
+		.value("Float", Expression::Type::Float);
 }
 
 void addBasicClasses(py::module& module)
@@ -87,13 +97,22 @@ void addBasicClasses(py::module& module)
 	py::class_<YaraFile>(module, "YaraFile")
 		.def_property_readonly("text", &YaraFile::getText)
 		.def_property_readonly("rules", &YaraFile::getRules)
-		.def_property_readonly("imports", &YaraFile::getImports);
+		.def_property_readonly("imports", &YaraFile::getImports)
+		.def("find_symbol", &YaraFile::findSymbol)
+		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
+		.def("remove_rules", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Rule>&)>& pred) {
+				self.removeRules(pred);
+			})
+		.def("remove_imports", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Module>&)>& pred) {
+				self.removeImports(pred);
+			});
 
 	py::class_<Rule, std::shared_ptr<Rule>>(module, "Rule")
 		.def_property_readonly("text", &Rule::getText)
 		.def_property_readonly("name", &Rule::getName)
 		.def_property_readonly("metas", &Rule::getMetas)
-		.def_property_readonly("condition", &Rule::getCondition);
+		.def_property("condition", &Rule::getCondition, &Rule::setCondition)
+		.def_property_readonly("is_private", &Rule::isPrivate);
 
 	py::class_<Meta>(module, "Meta")
 		.def_property_readonly("key", &Meta::getKey)
@@ -105,6 +124,24 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
+
+	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
+		.def_property_readonly("name", &Symbol::getName)
+		.def_property_readonly("data_type", &Symbol::getDataType)
+		.def_property_readonly("is_value", &Symbol::isValue)
+		.def_property_readonly("is_array", &Symbol::isArray)
+		.def_property_readonly("is_dictionary", &Symbol::isDictionary)
+		.def_property_readonly("is_function", &Symbol::isFunction)
+		.def_property_readonly("is_structure", &Symbol::isStructure);
+
+	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
+	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
+	py::class_<DictionarySymbol, Symbol, std::shared_ptr<DictionarySymbol>>(module, "DictionarySymbol");
+	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol");
+	py::class_<StructureSymbol, Symbol, std::shared_ptr<StructureSymbol>>(module, "StructureSymbol")
+		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
+				return self.getAttribute(name).value_or(nullptr);
+			});
 }
 
 void addExpressionClasses(py::module& module)

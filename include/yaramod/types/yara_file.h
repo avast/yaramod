@@ -40,6 +40,7 @@ public:
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
 	bool addImports(const std::vector<std::string>& imports);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
+	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}
 
 	/// @name Getter methods
