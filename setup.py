@@ -41,7 +41,7 @@ class BuildExtCommand(build_ext):
                     configure_cmd.extend(['-A', 'x64'])
                 elif self.plat_name == 'win32':
                     configure_cmd.extend(['-A', 'x86'])
-                build_cmd.append('/m:{}'.format(os.cpu_count()))
+                build_cmd.extend(['/m:{}'.format(os.cpu_count()), '/p:Configuration=Release'])
             else:
                 build_cmd.append('-j{}'.format(os.cpu_count()))
             subprocess.check_call(configure_cmd)
