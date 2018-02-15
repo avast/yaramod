@@ -396,8 +396,12 @@ void addBuilderClasses(py::module& module)
 
 void addMainFunctions(py::module& module)
 {
-	module.def("parse_file", &parseFile);
-	module.def("parse_stream", &parseStream);
+	module.def("parse_file", &parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular);
+	module.def("parse_string",
+			[](const std::string& str, ParserMode parserMode) {
+				std::istringstream stream(str);
+				return parseStream(stream, parserMode);
+			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular);
 }
 
 PYBIND11_MODULE(yaramod, module)
