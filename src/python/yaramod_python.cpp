@@ -18,15 +18,15 @@ using namespace yaramod;
 
 namespace pybind11 { namespace detail {
 
-template<>
-struct type_caster<std::vector<Rule*>> : list_caster<std::vector<Rule*>, Rule*>
+template <>
+struct type_caster<std::vector<const String*>> : list_caster<std::vector<const String*>, const String*>
 {
-	static handle cast(const std::vector<Rule*>& src, return_value_policy, handle parent)
+	static handle cast(const std::vector<const String*>& src, return_value_policy, handle parent)
 	{
-		return list_caster<std::vector<Rule*>, Rule*>::cast(src, return_value_policy::reference, parent);
+		return list_caster<std::vector<const String*>, const String*>::cast(src, return_value_policy::reference, parent);
 	}
 
-	static handle cast(const std::vector<Rule*>* src, return_value_policy pol, handle parent)
+	static handle cast(const std::vector<const String*>* src, return_value_policy pol, handle parent)
 	{
 		return cast(*src, pol, parent);
 	}
@@ -74,6 +74,11 @@ void addEnums(py::module& module)
 		.value("Global", Rule::Modifier::Global)
 		.value("Private", Rule::Modifier::Private);
 
+	py::enum_<String::Type>(module, "StringType")
+		.value("Plain", String::Type::Plain)
+		.value("Hex", String::Type::Hex)
+		.value("Regexp", String::Type::Regexp);
+
 	py::enum_<String::Modifiers>(module, "StringModifiers", py::arithmetic())
 		.value("None", String::Modifiers::None)
 		.value("Ascii", String::Modifiers::Ascii)
@@ -111,8 +116,19 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text", &Rule::getText)
 		.def_property_readonly("name", &Rule::getName)
 		.def_property_readonly("metas", &Rule::getMetas)
+		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
+		.def_property_readonly("tags", &Rule::getTags)
+		.def_property_readonly("modifier", &Rule::getModifier)
+		.def_property_readonly("is_private", &Rule::isPrivate)
+		.def_property_readonly("is_global", &Rule::isGlobal)
+		.def_property_readonly("location", &Rule::getLocation)
+		.def_property_readonly("symbol", &Rule::getSymbol)
 		.def_property("condition", &Rule::getCondition, &Rule::setCondition)
-		.def_property_readonly("is_private", &Rule::isPrivate);
+		.def("remove_string", &Rule::removeString);
+
+	py::class_<Rule::Location>(module, "RuleLocation")
+		.def_readonly("file_path", &Rule::Location::filePath)
+		.def_readonly("line_number", &Rule::Location::lineNumber);
 
 	py::class_<Meta>(module, "Meta")
 		.def_property_readonly("key", &Meta::getKey)
@@ -124,6 +140,20 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
+
+	py::class_<String>(module, "String")
+		.def_property_readonly("text", &String::getText)
+		.def_property_readonly("pure_text", &String::getPureText)
+		.def_property_readonly("type", &String::getType)
+		.def_property_readonly("identifier", &String::getIdentifier)
+		.def_property_readonly("is_plain", &String::isPlain)
+		.def_property_readonly("is_plain", &String::isHex)
+		.def_property_readonly("is_regexp", &String::isRegexp)
+		.def_property_readonly("is_ascii", &String::isAscii)
+		.def_property_readonly("is_wide", &String::isWide)
+		.def_property_readonly("is_fullword", &String::isFullword)
+		.def_property_readonly("is_nocase", &String::isNocase)
+		.def_property_readonly("modifiers_text", &String::getModifiersText);
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)
