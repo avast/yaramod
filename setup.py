@@ -34,8 +34,13 @@ class BuildExtCommand(build_ext):
         os.makedirs(build_dir, exist_ok=True)
 
         with WorkingDirectory(build_dir):
-            subprocess.check_call(['cmake', '-DCMAKE_BUILD_TYPE=Debug', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON', root_dir])
-            subprocess.check_call(['cmake', '--build', '.'])
+            subprocess.check_call(['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON', root_dir])
+            build_cmd = ['cmake', '--build', '.', '--']
+            if 'win' in self.plat_name:
+                build_cmd.append('/m{}'.format(os.cpu_count()))
+            else:
+                build_cmd.append('-j{}'.format(os.cpu_count()))
+            subprocess.check_call(build_cmd)
 
 setup(
     version='0.9.0',
