@@ -410,6 +410,20 @@ void addMainFunctions(py::module& module)
 
 PYBIND11_MODULE(yaramod, module)
 {
+	static py::exception<ParserError> exception(module, "ParserError");
+	py::register_exception_translator(
+		[](std::exception_ptr exPtr) {
+			try
+			{
+				if (exPtr)
+					std::rethrow_exception(exPtr);
+			}
+			catch (const ParserError& err)
+			{
+				exception(err.what());
+			}
+		});
+
 	addEnums(module);
 	addBasicClasses(module);
 	addExpressionClasses(module);
