@@ -136,7 +136,10 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Literal>(module, "Literal")
 		.def_property_readonly("text", &Literal::getText)
-		.def_property_readonly("pure_text", &Literal::getPureText);
+		.def_property_readonly("pure_text", &Literal::getPureText)
+		.def_property_readonly("is_string", &Literal::isString)
+		.def_property_readonly("is_int", &Literal::isInt)
+		.def_property_readonly("is_bool", &Literal::isBool);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
