@@ -1513,6 +1513,11 @@ public:
 		return _func + '(' + _expr->getText(indent) + ')';
 	}
 
+	const std::string& getFunction() const
+	{
+		return _func;
+	}
+
 	const std::shared_ptr<Expression>& getArgument() const
 	{
 		return _expr;

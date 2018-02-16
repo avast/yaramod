@@ -269,6 +269,7 @@ void addExpressionClasses(py::module& module)
 	exprClass<ParenthesesExpression>(module, "ParenthesesExpression")
 		.def_property("enclosed_expr", &ParenthesesExpression::getEnclosedExpression, &ParenthesesExpression::setEnclosedExpression);
 	exprClass<IntFunctionExpression>(module, "IntFunctionExpression")
+		.def_property_readonly("function", &IntFunctionExpression::getFunction)
 		.def_property_readonly("argument", &IntFunctionExpression::getArgument);
 	exprClass<RegexpExpression>(module, "RegexpExpression")
 		.def_property_readonly("regexp_string", &RegexpExpression::getRegexpString);
