@@ -65,12 +65,12 @@ void addEnums(py::module& module)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
 
 	py::enum_<IntMultiplier>(module, "IntMultiplier")
-		.value("None", IntMultiplier::None)
+		.value("Empty", IntMultiplier::None)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
-		.value("None", Rule::Modifier::None)
+		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
 		.value("Private", Rule::Modifier::Private);
 
@@ -80,7 +80,7 @@ void addEnums(py::module& module)
 		.value("Regexp", String::Type::Regexp);
 
 	py::enum_<String::Modifiers>(module, "StringModifiers", py::arithmetic())
-		.value("None", String::Modifiers::None)
+		.value("Empty", String::Modifiers::None)
 		.value("Ascii", String::Modifiers::Ascii)
 		.value("Wide", String::Modifiers::Wide)
 		.value("Nocase", String::Modifiers::Nocase)
