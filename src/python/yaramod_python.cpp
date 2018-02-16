@@ -359,7 +359,7 @@ void addBuilderClasses(py::module& module)
 	module.def("bool_val", &boolVal);
 
 	module.def("id", &id);
-	module.def("paren", &paren);
+	module.def("paren", &paren, py::arg("enclosed_expr"), py::arg("linebreak") = false);
 
 	module.def("string_ref", &stringRef);
 	module.def("match_count", py::overload_cast<const std::string&>(&matchCount));
