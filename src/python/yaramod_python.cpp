@@ -6,6 +6,7 @@
 #include <pybind11/stl.h>
 
 #include <yaramod/builder/yara_expression_builder.h>
+#include <yaramod/builder/yara_hex_string_builder.h>
 #include <yaramod/builder/yara_rule_builder.h>
 #include <yaramod/yaramod.h>
 
@@ -144,7 +145,7 @@ void addBasicClasses(py::module& module)
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
 
-	py::class_<String>(module, "String")
+	py::class_<String, std::shared_ptr<String>>(module, "String")
 		.def_property_readonly("text", &String::getText)
 		.def_property_readonly("pure_text", &String::getPureText)
 		.def_property_readonly("type", &String::getType)
@@ -157,6 +158,10 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_fullword", &String::isFullword)
 		.def_property_readonly("is_nocase", &String::isNocase)
 		.def_property_readonly("modifiers_text", &String::getModifiersText);
+
+	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
+	py::class_<HexString, String, std::shared_ptr<HexString>>(module, "HexString");
+	py::class_<Regexp, String, std::shared_ptr<Regexp>>(module, "Regexp");
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)
@@ -396,6 +401,28 @@ void addBuilderClasses(py::module& module)
 	module.def("them", &them);
 
 	module.def("regexp", &regexp);
+
+	py::class_<YaraHexStringBuilder>(module, "YaraHexStringBuilder")
+		.def(py::init<>())
+		.def(py::init<std::uint8_t>())
+		.def(py::init<const std::vector<std::uint8_t>&>())
+		.def(py::init<const std::shared_ptr<HexStringUnit>&>())
+		.def(py::init<const std::vector<std::shared_ptr<HexStringUnit>>&>())
+		.def("get", &YaraHexStringBuilder::get)
+		.def("add", [](YaraHexStringBuilder& self, const YaraHexStringBuilder& unit) {
+				return self.add(unit);
+			});
+
+	module.def("wildcard", &wildcard);
+	module.def("wildcard_low", &wildcardLow);
+	module.def("wildcard_high", &wildcardHigh);
+
+	module.def("jump_varying", &jumpVarying);
+	module.def("jump_fixed", &jumpFixed);
+	module.def("jump_varying_range", &jumpVaryingRange);
+	module.def("jump_range", &jumpRange);
+
+	module.def("alt", &alt<std::vector<YaraHexStringBuilder>>);
 }
 
 void addMainFunctions(py::module& module)
