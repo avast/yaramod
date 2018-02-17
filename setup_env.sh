@@ -28,3 +28,6 @@ else
 fi
 
 ${PYTHON_EXECUTABLE} -m venv "${VIRTUALENV_DIR}"
+
+source "${SCRIPT_DIR}/use_env.sh"
+pip install -r "${SCRIPT_DIR}/requirements.txt"
