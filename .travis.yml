@@ -29,7 +29,7 @@ matrix:
 
 install:
   # We need to install newer versions of Flex and Bison on MacOS X.
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison gnu-sed; fi
 
 before_script:
   - eval "${MATRIX_EVAL}"
