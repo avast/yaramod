@@ -33,11 +33,12 @@ public:
 	YaraFileBuilder& withModule(const std::string& moduleName);
 	YaraFileBuilder& withRule(Rule&& rule);
 	YaraFileBuilder& withRule(std::unique_ptr<Rule>&& rule);
+	YaraFileBuilder& withRule(const std::shared_ptr<Rule>& rule);
 	/// @}
 
 private:
 	std::vector<std::string> _modules; ///< Modules
-	std::vector<std::unique_ptr<Rule>> _rules; ///< Rules
+	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 };
 
 }

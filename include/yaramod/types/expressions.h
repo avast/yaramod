@@ -1118,12 +1118,12 @@ public:
 		return _array->getText(indent) + '[' + _accessor->getText(indent) + ']';
 	}
 
-	const std::shared_ptr<Expression> getArray() const
+	const std::shared_ptr<Expression>& getArray() const
 	{
 		return _array;
 	}
 
-	const std::shared_ptr<Expression> getAccessor() const
+	const std::shared_ptr<Expression>& getAccessor() const
 	{
 		return _accessor;
 	}
@@ -1511,6 +1511,11 @@ public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
 		return _func + '(' + _expr->getText(indent) + ')';
+	}
+
+	const std::string& getFunction() const
+	{
+		return _func;
 	}
 
 	const std::shared_ptr<Expression>& getArgument() const

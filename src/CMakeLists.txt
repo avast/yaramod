@@ -83,4 +83,9 @@ if(NOT TARGET yaramod)
 	if(WIN32)
 		target_link_libraries(yaramod shlwapi)
 	endif()
+
+	# Python module.
+	if(YARAMOD_PYTHON)
+		add_subdirectory(python)
+	endif()
 endif()
