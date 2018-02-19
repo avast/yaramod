@@ -72,7 +72,7 @@ class BuildExtCommand(build_ext):
         with WorkingDirectory(build_dir):
             configure_cmd = ['cmake', '-DYARAMOD_PYTHON=ON', '-DPYTHON_EXECUTABLE={}'.format(sys.executable)]
             if 'win' in self.plat_name:
-                configure_cmd += '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(config_name.upper(), module_output_dir)
+                configure_cmd.append('-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(config_name.upper(), module_output_dir))
                 if self.plat_name == 'win-amd64':
                     configure_cmd.extend(['-A', 'x64'])
                 elif self.plat_name == 'win32':
