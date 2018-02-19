@@ -65,7 +65,10 @@ class BuildExtCommand(build_ext):
         root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
         build_dir = os.path.join(root_dir, 'build')
         module_output_dir = os.path.dirname(os.path.realpath(self.get_ext_fullpath(self.extensions[0].name)))
-        config_name = 'Debug' if self.debug else 'Release'
+        if 'configuration' in os.environ:
+            config_name = os.environ['configuration']
+        else:
+            config_name = 'Debug' if self.debug else 'Release'
 
         os.makedirs(build_dir, exist_ok=True)
 
