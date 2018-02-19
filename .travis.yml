@@ -14,6 +14,7 @@ matrix:
             - build-essential
             - gcc-4.9
             - g++-4.9
+            - python3
             - cmake
             - flex
             - bison
@@ -36,10 +37,11 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PATH="/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH"; fi
 
 script:
-  - mkdir build && cd build
-  - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="$(pwd)/install" -DYARAMOD_TESTS=ON ..
-  - cmake --build . -- -j $NPROC
-  - tests/yaramod_tests
+  - ./setup_env.sh
+  - source use_env.sh
+  - python setup.py install --with-unit-tests
+  - build/tests/yaramod_tests
+  - green tests/python
 
 branches:
   only:
