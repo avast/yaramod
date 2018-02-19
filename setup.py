@@ -2,8 +2,18 @@ import os
 import subprocess
 import sys
 
+from distutils.command.build import build
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+
+
+OPTIONS = [
+    ('with-unit-tests', None, 'Enable yaramod unit tests.')
+]
+
+BOOL_OPTIONS = [
+    'with-unit-tests'
+]
 
 
 class WorkingDirectory:
@@ -19,8 +29,30 @@ class WorkingDirectory:
         os.chdir(self.old_dirpath)
 
 
+class BuildCommand(build):
+    user_options = build_ext.user_options + OPTIONS
+    boolean_options = build_ext.boolean_options + BOOL_OPTIONS
+
+    def initialize_options(self):
+        build.initialize_options(self)
+        self.with_unit_tests = None
+
+
 class BuildExtCommand(build_ext):
+    user_options = build_ext.user_options + OPTIONS
+    boolean_options = build_ext.boolean_options + BOOL_OPTIONS
+
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.with_unit_tests = None
+
     def run(self):
+        self.set_undefined_options('build',
+                ('with_unit_tests', 'with_unit_tests')
+            )
+
+        print(self.with_unit_tests)
+
         try:
             subprocess.check_output(['cmake', '--version'])
         except OSError:
@@ -34,7 +66,11 @@ class BuildExtCommand(build_ext):
         os.makedirs(build_dir, exist_ok=True)
 
         with WorkingDirectory(build_dir):
-            configure_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON', root_dir]
+            configure_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON']
+            if self.with_unit_tests:
+                configure_cmd.append('-DYARAMOD_TESTS=ON')
+            configure_cmd.append(root_dir)
+
             build_cmd = ['cmake', '--build', '.', '--']
             if 'win' in self.plat_name:
                 if self.plat_name == 'win-amd64':
@@ -44,6 +80,7 @@ class BuildExtCommand(build_ext):
                 build_cmd.extend(['/m:{}'.format(os.cpu_count()), '/p:Configuration=Release'])
             else:
                 build_cmd.append('-j{}'.format(os.cpu_count()))
+
             subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
 
@@ -53,6 +90,7 @@ setup(
     description='Library for manipulation with YARA files.',
     author='Marek Milkovic <marek.milkovic@avast.com>',
     cmdclass={
+        'build': BuildCommand,
         'build_ext': BuildExtCommand
     },
     ext_modules=[Extension(name='yaramod', sources=[])]
