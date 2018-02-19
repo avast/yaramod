@@ -29,7 +29,7 @@ matrix:
 
 install:
   # We need to install newer versions of Flex and Bison on MacOS X.
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison gnu-sed python3; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison gnu-sed python3 cmake; fi
 
 before_script:
   - eval "${MATRIX_EVAL}"
@@ -40,7 +40,7 @@ before_script:
 
 script:
   - ./setup_env.sh
-  - source use_env.sh
+  - source env/bin/activate
   - python setup.py build --with-unit-tests
   - python setup.py install
   - build/tests/cpp/yaramod_tests
