@@ -36,7 +36,7 @@ build_script:
   - cmd: '%PYTHON%\python setup.py install'
 
 test_script:
-  - cmd: tests\cpp\%configuration%\yaramod_tests.exe
+  - cmd: build\tests\cpp\%configuration%\yaramod_tests.exe
   - cmd: '%PYTHON%\Scripts\green tests\python'
 
 branches:

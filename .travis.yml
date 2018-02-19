@@ -5,7 +5,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      compiler: gcc-4.9
+      compiler: gcc-5
       addons:
         apt:
           sources:
@@ -13,15 +13,15 @@ matrix:
           packages:
             - build-essential
             - coreutils
-            - gcc-4.9
-            - g++-4.9
+            - gcc-5
+            - g++-5
             - python3.4
             - python3.4-venv
             - cmake
             - flex
             - bison
       env:
-        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && NPROC=$(nproc)"
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && NPROC=$(nproc)"
     - os: osx
       osx_image: xcode8.3
       env:
