@@ -12,9 +12,11 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - build-essential
+            - coreutils
             - gcc-4.9
             - g++-4.9
             - python3
+            - python3-venv
             - cmake
             - flex
             - bison

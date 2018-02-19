@@ -29,15 +29,15 @@ install:
   - set Path=%CD%\winflexbison;%Path%
 
 before_build:
-  - cmd: %PYTHON%\Scripts\pip install -r requirements.txt
+  - cmd: '%PYTHON%\Scripts\pip install -r requirements.txt'
 
 build_script:
-  - cmd: %PYTHON%\Scripts\python setup.py build --with-unit-tests
-  - cmd: %PYTHON%\Scripts\python setup.py install
+  - cmd: '%PYTHON%\python setup.py build --with-unit-tests'
+  - cmd: '%PYTHON%\python setup.py install'
 
 test_script:
   - cmd: tests\cpp\%configuration%\yaramod_tests.exe
-  - cmd: %PYTHON%\Scripts\green tests\python
+  - cmd: '%PYTHON%\Scripts\green tests\python'
 
 branches:
   only:
