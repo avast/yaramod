@@ -102,7 +102,7 @@ class BuildExtCommand(build_ext):
             subprocess.check_call(build_cmd)
 
 setup(
-    version='0.9.0',
+    version='1.0.1',
     name='yaramod',
     description='Library for manipulation with YARA files.',
     author='Marek Milkovic <marek.milkovic@avast.com>',
