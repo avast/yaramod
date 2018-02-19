@@ -2,6 +2,7 @@
 
 # dev
 
+* New: Python bindings were added to the `yaramod` library.
 * Enhancement: Parsed rules now contain information about the file they are located in and the line number.
 * Fix: Line numbers of errors are now reported correctly for files with includes.
 
