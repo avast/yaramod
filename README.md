@@ -5,6 +5,8 @@
 
 `yaramod` is a library that provides parsing of [YARA](https://github.com/VirusTotal/yara) rules into AST and a C++ programming interface to build new YARA rulesets. This project is not associated with the YARA project.
 
+`yaramod` also comes with Python bindings and this repository should be fully compatible with installation using `pip`.
+
 ## Usage Example
 
 See the [wiki](https://github.com/avast-tl/yaramod/wiki).
@@ -16,6 +18,10 @@ See the [wiki](https://github.com/avast-tl/yaramod/wiki).
 * CMake (version >= 3.6)
 * Flex (version >= 2.6)
 * Bison (version >= 3.0)
+
+If you are also insterested in Python bindings:
+* GCC 5+ (for Linux/Unix, should remain the same for other compilers and platforms)
+* Python 3+
 
 ## Build and Installation
 
@@ -38,6 +44,26 @@ See the [wiki](https://github.com/avast-tl/yaramod/wiki).
 Available options are:
 * `YARAMOD_DOC` - provide build target `doc` for building documentation with Doxygen. (Default: OFF)
 * `YARAMOD_TESTS` - build unit tests. (Default: OFF)
+
+### Python bindings
+
+The easiest way to get Python bindings to work is through `pip` like this:
+
+```
+pip install git+https://github.com/avast-tl/yaramod.git
+```
+
+If you want to clone and build the repository yourselves you can do so by following these steps:
+
+* Setup virtual environment if you don't want to install `yaramod` into your system python:
+  * `./setup_env.sh`
+  * `source use_env.sh`
+* Run compilation and installation of python bindings:
+  * `python setup.py build OPTIONS`
+  * `python setup.py install`
+* Allowed `OPTIONS` are:
+  * `--with-unit-tests` - Build also C++ unit tests.
+  * `--debug` - Build debug configuration.
 
 ## API Documentation
 
