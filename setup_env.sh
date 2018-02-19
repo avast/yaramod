@@ -4,9 +4,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd -P)"
 VIRTUALENV_DIR="${SCRIPT_DIR}/env"
 
 if [ -z ${PYTHON_EXECUTABLE} ]; then
-	if [ $(command -v python3) ]; then
+	if [[ $(command -v python3) ]]; then
 		PYTHON_EXECUTABLE=python3
-	elif [ $(command -v python) ]; then
+	elif [[ $(command -v python) ]]; then
 		PYTHON_VERSION_STR=$(python --version 2>&1 | sed -r 's/^Python //g')
 		IFS='.' read -r -a PYTHON_VERSION <<< ${PYTHON_VERSION_STR}
 		if [ ${PYTHON_VERSION[0]} -lt 3 ]; then

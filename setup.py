@@ -8,11 +8,13 @@ from setuptools.command.build_ext import build_ext
 
 
 OPTIONS = [
-    ('with-unit-tests', None, 'Enable yaramod unit tests.')
+    ('with-unit-tests', None, 'Enable yaramod unit tests.'),
+    ('debug', None, 'Build debug configuration.')
 ]
 
 BOOL_OPTIONS = [
-    'with-unit-tests'
+    'with-unit-tests',
+    'debug'
 ]
 
 
@@ -36,6 +38,7 @@ class BuildCommand(build):
     def initialize_options(self):
         build.initialize_options(self)
         self.with_unit_tests = None
+        self.debug = None
 
 
 class BuildExtCommand(build_ext):
@@ -45,13 +48,13 @@ class BuildExtCommand(build_ext):
     def initialize_options(self):
         build_ext.initialize_options(self)
         self.with_unit_tests = None
+        self.debug = None
 
     def run(self):
         self.set_undefined_options('build',
-                ('with_unit_tests', 'with_unit_tests')
+                ('with_unit_tests', 'with_unit_tests'),
+                ('debug', 'debug')
             )
-
-        print(self.with_unit_tests)
 
         try:
             subprocess.check_output(['cmake', '--version'])
@@ -62,22 +65,30 @@ class BuildExtCommand(build_ext):
         root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
         build_dir = os.path.join(root_dir, 'build')
         module_output_dir = os.path.dirname(os.path.realpath(self.get_ext_fullpath(self.extensions[0].name)))
+        config_name = 'Debug' if self.debug else 'Release'
 
         os.makedirs(build_dir, exist_ok=True)
 
         with WorkingDirectory(build_dir):
-            configure_cmd = ['cmake', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir), '-DYARAMOD_PYTHON=ON']
+            configure_cmd = ['cmake', '-DYARAMOD_PYTHON=ON', '-DPYTHON_EXECUTABLE={}'.format(sys.executable)]
+            if 'win' in self.plat_name:
+                configure_cmd += '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(config_name.upper(), module_output_dir)
+                if self.plat_name == 'win-amd64':
+                    configure_cmd.extend(['-A', 'x64'])
+                elif self.plat_name == 'win32':
+                    configure_cmd.extend(['-A', 'x86'])
+            else:
+                configure_cmd.extend([
+                    '-DCMAKE_BUILD_TYPE={}'.format(config_name),
+                    '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir)
+                ])
             if self.with_unit_tests:
                 configure_cmd.append('-DYARAMOD_TESTS=ON')
             configure_cmd.append(root_dir)
 
             build_cmd = ['cmake', '--build', '.', '--']
             if 'win' in self.plat_name:
-                if self.plat_name == 'win-amd64':
-                    configure_cmd.extend(['-A', 'x64'])
-                elif self.plat_name == 'win32':
-                    configure_cmd.extend(['-A', 'x86'])
-                build_cmd.extend(['/m:{}'.format(os.cpu_count()), '/p:Configuration=Release'])
+                build_cmd.extend(['/m:{}'.format(os.cpu_count()), '/p:Configuration={}'.format(config_name)])
             else:
                 build_cmd.append('-j{}'.format(os.cpu_count()))
 
