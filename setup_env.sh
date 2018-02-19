@@ -9,10 +9,10 @@ if [ -z ${PYTHON_EXECUTABLE} ]; then
 	if [[ $(command -v python3) ]]; then
 		PYTHON_EXECUTABLE=python3
 	elif [[ $(command -v python) ]]; then
-		PYTHON_VERSION_STR=$(python --version 2>&1 | $SED -r 's/^Python //g')
-		IFS='.' read -r -a PYTHON_VERSION <<< ${PYTHON_VERSION_STR}
-		if [ ${PYTHON_VERSION[0]} -lt 3 ]; then
-			echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION_STR}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
+		PYTHON_VERSION=$(python --version 2>&1 | $SED -r 's/^Python //g')
+		PYTHON_VERSION_MAJOR=$(echo "${PYTHON_VERSION}" | cut -d'.' -f1)
+		if [ ${PYTHON_VERSION_MAJOR} -lt 3 ]; then
+			echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
 			exit 1
 		fi
 		PYTHON_EXECUTABLE=python
@@ -21,15 +21,22 @@ if [ -z ${PYTHON_EXECUTABLE} ]; then
 		exit 1
 	fi
 else
-	PYTHON_VERSION_STR=$(${PYTHON_EXECUTABLE} --version 2>&1 | $SED -r 's/^Python //g')
-	IFS='.' read -r -a PYTHON_VERSION <<< ${PYTHON_VERSION_STR}
-	if [ ${PYTHON_VERSION[0]} -lt 3 ]; then
-		echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION_STR}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
+	PYTHON_VERSION=$(${PYTHON_EXECUTABLE} --version 2>&1 | $SED -r 's/^Python //g')
+	PYTHON_VERSION_MAJOR=$(echo "${PYTHON_VERSION}" | cut -d'.' -f1)
+	if [ ${PYTHON_VERSION_MAJOR} -lt 3 ]; then
+		echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
 		exit 1
 	fi
 fi
 
-${PYTHON_EXECUTABLE} -m venv "${VIRTUALENV_DIR}"
+if [[ $(${PYTHON_EXECUTABLE} -c 'import venv;print("OK")' 2>/dev/null) ]]; then
+	${PYTHON_EXECUTABLE} -m venv "${VIRTUALENV_DIR}"
+elif [[ $(command -v virtualenv) ]]; then
+	virtualenv -p "${PYTHON_EXECUTABLE}" "${VIRTUALENV_DIR}"
+else
+	echo "Neither venv or virtualenv found on your system. Please install one of these virtual environments for Python." >&2
+	exit 1
+fi
 
 source "${SCRIPT_DIR}/use_env.sh"
 pip install -r "${SCRIPT_DIR}/requirements.txt"
