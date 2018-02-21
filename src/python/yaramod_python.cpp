@@ -125,7 +125,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("location", &Rule::getLocation)
 		.def_property_readonly("symbol", &Rule::getSymbol)
 		.def_property("condition", &Rule::getCondition, &Rule::setCondition)
-		.def("remove_string", &Rule::removeString);
+		.def("remove_string", &Rule::removeString)
+		.def("get_meta_with_name", &Rule::getMetaWithName, py::return_value_policy::reference);
 
 	py::class_<Rule::Location>(module, "RuleLocation")
 		.def_readonly("file_path", &Rule::Location::filePath)
