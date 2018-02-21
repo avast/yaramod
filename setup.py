@@ -1,4 +1,5 @@
 import os
+import pypandoc
 import subprocess
 import sys
 
@@ -101,11 +102,41 @@ class BuildExtCommand(build_ext):
             subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
 
+class NullDevice:
+    def write(self, s):
+        pass
+
+try:
+    original_stderr = sys.stderr
+    sys.stderr = NullDevice()
+    long_desc = pypandoc.convert_file('README.md', 'rst')
+except OSError:
+    long_desc = ''
+finally:
+    sys.stderr = original_stderr
+
 setup(
-    version='1.0.1',
+    version='1.1.0b2',
     name='yaramod',
-    description='Library for manipulation with YARA files.',
-    author='Marek Milkovic <marek.milkovic@avast.com>',
+    description='Library for manipulation of YARA files.',
+    long_description=long_desc,
+    author='Marek Milkovic',
+    author_email='marek.milkovic@avast.com',
+    url='https://github.com/avast-tl/yaramod',
+    license='MIT',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Software Development :: Libraries',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython'
+    ],
+    keywords='parser yara',
+    python_requires='>=3',
     cmdclass={
         'build': BuildCommand,
         'build_ext': BuildExtCommand

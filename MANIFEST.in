@@ -1,0 +1,6 @@
+include LICENSE
+include LICENSE-THIRD-PARTY
+include CHANGELOG.md
+recursive-include src *.cpp CMakeLists.txt
+recursive-include include *.h
+include CMakeLists.txt

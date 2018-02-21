@@ -1,1 +1,2 @@
 green>=2.12.0
+pypandoc>=1.4
