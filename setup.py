@@ -1,5 +1,4 @@
 import os
-import pypandoc
 import subprocess
 import sys
 
@@ -102,24 +101,20 @@ class BuildExtCommand(build_ext):
             subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
 
-class NullDevice:
-    def write(self, s):
-        pass
-
-try:
-    original_stderr = sys.stderr
-    sys.stderr = NullDevice()
-    long_desc = pypandoc.convert_file('README.md', 'rst')
-except OSError:
-    long_desc = ''
-finally:
-    sys.stderr = original_stderr
+def get_long_description():
+    if 'dist' in sys.argv[1]:
+        try:
+            import pypandoc
+            return pypandoc.convert_file('README.md', 'rst')
+        except (ImportError, OSError):
+            pass
+    return ''
 
 setup(
-    version='1.1.0b2',
+    version='1.1.0b3',
     name='yaramod',
     description='Library for manipulation of YARA files.',
-    long_description=long_desc,
+    long_description=get_long_description(),
     author='Marek Milkovic',
     author_email='marek.milkovic@avast.com',
     url='https://github.com/avast-tl/yaramod',
