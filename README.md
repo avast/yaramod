@@ -44,6 +44,8 @@ If you are also insterested in Python bindings:
 Available options are:
 * `YARAMOD_DOC` - provide build target `doc` for building documentation with Doxygen. (Default: OFF)
 * `YARAMOD_TESTS` - build unit tests. (Default: OFF)
+* `YARAMOD_PYTHON` - build python bindings. (Default: OFF)
+* `YARAMOD_EXAMPLES` - build example binaries. (Default: OFF)
 
 ### Python bindings
 
