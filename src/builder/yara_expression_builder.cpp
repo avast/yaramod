@@ -408,61 +408,61 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBui
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readInt8(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "int8be" : "int8", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int8be" : "int8", std::move(_expr));
 	return *this;
 }
 
 /**
  * Applies integer function int16(be)? on the expression.
  *
- * @param bigEndian @c true if big-endian version should be used.
+ * @param endianness == IntFunctionEndianness::Big @c true if big-endian version should be used.
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readInt16(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "int16be" : "int16", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int16be" : "int16", std::move(_expr));
 	return *this;
 }
 
 /**
  * Applies integer function int32(be)? on the expression.
  *
- * @param bigEndian @c true if big-endian version should be used.
+ * @param endianness == IntFunctionEndianness::Big @c true if big-endian version should be used.
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readInt32(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "int32be" : "int32", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int32be" : "int32", std::move(_expr));
 	return *this;
 }
 
 /**
  * Applies integer function uint8(be)? on the expression.
  *
- * @param bigEndian @c true if big-endian version should be used.
+ * @param endianness == IntFunctionEndianness::Big @c true if big-endian version should be used.
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "uint8be" : "uint8", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint8be" : "uint8", std::move(_expr));
 	return *this;
 }
 
 /**
  * Applies integer function uint16(be)? on the expression.
  *
- * @param bigEndian @c true if big-endian version should be used.
+ * @param endianness == IntFunctionEndianness::Big @c true if big-endian version should be used.
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "uint16be" : "uint16", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint16be" : "uint16", std::move(_expr));
 	return *this;
 }
 
@@ -473,9 +473,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(bool bigEndian)
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(bool bigEndian)
+YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(IntFunctionEndianness endianness)
 {
-	_expr = std::make_shared<IntFunctionExpression>(bigEndian ? "uint32be" : "uint32", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint32be" : "uint32", std::move(_expr));
 	return *this;
 }
 
