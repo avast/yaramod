@@ -76,4 +76,24 @@ bool strToNum(const std::string& str, T& num, std::ios_base &(*format)(std::ios_
 	return false;
 }
 
+/**
+ * With `isAnyOf` you can determine if one type is one of the other types in compile time.
+ *
+ * Usage:
+ * isAnyOf<some_type, list_of_possible_types...>::value
+ * `value` will be `true` or `false` depending whether `some_type` is in `list_of_possible_values`.
+ *
+ * Examples:
+ * isAnyOf<int, long, float>::value == false
+ * isAnyOf<int, long, float, int>::value == true
+ */
+template <typename T, typename... Args>
+struct isAnyOf : std::false_type {};
+
+template <typename T, typename Head, typename... Args>
+struct isAnyOf<T, Head, Args...> : isAnyOf<T, Args...> {};
+
+template <typename T, typename... Args>
+struct isAnyOf<T, T, Args...> : std::true_type {};
+
 }
