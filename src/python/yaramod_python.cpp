@@ -1,3 +1,9 @@
+/**
+ * @file src/python/yaramod_python.cpp
+ * @brief Implementation of yaramod python bindings.
+ * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ */
+
 #include <algorithm>
 #include <iterator>
 
@@ -10,30 +16,13 @@
 #include <yaramod/builder/yara_rule_builder.h>
 #include <yaramod/yaramod.h>
 
+#include "yaramod_python.h"
 #include "py_visitor.h"
 
 namespace py = pybind11;
 using namespace py::literals;
 
 using namespace yaramod;
-
-namespace pybind11 { namespace detail {
-
-template <>
-struct type_caster<std::vector<const String*>> : list_caster<std::vector<const String*>, const String*>
-{
-	static handle cast(const std::vector<const String*>& src, return_value_policy, handle parent)
-	{
-		return list_caster<std::vector<const String*>, const String*>::cast(src, return_value_policy::reference, parent);
-	}
-
-	static handle cast(const std::vector<const String*>* src, return_value_policy pol, handle parent)
-	{
-		return cast(*src, pol, parent);
-	}
-};
-
-}}
 
 template <typename ExprType, typename ParentType = Expression>
 decltype(auto) exprClass(py::module& module, const std::string& name)
@@ -185,6 +174,13 @@ void addBasicClasses(py::module& module)
 
 void addExpressionClasses(py::module& module)
 {
+	py::class_<ASTNode, std::shared_ptr<ASTNode>>(module, "ASTNode")
+		.def(py::init<const std::shared_ptr<Expression>&>())
+		.def_property("expression",
+				&ASTNode::getExpression,
+				py::overload_cast<const std::shared_ptr<Expression>&>(&ASTNode::setExpression))
+		.def("accept", &ASTNode::accept);
+
 	py::class_<Visitee, std::shared_ptr<Visitee>>(module, "Visitee")
 		.def("accept", &Visitee::accept);
 	py::class_<Expression, Visitee, std::shared_ptr<Expression>>(module, "Expression")
@@ -195,27 +191,62 @@ void addExpressionClasses(py::module& module)
 					return self->getText();
 				});
 
-	exprClass<StringExpression>(module, "StringExpression");
-	exprClass<StringWildcardExpression>(module, "StringWildcardExpression");
+	exprClass<StringExpression>(module, "StringExpression")
+		.def_property("id",
+				&StringExpression::getId,
+				py::overload_cast<const std::string&>(&StringExpression::setId));
+	exprClass<StringWildcardExpression>(module, "StringWildcardExpression")
+		.def_property("id",
+				&StringWildcardExpression::getId,
+				py::overload_cast<const std::string&>(&StringWildcardExpression::setId));
 	exprClass<StringAtExpression>(module, "StringAtExpression")
-		.def_property_readonly("at_expr", &StringAtExpression::getAtExpression);
+		.def_property("id",
+				&StringAtExpression::getId,
+				py::overload_cast<const std::string&>(&StringAtExpression::setId))
+		.def_property("at_expr",
+				&StringAtExpression::getAtExpression,
+				py::overload_cast<const ASTNode::Ptr&>(&StringAtExpression::setAtExpression));
 	exprClass<StringInRangeExpression>(module, "StringInRangeExpression")
-		.def_property_readonly("range_expr", &StringInRangeExpression::getRangeExpression);
-	exprClass<StringCountExpression>(module, "StringCountExpression");
+		.def_property("id",
+				&StringInRangeExpression::getId,
+				py::overload_cast<const std::string&>(&StringInRangeExpression::setId))
+		.def_property("range_expr",
+				&StringInRangeExpression::getRangeExpression,
+				py::overload_cast<const ASTNode::Ptr&>(&StringInRangeExpression::setRangeExpression));
+	exprClass<StringCountExpression>(module, "StringCountExpression")
+		.def_property("id",
+				&StringCountExpression::getId,
+				py::overload_cast<const std::string&>(&StringCountExpression::setId));
 	exprClass<StringOffsetExpression>(module, "StringOffsetExpression")
-		.def_property_readonly("index_expr", &StringOffsetExpression::getIndexExpression);
+		.def_property("id",
+				&StringOffsetExpression::getId,
+				py::overload_cast<const std::string&>(&StringOffsetExpression::setId))
+		.def_property("index_expr",
+				&StringOffsetExpression::getIndexExpression,
+				py::overload_cast<const ASTNode::Ptr&>(&StringOffsetExpression::setIndexExpression));
 	exprClass<StringLengthExpression>(module, "StringLengthExpression")
-		.def_property_readonly("index_expr", &StringLengthExpression::getIndexExpression);
+		.def_property("id",
+				&StringLengthExpression::getId,
+				py::overload_cast<const std::string&>(&StringLengthExpression::setId))
+		.def_property("index_expr",
+				&StringLengthExpression::getIndexExpression,
+				py::overload_cast<const ASTNode::Ptr&>(&StringLengthExpression::setIndexExpression));
 
 	exprClass<UnaryOpExpression>(module, "UnaryOpExpression")
-		.def_property("operand", &UnaryOpExpression::getOperand, &UnaryOpExpression::setOperand);
+		.def_property("operand",
+				&UnaryOpExpression::getOperand,
+				py::overload_cast<const ASTNode::Ptr&>(&UnaryOpExpression::setOperand));
 	unaryOpClass<NotExpression>(module, "NotExpression");
 	unaryOpClass<UnaryMinusExpression>(module, "UnaryMinusExpression");
 	unaryOpClass<BitwiseNotExpression>(module, "BitwiseNotExpression");
 
 	exprClass<BinaryOpExpression>(module, "BinaryOpExpression")
-		.def_property("left_operand", &BinaryOpExpression::getLeftOperand, &BinaryOpExpression::setLeftOperand)
-		.def_property("right_operand", &BinaryOpExpression::getRightOperand, &BinaryOpExpression::setRightOperand);
+		.def_property("left_operand",
+				&BinaryOpExpression::getLeftOperand,
+				py::overload_cast<const ASTNode::Ptr&>(&BinaryOpExpression::setLeftOperand))
+		.def_property("right_operand",
+				&BinaryOpExpression::getRightOperand,
+				py::overload_cast<const ASTNode::Ptr&>(&BinaryOpExpression::setRightOperand));
 	binaryOpClass<AndExpression>(module, "AndExpression");
 	binaryOpClass<OrExpression>(module, "OrExpression");
 	binaryOpClass<LtExpression>(module, "LtExpression");
@@ -238,31 +269,55 @@ void addExpressionClasses(py::module& module)
 	binaryOpClass<ShiftRightExpression>(module, "ShiftRightExpression");
 
 	exprClass<ForExpression>(module, "ForExpression")
-		.def_property_readonly("variable", &ForExpression::getVariable)
-		.def_property_readonly("iterated_set", &ForExpression::getIteratedSet)
-		.def_property_readonly("body", &ForExpression::getBody);
+		.def_property("variable",
+				&ForExpression::getVariable,
+				py::overload_cast<const ASTNode::Ptr&>(&ForExpression::setVariable))
+		.def_property("iterated_set",
+				&ForExpression::getIteratedSet,
+				py::overload_cast<const ASTNode::Ptr&>(&ForExpression::setIteratedSet))
+		.def_property("body",
+				&ForExpression::getBody,
+				py::overload_cast<const ASTNode::Ptr&>(&ForExpression::setBody));
 	exprClass<ForIntExpression, ForExpression>(module, "ForIntExpression");
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
 
 	exprClass<SetExpression>(module, "SetExpression")
-		.def_property("elements", &SetExpression::getElements, &SetExpression::setElements);
+		.def_property("elements",
+				&SetExpression::getElements,
+				py::overload_cast<const std::vector<ASTNode::Ptr>&>(&SetExpression::setElements));
 	exprClass<RangeExpression>(module, "RangeExpression")
-		.def_property_readonly("low", &RangeExpression::getLow)
-		.def_property_readonly("high", &RangeExpression::getHigh);
+		.def_property("low",
+				&RangeExpression::getLow,
+				py::overload_cast<const ASTNode::Ptr&>(&RangeExpression::setLow))
+		.def_property("high",
+				&RangeExpression::getHigh,
+				py::overload_cast<const ASTNode::Ptr&>(&RangeExpression::setHigh));
 	exprClass<IdExpression>(module, "IdExpression")
 		.def_property("symbol", &IdExpression::getSymbol, &IdExpression::setSymbol);
 	exprClass<StructAccessExpression, IdExpression>(module, "StructAccessExpression")
-		.def_property_readonly("structure", &StructAccessExpression::getStructure);
+		.def_property("structure",
+				&StructAccessExpression::getStructure,
+				py::overload_cast<const ASTNode::Ptr&>(&StructAccessExpression::setStructure));
 	exprClass<ArrayAccessExpression, IdExpression>(module, "ArrayAccessExpression")
-		.def_property_readonly("array", &ArrayAccessExpression::getArray)
-		.def_property_readonly("accessor", &ArrayAccessExpression::getAccessor);
+		.def_property("array",
+				&ArrayAccessExpression::getArray,
+				py::overload_cast<const ASTNode::Ptr&>(&ArrayAccessExpression::setArray))
+		.def_property("accessor",
+				&ArrayAccessExpression::getAccessor,
+				py::overload_cast<const ASTNode::Ptr&>(&ArrayAccessExpression::setAccessor));
 	exprClass<FunctionCallExpression, IdExpression>(module, "FunctionCallExpression")
-		.def_property_readonly("function", &FunctionCallExpression::getFunction)
-		.def_property("arguments", &FunctionCallExpression::getArguments, &FunctionCallExpression::setArguments);
+		.def_property("function",
+				&FunctionCallExpression::getFunction,
+				py::overload_cast<const ASTNode::Ptr&>(&FunctionCallExpression::setFunction))
+		.def_property("arguments",
+				&FunctionCallExpression::getArguments,
+				py::overload_cast<const std::vector<ASTNode::Ptr>&>(&FunctionCallExpression::setArguments));
 
-	exprClass<LiteralExpression<bool>>(module, "_BoolLiteralExpression");
-	exprClass<LiteralExpression<std::string>>(module, "_StringLiteralExpression");
+	exprClass<LiteralExpression<bool>>(module, "_BoolLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<bool>::getValue);
+	exprClass<LiteralExpression<std::string>>(module, "_StringLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<std::string>::getValue);
 	exprClass<BoolLiteralExpression, LiteralExpression<bool>>(module, "BoolLiteralExpression");
 	exprClass<StringLiteralExpression, LiteralExpression<std::string>>(module, "StringLiteralExpression");
 	exprClass<IntLiteralExpression, LiteralExpression<std::string>>(module, "IntLiteralExpression");
@@ -276,12 +331,20 @@ void addExpressionClasses(py::module& module)
 	keywordClass<ThemExpression>(module, "ThemExpression");
 
 	exprClass<ParenthesesExpression>(module, "ParenthesesExpression")
-		.def_property("enclosed_expr", &ParenthesesExpression::getEnclosedExpression, &ParenthesesExpression::setEnclosedExpression);
+		.def_property("enclosed_expr",
+				&ParenthesesExpression::getEnclosedExpression,
+				py::overload_cast<const ASTNode::Ptr&>(&ParenthesesExpression::setEnclosedExpression));
 	exprClass<IntFunctionExpression>(module, "IntFunctionExpression")
-		.def_property_readonly("function", &IntFunctionExpression::getFunction)
-		.def_property_readonly("argument", &IntFunctionExpression::getArgument);
+		.def_property("function",
+				&IntFunctionExpression::getFunction,
+				py::overload_cast<const std::string&>(&IntFunctionExpression::setFunction))
+		.def_property("argument",
+				&IntFunctionExpression::getArgument,
+				py::overload_cast<const ASTNode::Ptr&>(&IntFunctionExpression::setArgument));
 	exprClass<RegexpExpression>(module, "RegexpExpression")
-		.def_property_readonly("regexp_string", &RegexpExpression::getRegexpString);
+		.def_property("regexp_string",
+				&RegexpExpression::getRegexpString,
+				py::overload_cast<const std::shared_ptr<String>&>(&RegexpExpression::setRegexpString));
 }
 
 void addBuilderClasses(py::module& module)
@@ -311,11 +374,11 @@ void addBuilderClasses(py::module& module)
 		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"), py::arg("mods") = String::Modifiers::Ascii)
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
 		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = "", py::arg("mods") = String::Modifiers::Ascii)
-		.def("with_condition", py::overload_cast<const std::shared_ptr<Expression>&>(&YaraRuleBuilder::withCondition));
+		.def("with_condition", py::overload_cast<const ASTNode::Ptr&>(&YaraRuleBuilder::withCondition));
 
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
 		.def(py::init<>())
-		.def(py::init<const std::shared_ptr<Expression>&>())
+		.def(py::init<const ASTNode::Ptr&>())
 		.def("get", &YaraExpressionBuilder::get)
 		.def("__invert__", &YaraExpressionBuilder::operator~)
 		.def("__neg__", py::overload_cast<>(&YaraExpressionBuilder::operator-))

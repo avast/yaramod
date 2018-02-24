@@ -385,7 +385,9 @@ public:
 	const ASTNode::Ptr& getRightOperand() const { return _right; }
 
 	void setLeftOperand(const ASTNode::Ptr& left) { _left = left; }
+	void setLeftOperand(ASTNode::Ptr&& left) { _left = std::move(left); }
 	void setRightOperand(const ASTNode::Ptr& right) { _right = right; }
+	void setRightOperand(ASTNode::Ptr&& right) { _right = std::move(right); }
 
 protected:
 	BinaryOpExpression(const std::string& op, const ASTNode::Ptr& left, const ASTNode::Ptr& right, bool linebreak = false)
