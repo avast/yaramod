@@ -273,8 +273,8 @@ rule bool_literal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BoolLiteralExpression))
-        self.assertEqual(rule.condition.text, 'false')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BoolLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'false')
 
     def test_int_literal_condition(self):
         yara_file = yaramod.parse_string('''
@@ -286,8 +286,8 @@ rule int_literal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, '10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '10')
 
     def test_double_literal_condition(self):
         yara_file = yaramod.parse_string('''
@@ -299,8 +299,8 @@ rule double_literal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.DoubleLiteralExpression))
-        self.assertEqual(rule.condition.text, '1.23')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.DoubleLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '1.23')
 
     def test_string_condition(self):
         yara_file = yaramod.parse_string('''
@@ -314,8 +314,8 @@ rule string_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringExpression))
-        self.assertEqual(rule.condition.text, '$1')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringExpression))
+        self.assertEqual(rule.condition.expression.text, '$1')
 
     def test_string_at_condition(self):
         yara_file = yaramod.parse_string('''
@@ -329,9 +329,9 @@ rule string_at_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringAtExpression))
-        self.assertTrue(isinstance(rule.condition.at_expr, yaramod.EntrypointExpression))
-        self.assertEqual(rule.condition.text, '$1 at entrypoint')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringAtExpression))
+        self.assertTrue(isinstance(rule.condition.expression.at_expr.expression, yaramod.EntrypointExpression))
+        self.assertEqual(rule.condition.expression.text, '$1 at entrypoint')
 
     def test_string_in_range_condition(self):
         yara_file = yaramod.parse_string('''
@@ -345,9 +345,9 @@ rule string_in_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringInRangeExpression))
-        self.assertTrue(isinstance(rule.condition.range_expr, yaramod.RangeExpression))
-        self.assertEqual(rule.condition.text, '$1 in (10 .. 20)')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringInRangeExpression))
+        self.assertTrue(isinstance(rule.condition.expression.range_expr.expression, yaramod.RangeExpression))
+        self.assertEqual(rule.condition.expression.text, '$1 in (10 .. 20)')
 
     def test_not_condition(self):
         yara_file = yaramod.parse_string('''
@@ -359,9 +359,9 @@ rule not_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.NotExpression))
-        self.assertTrue(isinstance(rule.condition.operand, yaramod.BoolLiteralExpression))
-        self.assertEqual(rule.condition.text, 'not true')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.NotExpression))
+        self.assertTrue(isinstance(rule.condition.expression.operand.expression, yaramod.BoolLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'not true')
 
     def test_unary_minus_condition(self):
         yara_file = yaramod.parse_string('''
@@ -373,9 +373,9 @@ rule unary_minus_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.UnaryMinusExpression))
-        self.assertTrue(isinstance(rule.condition.operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, '-10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.UnaryMinusExpression))
+        self.assertTrue(isinstance(rule.condition.expression.operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '-10')
 
     def test_and_condition(self):
         yara_file = yaramod.parse_string('''
@@ -387,10 +387,10 @@ rule and_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.AndExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.BoolLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.NotExpression))
-        self.assertEqual(rule.condition.text, 'true and not false')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.AndExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.BoolLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.NotExpression))
+        self.assertEqual(rule.condition.expression.text, 'true and not false')
 
     def test_or_condition(self):
         yara_file = yaramod.parse_string('''
@@ -402,10 +402,10 @@ rule or_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.OrExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.BoolLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.NotExpression))
-        self.assertEqual(rule.condition.text, 'true or not false')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.OrExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.BoolLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.NotExpression))
+        self.assertEqual(rule.condition.expression.text, 'true or not false')
 
     def test_less_than_condition(self):
         yara_file = yaramod.parse_string('''
@@ -417,10 +417,10 @@ rule less_than_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.LtExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize < 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.LtExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize < 10')
 
     def test_greater_than_condition(self):
         yara_file = yaramod.parse_string('''
@@ -432,10 +432,10 @@ rule greater_than_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.GtExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize > 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.GtExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize > 10')
 
     def test_less_equal_condition(self):
         yara_file = yaramod.parse_string('''
@@ -447,10 +447,10 @@ rule less_equal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.LeExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize <= 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.LeExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize <= 10')
 
     def test_greater_than_condition(self):
         yara_file = yaramod.parse_string('''
@@ -462,10 +462,10 @@ rule greater_than_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.GeExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize >= 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.GeExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize >= 10')
 
     def test_equal_condition(self):
         yara_file = yaramod.parse_string('''
@@ -477,10 +477,10 @@ rule equal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.EqExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize == 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.EqExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize == 10')
 
     def test_not_equal_condition(self):
         yara_file = yaramod.parse_string('''
@@ -492,10 +492,10 @@ rule equal_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.NeqExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize != 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.NeqExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize != 10')
 
     def test_parentheses_condition(self):
         yara_file = yaramod.parse_string('''
@@ -507,9 +507,9 @@ rule parentheses_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ParenthesesExpression))
-        self.assertTrue(isinstance(rule.condition.enclosed_expr, yaramod.BoolLiteralExpression))
-        self.assertEqual(rule.condition.text, '(true)')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ParenthesesExpression))
+        self.assertTrue(isinstance(rule.condition.expression.enclosed_expr.expression, yaramod.BoolLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '(true)')
 
     def test_plus_condition(self):
         yara_file = yaramod.parse_string('''
@@ -521,10 +521,10 @@ rule plus_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.PlusExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize + 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.PlusExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize + 10')
 
     def test_minus_condition(self):
         yara_file = yaramod.parse_string('''
@@ -536,10 +536,10 @@ rule minus_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.MinusExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize - 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.MinusExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize - 10')
 
     def test_minus_condition(self):
         yara_file = yaramod.parse_string('''
@@ -551,10 +551,10 @@ rule minus_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.MinusExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize - 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.MinusExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize - 10')
 
     def test_multiply_condition(self):
         yara_file = yaramod.parse_string('''
@@ -566,10 +566,10 @@ rule multiply_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.MultiplyExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize * 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.MultiplyExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize * 10')
 
     def test_divide_condition(self):
         yara_file = yaramod.parse_string('''
@@ -581,10 +581,10 @@ rule divide_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.DivideExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize \ 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.DivideExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize \ 10')
 
     def test_modulo_condition(self):
         yara_file = yaramod.parse_string('''
@@ -596,10 +596,10 @@ rule modulo_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ModuloExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize % 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ModuloExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize % 10')
 
     def test_shift_left_condition(self):
         yara_file = yaramod.parse_string('''
@@ -611,10 +611,10 @@ rule shift_left_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ShiftLeftExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize << 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ShiftLeftExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize << 10')
 
     def test_shift_right_condition(self):
         yara_file = yaramod.parse_string('''
@@ -626,10 +626,10 @@ rule shift_right_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ShiftRightExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize >> 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ShiftRightExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize >> 10')
 
     def test_bitwise_not_condition(self):
         yara_file = yaramod.parse_string('''
@@ -641,9 +641,9 @@ rule xor_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseNotExpression))
-        self.assertTrue(isinstance(rule.condition.operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, '~10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BitwiseNotExpression))
+        self.assertTrue(isinstance(rule.condition.expression.operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '~10')
 
     def test_xor_condition(self):
         yara_file = yaramod.parse_string('''
@@ -655,10 +655,10 @@ rule xor_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseXorExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize ^ 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BitwiseXorExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize ^ 10')
 
     def test_bitwise_and_condition(self):
         yara_file = yaramod.parse_string('''
@@ -670,10 +670,10 @@ rule bitwise_and_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseAndExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize & 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BitwiseAndExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize & 10')
 
     def test_bitwise_or_condition(self):
         yara_file = yaramod.parse_string('''
@@ -685,10 +685,10 @@ rule bitwise_or_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseOrExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize | 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BitwiseOrExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize | 10')
 
     def test_bitwise_or_condition(self):
         yara_file = yaramod.parse_string('''
@@ -700,10 +700,10 @@ rule bitwise_or_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseOrExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize | 10')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.BitwiseOrExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.KeywordExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, 'filesize | 10')
 
     def test_int_function_condition(self):
         yara_file = yaramod.parse_string('''
@@ -715,10 +715,10 @@ rule int_function_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.IntFunctionExpression))
-        self.assertTrue(isinstance(rule.condition.argument, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.function, 'int32be')
-        self.assertEqual(rule.condition.text, 'int32be(5)')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.IntFunctionExpression))
+        self.assertTrue(isinstance(rule.condition.expression.argument.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.function, 'int32be')
+        self.assertEqual(rule.condition.expression.text, 'int32be(5)')
 
     def test_contains_condition(self):
         yara_file = yaramod.parse_string('''
@@ -730,10 +730,10 @@ rule contains_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ContainsExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.StringLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.StringLiteralExpression))
-        self.assertEqual(rule.condition.text, '"Hello" contains "Hell"')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ContainsExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.StringLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.StringLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '"Hello" contains "Hell"')
 
     def test_matches_condition(self):
         yara_file = yaramod.parse_string('''
@@ -745,10 +745,10 @@ rule matches_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.MatchesExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.StringLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.RegexpExpression))
-        self.assertEqual(rule.condition.text, '"Hello" matches /^Hell.*$/')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.MatchesExpression))
+        self.assertTrue(isinstance(rule.condition.expression.left_operand.expression, yaramod.StringLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.expression.right_operand.expression, yaramod.RegexpExpression))
+        self.assertEqual(rule.condition.expression.text, '"Hello" matches /^Hell.*$/')
 
     def test_match_count_condition(self):
         yara_file = yaramod.parse_string('''
@@ -762,8 +762,8 @@ rule match_count_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringCountExpression))
-        self.assertEqual(rule.condition.text, '#1')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringCountExpression))
+        self.assertEqual(rule.condition.expression.text, '#1')
 
     def test_match_offset_condition(self):
         yara_file = yaramod.parse_string('''
@@ -777,9 +777,9 @@ rule match_offset_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringOffsetExpression))
-        self.assertEqual(rule.condition.index_expr, None)
-        self.assertEqual(rule.condition.text, '@1')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringOffsetExpression))
+        self.assertEqual(rule.condition.expression.index_expr, None)
+        self.assertEqual(rule.condition.expression.text, '@1')
 
     def test_match_offset_with_index_condition(self):
         yara_file = yaramod.parse_string('''
@@ -793,9 +793,9 @@ rule match_offset_with_index_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringOffsetExpression))
-        self.assertTrue(isinstance(rule.condition.index_expr, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, '@1[0]')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringOffsetExpression))
+        self.assertTrue(isinstance(rule.condition.expression.index_expr.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '@1[0]')
 
     def test_match_length_condition(self):
         yara_file = yaramod.parse_string('''
@@ -809,9 +809,9 @@ rule match_length_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringLengthExpression))
-        self.assertEqual(rule.condition.index_expr, None)
-        self.assertEqual(rule.condition.text, '!1')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringLengthExpression))
+        self.assertEqual(rule.condition.expression.index_expr, None)
+        self.assertEqual(rule.condition.expression.text, '!1')
 
     def test_match_length_with_index_condition(self):
         yara_file = yaramod.parse_string('''
@@ -825,9 +825,9 @@ rule match_length_with_index_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StringLengthExpression))
-        self.assertTrue(isinstance(rule.condition.index_expr, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, '!1[0]')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StringLengthExpression))
+        self.assertTrue(isinstance(rule.condition.expression.index_expr.expression, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.expression.text, '!1[0]')
 
     def test_function_call_condition(self):
         yara_file = yaramod.parse_string('''
@@ -841,8 +841,8 @@ rule function_call_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.FunctionCallExpression))
-        self.assertEqual(rule.condition.text, 'pe.is_dll()')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.FunctionCallExpression))
+        self.assertEqual(rule.condition.expression.text, 'pe.is_dll()')
 
     def test_structure_access_condition(self):
         yara_file = yaramod.parse_string('''
@@ -857,8 +857,8 @@ rule structure_access_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.StructAccessExpression))
-        self.assertEqual(rule.condition.text, 'pe.linker_version.major')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.StructAccessExpression))
+        self.assertEqual(rule.condition.expression.text, 'pe.linker_version.major')
 
     def test_array_access_condition(self):
         yara_file = yaramod.parse_string('''
@@ -873,8 +873,8 @@ rule array_access_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ArrayAccessExpression))
-        self.assertEqual(rule.condition.text, 'pe.sections[0]')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ArrayAccessExpression))
+        self.assertEqual(rule.condition.expression.text, 'pe.sections[0]')
 
     def test_for_integer_set_condition(self):
         yara_file = yaramod.parse_string('''
@@ -889,11 +889,11 @@ rule for_integer_set_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ForIntExpression))
-        self.assertTrue(isinstance(rule.condition.variable, yaramod.AllExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
-        self.assertTrue(isinstance(rule.condition.body, yaramod.IdExpression))
-        self.assertEqual(rule.condition.text, 'for all i in (1, 2, 3) : ( i )')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ForIntExpression))
+        self.assertTrue(isinstance(rule.condition.expression.variable.expression, yaramod.AllExpression))
+        self.assertTrue(isinstance(rule.condition.expression.iterated_set.expression, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.expression.body.expression, yaramod.IdExpression))
+        self.assertEqual(rule.condition.expression.text, 'for all i in (1, 2, 3) : ( i )')
 
     def test_for_string_set_condition(self):
         yara_file = yaramod.parse_string('''
@@ -910,11 +910,11 @@ rule for_string_set_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ForStringExpression))
-        self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
-        self.assertTrue(isinstance(rule.condition.body, yaramod.StringAtExpression))
-        self.assertEqual(rule.condition.text, 'for any of ($a, $b) : ( $ at entrypoint )')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.ForStringExpression))
+        self.assertTrue(isinstance(rule.condition.expression.variable.expression, yaramod.AnyExpression))
+        self.assertTrue(isinstance(rule.condition.expression.iterated_set.expression, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.expression.body.expression, yaramod.StringAtExpression))
+        self.assertEqual(rule.condition.expression.text, 'for any of ($a, $b) : ( $ at entrypoint )')
 
     def test_of_condition(self):
         yara_file = yaramod.parse_string('''
@@ -931,11 +931,11 @@ rule of_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
-        self.assertTrue(isinstance(rule.condition.variable, yaramod.IntLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
-        self.assertEqual(rule.condition.body, None)
-        self.assertEqual(rule.condition.text, '1 of ($a, $b)')
+        self.assertTrue(isinstance(rule.condition.expression, yaramod.OfExpression))
+        self.assertTrue(isinstance(rule.condition.expression.variable.expression, yaramod.IntLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.expression.iterated_set.expression, yaramod.SetExpression))
+        self.assertEqual(rule.condition.expression.body, None)
+        self.assertEqual(rule.condition.expression.text, '1 of ($a, $b)')
 
     def test_parser_error(self):
         self.assertRaises(yaramod.ParserError, yaramod.parse_string, 'rule {')

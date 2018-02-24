@@ -479,7 +479,7 @@ rule rule_with_function_call {
 
 TEST_F(BuilderTests,
 RuleWithIntFunctionWorks) {
-	auto cond = (intVal(0).readUInt16(false) == hexIntVal(0x5A4D))
+	auto cond = (intVal(0).readUInt16(IntFunctionEndianness::Little) == hexIntVal(0x5A4D))
 		.get();
 
 	YaraRuleBuilder newRule;
