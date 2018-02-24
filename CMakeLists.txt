@@ -6,9 +6,10 @@ cmake_minimum_required(VERSION 3.6)
 project(yaramod CXX)
 
 # Configurable options.
-option(YARAMOD_TESTS  "Build tests for yaramod" OFF)
-option(YARAMOD_DOC    "Build doxygen documentation for yaramod" OFF)
-option(YARAMOD_PYTHON "Build Python extension" OFF)
+option(YARAMOD_TESTS    "Build tests for yaramod" OFF)
+option(YARAMOD_DOC      "Build doxygen documentation for yaramod" OFF)
+option(YARAMOD_PYTHON   "Build Python extension" OFF)
+option(YARAMOD_EXAMPLES "Build examples" OFF)
 
 # Requirements.
 find_package(FLEX REQUIRED)

@@ -88,4 +88,9 @@ if(NOT TARGET yaramod)
 	if(YARAMOD_PYTHON)
 		add_subdirectory(python)
 	endif()
+
+	# Examples.
+	if(YARAMOD_EXAMPLES)
+		add_subdirectory(examples)
+	endif()
 endif()
