@@ -52,6 +52,8 @@ branches:
     - master
     # Version tags.
     - /^v?\d+\.\d+.*$/
+    # Version 2.0
+    - yaramod-2.0
 
 notifications:
   email:
