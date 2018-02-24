@@ -66,6 +66,15 @@ public:
 	bool isFloat() const { return _type == Expression::Type::Float; }
 	/// @}
 
+	/// @name Caster method
+	/// @{
+	template <typename T>
+	T* as() noexcept { return dynamic_cast<T*>(this); }
+
+	template <typename T>
+	const T* as() const noexcept { return dynamic_cast<const T*>(this); }
+	/// @}
+
 private:
 	Type _type; ///< Type of the expression
 };
