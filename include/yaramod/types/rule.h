@@ -11,6 +11,7 @@
 
 #include <optional_lite/optional.hpp>
 
+#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/string.h"
@@ -52,7 +53,7 @@ public:
 	/// @{
 	Rule() = default;
 	explicit Rule(std::string&& name, Rule::Modifier mod, std::vector<Meta>&& metas,
-			std::shared_ptr<StringsTrie>&& strings, std::shared_ptr<Expression>&& condition,
+			std::shared_ptr<StringsTrie>&& strings, ASTNode::Ptr&& condition,
 			std::vector<std::string>&& tags);
 	Rule(Rule&& rule) = default;
 	Rule(const Rule& rule) = default;
@@ -71,7 +72,7 @@ public:
 	const std::vector<Meta>& getMetas() const;
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
-	const std::shared_ptr<Expression>& getCondition() const;
+	const ASTNode::Ptr& getCondition() const;
 	const std::vector<std::string>& getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
@@ -80,7 +81,7 @@ public:
 
 	/// @name Setter methods
 	/// @{
-	void setCondition(const std::shared_ptr<Expression>& condition);
+	void setCondition(const ASTNode::Ptr& condition);
 	void setLocation(const std::string& filePath, std::uint64_t lineNumber);
 	/// @}
 
@@ -100,7 +101,7 @@ private:
 	Rule::Modifier _mod; ///< Modifier
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
-	std::shared_ptr<Expression> _condition; ///< Condition expression
+	ASTNode::Ptr _condition; ///< Condition expression
 	std::vector<std::string> _tags; ///< Tags
 	std::shared_ptr<Symbol> _symbol; ///< Symbol representing rule
 	Location _location; ///< Which file was this rule included from

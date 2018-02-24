@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/symbol.h"
 
@@ -48,8 +49,8 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraExpressionBuilder();
-	YaraExpressionBuilder(const std::shared_ptr<Expression>& expr);
-	YaraExpressionBuilder(std::shared_ptr<Expression>&& expr);
+	YaraExpressionBuilder(const ASTNode::Ptr& expr);
+	YaraExpressionBuilder(ASTNode::Ptr&& expr);
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -62,7 +63,7 @@ public:
 
 	/// @name Builder method
 	/// @{
-	std::shared_ptr<Expression> get() const;
+	ASTNode::Ptr get() const;
 	/// @}
 
 	/// @name Building methods
@@ -137,7 +138,7 @@ protected:
 	}
 
 private:
-	std::shared_ptr<Expression> _expr;
+	ASTNode::Ptr _expr;
 };
 
 /// @name Helper functions

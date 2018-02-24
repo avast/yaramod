@@ -8,6 +8,7 @@
 
 #include <optional_lite/optional.hpp>
 
+#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/string.h"
 #include "yaramod/types/symbol.h"
@@ -32,10 +33,15 @@ public:
 	StringExpression(const std::string& id) : _id(id) {}
 	StringExpression(std::string&& id) : _id(std::move(id)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
+
+	const std::string& getId() const { return _id; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
@@ -62,10 +68,15 @@ public:
 	StringWildcardExpression(const std::string& id) : _id(id) {}
 	StringWildcardExpression(std::string&& id) : _id(std::move(id)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
+
+	const std::string& getId() const { return _id; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
@@ -87,27 +98,30 @@ private:
 class StringAtExpression : public Expression
 {
 public:
-	StringAtExpression(const std::string& id, const std::shared_ptr<Expression>& at) : _id(id), _at(at) {}
-	StringAtExpression(std::string&& id, std::shared_ptr<Expression>&& at) : _id(std::move(id)), _at(std::move(at)) {}
+	StringAtExpression(const std::string& id, const ASTNode::Ptr& at) : _id(id), _at(at) {}
+	StringAtExpression(std::string&& id, ASTNode::Ptr&& at) : _id(std::move(id)), _at(std::move(at)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
-	const std::shared_ptr<Expression>& getAtExpression() const
-	{
-		return _at;
-	}
+	const std::string& getId() const { return _id; }
+	const ASTNode::Ptr& getAtExpression() const { return _at; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
+	void setAtExpression(const ASTNode::Ptr& at) { _at = at; }
+	void setAtExpression(ASTNode::Ptr&& at) { _at = std::move(at); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _id + " at " + _at->getText(indent);
+		return _id + " at " + _at->getExpression()->getText(indent);
 	}
 
 private:
 	std::string _id; ///< Identifier of the string
-	std::shared_ptr<Expression> _at; ///< Integer part of the expression
+	ASTNode::Ptr _at; ///< Integer part of the expression
 };
 
 /**
@@ -121,27 +135,30 @@ private:
 class StringInRangeExpression : public Expression
 {
 public:
-	StringInRangeExpression(const std::string& id, const std::shared_ptr<Expression>& range) : _id(id), _range(range) {}
-	StringInRangeExpression(std::string&& id, std::shared_ptr<Expression>&& range) : _id(std::move(id)), _range(std::move(range)) {}
+	StringInRangeExpression(const std::string& id, const ASTNode::Ptr& range) : _id(id), _range(range) {}
+	StringInRangeExpression(std::string&& id, ASTNode::Ptr&& range) : _id(std::move(id)), _range(std::move(range)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
-	const std::shared_ptr<Expression>& getRangeExpression() const
-	{
-		return _range;
-	}
+	const std::string& getId() const { return _id; }
+	const ASTNode::Ptr& getRangeExpression() const { return _range; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
+	void setRangeExpression(const ASTNode::Ptr& range) { _range = range; }
+	void setRangeExpression(ASTNode::Ptr&& range) { _range = std::move(range); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _id + " in " + _range->getText(indent);
+		return _id + " in " + _range->getExpression()->getText(indent);
 	}
 
 private:
 	std::string _id; ///< Identifier of the string
-	std::shared_ptr<Expression> _range; ///< Range expression
+	ASTNode::Ptr _range; ///< Range expression
 };
 
 /**
@@ -159,10 +176,15 @@ public:
 	StringCountExpression(const std::string& id) : _id(id) {}
 	StringCountExpression(std::string&& id) : _id(std::move(id)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
+
+	const std::string& getId() const { return _id; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
@@ -188,29 +210,32 @@ class StringOffsetExpression : public Expression
 public:
 	StringOffsetExpression(const std::string& id) : _id(id), _expr() {}
 	StringOffsetExpression(std::string&& id) : _id(std::move(id)), _expr() {}
-	StringOffsetExpression(const std::string& id, const std::shared_ptr<Expression>& expr) : _id(id), _expr(expr) {}
-	StringOffsetExpression(std::string&& id, const std::shared_ptr<Expression>& expr) : _id(std::move(id)), _expr(expr) {}
-	StringOffsetExpression(const std::string& id, std::shared_ptr<Expression>&& expr) : _id(id), _expr(std::move(expr)) {}
-	StringOffsetExpression(std::string&& id, std::shared_ptr<Expression>&& expr) : _id(std::move(id)), _expr(std::move(expr)) {}
+	StringOffsetExpression(const std::string& id, const ASTNode::Ptr& expr) : _id(id), _expr(expr) {}
+	StringOffsetExpression(std::string&& id, const ASTNode::Ptr& expr) : _id(std::move(id)), _expr(expr) {}
+	StringOffsetExpression(const std::string& id, ASTNode::Ptr&& expr) : _id(id), _expr(std::move(expr)) {}
+	StringOffsetExpression(std::string&& id, ASTNode::Ptr&& expr) : _id(std::move(id)), _expr(std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
-	std::shared_ptr<Expression> getIndexExpression() const
-	{
-		return _expr.value_or(nullptr);
-	}
+	const std::string& getId() const { return _id; }
+	const ASTNode::Ptr& getIndexExpression() const { return _expr; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
+	void setIndexExpression(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setIndexExpression(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _expr.has_value() ? _id + '[' + _expr.value()->getText(indent) + ']' : _id;
+		return _expr ? _id + '[' + _expr->getExpression()->getText(indent) + ']' : _id;
 	}
 
 private:
 	std::string _id; ///< Identifier of the string
-	nonstd::optional<std::shared_ptr<Expression>> _expr; ///< Index expression if any
+	ASTNode::Ptr _expr; ///< Index expression if any
 };
 
 /**
@@ -228,29 +253,32 @@ class StringLengthExpression : public Expression
 public:
 	StringLengthExpression(const std::string& id) : _id(id), _expr() {}
 	StringLengthExpression(std::string&& id) : _id(std::move(id)), _expr() {}
-	StringLengthExpression(const std::string& id, const std::shared_ptr<Expression>& expr) : _id(id), _expr(expr) {}
-	StringLengthExpression(std::string&& id, const std::shared_ptr<Expression>& expr) : _id(std::move(id)), _expr(expr) {}
-	StringLengthExpression(const std::string& id, std::shared_ptr<Expression>&& expr) : _id(id), _expr(std::move(expr)) {}
-	StringLengthExpression(std::string&& id, std::shared_ptr<Expression>&& expr) : _id(std::move(id)), _expr(std::move(expr)) {}
+	StringLengthExpression(const std::string& id, const ASTNode::Ptr& expr) : _id(id), _expr(expr) {}
+	StringLengthExpression(std::string&& id, const ASTNode::Ptr& expr) : _id(std::move(id)), _expr(expr) {}
+	StringLengthExpression(const std::string& id, ASTNode::Ptr&& expr) : _id(id), _expr(std::move(expr)) {}
+	StringLengthExpression(std::string&& id, ASTNode::Ptr&& expr) : _id(std::move(id)), _expr(std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
-	std::shared_ptr<Expression> getIndexExpression() const
-	{
-		return _expr.value_or(nullptr);
-	}
+	const std::string& getId() const { return _id; }
+	const ASTNode::Ptr& getIndexExpression() const { return _expr; }
+
+	void setId(const std::string& id) { _id = id; }
+	void setId(std::string&& id) { _id = std::move(id); }
+	void setIndexExpression(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setIndexExpression(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _expr.has_value() ? _id + '[' + _expr.value()->getText(indent) + ']' : _id;
+		return _expr ? _id + '[' + _expr->getExpression()->getText(indent) + ']' : _id;
 	}
 
 private:
 	std::string _id; ///< Identifier of the string
-	nonstd::optional<std::shared_ptr<Expression>> _expr; ///< Index expression if any
+	ASTNode::Ptr _expr; ///< Index expression if any
 };
 
 /**
@@ -261,28 +289,23 @@ class UnaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _op + _expr->getText(indent);
+		return _op + _expr->getExpression()->getText(indent);
 	}
 
-	const std::shared_ptr<Expression>& getOperand() const
-	{
-		return _expr;
-	}
+	const ASTNode::Ptr& getOperand() const { return _expr; }
 
-	void setOperand(const std::shared_ptr<Expression>& expr)
-	{
-		_expr = expr;
-	}
+	void setOperand(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setOperand(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 protected:
-	UnaryOpExpression(const std::string& op, const std::shared_ptr<Expression>& expr)
+	UnaryOpExpression(const std::string& op, const ASTNode::Ptr& expr)
 		: _op(op), _expr(std::move(expr)) {}
-	UnaryOpExpression(const std::string& op, std::shared_ptr<Expression>&& expr)
+	UnaryOpExpression(const std::string& op, ASTNode::Ptr&& expr)
 		: _op(op), _expr(std::move(expr)) {}
 
 private:
 	std::string _op; ///< Unary operation symbol
-	std::shared_ptr<Expression> _expr; ///< Expression to apply operator on
+	ASTNode::Ptr _expr; ///< Expression to apply operator on
 };
 
 /**
@@ -296,12 +319,12 @@ private:
 class NotExpression : public UnaryOpExpression
 {
 public:
-	NotExpression(const std::shared_ptr<Expression>& expr) : UnaryOpExpression("not ", expr) {}
-	NotExpression(std::shared_ptr<Expression>&& expr) : UnaryOpExpression("not ", std::move(expr)) {}
+	NotExpression(const ASTNode::Ptr& expr) : UnaryOpExpression("not ", expr) {}
+	NotExpression(ASTNode::Ptr&& expr) : UnaryOpExpression("not ", std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -317,12 +340,12 @@ public:
 class UnaryMinusExpression : public UnaryOpExpression
 {
 public:
-	UnaryMinusExpression(const std::shared_ptr<Expression>& expr) : UnaryOpExpression("-", expr) {}
-	UnaryMinusExpression(std::shared_ptr<Expression>&& expr) : UnaryOpExpression("-", std::move(expr)) {}
+	UnaryMinusExpression(const ASTNode::Ptr& expr) : UnaryOpExpression("-", expr) {}
+	UnaryMinusExpression(ASTNode::Ptr&& expr) : UnaryOpExpression("-", std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -338,12 +361,12 @@ public:
 class BitwiseNotExpression : public UnaryOpExpression
 {
 public:
-	BitwiseNotExpression(const std::shared_ptr<Expression>& expr) : UnaryOpExpression("~", expr) {}
-	BitwiseNotExpression(std::shared_ptr<Expression>&& expr) : UnaryOpExpression("~", std::move(expr)) {}
+	BitwiseNotExpression(const ASTNode::Ptr& expr) : UnaryOpExpression("~", expr) {}
+	BitwiseNotExpression(ASTNode::Ptr&& expr) : UnaryOpExpression("~", std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -355,38 +378,24 @@ class BinaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _left->getText(indent) + ' ' + _op + (_linebreak ? "\n" + indent : " ") + _right->getText(indent);
+		return _left->getExpression()->getText(indent) + ' ' + _op + (_linebreak ? "\n" + indent : " ") + _right->getExpression()->getText(indent);
 	}
 
-	const std::shared_ptr<Expression>& getLeftOperand() const
-	{
-		return _left;
-	}
+	const ASTNode::Ptr& getLeftOperand() const { return _left; }
+	const ASTNode::Ptr& getRightOperand() const { return _right; }
 
-	const std::shared_ptr<Expression>& getRightOperand() const
-	{
-		return _right;
-	}
-
-	void setLeftOperand(const std::shared_ptr<Expression>& left)
-	{
-		_left = left;
-	}
-
-	void setRightOperand(const std::shared_ptr<Expression>& right)
-	{
-		_right = right;
-	}
+	void setLeftOperand(const ASTNode::Ptr& left) { _left = left; }
+	void setRightOperand(const ASTNode::Ptr& right) { _right = right; }
 
 protected:
-	BinaryOpExpression(const std::string& op, const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right, bool linebreak = false)
+	BinaryOpExpression(const std::string& op, const ASTNode::Ptr& left, const ASTNode::Ptr& right, bool linebreak = false)
 		: _op(op), _left(std::move(left)), _right(std::move(right)), _linebreak(linebreak) {}
-	BinaryOpExpression(const std::string& op, std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right, bool linebreak = false)
+	BinaryOpExpression(const std::string& op, ASTNode::Ptr&& left, ASTNode::Ptr&& right, bool linebreak = false)
 		: _op(op), _left(std::move(left)), _right(std::move(right)), _linebreak(linebreak) {}
 
 private:
 	std::string _op; ///< Binary operation symbol
-	std::shared_ptr<Expression> _left, _right; ///< Expressions to apply operation on
+	ASTNode::Ptr _left, _right; ///< Expressions to apply operation on
 	bool _linebreak; ///< Put linebreak after operation symbol
 };
 
@@ -401,12 +410,12 @@ private:
 class AndExpression : public BinaryOpExpression
 {
 public:
-	AndExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right, bool linebreak = false) : BinaryOpExpression("and", left, right, linebreak) {}
-	AndExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right, bool linebreak = false) : BinaryOpExpression("and", std::move(left), std::move(right), linebreak) {}
+	AndExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right, bool linebreak = false) : BinaryOpExpression("and", left, right, linebreak) {}
+	AndExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right, bool linebreak = false) : BinaryOpExpression("and", std::move(left), std::move(right), linebreak) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -421,12 +430,12 @@ public:
 class OrExpression : public BinaryOpExpression
 {
 public:
-	OrExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right, bool linebreak = false) : BinaryOpExpression("or", left, right, linebreak) {}
-	OrExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right, bool linebreak = false) : BinaryOpExpression("or", std::move(left), std::move(right), linebreak) {}
+	OrExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right, bool linebreak = false) : BinaryOpExpression("or", left, right, linebreak) {}
+	OrExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right, bool linebreak = false) : BinaryOpExpression("or", std::move(left), std::move(right), linebreak) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -441,12 +450,12 @@ public:
 class LtExpression : public BinaryOpExpression
 {
 public:
-	LtExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("<", left, right) {}
-	LtExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("<", std::move(left), std::move(right)) {}
+	LtExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("<", left, right) {}
+	LtExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("<", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -461,12 +470,12 @@ public:
 class GtExpression : public BinaryOpExpression
 {
 public:
-	GtExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression(">", left, right) {}
-	GtExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression(">", std::move(left), std::move(right)) {}
+	GtExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression(">", left, right) {}
+	GtExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression(">", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -481,12 +490,12 @@ public:
 class LeExpression : public BinaryOpExpression
 {
 public:
-	LeExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("<=", left, right) {}
-	LeExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("<=", std::move(left), std::move(right)) {}
+	LeExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("<=", left, right) {}
+	LeExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("<=", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -501,12 +510,12 @@ public:
 class GeExpression : public BinaryOpExpression
 {
 public:
-	GeExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression(">=", left, right) {}
-	GeExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression(">=", std::move(left), std::move(right)) {}
+	GeExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression(">=", left, right) {}
+	GeExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression(">=", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -521,12 +530,12 @@ public:
 class EqExpression : public BinaryOpExpression
 {
 public:
-	EqExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("==", left, right) {}
-	EqExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("==", std::move(left), std::move(right)) {}
+	EqExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("==", left, right) {}
+	EqExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("==", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -541,12 +550,12 @@ public:
 class NeqExpression : public BinaryOpExpression
 {
 public:
-	NeqExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("!=", left, right) {}
-	NeqExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("!=", std::move(left), std::move(right)) {}
+	NeqExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("!=", left, right) {}
+	NeqExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("!=", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -561,12 +570,12 @@ public:
 class ContainsExpression : public BinaryOpExpression
 {
 public:
-	ContainsExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("contains", left, right) {}
-	ContainsExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("contains", std::move(left), std::move(right)) {}
+	ContainsExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("contains", left, right) {}
+	ContainsExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("contains", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -581,12 +590,12 @@ public:
 class MatchesExpression : public BinaryOpExpression
 {
 public:
-	MatchesExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("matches", left, right) {}
-	MatchesExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("matches", std::move(left), std::move(right)) {}
+	MatchesExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("matches", left, right) {}
+	MatchesExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("matches", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -602,12 +611,12 @@ public:
 class PlusExpression : public BinaryOpExpression
 {
 public:
-	PlusExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("+", left, right) {}
-	PlusExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("+", std::move(left), std::move(right)) {}
+	PlusExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("+", left, right) {}
+	PlusExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("+", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -623,12 +632,12 @@ public:
 class MinusExpression : public BinaryOpExpression
 {
 public:
-	MinusExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("-", left, right) {}
-	MinusExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("-", std::move(left), std::move(right)) {}
+	MinusExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("-", left, right) {}
+	MinusExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("-", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -644,12 +653,12 @@ public:
 class MultiplyExpression : public BinaryOpExpression
 {
 public:
-	MultiplyExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("*", left, right) {}
-	MultiplyExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("*", std::move(left), std::move(right)) {}
+	MultiplyExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("*", left, right) {}
+	MultiplyExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("*", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -665,12 +674,12 @@ public:
 class DivideExpression : public BinaryOpExpression
 {
 public:
-	DivideExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("\\", left, right) {}
-	DivideExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("\\", std::move(left), std::move(right)) {}
+	DivideExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("\\", left, right) {}
+	DivideExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("\\", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -686,12 +695,12 @@ public:
 class ModuloExpression : public BinaryOpExpression
 {
 public:
-	ModuloExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("%", left, right) {}
-	ModuloExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("%", std::move(left), std::move(right)) {}
+	ModuloExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("%", left, right) {}
+	ModuloExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("%", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -707,12 +716,12 @@ public:
 class BitwiseXorExpression : public BinaryOpExpression
 {
 public:
-	BitwiseXorExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("^", left, right) {}
-	BitwiseXorExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("^", std::move(left), std::move(right)) {}
+	BitwiseXorExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("^", left, right) {}
+	BitwiseXorExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("^", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -727,12 +736,12 @@ public:
 class BitwiseAndExpression : public BinaryOpExpression
 {
 public:
-	BitwiseAndExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("&", left, right) {}
-	BitwiseAndExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("&", std::move(left), std::move(right)) {}
+	BitwiseAndExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("&", left, right) {}
+	BitwiseAndExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("&", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -747,12 +756,12 @@ public:
 class BitwiseOrExpression : public BinaryOpExpression
 {
 public:
-	BitwiseOrExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("|", left, right) {}
-	BitwiseOrExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("|", std::move(left), std::move(right)) {}
+	BitwiseOrExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("|", left, right) {}
+	BitwiseOrExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("|", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -767,12 +776,12 @@ public:
 class ShiftLeftExpression : public BinaryOpExpression
 {
 public:
-	ShiftLeftExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression("<<", left, right) {}
-	ShiftLeftExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression("<<", std::move(left), std::move(right)) {}
+	ShiftLeftExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression("<<", left, right) {}
+	ShiftLeftExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression("<<", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -787,12 +796,12 @@ public:
 class ShiftRightExpression : public BinaryOpExpression
 {
 public:
-	ShiftRightExpression(const std::shared_ptr<Expression>& left, const std::shared_ptr<Expression>& right) : BinaryOpExpression(">>", left, right) {}
-	ShiftRightExpression(std::shared_ptr<Expression>&& left, std::shared_ptr<Expression>&& right) : BinaryOpExpression(">>", std::move(left), std::move(right)) {}
+	ShiftRightExpression(const ASTNode::Ptr& left, const ASTNode::Ptr& right) : BinaryOpExpression(">>", left, right) {}
+	ShiftRightExpression(ASTNode::Ptr&& left, ASTNode::Ptr&& right) : BinaryOpExpression(">>", std::move(left), std::move(right)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -808,28 +817,24 @@ public:
 class ForExpression : public Expression
 {
 public:
-	const std::shared_ptr<Expression>& getVariable() const
-	{
-		return _forExpr;
-	}
+	const ASTNode::Ptr& getVariable() const { return _forExpr; }
+	const ASTNode::Ptr& getIteratedSet() const { return _set; }
+	const ASTNode::Ptr& getBody() const { return _expr; }
 
-	const std::shared_ptr<Expression>& getIteratedSet() const
-	{
-		return _set;
-	}
-
-	const std::shared_ptr<Expression>& getBody() const
-	{
-		return _expr;
-	}
+	void setVariable(const ASTNode::Ptr& forExpr) { _forExpr = forExpr; }
+	void setVariable(ASTNode::Ptr&& forExpr) { _forExpr = std::move(forExpr); }
+	void setIteratedSet(const ASTNode::Ptr& set) { _set = set; }
+	void setIteratedSet(ASTNode::Ptr&& set) { _set = std::move(set); }
+	void setBody(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setBody(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 protected:
-	ForExpression(const std::shared_ptr<Expression>& forExpr, const std::shared_ptr<Expression>& set, const std::shared_ptr<Expression>& expr)
+	ForExpression(const ASTNode::Ptr& forExpr, const ASTNode::Ptr& set, const ASTNode::Ptr& expr)
 		: _forExpr(forExpr), _set(set), _expr(expr) {}
-	ForExpression(std::shared_ptr<Expression>&& forExpr, std::shared_ptr<Expression>&& set, std::shared_ptr<Expression>&& expr)
+	ForExpression(ASTNode::Ptr&& forExpr, ASTNode::Ptr&& set, ASTNode::Ptr&& expr)
 		: _forExpr(std::move(forExpr)), _set(std::move(set)), _expr(std::move(expr)) {}
 
-	std::shared_ptr<Expression> _forExpr, _set, _expr;
+	ASTNode::Ptr _forExpr, _set, _expr;
 };
 
 /**
@@ -843,19 +848,19 @@ protected:
 class ForIntExpression : public ForExpression
 {
 public:
-	ForIntExpression(const std::shared_ptr<Expression>& forExpr, const std::string& id, const std::shared_ptr<Expression>& set, const std::shared_ptr<Expression>& expr)
+	ForIntExpression(const ASTNode::Ptr& forExpr, const std::string& id, const ASTNode::Ptr& set, const ASTNode::Ptr& expr)
 		: ForExpression(forExpr, set, expr), _id(id) {}
-	ForIntExpression(std::shared_ptr<Expression>&& forExpr, std::string&& id, std::shared_ptr<Expression>&& set, std::shared_ptr<Expression>&& expr)
+	ForIntExpression(ASTNode::Ptr&& forExpr, std::string&& id, ASTNode::Ptr&& set, ASTNode::Ptr&& expr)
 		: ForExpression(std::move(forExpr), std::move(set), std::move(expr)), _id(std::move(id)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return "for " + _forExpr->getText(indent) + ' ' + _id + " in " + _set->getText(indent) + " : ( " + _expr->getText(indent) + " )";
+		return "for " + _forExpr->getExpression()->getText(indent) + ' ' + _id + " in " + _set->getExpression()->getText(indent) + " : ( " + _expr->getExpression()->getText(indent) + " )";
 	}
 
 private:
@@ -873,19 +878,19 @@ private:
 class ForStringExpression : public ForExpression
 {
 public:
-	ForStringExpression(const std::shared_ptr<Expression>& forExpr, const std::shared_ptr<Expression>& set, const std::shared_ptr<Expression>& expr)
+	ForStringExpression(const ASTNode::Ptr& forExpr, const ASTNode::Ptr& set, const ASTNode::Ptr& expr)
 		: ForExpression(forExpr, set, expr) {}
-	ForStringExpression(std::shared_ptr<Expression>&& forExpr, std::shared_ptr<Expression>&& set, std::shared_ptr<Expression>&& expr)
+	ForStringExpression(ASTNode::Ptr&& forExpr, ASTNode::Ptr&& set, ASTNode::Ptr&& expr)
 		: ForExpression(std::move(forExpr), std::move(set), std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return "for " + _forExpr->getText(indent) + " of " + _set->getText(indent) + " : ( " + _expr->getText(indent) + " )";
+		return "for " + _forExpr->getExpression()->getText(indent) + " of " + _set->getExpression()->getText(indent) + " : ( " + _expr->getExpression()->getText(indent) + " )";
 	}
 };
 
@@ -901,19 +906,19 @@ public:
 class OfExpression : public ForExpression
 {
 public:
-	OfExpression(const std::shared_ptr<Expression>& forExpr, const std::shared_ptr<Expression>& set)
+	OfExpression(const ASTNode::Ptr& forExpr, const ASTNode::Ptr& set)
 		: ForExpression(forExpr, set, nullptr) {}
-	OfExpression(std::shared_ptr<Expression>&& forExpr, std::shared_ptr<Expression>&& set)
+	OfExpression(ASTNode::Ptr&& forExpr, ASTNode::Ptr&& set)
 		: ForExpression(std::move(forExpr), std::move(set), nullptr) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _forExpr->getText(indent) + " of " + _set->getText(indent);
+		return _forExpr->getExpression()->getText(indent) + " of " + _set->getExpression()->getText(indent);
 	}
 };
 
@@ -932,27 +937,27 @@ public:
 class SetExpression : public Expression
 {
 public:
-	SetExpression(const std::shared_ptr<Expression>& single) : _single(single), _elements() {}
-	SetExpression(const std::vector<std::shared_ptr<Expression>>& elements) : _single(), _elements(elements) {}
-	SetExpression(std::shared_ptr<Expression>&& single) : _single(std::move(single)), _elements() {}
-	SetExpression(std::vector<std::shared_ptr<Expression>>&& elements) : _single(), _elements(std::move(elements)) {}
+	SetExpression(const ASTNode::Ptr& single) : _single(true), _elements({single}) {}
+	SetExpression(const std::vector<ASTNode::Ptr>& elements) : _single(false), _elements({elements}) {}
+	SetExpression(ASTNode::Ptr&& single) : _single(true), _elements({std::move(single)}) {}
+	SetExpression(std::vector<ASTNode::Ptr>&& elements) : _single(false), _elements(std::move(elements)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
 		// Single expression, this can be only 'them'.
 		if (_single)
-			return _single->getText(indent);
+			return _elements[0]->getExpression()->getText(indent);
 
 		std::ostringstream ss;
 		ss << '(';
 		for (const auto& elem : _elements)
 		{
-			ss << elem->getText(indent) << ", ";
+			ss << elem->getExpression()->getText(indent) << ", ";
 		}
 		ss << ')';
 
@@ -962,19 +967,23 @@ public:
 		return text;
 	}
 
-	std::vector<std::shared_ptr<Expression>> getElements() const
-	{
-		return _single ? std::vector<std::shared_ptr<Expression>>{_single} : _elements;
-	}
+	const std::vector<ASTNode::Ptr>& getElements() const { return _elements; }
 
-	void setElements(const std::vector<std::shared_ptr<Expression>>& elements)
+	void setElements(const std::vector<ASTNode::Ptr>& elements)
 	{
 		_elements = elements;
+		_single = _elements.size() == 1;
+	}
+
+	void setElements(std::vector<ASTNode::Ptr>&& elements)
+	{
+		_elements = std::move(elements);
+		_single = _elements.size() == 1;
 	}
 
 private:
-	std::shared_ptr<Expression> _single; ///< Single 'them' expression
-	std::vector<std::shared_ptr<Expression>> _elements; ///< Elements of the set
+	bool _single; ///< Single 'them' expression
+	std::vector<ASTNode::Ptr> _elements; ///< Elements of the set
 };
 
 /**
@@ -989,31 +998,29 @@ private:
 class RangeExpression : public Expression
 {
 public:
-	RangeExpression(const std::shared_ptr<Expression>& low, const std::shared_ptr<Expression>& high) : _low(low), _high(high) {}
-	RangeExpression(std::shared_ptr<Expression>&& low, std::shared_ptr<Expression>&& high) : _low(std::move(low)), _high(std::move(high)) {}
+	RangeExpression(const ASTNode::Ptr& low, const ASTNode::Ptr& high) : _low(low), _high(high) {}
+	RangeExpression(ASTNode::Ptr&& low, ASTNode::Ptr&& high) : _low(std::move(low)), _high(std::move(high)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return '(' + _low->getText(indent) + " .. " + _high->getText(indent) + ')';
+		return '(' + _low->getExpression()->getText(indent) + " .. " + _high->getExpression()->getText(indent) + ')';
 	}
 
-	const std::shared_ptr<Expression>& getLow() const
-	{
-		return _low;
-	}
+	const ASTNode::Ptr& getLow() const { return _low; }
+	const ASTNode::Ptr& getHigh() const { return _high; }
 
-	const std::shared_ptr<Expression>& getHigh() const
-	{
-		return _high;
-	}
+	void setLow(const ASTNode::Ptr& low) { _low = low; }
+	void setLow(ASTNode::Ptr&& low) { _low = std::move(low); }
+	void setHigh(const ASTNode::Ptr& high) { _high = high; }
+	void setHigh(ASTNode::Ptr&& high) { _high = std::move(high); }
 
 private:
-	std::shared_ptr<Expression> _low, _high; ///< Low and high bounds of the range
+	ASTNode::Ptr _low, _high; ///< Low and high bounds of the range
 };
 
 /**
@@ -1031,9 +1038,9 @@ class IdExpression : public Expression
 public:
 	IdExpression(const std::shared_ptr<Symbol>& symbol) : _symbol(symbol) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
@@ -1041,15 +1048,9 @@ public:
 		return _symbol->getName();
 	}
 
-	const std::shared_ptr<Symbol>& getSymbol() const
-	{
-		return _symbol;
-	}
+	const std::shared_ptr<Symbol>& getSymbol() const { return _symbol; }
 
-	void setSymbol(const std::shared_ptr<Symbol>& symbol)
-	{
-		_symbol = symbol;
-	}
+	void setSymbol(const std::shared_ptr<Symbol>& symbol) { _symbol = symbol; }
 
 protected:
 	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
@@ -1068,26 +1069,26 @@ protected:
 class StructAccessExpression : public IdExpression
 {
 public:
-	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, const std::shared_ptr<Expression>& structure) : IdExpression(symbol), _structure(structure) {}
-	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, std::shared_ptr<Expression>&& structure) : IdExpression(symbol), _structure(std::move(structure)) {}
+	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, const ASTNode::Ptr& structure) : IdExpression(symbol), _structure(structure) {}
+	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, ASTNode::Ptr&& structure) : IdExpression(symbol), _structure(std::move(structure)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _structure->getText(indent) + '.' + _symbol->getName();
+		return _structure->getExpression()->getText(indent) + '.' + _symbol->getName();
 	}
 
-	const std::shared_ptr<Expression>& getStructure() const
-	{
-		return _structure;
-	}
+	const ASTNode::Ptr& getStructure() const { return _structure; }
+
+	void setStructure(const ASTNode::Ptr& structure) { _structure = structure; }
+	void setStructure(ASTNode::Ptr&& structure) { _structure = std::move(structure); }
 
 private:
-	std::shared_ptr<Expression> _structure; ///< Structure identifier expression
+	ASTNode::Ptr _structure; ///< Structure identifier expression
 };
 
 /**
@@ -1103,34 +1104,32 @@ private:
 class ArrayAccessExpression : public IdExpression
 {
 public:
-	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, const std::shared_ptr<Expression>& array, const std::shared_ptr<Expression>& accessor)
+	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, const ASTNode::Ptr& array, const ASTNode::Ptr& accessor)
 		: IdExpression(symbol), _array(std::move(array)), _accessor(std::move(accessor)) {}
-	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, std::shared_ptr<Expression>&& array, std::shared_ptr<Expression>&& accessor)
+	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, ASTNode::Ptr&& array, ASTNode::Ptr&& accessor)
 		: IdExpression(symbol), _array(std::move(array)), _accessor(std::move(accessor)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _array->getText(indent) + '[' + _accessor->getText(indent) + ']';
+		return _array->getExpression()->getText(indent) + '[' + _accessor->getExpression()->getText(indent) + ']';
 	}
 
-	const std::shared_ptr<Expression>& getArray() const
-	{
-		return _array;
-	}
+	const ASTNode::Ptr& getArray() const { return _array; }
+	const ASTNode::Ptr& getAccessor() const { return _accessor; }
 
-	const std::shared_ptr<Expression>& getAccessor() const
-	{
-		return _accessor;
-	}
+	void setArray(const ASTNode::Ptr& array) { _array = array; }
+	void setArray(ASTNode::Ptr&& array) { _array = std::move(array); }
+	void setAccessor(const ASTNode::Ptr& accessor) { _accessor = accessor; }
+	void setAccessor(ASTNode::Ptr&& accessor) { _accessor = std::move(accessor); }
 
 private:
-	std::shared_ptr<Expression> _array; ///< Array identifier expression
-	std::shared_ptr<Expression> _accessor; ///< Accessor expression (expression enclosed in [])
+	ASTNode::Ptr _array; ///< Array identifier expression
+	ASTNode::Ptr _accessor; ///< Accessor expression (expression enclosed in [])
 };
 
 /**
@@ -1145,27 +1144,27 @@ private:
 class FunctionCallExpression : public IdExpression
 {
 public:
-	FunctionCallExpression(const std::shared_ptr<Expression>& func, const std::vector<std::shared_ptr<Expression>>& args)
+	FunctionCallExpression(const ASTNode::Ptr& func, const std::vector<ASTNode::Ptr>& args)
 		: IdExpression(nullptr), _func(func), _args(args) {}
-	FunctionCallExpression(std::shared_ptr<Expression>&& func, std::vector<std::shared_ptr<Expression>>&& args)
+	FunctionCallExpression(ASTNode::Ptr&& func, std::vector<ASTNode::Ptr>&& args)
 		: IdExpression(nullptr), _func(std::move(func)), _args(std::move(args)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
 		// Use just empty parentheses for parameter-less function
 		if (_args.empty())
-			return _func->getText(indent) + "()";
+			return _func->getExpression()->getText(indent) + "()";
 
 		std::ostringstream ss;
-		ss << _func->getText(indent) << '(';
+		ss << _func->getExpression()->getText(indent) << '(';
 		for (const auto& arg : _args)
 		{
-			ss << arg->getText(indent) << ", ";
+			ss << arg->getExpression()->getText(indent) << ", ";
 		}
 		ss << ')';
 
@@ -1175,24 +1174,17 @@ public:
 		return text;
 	}
 
-	const std::shared_ptr<Expression>& getFunction() const
-	{
-		return _func;
-	}
+	const ASTNode::Ptr& getFunction() const { return _func; }
+	const std::vector<ASTNode::Ptr>& getArguments() const { return _args; }
 
-	const std::vector<std::shared_ptr<Expression>>& getArguments() const
-	{
-		return _args;
-	}
-
-	void setArguments(const std::vector<std::shared_ptr<Expression>>& args)
-	{
-		_args = args;
-	}
+	void setFunction(const ASTNode::Ptr& func) { _func = func; }
+	void setFunction(ASTNode::Ptr&& func) { _func = std::move(func); }
+	void setArguments(const std::vector<ASTNode::Ptr>& args) { _args = args; }
+	void setArguments(std::vector<ASTNode::Ptr>&& args) { _args = std::move(args); }
 
 private:
-	std::shared_ptr<Expression> _func; ///< Function identifier expression
-	std::vector<std::shared_ptr<Expression>> _args; ///< Arguments expressions
+	ASTNode::Ptr _func; ///< Function identifier expression
+	std::vector<ASTNode::Ptr> _args; ///< Arguments expressions
 };
 
 /**
@@ -1207,6 +1199,8 @@ public:
 
 	LiteralExpression(const T& value) : _value(value) {}
 	LiteralExpression(T&& value) : _value(std::move(value)) {}
+
+	LiteralType getValue() const { return _value; }
 
 protected:
 	LiteralType _value; ///< Value of the literal
@@ -1226,9 +1220,9 @@ class BoolLiteralExpression : public LiteralExpression<bool>
 public:
 	BoolLiteralExpression(bool value) : LiteralExpression<bool>(value) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
@@ -1252,9 +1246,9 @@ public:
 	StringLiteralExpression(const std::string& str) : LiteralExpression<std::string>(str) {}
 	StringLiteralExpression(std::string&& str) : LiteralExpression<std::string>(std::move(str)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
@@ -1279,9 +1273,9 @@ public:
 	IntLiteralExpression(const std::string& value) : LiteralExpression<std::string>(value) {}
 	IntLiteralExpression(std::string&& value) : LiteralExpression<std::string>(std::move(value)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
@@ -1306,9 +1300,9 @@ public:
 	DoubleLiteralExpression(const std::string& value) : LiteralExpression<std::string>(value) {}
 	DoubleLiteralExpression(std::string&& value) : LiteralExpression<std::string>(std::move(value)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
@@ -1350,9 +1344,9 @@ class FilesizeExpression : public KeywordExpression
 public:
 	FilesizeExpression() : KeywordExpression("filesize") {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -1370,9 +1364,9 @@ class EntrypointExpression : public KeywordExpression
 public:
 	EntrypointExpression() : KeywordExpression("entrypoint") {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -1391,9 +1385,9 @@ class AllExpression : public KeywordExpression
 public:
 	AllExpression() : KeywordExpression("all") {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -1412,9 +1406,9 @@ class AnyExpression : public KeywordExpression
 public:
 	AnyExpression() : KeywordExpression("any") {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -1433,9 +1427,9 @@ class ThemExpression : public KeywordExpression
 public:
 	ThemExpression() : KeywordExpression("them") {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 };
 
@@ -1452,12 +1446,12 @@ public:
 class ParenthesesExpression : public Expression
 {
 public:
-	ParenthesesExpression(const std::shared_ptr<Expression>& expr, bool linebreak = false) : _expr(expr), _linebreak(linebreak) {}
-	ParenthesesExpression(std::shared_ptr<Expression>&& expr, bool linebreak = false) : _expr(std::move(expr)), _linebreak(linebreak) {}
+	ParenthesesExpression(const ASTNode::Ptr& expr, bool linebreak = false) : _expr(expr), _linebreak(linebreak) {}
+	ParenthesesExpression(ASTNode::Ptr&& expr, bool linebreak = false) : _expr(std::move(expr)), _linebreak(linebreak) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
@@ -1465,24 +1459,19 @@ public:
 		if (_linebreak)
 		{
 			auto newIndent = indent + '\t';
-			return "(\n" + newIndent + _expr->getText(newIndent) + '\n' + indent + ')';
+			return "(\n" + newIndent + _expr->getExpression()->getText(newIndent) + '\n' + indent + ')';
 		}
 
-		return '(' + _expr->getText(indent) + ')';
+		return '(' + _expr->getExpression()->getText(indent) + ')';
 	}
 
-	const std::shared_ptr<Expression>& getEnclosedExpression() const
-	{
-		return _expr;
-	}
+	const ASTNode::Ptr& getEnclosedExpression() const { return _expr; }
 
-	void setEnclosedExpression(const std::shared_ptr<Expression>& expr)
-	{
-		_expr = expr;
-	}
+	void setEnclosedExpression(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setEnclosedExpression(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 private:
-	std::shared_ptr<Expression> _expr; ///< Enclosed expression
+	ASTNode::Ptr _expr; ///< Enclosed expression
 	bool _linebreak; ///< Put linebreak after opening and before closing parenthesis and indent content by one more level.
 };
 
@@ -1500,32 +1489,30 @@ private:
 class IntFunctionExpression : public Expression
 {
 public:
-	IntFunctionExpression(const std::string& func, const std::shared_ptr<Expression>& expr) : _func(func), _expr(expr) {}
-	IntFunctionExpression(std::string&& func, std::shared_ptr<Expression>&& expr) : _func(std::move(func)), _expr(std::move(expr)) {}
+	IntFunctionExpression(const std::string& func, const ASTNode::Ptr& expr) : _func(func), _expr(expr) {}
+	IntFunctionExpression(std::string&& func, ASTNode::Ptr&& expr) : _func(std::move(func)), _expr(std::move(expr)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _func + '(' + _expr->getText(indent) + ')';
+		return _func + '(' + _expr->getExpression()->getText(indent) + ')';
 	}
 
-	const std::string& getFunction() const
-	{
-		return _func;
-	}
+	const std::string& getFunction() const { return _func; }
+	const ASTNode::Ptr& getArgument() const { return _expr; }
 
-	const std::shared_ptr<Expression>& getArgument() const
-	{
-		return _expr;
-	}
+	void setFunction(const std::string& func) { _func = func; }
+	void setFunction(std::string&& func) { _func = std::move(func); }
+	void setArgument(const ASTNode::Ptr& expr) { _expr = expr; }
+	void setArgument(ASTNode::Ptr&& expr) { _expr = std::move(expr); }
 
 private:
 	std::string _func; ///< Function identifier
-	std::shared_ptr<Expression> _expr; ///< Function argument
+	ASTNode::Ptr _expr; ///< Function argument
 };
 
 /**
@@ -1543,20 +1530,17 @@ public:
 	RegexpExpression(const std::shared_ptr<String>& regexp) : _regexp(regexp) {}
 	RegexpExpression(std::shared_ptr<String>&& regexp) : _regexp(std::move(regexp)) {}
 
-	virtual void accept(Visitor* v) override
+	virtual Visitee::ReturnType accept(Visitor* v) override
 	{
-		v->visit(this);
+		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
-	{
-		return _regexp->getText();
-	}
+	virtual std::string getText(const std::string& /*indent*/ = "") const override { return _regexp->getText(); }
 
-	const std::shared_ptr<String>& getRegexpString() const
-	{
-		return _regexp;
-	}
+	const std::shared_ptr<String>& getRegexpString() const { return _regexp; }
+
+	void setRegexpString(const std::shared_ptr<String>& regexp) { _regexp = regexp; }
+	void setRegexpString(std::shared_ptr<String>&& regexp) { _regexp = std::move(regexp); }
 
 private:
 	std::shared_ptr<String> _regexp; ///< Regular expression string

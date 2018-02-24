@@ -5,6 +5,7 @@
  */
 
 #include "yaramod/builder/yara_rule_builder.h"
+#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
@@ -16,7 +17,7 @@ namespace yaramod {
  * Constructor.
  */
 YaraRuleBuilder::YaraRuleBuilder() : _name("unknown"), _mod(Rule::Modifier::None), _tags(), _metas(),
-	_strings(std::make_shared<Rule::StringsTrie>()), _condition(std::make_shared<BoolLiteralExpression>(true))
+	_strings(std::make_shared<Rule::StringsTrie>()), _condition(makeASTNode<BoolLiteralExpression>(true))
 {
 }
 
@@ -46,7 +47,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	_tags.clear();
 	_metas.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
-	_condition = std::make_shared<BoolLiteralExpression>(true);
+	_condition = makeASTNode<BoolLiteralExpression>(true);
 	return rule;
 }
 
@@ -224,7 +225,7 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withCondition(std::shared_ptr<Expression>&& condition)
+YaraRuleBuilder& YaraRuleBuilder::withCondition(ASTNode::Ptr&& condition)
 {
 	_condition = std::move(condition);
 	return *this;
@@ -237,7 +238,7 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(std::shared_ptr<Expression>&& co
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withCondition(const std::shared_ptr<Expression>& condition)
+YaraRuleBuilder& YaraRuleBuilder::withCondition(const ASTNode::Ptr& condition)
 {
 	_condition = condition;
 	return *this;

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "yaramod/utils/visitee.h"
+
 namespace yaramod {
 
 class StringExpression;
@@ -70,57 +72,57 @@ class Visitor
 public:
 	/// @name Visit methods
 	/// @{
-	virtual void visit(StringExpression* expr) = 0;
-	virtual void visit(StringWildcardExpression* expr) = 0;
-	virtual void visit(StringAtExpression* expr) = 0;
-	virtual void visit(StringInRangeExpression* expr) = 0;
-	virtual void visit(StringCountExpression* expr) = 0;
-	virtual void visit(StringOffsetExpression* expr) = 0;
-	virtual void visit(StringLengthExpression* expr) = 0;
-	virtual void visit(NotExpression* expr) = 0;
-	virtual void visit(UnaryMinusExpression* expr) = 0;
-	virtual void visit(BitwiseNotExpression* expr) = 0;
-	virtual void visit(AndExpression* expr) = 0;
-	virtual void visit(OrExpression* expr) = 0;
-	virtual void visit(LtExpression* expr) = 0;
-	virtual void visit(GtExpression* expr) = 0;
-	virtual void visit(LeExpression* expr) = 0;
-	virtual void visit(GeExpression* expr) = 0;
-	virtual void visit(EqExpression* expr) = 0;
-	virtual void visit(NeqExpression* expr) = 0;
-	virtual void visit(ContainsExpression* expr) = 0;
-	virtual void visit(MatchesExpression* expr) = 0;
-	virtual void visit(PlusExpression* expr) = 0;
-	virtual void visit(MinusExpression* expr) = 0;
-	virtual void visit(MultiplyExpression* expr) = 0;
-	virtual void visit(DivideExpression* expr) = 0;
-	virtual void visit(ModuloExpression* expr) = 0;
-	virtual void visit(BitwiseXorExpression* expr) = 0;
-	virtual void visit(BitwiseAndExpression* expr) = 0;
-	virtual void visit(BitwiseOrExpression* expr) = 0;
-	virtual void visit(ShiftLeftExpression* expr) = 0;
-	virtual void visit(ShiftRightExpression* expr) = 0;
-	virtual void visit(ForIntExpression* expr) = 0;
-	virtual void visit(ForStringExpression* expr) = 0;
-	virtual void visit(OfExpression* expr) = 0;
-	virtual void visit(SetExpression* expr) = 0;
-	virtual void visit(RangeExpression* expr) = 0;
-	virtual void visit(IdExpression* expr) = 0;
-	virtual void visit(StructAccessExpression* expr) = 0;
-	virtual void visit(ArrayAccessExpression* expr) = 0;
-	virtual void visit(FunctionCallExpression* expr) = 0;
-	virtual void visit(BoolLiteralExpression* expr) = 0;
-	virtual void visit(StringLiteralExpression* expr) = 0;
-	virtual void visit(IntLiteralExpression* expr) = 0;
-	virtual void visit(DoubleLiteralExpression* expr) = 0;
-	virtual void visit(FilesizeExpression* expr) = 0;
-	virtual void visit(EntrypointExpression* expr) = 0;
-	virtual void visit(AllExpression* expr) = 0;
-	virtual void visit(AnyExpression* expr) = 0;
-	virtual void visit(ThemExpression* expr) = 0;
-	virtual void visit(ParenthesesExpression* expr) = 0;
-	virtual void visit(IntFunctionExpression* expr) = 0;
-	virtual void visit(RegexpExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringWildcardExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringAtExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringInRangeExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringCountExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringOffsetExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringLengthExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(NotExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(UnaryMinusExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(BitwiseNotExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(AndExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(OrExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(LtExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(GtExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(LeExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(GeExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(EqExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(NeqExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ContainsExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(MatchesExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(PlusExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(MinusExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(MultiplyExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(DivideExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ModuloExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(BitwiseXorExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(BitwiseAndExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(BitwiseOrExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ShiftLeftExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ShiftRightExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ForIntExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ForStringExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(OfExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(SetExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(RangeExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(IdExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StructAccessExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ArrayAccessExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(FunctionCallExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(BoolLiteralExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(StringLiteralExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(IntLiteralExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(DoubleLiteralExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(FilesizeExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(EntrypointExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(AllExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(AnyExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ThemExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(ParenthesesExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(IntFunctionExpression* expr) = 0;
+	virtual Visitee::ReturnType visit(RegexpExpression* expr) = 0;
 	/// @}
 };
 

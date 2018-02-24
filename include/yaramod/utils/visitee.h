@@ -6,8 +6,13 @@
 
 #pragma once
 
+#include <memory>
+
+#include <optional_lite/optional.hpp>
+
 namespace yaramod {
 
+class ASTNode;
 class Visitor;
 
 /**
@@ -22,6 +27,8 @@ class Visitor;
 class Visitee
 {
 public:
+	using ReturnType = nonstd::optional<std::shared_ptr<ASTNode>>;
+
 	/// @name Destructor
 	/// @{
 	virtual ~Visitee() {}
@@ -29,7 +36,7 @@ public:
 
 	/// @name Visitor method
 	/// @{
-	virtual void accept(Visitor* v) = 0;
+	virtual Visitee::ReturnType accept(Visitor* v) = 0;
 	/// @}
 };
 
