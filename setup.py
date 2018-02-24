@@ -102,7 +102,7 @@ class BuildExtCommand(build_ext):
             subprocess.check_call(build_cmd)
 
 def get_long_description():
-    if 'dist' in sys.argv[1]:
+    if len(sys.argv) > 1 and 'dist' in sys.argv[1]:
         try:
             import pypandoc
             return pypandoc.convert_file('README.md', 'rst')
