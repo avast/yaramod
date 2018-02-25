@@ -12,6 +12,7 @@
 #include <yaramod/yaramod.h>
 
 #include <optional_lite/optional.hpp>
+#include <variant/variant.hpp>
 
 /**
  * Always include this file before anything else in `src/python` folder.
@@ -21,12 +22,24 @@
 namespace pybind11 { namespace detail {
 
 /**
- * Type caster which allows us to use `nonstd::optional<T>` in Python. In Python, if you return
- * instance of T, it is going to set optional value to instance of T. If you return `None`, it is
- * going to set the optional value to empty value.
+ * Type caster which allows us to use `mpark::variant<Ts...>` in Python. In Python, the variable
+ * is always going to have set its proper type. No visit is required.
  */
-template <typename T>
-struct type_caster<nonstd::optional<T>> : public optional_caster<nonstd::optional<T>> {};
+template <typename... Ts>
+struct type_caster<mpark::variant<Ts...>> : variant_caster<mpark::variant<Ts...>> {};
+
+/**
+ * Helper for type caster of `mpark::variant` to inspect values of variant.
+ */
+template <>
+struct visit_helper<mpark::variant>
+{
+	template <typename... Args>
+	static auto call(Args&&... args) -> decltype(mpark::visit(args...))
+	{
+		return mpark::visit(args...);
+	}
+};
 
 /**
  * This type caster allows us to use `std::vector<const yaramod::String*>` with `return_value_policy:reference`.

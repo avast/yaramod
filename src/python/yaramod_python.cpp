@@ -85,6 +85,9 @@ void addEnums(py::module& module)
 		.value("Regexp", Expression::Type::Regexp)
 		.value("Object", Expression::Type::Object)
 		.value("Float", Expression::Type::Float);
+
+	py::enum_<Visitee::Action>(module, "VisiteeAction")
+		.value("Delete", Visitee::Action::Delete);
 }
 
 void addBasicClasses(py::module& module)
