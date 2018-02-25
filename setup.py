@@ -111,7 +111,7 @@ def get_long_description():
     return ''
 
 setup(
-    version='2.0.0b2',
+    version='2.0.0b3',
     name='yaramod',
     description='Library for manipulation of YARA files.',
     long_description=get_long_description(),
