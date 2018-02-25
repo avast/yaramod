@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <optional_lite/optional.hpp>
+#include <variant/variant.hpp>
 
 namespace yaramod {
 
@@ -27,7 +28,15 @@ class Visitor;
 class Visitee
 {
 public:
-	using ReturnType = nonstd::optional<std::shared_ptr<ASTNode>>;
+	/**
+	 * Indicates action that should be performed by visitor on visitee.
+	 */
+	enum class Action
+	{
+		Delete
+	};
+
+	using ReturnType = mpark::variant<std::shared_ptr<ASTNode>, Visitee::Action>;
 
 	/// @name Destructor
 	/// @{

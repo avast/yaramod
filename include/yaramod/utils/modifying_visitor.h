@@ -14,12 +14,12 @@ namespace yaramod {
 /**
  * Abstract class representing modifying visitor of condition expression in YARA files.
  * It is capable of modifying AST. Each visit() method has return value of
- * @c Visitee::ReturnType what is just an alis for `optional<std::shared_ptr<ASTNode>>`.
+ * @c Visitee::ReturnType what is just an alis for `variant<shared_ptr<ASTNode>, Visitee::Action>`.
  * There are 3 possible values you can return in order to control the behavior of the visitor:
  *
- * 1. nullopt - Returning unset optional value means keeping the node as it is and not modifying it all.
- * 2. nullptr - Returning `nullptr` value inside of optional means delete this AST node.
- * 3. ASTNode - Returning valid instance of ASTNode means replace this AST node with the one I returned you.
+ * 1. nullptr - Returning unset variant means keeping the node as it is and not modifying it all.
+ * 2. non nullptr - Returning valid instance of ASTNode means replace this AST node with the one I returned you.
+ * 3. Visitee::Action::Delete - Delete this AST node.
  *
  * You can of course override this behavior by providing your own implementaion of each visit()
  * method but this is the default one. If you want to override some part of the logic but fall-back
@@ -33,8 +33,15 @@ class ModifyingVisitor : public Visitor
 public:
 	void modify(ASTNode::Ptr& expr)
 	{
-		if (auto result = expr->accept(this))
-			expr->setExpression(result.value() ? result.value()->getExpression() : nullptr);
+		auto result = expr->accept(this);
+
+		if (auto newExpr = mpark::get_if<ASTNode::Ptr>(&result))
+		{
+			if (*newExpr)
+				expr->setExpression((*newExpr)->getExpression());
+		}
+		else
+			expr->setExpression(makeASTNode<BoolLiteralExpression>(true)->getExpression());
 	}
 
 	/// @name Visit methods
@@ -287,66 +294,93 @@ public:
 
 	/// @name Default handlers
 	/// @{
-	Visitee::ReturnType defaultHandler(StringAtExpression* expr, const Visitee::ReturnType& atExpr)
+	Visitee::ReturnType defaultHandler(StringAtExpression* expr, const Visitee::ReturnType& atExprRet)
 	{
-		if (atExpr)
-			expr->setAtExpression(atExpr.value());
+		if (auto atExpr = mpark::get_if<ASTNode::Ptr>(&atExprRet))
+		{
+			if (*atExpr)
+				expr->setAtExpression(*atExpr);
+		}
+		else
+			expr->setAtExpression(nullptr);
 
 		if (!expr->getAtExpression())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(StringInRangeExpression* expr, const Visitee::ReturnType& rangeExpr)
+	Visitee::ReturnType defaultHandler(StringInRangeExpression* expr, const Visitee::ReturnType& rangeExprRet)
 	{
-		if (rangeExpr)
-			expr->setRangeExpression(rangeExpr.value());
+		if (auto rangeExpr = mpark::get_if<ASTNode::Ptr>(&rangeExprRet))
+		{
+			if (*rangeExpr)
+				expr->setRangeExpression(*rangeExpr);
+		}
+		else
+			expr->setRangeExpression(nullptr);
 
 		if (!expr->getRangeExpression())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& indexExpr)
+		defaultHandler(T* expr, const Visitee::ReturnType& indexExprRet)
 	{
-		if (indexExpr)
-			expr->setIndexExpression(indexExpr.value());
+		if (auto indexExpr = mpark::get_if<ASTNode::Ptr>(&indexExprRet))
+		{
+			if (*indexExpr)
+				expr->setIndexExpression(*indexExpr);
+		}
+		else
+			expr->setIndexExpression(nullptr);
 
 		if (!expr->getIndexExpression())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& operand)
+		defaultHandler(T* expr, const Visitee::ReturnType& operandRet)
 	{
-		if (operand)
-			expr->setOperand(operand.value());
-
-		if (!expr->getOperand())
-			return { nullptr };
+		if (auto operand = mpark::get_if<ASTNode::Ptr>(&operandRet))
+		{
+			if (*operand)
+				expr->setOperand(*operand);
+		}
+		else
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& left, const Visitee::ReturnType& right)
+		defaultHandler(T* expr, const Visitee::ReturnType& leftRet, const Visitee::ReturnType& rightRet)
 	{
-		if (left)
-			expr->setLeftOperand(left.value());
+		if (auto left = mpark::get_if<ASTNode::Ptr>(&leftRet))
+		{
+			if (left)
+				expr->setLeftOperand(*left);
+		}
+		else
+			expr->setLeftOperand(nullptr);
 
-		if (right)
-			expr->setRightOperand(right.value());
+		if (auto right = mpark::get_if<ASTNode::Ptr>(&rightRet))
+		{
+			if (right)
+				expr->setRightOperand(*right);
+		}
+		else
+			expr->setRightOperand(nullptr);
 
 		if (!expr->getLeftOperand() && !expr->getRightOperand())
-			return { nullptr };
+			return Visitee::Action::Delete;
 		else if (!expr->getLeftOperand() && expr->getRightOperand())
 			return expr->getRightOperand();
 		else if (expr->getLeftOperand() && !expr->getRightOperand())
@@ -357,126 +391,193 @@ public:
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& var, const Visitee::ReturnType& iteratedSet, const Visitee::ReturnType& body)
+		defaultHandler(T* expr, const Visitee::ReturnType& varRet, const Visitee::ReturnType& iteratedSetRet, const Visitee::ReturnType& bodyRet)
 	{
-		if (var)
-			expr->setVariable(var.value());
+		if (auto var = mpark::get_if<ASTNode::Ptr>(&varRet))
+		{
+			if (*var)
+				expr->setVariable(*var);
+		}
+		else
+			expr->setVariable(nullptr);
 
-		if (iteratedSet)
-			expr->setIteratedSet(iteratedSet.value());
+		if (auto iteratedSet = mpark::get_if<ASTNode::Ptr>(&iteratedSetRet))
+		{
+			if (*iteratedSet)
+				expr->setIteratedSet(*iteratedSet);
+		}
+		else
+			expr->setIteratedSet(nullptr);
 
-		if (body)
-			expr->setBody(body.value());
+		auto oldBody = expr->getBody();
+		if (auto body = mpark::get_if<ASTNode::Ptr>(&bodyRet))
+		{
+			if (*body)
+				expr->setBody(*body);
+		}
+		else
+			expr->setBody(nullptr);
 
-		if (!expr->getVariable() || !expr->getIteratedSet() || (body && !expr->getBody()))
-			return { nullptr };
+		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(SetExpression* expr, const std::vector<Visitee::ReturnType>& elements)
+	Visitee::ReturnType defaultHandler(SetExpression* expr, const std::vector<Visitee::ReturnType>& elementsRet)
 	{
-		if (elements.empty())
-			return { nullptr };
+		if (elementsRet.empty())
+			return Visitee::Action::Delete;
 
-		if (!std::all_of(elements.begin(), elements.end(),
+		if (std::all_of(elementsRet.begin(), elementsRet.end(),
 				[](const auto& element) {
-					return !element.has_value();
+					auto e = mpark::get_if<ASTNode::Ptr>(&element);
+					return e && (*e == nullptr);
 				}))
 		{
 			return {};
 		}
 
 		std::vector<ASTNode::Ptr> newElements;
-		for (std::size_t i = 0, end = elements.size(); i < end; ++i)
+		for (std::size_t i = 0, end = elementsRet.size(); i < end; ++i)
 		{
-			newElements.push_back(elements[i].value_or(expr->getElements()[i]));
+			if (auto element = mpark::get_if<ASTNode::Ptr>(&elementsRet[i]))
+			{
+				if (*element)
+					newElements.push_back(*element);
+				else
+					newElements.push_back(expr->getElements()[i]);
+			}
 		}
 
 		expr->setElements(newElements);
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(RangeExpression* expr, const Visitee::ReturnType& low, const Visitee::ReturnType& high)
+	Visitee::ReturnType defaultHandler(RangeExpression* expr, const Visitee::ReturnType& lowRet, const Visitee::ReturnType& highRet)
 	{
-		if (low)
-			expr->setLow(low.value());
+		if (auto low = mpark::get_if<ASTNode::Ptr>(&lowRet))
+		{
+			if (*low)
+				expr->setLow(*low);
+		}
+		else
+			expr->setLow(nullptr);
 
-		if (high)
-			expr->setHigh(high.value());
+		if (auto high = mpark::get_if<ASTNode::Ptr>(&highRet))
+		{
+			if (*high)
+				expr->setHigh(*high);
+		}
+		else
+			expr->setHigh(nullptr);
 
 		if (!expr->getLow() || !expr->getHigh())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(StructAccessExpression* expr, const Visitee::ReturnType& structure)
+	Visitee::ReturnType defaultHandler(StructAccessExpression* expr, const Visitee::ReturnType& structureRet)
 	{
-		if (structure)
-			expr->setStructure(structure.value());
-
-		if (!expr->getStructure())
-			return { nullptr };
+		if (auto structure = mpark::get_if<ASTNode::Ptr>(&structureRet))
+		{
+			if (*structure)
+				expr->setStructure(*structure);
+		}
+		else
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(ArrayAccessExpression* expr, const Visitee::ReturnType& array, const Visitee::ReturnType& accessor)
+	Visitee::ReturnType defaultHandler(ArrayAccessExpression* expr, const Visitee::ReturnType& arrayRet, const Visitee::ReturnType& accessorRet)
 	{
-		if (array)
-			expr->setArray(array.value());
+		if (auto array = mpark::get_if<ASTNode::Ptr>(&arrayRet))
+		{
+			if (*array)
+				expr->setArray(*array);
+		}
+		else
+			expr->setArray(nullptr);
 
-		if (accessor)
-			expr->setAccessor(accessor.value());
+		if (auto accessor = mpark::get_if<ASTNode::Ptr>(&accessorRet))
+		{
+			if (*accessor)
+				expr->setAccessor(*accessor);
+		}
+		else
+			expr->setAccessor(nullptr);
 
 		if (!expr->getArray() || !expr->getAccessor())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(FunctionCallExpression* expr, const Visitee::ReturnType& function, const std::vector<Visitee::ReturnType>& arguments)
+	Visitee::ReturnType defaultHandler(FunctionCallExpression* expr, const Visitee::ReturnType& functionRet, const std::vector<Visitee::ReturnType>& argumentsRet)
 	{
-		if (function)
-			expr->setFunction(function.value());
+		if (auto function = mpark::get_if<ASTNode::Ptr>(&functionRet))
+		{
+			if (*function)
+				expr->setFunction(*function);
+		}
+		else
+			expr->setFunction(nullptr);
 
-		if (!std::all_of(arguments.begin(), arguments.end(),
+		if (std::all_of(argumentsRet.begin(), argumentsRet.end(),
 				[](const auto& arg) {
-					return !arg.has_value();
+					auto a = mpark::get_if<ASTNode::Ptr>(&arg);
+					return a && (*a == nullptr);
 				}))
 		{
 			return {};
 		}
 
 		std::vector<ASTNode::Ptr> newArguments;
-		for (std::size_t i = 0, end = arguments.size(); i < end; ++i)
+		for (std::size_t i = 0, end = argumentsRet.size(); i < end; ++i)
 		{
-			newArguments.push_back(arguments[i].value_or(expr->getArguments()[i]));
+			if (auto arg = mpark::get_if<ASTNode::Ptr>(&argumentsRet[i]))
+			{
+				if (*arg)
+					newArguments.push_back(*arg);
+				else
+					newArguments.push_back(expr->getArguments()[i]);
+			}
 		}
 
 		expr->setArguments(newArguments);
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(ParenthesesExpression* expr, const Visitee::ReturnType& enclosedExpr)
+	Visitee::ReturnType defaultHandler(ParenthesesExpression* expr, const Visitee::ReturnType& enclosedExprRet)
 	{
-		if (enclosedExpr)
-			expr->setEnclosedExpression(enclosedExpr.value());
+		if (auto enclosedExpr = mpark::get_if<ASTNode::Ptr>(&enclosedExprRet))
+		{
+			if (*enclosedExpr)
+				expr->setEnclosedExpression(*enclosedExpr);
+		}
+		else
+			expr->setEnclosedExpression(nullptr);
 
 		if (!expr->getEnclosedExpression())
-			return { nullptr };
+			return Visitee::Action::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(IntFunctionExpression* expr, const Visitee::ReturnType& argument)
+	Visitee::ReturnType defaultHandler(IntFunctionExpression* expr, const Visitee::ReturnType& argumentRet)
 	{
-		if (argument)
-			expr->setArgument(argument.value());
+		if (auto argument = mpark::get_if<ASTNode::Ptr>(&argumentRet))
+		{
+			if (*argument)
+				expr->setArgument(*argument);
+		}
+		else
+			expr->setArgument(nullptr);
 
 		if (!expr->getArgument())
-			return { nullptr };
+			return Visitee::Action::Delete;
 	
 		return {};
 	}
