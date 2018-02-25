@@ -11,24 +11,24 @@
 class BoolSimplifier : public yaramod::ModifyingVisitor
 {
 public:
-	virtual yaramod::Visitee::ReturnType visit(yaramod::NotExpression* expr) override
-	{
-		auto newExpr = expr->getOperand()->accept(this);
-
-		// Negate the value of boolean constant
-		auto boolVal = newExpr ? newExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
-		if (boolVal)
-			return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(!boolVal->getValue());
-
-		return defaultHandler(expr, newExpr);
-	}
-
 	virtual yaramod::Visitee::ReturnType visit(yaramod::AndExpression* expr) override
 	{
-		auto leftExpr = expr->getLeftOperand()->accept(this);
-		auto rightExpr = expr->getRightOperand()->accept(this);
-		auto leftBool = leftExpr ? leftExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
-		auto rightBool = rightExpr ? rightExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+		auto retLeft = expr->getLeftOperand()->accept(this);
+		auto retRight = expr->getRightOperand()->accept(this);
+
+		yaramod::BoolLiteralExpression* leftBool = nullptr;
+		if (auto leftExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retLeft))
+		{
+			if (*leftExpr)
+				leftBool = (*leftExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+		}
+
+		yaramod::BoolLiteralExpression* rightBool = nullptr;
+		if (auto rightExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retRight))
+		{
+			if (*rightExpr)
+				rightBool = (*rightExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+		}
 
 		// If both sides of AND are boolean constants then determine the value based on truth table of AND
 		// T and T = T
@@ -60,15 +60,27 @@ public:
 				return expr->getLeftOperand();
 		}
 
-		return defaultHandler(expr, leftExpr, rightExpr);
+		return defaultHandler(expr, retLeft, retRight);
 	}
 
 	virtual yaramod::Visitee::ReturnType visit(yaramod::OrExpression* expr) override
 	{
-		auto leftExpr = expr->getLeftOperand()->accept(this);
-		auto rightExpr = expr->getRightOperand()->accept(this);
-		auto leftBool = leftExpr ? leftExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
-		auto rightBool = rightExpr ? rightExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+		auto retLeft = expr->getLeftOperand()->accept(this);
+		auto retRight = expr->getRightOperand()->accept(this);
+
+		yaramod::BoolLiteralExpression* leftBool = nullptr;
+		if (auto leftExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retLeft))
+		{
+			if (*leftExpr)
+				leftBool = (*leftExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+		}
+
+		yaramod::BoolLiteralExpression* rightBool = nullptr;
+		if (auto rightExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retRight))
+		{
+			if (*rightExpr)
+				rightBool = (*rightExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+		}
 
 		// If both sides of OR are boolean constants then determine the value based on truth table of OR
 		// T or T = T
@@ -100,19 +112,38 @@ public:
 				return expr->getLeftOperand();
 		}
 
-		return defaultHandler(expr, leftExpr, rightExpr);
+		return defaultHandler(expr, retLeft, retRight);
 	}
+
+	virtual yaramod::Visitee::ReturnType visit(yaramod::NotExpression* expr) override
+	{
+		auto ret = expr->getOperand()->accept(this);
+
+		// Negate the value of boolean constant
+		if (auto newExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&ret))
+		{
+			auto boolVal = *newExpr ? (*newExpr)->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+			if (boolVal)
+				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(!boolVal->getValue());
+		}
+
+		return defaultHandler(expr, ret);
+	}
+
 
 	virtual yaramod::Visitee::ReturnType visit(yaramod::ParenthesesExpression* expr) override
 	{
-		auto newExpr = expr->getEnclosedExpression()->accept(this);
+		auto ret = expr->getEnclosedExpression()->accept(this);
 
 		// Remove parentheses around boolean constants and lift their value up
-		auto boolVal = newExpr ? newExpr.value()->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
-		if (boolVal)
-			return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(boolVal->getValue());
+		if (auto newExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&ret))
+		{
+			auto boolVal = *newExpr ? (*newExpr)->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+			if (boolVal)
+				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(boolVal->getValue());
+		}
 
-		return defaultHandler(expr, newExpr);
+		return defaultHandler(expr, ret);
 	}
 
 	virtual yaramod::Visitee::ReturnType visit(yaramod::BoolLiteralExpression* expr) override
