@@ -14,11 +14,11 @@ namespace yaramod {
 /**
  * Abstract class representing modifying visitor of condition expression in YARA files.
  * It is capable of modifying AST. Each visit() method has return value of
- * @c VisitResult what is just an alis for `variant<shared_ptr<ASTNode>, Visitee::Action>`.
+ * @c VisitResult what is just an alis for `variant<shared_ptr<Expression>, Visitee::Action>`.
  * There are 3 possible values you can return in order to control the behavior of the visitor:
  *
  * 1. nullptr - Returning unset variant means keeping the node as it is and not modifying it all.
- * 2. non nullptr - Returning valid instance of ASTNode means replace this AST node with the one I returned you.
+ * 2. non nullptr - Returning valid instance of Expression means replace this AST node with the one I returned you.
  * 3. VisitAction::Delete - Delete this AST node.
  *
  * You can of course override this behavior by providing your own implementaion of each visit()
@@ -31,17 +31,24 @@ namespace yaramod {
 class ModifyingVisitor : public Visitor
 {
 public:
-	Expression::Ptr modify(const Expression::Ptr& expr)
+	/**
+	 * Runs the modifier on the provided expression. Returns the valid Expression object.
+	 * If the AST node should be replaced by some other expression, the new expression is returned.
+	 * The same expression as originally passed is returned in case of no change to the current AST node.
+	 * If the AST node should be deleted, `whenDeleted` is returned.
+	 *
+	 * @return New expresion or `whenDeleted`.
+	 */
+	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
 		auto result = expr->accept(this);
-
 		if (auto newExpr = mpark::get_if<Expression::Ptr>(&result))
 			return *newExpr ? *newExpr : expr;
 		else
-			return std::make_shared<BoolLiteralExpression>(true);
+			return whenDeleted;
 	}
 
-	///// @name Visit methods
+	/// @name Visit methods
 	/// @{
 	virtual VisitResult visit(StringExpression*) override { return {}; }
 	virtual VisitResult visit(StringWildcardExpression*) override { return {}; }

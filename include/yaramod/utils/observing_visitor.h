@@ -22,6 +22,9 @@ namespace yaramod {
 class ObservingVisitor : public Visitor
 {
 public:
+	/**
+	 * Observes the specified expression.
+	 */
 	void observe(const Expression::Ptr& expr)
 	{
 		expr->accept(this);

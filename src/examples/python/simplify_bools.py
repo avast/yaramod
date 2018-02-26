@@ -8,8 +8,8 @@ class BoolSimplifier(yaramod.ModifyingVisitor):
         left_expr = expr.left_operand.accept(self)
         right_expr = expr.right_operand.accept(self)
 
-        left_bool = left_expr.expression if (left_expr and isinstance(left_expr.expression, yaramod.BoolLiteralExpression)) else None
-        right_bool = right_expr.expression if (right_expr and isinstance(right_expr.expression, yaramod.BoolLiteralExpression)) else None
+        left_bool = left_expr if (left_expr and isinstance(left_expr, yaramod.BoolLiteralExpression)) else None
+        right_bool = right_expr if (right_expr and isinstance(right_expr, yaramod.BoolLiteralExpression)) else None
 
         # If both sides of AND are boolean constants then determine the value based on truth table of AND
         # T and T = T
@@ -35,8 +35,8 @@ class BoolSimplifier(yaramod.ModifyingVisitor):
         left_expr = expr.left_operand.accept(self)
         right_expr = expr.right_operand.accept(self)
 
-        left_bool = left_expr.expression if (left_expr and isinstance(left_expr.expression, yaramod.BoolLiteralExpression)) else None
-        right_bool = right_expr.expression if (right_expr and isinstance(right_expr.expression, yaramod.BoolLiteralExpression)) else None
+        left_bool = left_expr if (left_expr and isinstance(left_expr, yaramod.BoolLiteralExpression)) else None
+        right_bool = right_expr if (right_expr and isinstance(right_expr, yaramod.BoolLiteralExpression)) else None
 
         # If both sides of OR are boolean constants then determine the value based on truth table of OR
         # T or T = T
@@ -62,7 +62,7 @@ class BoolSimplifier(yaramod.ModifyingVisitor):
         new_expr = expr.operand.accept(self)
 
         # Negate the value of boolean constant
-        bool_val = new_expr.expression if (new_expr and isinstance(new_expr.expression, yaramod.BoolLiteralExpression)) else None
+        bool_val = new_expr if (new_expr and isinstance(new_expr, yaramod.BoolLiteralExpression)) else None
         if bool_val:
             return yaramod.bool_val(not bool_val.value).get()
 
@@ -72,7 +72,7 @@ class BoolSimplifier(yaramod.ModifyingVisitor):
         new_expr = expr.enclosed_expr.accept(self)
 
         # Remove parentheses around boolean constants and lift their value up
-        bool_val = new_expr.expression if (new_expr and isinstance(new_expr.expression, yaramod.BoolLiteralExpression)) else None
+        bool_val = new_expr if (new_expr and isinstance(new_expr, yaramod.BoolLiteralExpression)) else None
         if bool_val:
             return yaramod.bool_val(bool_val.value).get()
 
@@ -95,7 +95,7 @@ def main():
         print('==== RULE: {}'.format(rule.name))
         print('==== BEFORE')
         print(rule.text)
-        simplifier.modify(rule.condition)
+        rule.condition = simplifier.modify(rule.condition, when_deleted=yaramod.bool_val(False).get())
         print('==== AFTER')
         print(rule.text)
 

@@ -28,8 +28,8 @@ int main(int argc, char* argv[])
 		std::cout << "==== RULE: " << rule->getName() << std::endl;
 		std::cout << "==== BEFORE" << std::endl;
 		std::cout << rule->getText() << std::endl;
-		auto newCondition = simplifier.modify(rule->getCondition());
-		rule->setCondition(newCondition);
+		auto result = simplifier.modify(rule->getCondition(), std::make_shared<yaramod::BoolLiteralExpression>(false));
+		rule->setCondition(result);
 		std::cout << "==== AFTER" << std::endl;
 		std::cout << rule->getText() << std::endl;
 	}

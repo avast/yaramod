@@ -125,7 +125,7 @@ void addVisitorClasses(py::module& module)
 
 	py::class_<ModifyingVisitor, PyModifyingVisitor, Visitor>(module, "ModifyingVisitor")
 		.def(py::init<>())
-		.def("modify", &ModifyingVisitor::modify)
+		.def("modify", &ModifyingVisitor::modify, py::arg("expr"), py::arg("when_deleted") = static_cast<Expression*>(nullptr))
 		.def("visit_StringExpression", py::overload_cast<StringExpression*>(&ModifyingVisitor::visit))
 		.def("visit_StringWildcardExpression", py::overload_cast<StringWildcardExpression*>(&ModifyingVisitor::visit))
 		.def("visit_StringAtExpression", py::overload_cast<StringAtExpression*>(&ModifyingVisitor::visit))
