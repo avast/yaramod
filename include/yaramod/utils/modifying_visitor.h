@@ -369,7 +369,7 @@ public:
 	{
 		if (auto left = mpark::get_if<Expression::Ptr>(&leftRet))
 		{
-			if (left)
+			if (*left)
 				expr->setLeftOperand(*left);
 		}
 		else
@@ -377,7 +377,7 @@ public:
 
 		if (auto right = mpark::get_if<Expression::Ptr>(&rightRet))
 		{
-			if (right)
+			if (*right)
 				expr->setRightOperand(*right);
 		}
 		else
