@@ -50,8 +50,8 @@ public:
 	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value,
 			const std::string& suffixMods = "", std::uint32_t mods = String::Modifiers::Ascii);
 
-	YaraRuleBuilder& withCondition(ASTNode::Ptr&& condition);
-	YaraRuleBuilder& withCondition(const ASTNode::Ptr& condition);
+	YaraRuleBuilder& withCondition(Expression::Ptr&& condition);
+	YaraRuleBuilder& withCondition(const Expression::Ptr& condition);
 	/// @}
 
 private:
@@ -60,7 +60,7 @@ private:
 	std::vector<std::string> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
-	ASTNode::Ptr _condition; ///< Condition expression
+	Expression::Ptr _condition; ///< Condition expression
 };
 
 }

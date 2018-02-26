@@ -13,19 +13,19 @@ class Dumper : public yaramod::ObservingVisitor
 public:
 	Dumper() : _indent(0) {}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringExpression* expr) override
 	{
 		dump("String", expr, " id=", expr->getId());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringWildcardExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringWildcardExpression* expr) override
 	{
 		dump("StringWildcard", expr, " id=", expr->getId());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringAtExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringAtExpression* expr) override
 	{
 		dump("StringAt", expr, " id=", expr->getId());
 		indentUp();
@@ -34,7 +34,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringInRangeExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringInRangeExpression* expr) override
 	{
 		dump("StringInRange", expr, " id=", expr->getId());
 		indentUp();
@@ -43,13 +43,13 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringCountExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringCountExpression* expr) override
 	{
 		dump("StringCount", expr, " id=", expr->getId());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringOffsetExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringOffsetExpression* expr) override
 	{
 		dump("StringOffset", expr, " id=", expr->getId());
 		if (auto indexExpression = expr->getIndexExpression())
@@ -62,7 +62,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringLengthExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringLengthExpression* expr) override
 	{
 		dump("StringLength", expr, " id=", expr->getId());
 		if (auto indexExpression = expr->getIndexExpression())
@@ -75,7 +75,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::NotExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::NotExpression* expr) override
 	{
 		dump("Not", expr);
 		indentUp();
@@ -84,7 +84,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::UnaryMinusExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::UnaryMinusExpression* expr) override
 	{
 		dump("UnaryMinus", expr);
 		indentUp();
@@ -93,7 +93,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BitwiseNotExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BitwiseNotExpression* expr) override
 	{
 		dump("BitwiseNot", expr);
 		indentUp();
@@ -102,7 +102,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::AndExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::AndExpression* expr) override
 	{
 		dump("And", expr);
 		indentUp();
@@ -112,7 +112,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::OrExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::OrExpression* expr) override
 	{
 		dump("Or", expr);
 		indentUp();
@@ -122,7 +122,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::LtExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::LtExpression* expr) override
 	{
 		dump("LessThan", expr);
 		indentUp();
@@ -132,7 +132,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::GtExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::GtExpression* expr) override
 	{
 		dump("GreaterThan", expr);
 		indentUp();
@@ -142,7 +142,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::LeExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::LeExpression* expr) override
 	{
 		dump("LessThanOrEqual", expr);
 		indentUp();
@@ -152,7 +152,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::GeExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::GeExpression* expr) override
 	{
 		dump("GreaterThanOrEqual", expr);
 		indentUp();
@@ -162,7 +162,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::EqExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::EqExpression* expr) override
 	{
 		dump("Equal", expr);
 		indentUp();
@@ -172,7 +172,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::NeqExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::NeqExpression* expr) override
 	{
 		dump("NotEqual", expr);
 		indentUp();
@@ -182,7 +182,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ContainsExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ContainsExpression* expr) override
 	{
 		dump("Contains", expr);
 		indentUp();
@@ -192,7 +192,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::MatchesExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::MatchesExpression* expr) override
 	{
 		dump("Matches", expr);
 		indentUp();
@@ -202,7 +202,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::PlusExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::PlusExpression* expr) override
 	{
 		dump("Plus", expr);
 		indentUp();
@@ -212,7 +212,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::MinusExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::MinusExpression* expr) override
 	{
 		dump("Minus", expr);
 		indentUp();
@@ -222,7 +222,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::MultiplyExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::MultiplyExpression* expr) override
 	{
 		dump("Multiply", expr);
 		indentUp();
@@ -232,7 +232,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::DivideExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::DivideExpression* expr) override
 	{
 		dump("Divide", expr);
 		indentUp();
@@ -242,7 +242,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ModuloExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ModuloExpression* expr) override
 	{
 		dump("Modulo", expr);
 		indentUp();
@@ -252,7 +252,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BitwiseXorExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BitwiseXorExpression* expr) override
 	{
 		dump("BitwiseXor", expr);
 		indentUp();
@@ -262,7 +262,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BitwiseAndExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BitwiseAndExpression* expr) override
 	{
 		dump("BitwiseAnd", expr);
 		indentUp();
@@ -272,7 +272,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BitwiseOrExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BitwiseOrExpression* expr) override
 	{
 		dump("BitwiseOr", expr);
 		indentUp();
@@ -282,7 +282,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ShiftLeftExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ShiftLeftExpression* expr) override
 	{
 		dump("ShiftLeft", expr);
 		indentUp();
@@ -292,7 +292,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ShiftRightExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ShiftRightExpression* expr) override
 	{
 		dump("ShiftRight", expr);
 		indentUp();
@@ -302,7 +302,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ForIntExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ForIntExpression* expr) override
 	{
 		dump("ForInt", expr);
 		indentUp();
@@ -313,7 +313,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ForStringExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ForStringExpression* expr) override
 	{
 		dump("ForString", expr);
 		indentUp();
@@ -324,7 +324,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::OfExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::OfExpression* expr) override
 	{
 		dump("Of", expr);
 		indentUp();
@@ -334,7 +334,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::SetExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::SetExpression* expr) override
 	{
 		dump("Set", expr, " size=", expr->getElements().size());
 		indentUp();
@@ -344,7 +344,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::RangeExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::RangeExpression* expr) override
 	{
 		dump("Range", expr);
 		indentUp();
@@ -354,13 +354,13 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::IdExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::IdExpression* expr) override
 	{
 		dump("Id", expr, " id=", expr->getSymbol()->getName());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StructAccessExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StructAccessExpression* expr) override
 	{
 		dump("StructAccess", expr, " id=", expr->getSymbol()->getName());
 		indentUp();
@@ -369,7 +369,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ArrayAccessExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ArrayAccessExpression* expr) override
 	{
 		dump("ArrayAccess", expr, " id=", expr->getSymbol()->getName());
 		indentUp();
@@ -388,7 +388,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::FunctionCallExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::FunctionCallExpression* expr) override
 	{
 		dump("FunctionCall", expr, " args_count=", expr->getArguments().size());
 		indentUp();
@@ -408,61 +408,61 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BoolLiteralExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BoolLiteralExpression* expr) override
 	{
 		dump("BoolLiteral", expr, " value=", expr->getText());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::StringLiteralExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::StringLiteralExpression* expr) override
 	{
 		dump("StringLiteral", expr, " value=", expr->getText());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::IntLiteralExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::IntLiteralExpression* expr) override
 	{
 		dump("IntLiteral", expr, " value=", expr->getText());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::DoubleLiteralExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::DoubleLiteralExpression* expr) override
 	{
 		dump("DoubleLiteral", expr, " value=", expr->getText());
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::FilesizeExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::FilesizeExpression* expr) override
 	{
 		dump("Filesize", expr);
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::EntrypointExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::EntrypointExpression* expr) override
 	{
 		dump("Entrypoint", expr);
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::AllExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::AllExpression* expr) override
 	{
 		dump("All", expr);
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::AnyExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::AnyExpression* expr) override
 	{
 		dump("Any", expr);
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ThemExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ThemExpression* expr) override
 	{
 		dump("Them", expr);
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ParenthesesExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ParenthesesExpression* expr) override
 	{
 		dump("Parentheses", expr);
 		indentUp();
@@ -471,7 +471,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::IntFunctionExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::IntFunctionExpression* expr) override
 	{
 		dump("IntFunction", expr, " function=", expr->getFunction());
 		indentUp();
@@ -480,7 +480,7 @@ public:
 		return {};
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::RegexpExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::RegexpExpression* expr) override
 	{
 		dump("Regexp", expr, " text=", expr->getRegexpString()->getPureText());
 		return {};

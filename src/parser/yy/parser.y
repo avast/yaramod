@@ -7,7 +7,6 @@
 %code requires {
 #include <iterator>
 
-#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/literal.h"
@@ -149,8 +148,8 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %type <std::uint32_t> string_mods
 %type <yaramod::Literal> literal
 %type <bool> boolean
-%type <ASTNode::Ptr> condition expression primary_expression for_expression integer_set string_set range identifier
-%type <std::vector<ASTNode::Ptr>> integer_enumeration string_enumeration arguments
+%type <Expression::Ptr> condition expression primary_expression for_expression integer_set string_set range identifier
+%type <std::vector<Expression::Ptr>> integer_enumeration string_enumeration arguments
 %type <std::vector<std::string>> tags tag_list
 
 %type <std::vector<std::shared_ptr<yaramod::HexStringUnit>>> hex_string hex_string_edge hex_string_body hex_byte
@@ -320,8 +319,9 @@ condition
 expression
 	: boolean
 		{
-			$$ = makeASTNode<BoolLiteralExpression>($1);
-			$$->getExpression()->setType(Expression::Type::Bool);
+			//$$ = std::make_shared<BoolLiteralExpression>($1);
+			$$ = std::shared_ptr<BoolLiteralExpression>(new BoolLiteralExpression($1));
+			$$->setType(Expression::Type::Bool);
 		}
 	| STRING_ID
 		{
@@ -331,8 +331,8 @@ expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<StringExpression>(std::move($1));
+			$$->setType(Expression::Type::Bool);
 		}
 	| STRING_ID OP_AT primary_expression
 		{
@@ -342,14 +342,14 @@ expression
 				YYABORT;
 			}
 
-			if (!$primary_expression->getExpression()->isInt())
+			if (!$primary_expression->isInt())
 			{
 				error(driver.getLocation(), "operator 'at' expects integer on the right-hand side of the expression");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringAtExpression>(std::move($1), std::move($primary_expression));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<StringAtExpression>(std::move($1), std::move($primary_expression));
+			$$->setType(Expression::Type::Bool);
 		}
 	| STRING_ID OP_IN range
 		{
@@ -359,8 +359,8 @@ expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringInRangeExpression>(std::move($1), std::move($range));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<StringInRangeExpression>(std::move($1), std::move($range));
+			$$->setType(Expression::Type::Bool);
 		}
 	| FOR for_expression ID[id]
 		{
@@ -373,8 +373,8 @@ expression
 		}
 		OP_IN integer_set COLON LP expression[expr] RP
 		{
-			$$ = makeASTNode<ForIntExpression>(std::move($for_expression), std::move($id), std::move($integer_set), std::move($expr));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<ForIntExpression>(std::move($for_expression), std::move($id), std::move($integer_set), std::move($expr));
+			$$->setType(Expression::Type::Bool);
 			driver.removeLocalSymbol($id);
 		}
 	| FOR for_expression OF string_set
@@ -389,89 +389,89 @@ expression
 		}
 		COLON LP expression[expr] RP
 		{
-			$$ = makeASTNode<ForStringExpression>(std::move($for_expression), std::move($string_set), std::move($expr));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<ForStringExpression>(std::move($for_expression), std::move($string_set), std::move($expr));
+			$$->setType(Expression::Type::Bool);
 
 			driver.stringLoopLeave();
 		}
 	| for_expression OF string_set
 		{
-			$$ = makeASTNode<OfExpression>(std::move($for_expression), std::move($string_set));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<OfExpression>(std::move($for_expression), std::move($string_set));
+			$$->setType(Expression::Type::Bool);
 		}
 	| NOT expression[expr]
 		{
-			$$ = makeASTNode<NotExpression>(std::move($expr));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<NotExpression>(std::move($expr));
+			$$->setType(Expression::Type::Bool);
 		}
 	| expression[left] AND expression[right]
 		{
-			$$ = makeASTNode<AndExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<AndExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| expression[left] OR expression[right]
 		{
-			$$ = makeASTNode<OrExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<OrExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] LT primary_expression[right]
 		{
-			$$ = makeASTNode<LtExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<LtExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] GT primary_expression[right]
 		{
-			$$ = makeASTNode<GtExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<GtExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] LE primary_expression[right]
 		{
-			$$ = makeASTNode<LeExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<LeExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] GE primary_expression[right]
 		{
-			$$ = makeASTNode<GeExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<GeExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] EQ primary_expression[right]
 		{
-			$$ = makeASTNode<EqExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<EqExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] NEQ primary_expression[right]
 		{
-			$$ = makeASTNode<NeqExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<NeqExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] CONTAINS primary_expression[right]
 		{
-			if (!$left->getExpression()->isString())
+			if (!$left->isString())
 			{
 				error(driver.getLocation(), "operator 'contains' expects string on the left-hand side of the expression");
 				YYABORT;
 			}
 
-			if (!$right->getExpression()->isString())
+			if (!$right->isString())
 			{
 				error(driver.getLocation(), "operator 'contains' expects string on the right-hand side of the expression");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<ContainsExpression>(std::move($left), std::move($right));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			$$ = std::make_shared<ContainsExpression>(std::move($left), std::move($right));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression[left] MATCHES regexp[right]
 		{
-			if (!$left->getExpression()->isString())
+			if (!$left->isString())
 			{
 				error(driver.getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
 				YYABORT;
 			}
 
-			auto regexp = makeASTNode<RegexpExpression>(std::move($right));
-			$$ = makeASTNode<MatchesExpression>(std::move($left), std::move(regexp));
-			$$->getExpression()->setType(Expression::Type::Bool);
+			auto regexp = std::make_shared<RegexpExpression>(std::move($right));
+			$$ = std::make_shared<MatchesExpression>(std::move($left), std::move(regexp));
+			$$->setType(Expression::Type::Bool);
 		}
 	| primary_expression
 		{
@@ -479,43 +479,43 @@ expression
 		}
 	| LP expression[expr] RP
 		{
-			auto type = $expr->getExpression()->getType();
-			$$ = makeASTNode<ParenthesesExpression>(std::move($expr));
-			$$->getExpression()->setType(type);
+			auto type = $expr->getType();
+			$$ = std::make_shared<ParenthesesExpression>(std::move($expr));
+			$$->setType(type);
 		}
 	;
 
 primary_expression
 	: LP primary_expression[expr] RP
 		{
-			auto type = $expr->getExpression()->getType();
-			$$ = makeASTNode<ParenthesesExpression>(std::move($expr));
-			$$->getExpression()->setType(type);
+			auto type = $expr->getType();
+			$$ = std::make_shared<ParenthesesExpression>(std::move($expr));
+			$$->setType(type);
 		}
 	| FILESIZE
 		{
-			$$ = makeASTNode<FilesizeExpression>();
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<FilesizeExpression>();
+			$$->setType(Expression::Type::Int);
 		}
 	| ENTRYPOINT
 		{
-			$$ = makeASTNode<EntrypointExpression>();
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<EntrypointExpression>();
+			$$->setType(Expression::Type::Int);
 		}
 	| INTEGER
 		{
-			$$ = makeASTNode<IntLiteralExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<IntLiteralExpression>(std::move($1));
+			$$->setType(Expression::Type::Int);
 		}
 	| DOUBLE
 		{
-			$$ = makeASTNode<DoubleLiteralExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Float);
+			$$ = std::make_shared<DoubleLiteralExpression>(std::move($1));
+			$$->setType(Expression::Type::Float);
 		}
 	| STRING_LITERAL
 		{
-			$$ = makeASTNode<StringLiteralExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::String);
+			$$ = std::make_shared<StringLiteralExpression>(std::move($1));
+			$$->setType(Expression::Type::String);
 		}
 	| STRING_COUNT
 		{
@@ -529,8 +529,8 @@ primary_expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringCountExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<StringCountExpression>(std::move($1));
+			$$->setType(Expression::Type::Int);
 		}
 	| STRING_OFFSET
 		{
@@ -544,8 +544,8 @@ primary_expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringOffsetExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<StringOffsetExpression>(std::move($1));
+			$$->setType(Expression::Type::Int);
 		}
 	| STRING_OFFSET LSQB primary_expression RSQB
 		{
@@ -559,8 +559,8 @@ primary_expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringOffsetExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<StringOffsetExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| STRING_LENGTH
 		{
@@ -574,8 +574,8 @@ primary_expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringLengthExpression>(std::move($1));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<StringLengthExpression>(std::move($1));
+			$$->setType(Expression::Type::Int);
 		}
 	| STRING_LENGTH LSQB primary_expression RSQB
 		{
@@ -589,216 +589,216 @@ primary_expression
 				YYABORT;
 			}
 
-			$$ = makeASTNode<StringLengthExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<StringLengthExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| MINUS primary_expression %prec UNARY_MINUS
 		{
-			if (!$2->getExpression()->isInt() && !$2->getExpression()->isFloat())
+			if (!$2->isInt() && !$2->isFloat())
 			{
 				error(driver.getLocation(), "unary minus expects integer or float type");
 				YYABORT;
 			}
 
-			auto type = $2->getExpression()->getType();
-			$$ = makeASTNode<UnaryMinusExpression>(std::move($2));
-			$$->getExpression()->setType(type);
+			auto type = $2->getType();
+			$$ = std::make_shared<UnaryMinusExpression>(std::move($2));
+			$$->setType(type);
 		}
 	| primary_expression PLUS primary_expression
 		{
-			if (!$1->getExpression()->isInt() && !$1->getExpression()->isFloat())
+			if (!$1->isInt() && !$1->isFloat())
 			{
 				error(driver.getLocation(), "operator '+' expects integer or float on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt() && !$3->getExpression()->isFloat())
+			if (!$3->isInt() && !$3->isFloat())
 			{
 				error(driver.getLocation(), "operator '+' expects integer or float on the right-hand side");
 				YYABORT;
 			}
 
-			auto type = ($1->getExpression()->isInt() && $3->getExpression()->isInt()) ? Expression::Type::Int : Expression::Type::Float;
-			$$ = makeASTNode<PlusExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(type);
+			auto type = ($1->isInt() && $3->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			$$ = std::make_shared<PlusExpression>(std::move($1), std::move($3));
+			$$->setType(type);
 		}
 	| primary_expression MINUS primary_expression
 		{
-			if (!$1->getExpression()->isInt() && !$1->getExpression()->isFloat())
+			if (!$1->isInt() && !$1->isFloat())
 			{
 				error(driver.getLocation(), "operator '-' expects integer or float on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt() && !$3->getExpression()->isFloat())
+			if (!$3->isInt() && !$3->isFloat())
 			{
 				error(driver.getLocation(), "operator '-' expects integer or float on the right-hand side");
 				YYABORT;
 			}
 
-			auto type = ($1->getExpression()->isInt() && $3->getExpression()->isInt()) ? Expression::Type::Int : Expression::Type::Float;
-			$$ = makeASTNode<MinusExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(type);
+			auto type = ($1->isInt() && $3->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			$$ = std::make_shared<MinusExpression>(std::move($1), std::move($3));
+			$$->setType(type);
 		}
 	| primary_expression MULTIPLY primary_expression
 		{
-			if (!$1->getExpression()->isInt() && !$1->getExpression()->isFloat())
+			if (!$1->isInt() && !$1->isFloat())
 			{
 				error(driver.getLocation(), "operator '*' expects integer or float on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt() && !$3->getExpression()->isFloat())
+			if (!$3->isInt() && !$3->isFloat())
 			{
 				error(driver.getLocation(), "operator '*' expects integer or float on the right-hand side");
 				YYABORT;
 			}
 
-			auto type = ($1->getExpression()->isInt() && $3->getExpression()->isInt()) ? Expression::Type::Int : Expression::Type::Float;
-			$$ = makeASTNode<MultiplyExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(type);
+			auto type = ($1->isInt() && $3->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			$$ = std::make_shared<MultiplyExpression>(std::move($1), std::move($3));
+			$$->setType(type);
 		}
 	| primary_expression DIVIDE primary_expression
 		{
-			if (!$1->getExpression()->isInt() && !$1->getExpression()->isFloat())
+			if (!$1->isInt() && !$1->isFloat())
 			{
 				error(driver.getLocation(), "operator '\\' expects integer or float on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt() && !$3->getExpression()->isFloat())
+			if (!$3->isInt() && !$3->isFloat())
 			{
 				error(driver.getLocation(), "operator '\\' expects integer or float on the right-hand side");
 				YYABORT;
 			}
 
-			auto type = ($1->getExpression()->isInt() && $3->getExpression()->isInt()) ? Expression::Type::Int : Expression::Type::Float;
-			$$ = makeASTNode<DivideExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(type);
+			auto type = ($1->isInt() && $3->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			$$ = std::make_shared<DivideExpression>(std::move($1), std::move($3));
+			$$->setType(type);
 		}
 	| primary_expression MODULO primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '%' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '%' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<ModuloExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<ModuloExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| primary_expression BITWISE_XOR primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '^' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '^' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<BitwiseXorExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<BitwiseXorExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| primary_expression BITWISE_AND primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '&' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '&' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<BitwiseAndExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<BitwiseAndExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| primary_expression BITWISE_OR primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '|' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '|' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<BitwiseOrExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<BitwiseOrExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| BITWISE_NOT primary_expression
 		{
-			if (!$2->getExpression()->isInt())
+			if (!$2->isInt())
 			{
 				error(driver.getLocation(), "bitwise not expects integer");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<BitwiseNotExpression>(std::move($2));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<BitwiseNotExpression>(std::move($2));
+			$$->setType(Expression::Type::Int);
 		}
 	| primary_expression SHIFT_LEFT primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '<<' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '<<' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<ShiftLeftExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<ShiftLeftExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| primary_expression SHIFT_RIGHT primary_expression
 		{
-			if (!$1->getExpression()->isInt())
+			if (!$1->isInt())
 			{
 				error(driver.getLocation(), "operator '>>' expects integer on the left-hand side");
 				YYABORT;
 			}
 
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '>>' expects integer on the right-hand side");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<ShiftRightExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<ShiftRightExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| INTEGER_FUNCTION LP primary_expression RP
 		{
-			if (!$3->getExpression()->isInt())
+			if (!$3->isInt())
 			{
 				error(driver.getLocation(), "operator '" + $1 + "' expects integer");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<IntFunctionExpression>(std::move($1), std::move($3));
-			$$->getExpression()->setType(Expression::Type::Int);
+			$$ = std::make_shared<IntFunctionExpression>(std::move($1), std::move($3));
+			$$->setType(Expression::Type::Int);
 		}
 	| identifier
 		{
@@ -806,45 +806,45 @@ primary_expression
 		}
 	| regexp
 		{
-			$$ = makeASTNode<RegexpExpression>(std::move($regexp));
-			$$->getExpression()->setType(Expression::Type::Regexp);
+			$$ = std::make_shared<RegexpExpression>(std::move($regexp));
+			$$->setType(Expression::Type::Regexp);
 		}
 	;
 
 range
 	: LP primary_expression[low] RANGE primary_expression[high] RP
 		{
-			if (!$low->getExpression()->isInt())
+			if (!$low->isInt())
 			{
 				error(driver.getLocation(), "operator '..' expects integer as lower bound of the interval");
 				YYABORT;
 			}
 
-			if (!$high->getExpression()->isInt())
+			if (!$high->isInt())
 			{
 				error(driver.getLocation(), "operator '..' expects integer as higher bound of the interval");
 				YYABORT;
 			}
 
-			$$ = makeASTNode<RangeExpression>(std::move($low), std::move($high));
+			$$ = std::make_shared<RangeExpression>(std::move($low), std::move($high));
 		}
 	;
 
 for_expression
 	: primary_expression { $$ = std::move($primary_expression); }
-	| ALL { $$ = makeASTNode<AllExpression>(); }
-	| ANY { $$ = makeASTNode<AnyExpression>(); }
+	| ALL { $$ = std::make_shared<AllExpression>(); }
+	| ANY { $$ = std::make_shared<AnyExpression>(); }
 	;
 
 integer_set
-	: LP integer_enumeration RP { $$ = makeASTNode<SetExpression>(std::move($integer_enumeration)); }
-	| range { $$ = makeASTNode<SetExpression>(std::move($range)); }
+	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($integer_enumeration)); }
+	| range { $$ = std::make_shared<SetExpression>(std::move($range)); }
 	;
 
 integer_enumeration
 	: primary_expression[expr]
 		{
-			if (!$expr->getExpression()->isInt())
+			if (!$expr->isInt())
 			{
 				error(driver.getLocation(), "integer set expects integer type");
 				YYABORT;
@@ -854,7 +854,7 @@ integer_enumeration
 		}
 	| integer_enumeration[enum] COMMA primary_expression[expr]
 		{
-			if (!$expr->getExpression()->isInt())
+			if (!$expr->isInt())
 			{
 				error(driver.getLocation(), "integer set expects integer type");
 				YYABORT;
@@ -866,8 +866,8 @@ integer_enumeration
 	;
 
 string_set
-	: LP string_enumeration RP { $$ = makeASTNode<SetExpression>(std::move($string_enumeration)); }
-	| THEM { $$ = makeASTNode<SetExpression>(makeASTNode<ThemExpression>()); }
+	: LP string_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($string_enumeration)); }
+	| THEM { $$ = std::make_shared<SetExpression>(std::make_shared<ThemExpression>()); }
 	;
 
 string_enumeration
@@ -879,7 +879,7 @@ string_enumeration
 				YYABORT;
 			}
 
-			$$.push_back(makeASTNode<StringExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringExpression>(std::move($id)));
 		}
 	| STRING_ID_WILDCARD[id]
 		{
@@ -889,7 +889,7 @@ string_enumeration
 				YYABORT;
 			}
 
-			$$.push_back(makeASTNode<StringWildcardExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringWildcardExpression>(std::move($id)));
 		}
 	| string_enumeration[enum] COMMA STRING_ID[id]
 		{
@@ -900,7 +900,7 @@ string_enumeration
 			}
 
 			$$ = std::move($enum);
-			$$.push_back(makeASTNode<StringExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringExpression>(std::move($id)));
 		}
 	| string_enumeration[enum] COMMA STRING_ID_WILDCARD[id]
 		{
@@ -911,7 +911,7 @@ string_enumeration
 			}
 
 			$$ = std::move($enum);
-			$$.push_back(makeASTNode<StringWildcardExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringWildcardExpression>(std::move($id)));
 		}
 	;
 
@@ -925,18 +925,18 @@ identifier
 				YYABORT;
 			}
 
-			$$ = makeASTNode<IdExpression>(symbol);
-			$$->getExpression()->setType(symbol->getDataType());
+			$$ = std::make_shared<IdExpression>(symbol);
+			$$->setType(symbol->getDataType());
 		}
 	| identifier DOT ID
 		{
-			if (!$1->getExpression()->isObject())
+			if (!$1->isObject())
 			{
-				error(driver.getLocation(), "Identifier '" + $1->getExpression()->getText() + "' is not an object");
+				error(driver.getLocation(), "Identifier '" + $1->getText() + "' is not an object");
 				YYABORT;
 			}
 
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1->getExpression())->getSymbol();
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1)->getSymbol();
 			if (!parentSymbol->isStructure())
 			{
 				error(driver.getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
@@ -952,18 +952,18 @@ identifier
 			}
 
 			auto symbol = attr.value();
-			$$ = makeASTNode<StructAccessExpression>(symbol, std::move($1));
-			$$->getExpression()->setType(symbol->getDataType());
+			$$ = std::make_shared<StructAccessExpression>(symbol, std::move($1));
+			$$->setType(symbol->getDataType());
 		}
 	| identifier LSQB primary_expression RSQB
 		{
-			if (!$1->getExpression()->isObject())
+			if (!$1->isObject())
 			{
-				error(driver.getLocation(), "Identifier '" + $1->getExpression()->getText() + "' is not an object");
+				error(driver.getLocation(), "Identifier '" + $1->getText() + "' is not an object");
 				YYABORT;
 			}
 
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1->getExpression())->getSymbol();
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1)->getSymbol();
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
 			{
 				error(driver.getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
@@ -971,18 +971,18 @@ identifier
 			}
 
 			auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
-			$$ = makeASTNode<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move($1), std::move($primary_expression));
-			$$->getExpression()->setType(iterParentSymbol->getElementType());
+			$$ = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move($1), std::move($primary_expression));
+			$$->setType(iterParentSymbol->getElementType());
 		}
 	| identifier LP arguments RP
 		{
-			if (!$1->getExpression()->isObject())
+			if (!$1->isObject())
 			{
-				error(driver.getLocation(), "Identifier '" + $1->getExpression()->getText() + "' is not an object");
+				error(driver.getLocation(), "Identifier '" + $1->getText() + "' is not an object");
 				YYABORT;
 			}
 
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1->getExpression())->getSymbol();
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>($1)->getSymbol();
 			if (!parentSymbol->isFunction())
 			{
 				error(driver.getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
@@ -994,9 +994,9 @@ identifier
 			// Make copy of just argument types because symbols are not aware of expressions
 			std::vector<Expression::Type> argTypes;
 			std::for_each($arguments.begin(), $arguments.end(),
-				[&argTypes](const ASTNode::Ptr& expr)
+				[&argTypes](const Expression::Ptr& expr)
 				{
-					argTypes.push_back(expr->getExpression()->getType());
+					argTypes.push_back(expr->getType());
 				});
 
 			if (!funcParentSymbol->overloadExists(argTypes))
@@ -1005,8 +1005,8 @@ identifier
 				YYABORT;
 			}
 
-			$$ = makeASTNode<FunctionCallExpression>(std::move($1), std::move($arguments));
-			$$->getExpression()->setType(funcParentSymbol->getReturnType());
+			$$ = std::make_shared<FunctionCallExpression>(std::move($1), std::move($arguments));
+			$$->setType(funcParentSymbol->getReturnType());
 		}
 	;
 

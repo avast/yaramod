@@ -14,12 +14,12 @@ namespace yaramod {
 /**
  * Abstract class representing modifying visitor of condition expression in YARA files.
  * It is capable of modifying AST. Each visit() method has return value of
- * @c Visitee::ReturnType what is just an alis for `variant<shared_ptr<ASTNode>, Visitee::Action>`.
+ * @c VisitResult what is just an alis for `variant<shared_ptr<ASTNode>, Visitee::Action>`.
  * There are 3 possible values you can return in order to control the behavior of the visitor:
  *
  * 1. nullptr - Returning unset variant means keeping the node as it is and not modifying it all.
  * 2. non nullptr - Returning valid instance of ASTNode means replace this AST node with the one I returned you.
- * 3. Visitee::Action::Delete - Delete this AST node.
+ * 3. VisitAction::Delete - Delete this AST node.
  *
  * You can of course override this behavior by providing your own implementaion of each visit()
  * method but this is the default one. If you want to override some part of the logic but fall-back
@@ -31,39 +31,36 @@ namespace yaramod {
 class ModifyingVisitor : public Visitor
 {
 public:
-	void modify(ASTNode::Ptr& expr)
+	Expression::Ptr modify(const Expression::Ptr& expr)
 	{
 		auto result = expr->accept(this);
 
-		if (auto newExpr = mpark::get_if<ASTNode::Ptr>(&result))
-		{
-			if (*newExpr)
-				expr->setExpression((*newExpr)->getExpression());
-		}
+		if (auto newExpr = mpark::get_if<Expression::Ptr>(&result))
+			return *newExpr ? *newExpr : expr;
 		else
-			expr->setExpression(makeASTNode<BoolLiteralExpression>(true)->getExpression());
+			return std::make_shared<BoolLiteralExpression>(true);
 	}
 
-	/// @name Visit methods
+	///// @name Visit methods
 	/// @{
-	virtual Visitee::ReturnType visit(StringExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(StringWildcardExpression*) override { return {}; }
+	virtual VisitResult visit(StringExpression*) override { return {}; }
+	virtual VisitResult visit(StringWildcardExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StringAtExpression* expr) override
+	virtual VisitResult visit(StringAtExpression* expr) override
 	{
 		auto atExpr = expr->getAtExpression()->accept(this);
 		return defaultHandler(expr, atExpr);
 	}
 
-	virtual Visitee::ReturnType visit(StringInRangeExpression* expr) override
+	virtual VisitResult visit(StringInRangeExpression* expr) override
 	{
 		auto rangeExpr = expr->getRangeExpression()->accept(this);
 		return defaultHandler(expr, rangeExpr);
 	}
 
-	virtual Visitee::ReturnType visit(StringCountExpression*) override { return {}; }
+	virtual VisitResult visit(StringCountExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StringOffsetExpression* expr) override
+	virtual VisitResult visit(StringOffsetExpression* expr) override
 	{
 		if (expr->getIndexExpression())
 		{
@@ -74,7 +71,7 @@ public:
 		return defaultHandler(expr, {});
 	}
 
-	virtual Visitee::ReturnType visit(StringLengthExpression* expr) override
+	virtual VisitResult visit(StringLengthExpression* expr) override
 	{
 		if (expr->getIndexExpression())
 		{
@@ -85,122 +82,122 @@ public:
 		return defaultHandler(expr, {});
 	}
 
-	virtual Visitee::ReturnType visit(NotExpression* expr) override
+	virtual VisitResult visit(NotExpression* expr) override
 	{
 		return _handleUnaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(UnaryMinusExpression* expr) override
+	virtual VisitResult visit(UnaryMinusExpression* expr) override
 	{
 		return _handleUnaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseNotExpression* expr) override
+	virtual VisitResult visit(BitwiseNotExpression* expr) override
 	{
 		return _handleUnaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(AndExpression* expr) override
+	virtual VisitResult visit(AndExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(OrExpression* expr) override
+	virtual VisitResult visit(OrExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(LtExpression* expr) override
+	virtual VisitResult visit(LtExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(GtExpression* expr) override
+	virtual VisitResult visit(GtExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(LeExpression* expr) override
+	virtual VisitResult visit(LeExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(GeExpression* expr) override
+	virtual VisitResult visit(GeExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(EqExpression* expr) override
+	virtual VisitResult visit(EqExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(NeqExpression* expr) override
+	virtual VisitResult visit(NeqExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(ContainsExpression* expr) override
+	virtual VisitResult visit(ContainsExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(MatchesExpression* expr) override
+	virtual VisitResult visit(MatchesExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(PlusExpression* expr) override
+	virtual VisitResult visit(PlusExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(MinusExpression* expr) override
+	virtual VisitResult visit(MinusExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(MultiplyExpression* expr) override
+	virtual VisitResult visit(MultiplyExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(DivideExpression* expr) override
+	virtual VisitResult visit(DivideExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(ModuloExpression* expr) override
+	virtual VisitResult visit(ModuloExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseXorExpression* expr) override
+	virtual VisitResult visit(BitwiseXorExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseAndExpression* expr) override
+	virtual VisitResult visit(BitwiseAndExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseOrExpression* expr) override
+	virtual VisitResult visit(BitwiseOrExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(ShiftLeftExpression* expr) override
+	virtual VisitResult visit(ShiftLeftExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(ShiftRightExpression* expr) override
+	virtual VisitResult visit(ShiftRightExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual Visitee::ReturnType visit(ForIntExpression* expr) override
+	virtual VisitResult visit(ForIntExpression* expr) override
 	{
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
@@ -208,7 +205,7 @@ public:
 		return defaultHandler(expr, var, iteratedSet, body);
 	}
 
-	virtual Visitee::ReturnType visit(ForStringExpression* expr) override
+	virtual VisitResult visit(ForStringExpression* expr) override
 	{
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
@@ -216,49 +213,49 @@ public:
 		return defaultHandler(expr, var, iteratedSet, body);
 	}
 
-	virtual Visitee::ReturnType visit(OfExpression* expr) override
+	virtual VisitResult visit(OfExpression* expr) override
 	{
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
 		return defaultHandler(expr, var, iteratedSet, {});
 	}
 
-	virtual Visitee::ReturnType visit(SetExpression* expr) override
+	virtual VisitResult visit(SetExpression* expr) override
 	{
-		std::vector<Visitee::ReturnType> newElements;
+		std::vector<VisitResult> newElements;
 		for (auto& element : expr->getElements())
 			newElements.push_back(element->accept(this));
 
 		return defaultHandler(expr, newElements);
 	}
 
-	virtual Visitee::ReturnType visit(RangeExpression* expr) override
+	virtual VisitResult visit(RangeExpression* expr) override
 	{
 		auto low = expr->getLow()->accept(this);
 		auto high = expr->getHigh()->accept(this);
 		return defaultHandler(expr, low, high);
 	}
 
-	virtual Visitee::ReturnType visit(IdExpression*) override { return {}; }
+	virtual VisitResult visit(IdExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StructAccessExpression* expr) override
+	virtual VisitResult visit(StructAccessExpression* expr) override
 	{
 		auto structure = expr->getStructure()->accept(this);
 		return defaultHandler(expr, structure);
 	}
 
-	virtual Visitee::ReturnType visit(ArrayAccessExpression* expr) override
+	virtual VisitResult visit(ArrayAccessExpression* expr) override
 	{
 		auto array = expr->getArray()->accept(this);
 		auto accessor = expr->getAccessor()->accept(this);
 		return defaultHandler(expr, array, accessor);
 	}
 
-	virtual Visitee::ReturnType visit(FunctionCallExpression* expr) override
+	virtual VisitResult visit(FunctionCallExpression* expr) override
 	{
 		auto function = expr->getFunction()->accept(this);
 
-		std::vector<Visitee::ReturnType> arguments;
+		std::vector<VisitResult> arguments;
 		for (auto& arg : expr->getArguments())
 		{
 			arguments.push_back(arg->accept(this));
@@ -267,36 +264,36 @@ public:
 		return defaultHandler(expr, function, arguments);
 	}
 
-	virtual Visitee::ReturnType visit(BoolLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(StringLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(IntLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(DoubleLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(FilesizeExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(EntrypointExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(AllExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(AnyExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(ThemExpression*) override { return {}; }
+	virtual VisitResult visit(BoolLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(StringLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(IntLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(DoubleLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(FilesizeExpression*) override { return {}; }
+	virtual VisitResult visit(EntrypointExpression*) override { return {}; }
+	virtual VisitResult visit(AllExpression*) override { return {}; }
+	virtual VisitResult visit(AnyExpression*) override { return {}; }
+	virtual VisitResult visit(ThemExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(ParenthesesExpression* expr) override
+	virtual VisitResult visit(ParenthesesExpression* expr) override
 	{
 		auto enclosedExpr = expr->getEnclosedExpression()->accept(this);
 		return defaultHandler(expr, enclosedExpr);
 	}
 
-	virtual Visitee::ReturnType visit(IntFunctionExpression* expr) override
+	virtual VisitResult visit(IntFunctionExpression* expr) override
 	{
 		auto argument = expr->getArgument()->accept(this);
 		return defaultHandler(expr, argument);
 	}
 
-	virtual Visitee::ReturnType visit(RegexpExpression*) override { return {}; }
+	virtual VisitResult visit(RegexpExpression*) override { return {}; }
 	/// @}
 
 	/// @name Default handlers
 	/// @{
-	Visitee::ReturnType defaultHandler(StringAtExpression* expr, const Visitee::ReturnType& atExprRet)
+	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
 	{
-		if (auto atExpr = mpark::get_if<ASTNode::Ptr>(&atExprRet))
+		if (auto atExpr = mpark::get_if<Expression::Ptr>(&atExprRet))
 		{
 			if (*atExpr)
 				expr->setAtExpression(*atExpr);
@@ -305,14 +302,14 @@ public:
 			expr->setAtExpression(nullptr);
 
 		if (!expr->getAtExpression())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(StringInRangeExpression* expr, const Visitee::ReturnType& rangeExprRet)
+	VisitResult defaultHandler(StringInRangeExpression* expr, const VisitResult& rangeExprRet)
 	{
-		if (auto rangeExpr = mpark::get_if<ASTNode::Ptr>(&rangeExprRet))
+		if (auto rangeExpr = mpark::get_if<Expression::Ptr>(&rangeExprRet))
 		{
 			if (*rangeExpr)
 				expr->setRangeExpression(*rangeExpr);
@@ -321,16 +318,16 @@ public:
 			expr->setRangeExpression(nullptr);
 
 		if (!expr->getRangeExpression())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
 	template <typename T>
-	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& indexExprRet)
+	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, VisitResult>
+		defaultHandler(T* expr, const VisitResult& indexExprRet)
 	{
-		if (auto indexExpr = mpark::get_if<ASTNode::Ptr>(&indexExprRet))
+		if (auto indexExpr = mpark::get_if<Expression::Ptr>(&indexExprRet))
 		{
 			if (*indexExpr)
 				expr->setIndexExpression(*indexExpr);
@@ -339,31 +336,31 @@ public:
 			expr->setIndexExpression(nullptr);
 
 		if (!expr->getIndexExpression())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
 	template <typename T>
-	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& operandRet)
+	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, VisitResult>
+		defaultHandler(T* expr, const VisitResult& operandRet)
 	{
-		if (auto operand = mpark::get_if<ASTNode::Ptr>(&operandRet))
+		if (auto operand = mpark::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
 				expr->setOperand(*operand);
 		}
 		else
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
 	template <typename T>
-	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& leftRet, const Visitee::ReturnType& rightRet)
+	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
+		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
-		if (auto left = mpark::get_if<ASTNode::Ptr>(&leftRet))
+		if (auto left = mpark::get_if<Expression::Ptr>(&leftRet))
 		{
 			if (left)
 				expr->setLeftOperand(*left);
@@ -371,7 +368,7 @@ public:
 		else
 			expr->setLeftOperand(nullptr);
 
-		if (auto right = mpark::get_if<ASTNode::Ptr>(&rightRet))
+		if (auto right = mpark::get_if<Expression::Ptr>(&rightRet))
 		{
 			if (right)
 				expr->setRightOperand(*right);
@@ -380,7 +377,7 @@ public:
 			expr->setRightOperand(nullptr);
 
 		if (!expr->getLeftOperand() && !expr->getRightOperand())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 		else if (!expr->getLeftOperand() && expr->getRightOperand())
 			return expr->getRightOperand();
 		else if (expr->getLeftOperand() && !expr->getRightOperand())
@@ -390,10 +387,10 @@ public:
 	}
 
 	template <typename T>
-	std::enable_if_t<std::is_base_of<ForExpression, T>::value, Visitee::ReturnType>
-		defaultHandler(T* expr, const Visitee::ReturnType& varRet, const Visitee::ReturnType& iteratedSetRet, const Visitee::ReturnType& bodyRet)
+	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
+		defaultHandler(T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
 	{
-		if (auto var = mpark::get_if<ASTNode::Ptr>(&varRet))
+		if (auto var = mpark::get_if<Expression::Ptr>(&varRet))
 		{
 			if (*var)
 				expr->setVariable(*var);
@@ -401,7 +398,7 @@ public:
 		else
 			expr->setVariable(nullptr);
 
-		if (auto iteratedSet = mpark::get_if<ASTNode::Ptr>(&iteratedSetRet))
+		if (auto iteratedSet = mpark::get_if<Expression::Ptr>(&iteratedSetRet))
 		{
 			if (*iteratedSet)
 				expr->setIteratedSet(*iteratedSet);
@@ -410,7 +407,7 @@ public:
 			expr->setIteratedSet(nullptr);
 
 		auto oldBody = expr->getBody();
-		if (auto body = mpark::get_if<ASTNode::Ptr>(&bodyRet))
+		if (auto body = mpark::get_if<Expression::Ptr>(&bodyRet))
 		{
 			if (*body)
 				expr->setBody(*body);
@@ -419,29 +416,29 @@ public:
 			expr->setBody(nullptr);
 
 		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(SetExpression* expr, const std::vector<Visitee::ReturnType>& elementsRet)
+	VisitResult defaultHandler(SetExpression* expr, const std::vector<VisitResult>& elementsRet)
 	{
 		if (elementsRet.empty())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		if (std::all_of(elementsRet.begin(), elementsRet.end(),
 				[](const auto& element) {
-					auto e = mpark::get_if<ASTNode::Ptr>(&element);
+					auto e = mpark::get_if<Expression::Ptr>(&element);
 					return e && (*e == nullptr);
 				}))
 		{
 			return {};
 		}
 
-		std::vector<ASTNode::Ptr> newElements;
+		std::vector<Expression::Ptr> newElements;
 		for (std::size_t i = 0, end = elementsRet.size(); i < end; ++i)
 		{
-			if (auto element = mpark::get_if<ASTNode::Ptr>(&elementsRet[i]))
+			if (auto element = mpark::get_if<Expression::Ptr>(&elementsRet[i]))
 			{
 				if (*element)
 					newElements.push_back(*element);
@@ -454,9 +451,9 @@ public:
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(RangeExpression* expr, const Visitee::ReturnType& lowRet, const Visitee::ReturnType& highRet)
+	VisitResult defaultHandler(RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
 	{
-		if (auto low = mpark::get_if<ASTNode::Ptr>(&lowRet))
+		if (auto low = mpark::get_if<Expression::Ptr>(&lowRet))
 		{
 			if (*low)
 				expr->setLow(*low);
@@ -464,7 +461,7 @@ public:
 		else
 			expr->setLow(nullptr);
 
-		if (auto high = mpark::get_if<ASTNode::Ptr>(&highRet))
+		if (auto high = mpark::get_if<Expression::Ptr>(&highRet))
 		{
 			if (*high)
 				expr->setHigh(*high);
@@ -473,27 +470,27 @@ public:
 			expr->setHigh(nullptr);
 
 		if (!expr->getLow() || !expr->getHigh())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(StructAccessExpression* expr, const Visitee::ReturnType& structureRet)
+	VisitResult defaultHandler(StructAccessExpression* expr, const VisitResult& structureRet)
 	{
-		if (auto structure = mpark::get_if<ASTNode::Ptr>(&structureRet))
+		if (auto structure = mpark::get_if<Expression::Ptr>(&structureRet))
 		{
 			if (*structure)
 				expr->setStructure(*structure);
 		}
 		else
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(ArrayAccessExpression* expr, const Visitee::ReturnType& arrayRet, const Visitee::ReturnType& accessorRet)
+	VisitResult defaultHandler(ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
 	{
-		if (auto array = mpark::get_if<ASTNode::Ptr>(&arrayRet))
+		if (auto array = mpark::get_if<Expression::Ptr>(&arrayRet))
 		{
 			if (*array)
 				expr->setArray(*array);
@@ -501,7 +498,7 @@ public:
 		else
 			expr->setArray(nullptr);
 
-		if (auto accessor = mpark::get_if<ASTNode::Ptr>(&accessorRet))
+		if (auto accessor = mpark::get_if<Expression::Ptr>(&accessorRet))
 		{
 			if (*accessor)
 				expr->setAccessor(*accessor);
@@ -510,14 +507,14 @@ public:
 			expr->setAccessor(nullptr);
 
 		if (!expr->getArray() || !expr->getAccessor())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(FunctionCallExpression* expr, const Visitee::ReturnType& functionRet, const std::vector<Visitee::ReturnType>& argumentsRet)
+	VisitResult defaultHandler(FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
 	{
-		if (auto function = mpark::get_if<ASTNode::Ptr>(&functionRet))
+		if (auto function = mpark::get_if<Expression::Ptr>(&functionRet))
 		{
 			if (*function)
 				expr->setFunction(*function);
@@ -527,17 +524,17 @@ public:
 
 		if (std::all_of(argumentsRet.begin(), argumentsRet.end(),
 				[](const auto& arg) {
-					auto a = mpark::get_if<ASTNode::Ptr>(&arg);
+					auto a = mpark::get_if<Expression::Ptr>(&arg);
 					return a && (*a == nullptr);
 				}))
 		{
 			return {};
 		}
 
-		std::vector<ASTNode::Ptr> newArguments;
+		std::vector<Expression::Ptr> newArguments;
 		for (std::size_t i = 0, end = argumentsRet.size(); i < end; ++i)
 		{
-			if (auto arg = mpark::get_if<ASTNode::Ptr>(&argumentsRet[i]))
+			if (auto arg = mpark::get_if<Expression::Ptr>(&argumentsRet[i]))
 			{
 				if (*arg)
 					newArguments.push_back(*arg);
@@ -550,9 +547,9 @@ public:
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(ParenthesesExpression* expr, const Visitee::ReturnType& enclosedExprRet)
+	VisitResult defaultHandler(ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
 	{
-		if (auto enclosedExpr = mpark::get_if<ASTNode::Ptr>(&enclosedExprRet))
+		if (auto enclosedExpr = mpark::get_if<Expression::Ptr>(&enclosedExprRet))
 		{
 			if (*enclosedExpr)
 				expr->setEnclosedExpression(*enclosedExpr);
@@ -561,14 +558,14 @@ public:
 			expr->setEnclosedExpression(nullptr);
 
 		if (!expr->getEnclosedExpression())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 
 		return {};
 	}
 
-	Visitee::ReturnType defaultHandler(IntFunctionExpression* expr, const Visitee::ReturnType& argumentRet)
+	VisitResult defaultHandler(IntFunctionExpression* expr, const VisitResult& argumentRet)
 	{
-		if (auto argument = mpark::get_if<ASTNode::Ptr>(&argumentRet))
+		if (auto argument = mpark::get_if<Expression::Ptr>(&argumentRet))
 		{
 			if (*argument)
 				expr->setArgument(*argument);
@@ -577,7 +574,7 @@ public:
 			expr->setArgument(nullptr);
 
 		if (!expr->getArgument())
-			return Visitee::Action::Delete;
+			return VisitAction::Delete;
 	
 		return {};
 	}
@@ -588,14 +585,14 @@ protected:
 
 private:
 	template <typename T>
-	Visitee::ReturnType _handleUnaryOperation(T* expr)
+	VisitResult _handleUnaryOperation(T* expr)
 	{
 		auto operand = expr->getOperand()->accept(this);
 		return defaultHandler(expr, operand);
 	}
 
 	template <typename T>
-	Visitee::ReturnType _handleBinaryOperation(T* expr)
+	VisitResult _handleBinaryOperation(T* expr)
 	{
 		auto leftOperand = expr->getLeftOperand()->accept(this);
 		auto rightOperand = expr->getRightOperand()->accept(this);

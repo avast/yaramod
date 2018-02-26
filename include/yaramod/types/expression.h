@@ -11,17 +11,21 @@
 #include <string>
 #include <vector>
 
-#include "yaramod/utils/visitee.h"
+#include "yaramod/utils/visitor_result.h"
 
 namespace yaramod {
+
+class Visitor;
 
 /**
  * Class representing expression in the condition section
  * of the YARA rule. Expression bears the value of certain type.
  */
-class Expression : public Visitee
+class Expression
 {
 public:
+	using Ptr = std::shared_ptr<Expression>;
+
 	///< Type of the expression.
 	enum class Type
 	{
@@ -38,13 +42,15 @@ public:
 	/// @{
 	Expression() : _type(Expression::Type::Undefined) {}
 	Expression(Expression&&) = default;
-	virtual ~Expression() {}
+	virtual ~Expression() = default;
 	/// @}
 
-	/// @name String representation
+	/// @name Virtual methods
 	/// @{
+	virtual VisitResult accept(Visitor* v) = 0;
 	virtual std::string getText(const std::string& indent = "") const = 0;
 	/// @}
+
 
 	/// @name Getter methods
 	/// @{

@@ -49,8 +49,8 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraExpressionBuilder();
-	YaraExpressionBuilder(const ASTNode::Ptr& expr);
-	YaraExpressionBuilder(ASTNode::Ptr&& expr);
+	YaraExpressionBuilder(const Expression::Ptr& expr);
+	YaraExpressionBuilder(Expression::Ptr&& expr);
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -63,7 +63,7 @@ public:
 
 	/// @name Builder method
 	/// @{
-	ASTNode::Ptr get() const;
+	Expression::Ptr get() const;
 	/// @}
 
 	/// @name Building methods
@@ -138,7 +138,7 @@ protected:
 	}
 
 private:
-	ASTNode::Ptr _expr;
+	Expression::Ptr _expr;
 };
 
 /// @name Helper functions

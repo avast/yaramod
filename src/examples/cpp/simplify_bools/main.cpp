@@ -28,8 +28,7 @@ int main(int argc, char* argv[])
 		std::cout << "==== RULE: " << rule->getName() << std::endl;
 		std::cout << "==== BEFORE" << std::endl;
 		std::cout << rule->getText() << std::endl;
-		auto newCondition = rule->getCondition();
-		simplifier.modify(newCondition);
+		auto newCondition = simplifier.modify(rule->getCondition());
 		rule->setCondition(newCondition);
 		std::cout << "==== AFTER" << std::endl;
 		std::cout << rule->getText() << std::endl;

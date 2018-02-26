@@ -44,7 +44,7 @@ YaraExpressionBuilder::YaraExpressionBuilder() : _expr()
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(const ASTNode::Ptr& expr) : _expr(expr)
+YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr) : _expr(expr)
 {
 }
 
@@ -53,7 +53,7 @@ YaraExpressionBuilder::YaraExpressionBuilder(const ASTNode::Ptr& expr) : _expr(e
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(ASTNode::Ptr&& expr) : _expr(std::move(expr))
+YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr) : _expr(std::move(expr))
 {
 }
 
@@ -62,7 +62,7 @@ YaraExpressionBuilder::YaraExpressionBuilder(ASTNode::Ptr&& expr) : _expr(std::m
  *
  * @return Built condition expression.
  */
-ASTNode::Ptr YaraExpressionBuilder::get() const
+Expression::Ptr YaraExpressionBuilder::get() const
 {
 	return _expr;
 }
@@ -74,7 +74,7 @@ ASTNode::Ptr YaraExpressionBuilder::get() const
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator!()
 {
-	_expr = makeASTNode<NotExpression>(std::move(_expr));
+	_expr = std::make_shared<NotExpression>(std::move(_expr));
 	return *this;
 }
 
@@ -85,7 +85,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator~()
 {
-	_expr = makeASTNode<BitwiseNotExpression>(std::move(_expr));
+	_expr = std::make_shared<BitwiseNotExpression>(std::move(_expr));
 	return *this;
 }
 
@@ -96,7 +96,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator~()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator-()
 {
-	_expr = makeASTNode<UnaryMinusExpression>(std::move(_expr));
+	_expr = std::make_shared<UnaryMinusExpression>(std::move(_expr));
 	return *this;
 }
 
@@ -109,7 +109,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<AndExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<AndExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -122,7 +122,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<OrExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<OrExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -135,7 +135,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<LtExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<LtExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -148,7 +148,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<LeExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<LeExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -161,7 +161,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<GtExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<GtExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -174,7 +174,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<GeExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<GeExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -187,7 +187,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<EqExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<EqExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -200,7 +200,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<NeqExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<NeqExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -213,7 +213,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<PlusExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<PlusExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -226,7 +226,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<MinusExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<MinusExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -239,7 +239,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<MultiplyExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<MultiplyExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -252,7 +252,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<DivideExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<DivideExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -265,7 +265,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<ModuloExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<ModuloExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -278,7 +278,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<BitwiseXorExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<BitwiseXorExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -291,7 +291,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<BitwiseAndExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<BitwiseAndExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -304,7 +304,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<BitwiseOrExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<BitwiseOrExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -317,7 +317,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<ShiftLeftExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<ShiftLeftExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -330,7 +330,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<ShiftRightExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<ShiftRightExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -343,9 +343,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpressionBuilder>& args)
 {
-	std::vector<ASTNode::Ptr> exprArgs;
+	std::vector<Expression::Ptr> exprArgs;
 	std::for_each(args.begin(), args.end(), [&exprArgs](const YaraExpressionBuilder& expr) { exprArgs.push_back(expr.get()); });
-	_expr = makeASTNode<FunctionCallExpression>(std::move(_expr), std::move(exprArgs));
+	_expr = std::make_shared<FunctionCallExpression>(std::move(_expr), std::move(exprArgs));
 	return *this;
 }
 
@@ -358,7 +358,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  */
 YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<ContainsExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<ContainsExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -371,7 +371,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuild
  */
 YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<MatchesExpression>(std::move(_expr), other.get());
+	_expr = std::make_shared<MatchesExpression>(std::move(_expr), other.get());
 	return *this;
 }
 
@@ -384,7 +384,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
  */
 YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr)
 {
-	_expr = makeASTNode<StructAccessExpression>(std::make_shared<ValueSymbol>(attr, Expression::Type::Object), std::move(_expr));
+	_expr = std::make_shared<StructAccessExpression>(std::make_shared<ValueSymbol>(attr, Expression::Type::Object), std::move(_expr));
 	return *this;
 }
 
@@ -397,7 +397,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr)
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBuilder& other)
 {
-	_expr = makeASTNode<ArrayAccessExpression>(std::make_shared<ValueSymbol>("dummy", Expression::Type::Object), std::move(_expr), other.get());
+	_expr = std::make_shared<ArrayAccessExpression>(std::make_shared<ValueSymbol>("dummy", Expression::Type::Object), std::move(_expr), other.get());
 	return *this;
 }
 
@@ -410,7 +410,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int8be" : "int8", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int8be" : "int8", std::move(_expr));
 	return *this;
 }
 
@@ -423,7 +423,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness end
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int16be" : "int16", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int16be" : "int16", std::move(_expr));
 	return *this;
 }
 
@@ -436,7 +436,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness en
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int32be" : "int32", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "int32be" : "int32", std::move(_expr));
 	return *this;
 }
 
@@ -449,7 +449,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness en
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint8be" : "uint8", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint8be" : "uint8", std::move(_expr));
 	return *this;
 }
 
@@ -462,7 +462,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness en
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint16be" : "uint16", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint16be" : "uint16", std::move(_expr));
 	return *this;
 }
 
@@ -475,7 +475,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness e
  */
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(IntFunctionEndianness endianness)
 {
-	_expr = makeASTNode<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint32be" : "uint32", std::move(_expr));
+	_expr = std::make_shared<IntFunctionExpression>(endianness == IntFunctionEndianness::Big ? "uint32be" : "uint32", std::move(_expr));
 	return *this;
 }
 
@@ -502,7 +502,7 @@ YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult)
 			break;
 	}
 
-	return YaraExpressionBuilder(makeASTNode<IntLiteralExpression>(std::move(strValue)));
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(std::move(strValue)));
 }
 
 /**
@@ -528,7 +528,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
 			break;
 	}
 
-	return YaraExpressionBuilder(makeASTNode<IntLiteralExpression>(std::move(strValue)));
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(std::move(strValue)));
 }
 
 /**
@@ -540,7 +540,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
  */
 YaraExpressionBuilder hexIntVal(std::uint64_t value)
 {
-	return YaraExpressionBuilder(makeASTNode<IntLiteralExpression>(numToStr(value, std::hex, true)));
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(numToStr(value, std::hex, true)));
 }
 
 /**
@@ -552,7 +552,7 @@ YaraExpressionBuilder hexIntVal(std::uint64_t value)
  */
 YaraExpressionBuilder stringVal(const std::string& value)
 {
-	return YaraExpressionBuilder(makeASTNode<StringLiteralExpression>(value));
+	return YaraExpressionBuilder(std::make_shared<StringLiteralExpression>(value));
 }
 
 /**
@@ -564,7 +564,10 @@ YaraExpressionBuilder stringVal(const std::string& value)
  */
 YaraExpressionBuilder boolVal(bool value)
 {
-	return YaraExpressionBuilder(makeASTNode<BoolLiteralExpression>(value));
+	//return YaraExpressionBuilder(std::make_shared<BoolLiteralExpression>(value));
+	auto ptr = new BoolLiteralExpression(value);
+	ptr->getText();
+	return YaraExpressionBuilder{std::shared_ptr<BoolLiteralExpression>{ptr}};
 }
 
 /**
@@ -576,7 +579,7 @@ YaraExpressionBuilder boolVal(bool value)
  */
 YaraExpressionBuilder id(const std::string& id)
 {
-	return YaraExpressionBuilder(makeASTNode<IdExpression>(std::make_shared<ValueSymbol>(id, Expression::Type::Object)));
+	return YaraExpressionBuilder(std::make_shared<IdExpression>(std::make_shared<ValueSymbol>(id, Expression::Type::Object)));
 }
 
 /**
@@ -589,7 +592,7 @@ YaraExpressionBuilder id(const std::string& id)
  */
 YaraExpressionBuilder paren(const YaraExpressionBuilder& other, bool linebreak)
 {
-	return YaraExpressionBuilder(makeASTNode<ParenthesesExpression>(other.get(), linebreak));
+	return YaraExpressionBuilder(std::make_shared<ParenthesesExpression>(other.get(), linebreak));
 }
 
 /**
@@ -602,9 +605,9 @@ YaraExpressionBuilder paren(const YaraExpressionBuilder& other, bool linebreak)
 YaraExpressionBuilder stringRef(const std::string& id)
 {
 	if (endsWith(id, '*'))
-		return YaraExpressionBuilder(makeASTNode<StringWildcardExpression>(id));
+		return YaraExpressionBuilder(std::make_shared<StringWildcardExpression>(id));
 	else
-		return YaraExpressionBuilder(makeASTNode<StringExpression>(id));
+		return YaraExpressionBuilder(std::make_shared<StringExpression>(id));
 }
 
 /**
@@ -621,7 +624,7 @@ YaraExpressionBuilder matchCount(const std::string& id)
 	// Replace '$' with '#'
 	auto countId = id;
 	countId[0] = '#';
-	return YaraExpressionBuilder(makeASTNode<StringCountExpression>(std::move(countId)));
+	return YaraExpressionBuilder(std::make_shared<StringCountExpression>(std::move(countId)));
 }
 
 /**
@@ -638,7 +641,7 @@ YaraExpressionBuilder matchLength(const std::string& id)
 	// Replace '$' with '!'
 	auto lengthId = id;
 	lengthId[0] = '!';
-	return YaraExpressionBuilder(makeASTNode<StringLengthExpression>(std::move(lengthId)));
+	return YaraExpressionBuilder(std::make_shared<StringLengthExpression>(std::move(lengthId)));
 }
 
 /**
@@ -655,7 +658,7 @@ YaraExpressionBuilder matchOffset(const std::string& id)
 	// Replace '$' with '@'
 	auto offsetId = id;
 	offsetId[0] = '@';
-	return YaraExpressionBuilder(makeASTNode<StringOffsetExpression>(std::move(offsetId)));
+	return YaraExpressionBuilder(std::make_shared<StringOffsetExpression>(std::move(offsetId)));
 }
 
 /**
@@ -673,7 +676,7 @@ YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBui
 	// Replace '$' with '!'
 	auto lengthId = id;
 	lengthId[0] = '!';
-	return YaraExpressionBuilder(makeASTNode<StringLengthExpression>(std::move(lengthId), other.get()));
+	return YaraExpressionBuilder(std::make_shared<StringLengthExpression>(std::move(lengthId), other.get()));
 }
 
 /**
@@ -691,7 +694,7 @@ YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBui
 	// Replace '$' with '@'
 	auto offsetId = id;
 	offsetId[0] = '@';
-	return YaraExpressionBuilder(makeASTNode<StringOffsetExpression>(std::move(offsetId), other.get()));
+	return YaraExpressionBuilder(std::make_shared<StringOffsetExpression>(std::move(offsetId), other.get()));
 }
 
 /**
@@ -704,7 +707,7 @@ YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBui
  */
 YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder& other)
 {
-	return YaraExpressionBuilder(makeASTNode<StringAtExpression>(id, other.get()));
+	return YaraExpressionBuilder(std::make_shared<StringAtExpression>(id, other.get()));
 }
 
 /**
@@ -717,7 +720,7 @@ YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder
  */
 YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBuilder& other)
 {
-	return YaraExpressionBuilder(makeASTNode<StringInRangeExpression>(id, other.get()));
+	return YaraExpressionBuilder(std::make_shared<StringInRangeExpression>(id, other.get()));
 }
 
 /**
@@ -732,7 +735,7 @@ YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBu
  */
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr)
 {
-	return YaraExpressionBuilder(makeASTNode<ForIntExpression>(forExpr.get(), id, set.get(), expr.get()));
+	return YaraExpressionBuilder(std::make_shared<ForIntExpression>(forExpr.get(), id, set.get(), expr.get()));
 }
 
 /**
@@ -746,7 +749,7 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::s
  */
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr)
 {
-	return YaraExpressionBuilder(makeASTNode<ForStringExpression>(forExpr.get(), set.get(), expr.get()));
+	return YaraExpressionBuilder(std::make_shared<ForStringExpression>(forExpr.get(), set.get(), expr.get()));
 }
 
 /**
@@ -759,7 +762,7 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraEx
  */
 YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressionBuilder& set)
 {
-	return YaraExpressionBuilder(makeASTNode<OfExpression>(ofExpr.get(), set.get()));
+	return YaraExpressionBuilder(std::make_shared<OfExpression>(ofExpr.get(), set.get()));
 }
 
 /**
@@ -771,9 +774,9 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
  */
 YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
 {
-	std::vector<ASTNode::Ptr> elementsExprs;
+	std::vector<Expression::Ptr> elementsExprs;
 	std::for_each(elements.begin(), elements.end(), [&elementsExprs](const YaraExpressionBuilder& expr) { elementsExprs.push_back(expr.get()); });
-	return YaraExpressionBuilder(makeASTNode<SetExpression>(std::move(elementsExprs)));
+	return YaraExpressionBuilder(std::make_shared<SetExpression>(std::move(elementsExprs)));
 }
 
 /**
@@ -787,7 +790,7 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
  */
 YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	return YaraExpressionBuilder(makeASTNode<AndExpression>(lhs.get(), rhs.get(), linebreak));
+	return YaraExpressionBuilder(std::make_shared<AndExpression>(lhs.get(), rhs.get(), linebreak));
 }
 
 /**
@@ -801,7 +804,7 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
  */
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	return YaraExpressionBuilder(makeASTNode<OrExpression>(lhs.get(), rhs.get(), linebreak));
+	return YaraExpressionBuilder(std::make_shared<OrExpression>(lhs.get(), rhs.get(), linebreak));
 }
 
 /**
@@ -840,7 +843,7 @@ YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& term
  */
 YaraExpressionBuilder range(const YaraExpressionBuilder& low, const YaraExpressionBuilder& high)
 {
-	return YaraExpressionBuilder(makeASTNode<RangeExpression>(low.get(), high.get()));
+	return YaraExpressionBuilder(std::make_shared<RangeExpression>(low.get(), high.get()));
 }
 
 /**
@@ -850,7 +853,7 @@ YaraExpressionBuilder range(const YaraExpressionBuilder& low, const YaraExpressi
  */
 YaraExpressionBuilder filesize()
 {
-	return YaraExpressionBuilder(makeASTNode<FilesizeExpression>());
+	return YaraExpressionBuilder(std::make_shared<FilesizeExpression>());
 }
 
 /**
@@ -860,7 +863,7 @@ YaraExpressionBuilder filesize()
  */
 YaraExpressionBuilder entrypoint()
 {
-	return YaraExpressionBuilder(makeASTNode<EntrypointExpression>());
+	return YaraExpressionBuilder(std::make_shared<EntrypointExpression>());
 }
 
 /**
@@ -870,7 +873,7 @@ YaraExpressionBuilder entrypoint()
  */
 YaraExpressionBuilder all()
 {
-	return YaraExpressionBuilder(makeASTNode<AllExpression>());
+	return YaraExpressionBuilder(std::make_shared<AllExpression>());
 }
 
 /**
@@ -880,7 +883,7 @@ YaraExpressionBuilder all()
  */
 YaraExpressionBuilder any()
 {
-	return YaraExpressionBuilder(makeASTNode<AnyExpression>());
+	return YaraExpressionBuilder(std::make_shared<AnyExpression>());
 }
 
 /**
@@ -890,7 +893,7 @@ YaraExpressionBuilder any()
  */
 YaraExpressionBuilder them()
 {
-	return YaraExpressionBuilder(makeASTNode<ThemExpression>());
+	return YaraExpressionBuilder(std::make_shared<ThemExpression>());
 }
 
 /**
@@ -905,7 +908,7 @@ YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixM
 {
 	auto regexp = std::make_shared<Regexp>(std::make_shared<RegexpText>(text));
 	regexp->setSuffixModifiers(suffixMods);
-	return YaraExpressionBuilder(makeASTNode<RegexpExpression>(std::move(regexp)));
+	return YaraExpressionBuilder(std::make_shared<RegexpExpression>(std::move(regexp)));
 }
 
 }

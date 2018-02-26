@@ -22,31 +22,31 @@ namespace yaramod {
 class ObservingVisitor : public Visitor
 {
 public:
-	void observe(const ASTNode::Ptr& expr)
+	void observe(const Expression::Ptr& expr)
 	{
 		expr->accept(this);
 	}
 
 	/// @name Visit methods
 	/// @{
-	virtual Visitee::ReturnType visit(StringExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(StringWildcardExpression*) override { return {}; }
+	virtual VisitResult visit(StringExpression*) override { return {}; }
+	virtual VisitResult visit(StringWildcardExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StringAtExpression* expr) override
+	virtual VisitResult visit(StringAtExpression* expr) override
 	{
 		expr->getAtExpression()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(StringInRangeExpression* expr) override
+	virtual VisitResult visit(StringInRangeExpression* expr) override
 	{
 		expr->getRangeExpression()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(StringCountExpression*) override { return {}; }
+	virtual VisitResult visit(StringCountExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StringOffsetExpression* expr) override
+	virtual VisitResult visit(StringOffsetExpression* expr) override
 	{
 		if (auto indexExpression = expr->getIndexExpression())
 			indexExpression->accept(this);
@@ -54,7 +54,7 @@ public:
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(StringLengthExpression* expr) override
+	virtual VisitResult visit(StringLengthExpression* expr) override
 	{
 		if (auto indexExpression = expr->getIndexExpression())
 			indexExpression->accept(this);
@@ -62,165 +62,165 @@ public:
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(NotExpression* expr) override
+	virtual VisitResult visit(NotExpression* expr) override
 	{
 		expr->getOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(UnaryMinusExpression* expr) override
+	virtual VisitResult visit(UnaryMinusExpression* expr) override
 	{
 		expr->getOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseNotExpression* expr) override
+	virtual VisitResult visit(BitwiseNotExpression* expr) override
 	{
 		expr->getOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(AndExpression* expr) override
+	virtual VisitResult visit(AndExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(OrExpression* expr) override
+	virtual VisitResult visit(OrExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(LtExpression* expr) override
+	virtual VisitResult visit(LtExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(GtExpression* expr) override
+	virtual VisitResult visit(GtExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(LeExpression* expr) override
+	virtual VisitResult visit(LeExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(GeExpression* expr) override
+	virtual VisitResult visit(GeExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(EqExpression* expr) override
+	virtual VisitResult visit(EqExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(NeqExpression* expr) override
+	virtual VisitResult visit(NeqExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ContainsExpression* expr) override
+	virtual VisitResult visit(ContainsExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(MatchesExpression* expr) override
+	virtual VisitResult visit(MatchesExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(PlusExpression* expr) override
+	virtual VisitResult visit(PlusExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(MinusExpression* expr) override
+	virtual VisitResult visit(MinusExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(MultiplyExpression* expr) override
+	virtual VisitResult visit(MultiplyExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(DivideExpression* expr) override
+	virtual VisitResult visit(DivideExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ModuloExpression* expr) override
+	virtual VisitResult visit(ModuloExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseXorExpression* expr) override
+	virtual VisitResult visit(BitwiseXorExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseAndExpression* expr) override
+	virtual VisitResult visit(BitwiseAndExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(BitwiseOrExpression* expr) override
+	virtual VisitResult visit(BitwiseOrExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ShiftLeftExpression* expr) override
+	virtual VisitResult visit(ShiftLeftExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ShiftRightExpression* expr) override
+	virtual VisitResult visit(ShiftRightExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ForIntExpression* expr) override
+	virtual VisitResult visit(ForIntExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
 		expr->getIteratedSet()->accept(this);
@@ -228,7 +228,7 @@ public:
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ForStringExpression* expr) override
+	virtual VisitResult visit(ForStringExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
 		expr->getIteratedSet()->accept(this);
@@ -236,43 +236,43 @@ public:
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(OfExpression* expr) override
+	virtual VisitResult visit(OfExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
 		expr->getIteratedSet()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(SetExpression* expr) override
+	virtual VisitResult visit(SetExpression* expr) override
 	{
 		for (auto& element : expr->getElements())
 			element->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(RangeExpression* expr) override
+	virtual VisitResult visit(RangeExpression* expr) override
 	{
 		expr->getLow()->accept(this);
 		expr->getHigh()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(IdExpression*) override { return {}; }
+	virtual VisitResult visit(IdExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(StructAccessExpression* expr) override
+	virtual VisitResult visit(StructAccessExpression* expr) override
 	{
 		expr->getStructure()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(ArrayAccessExpression* expr) override
+	virtual VisitResult visit(ArrayAccessExpression* expr) override
 	{
 		expr->getArray()->accept(this);
 		expr->getAccessor()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(FunctionCallExpression* expr) override
+	virtual VisitResult visit(FunctionCallExpression* expr) override
 	{
 		expr->getFunction()->accept(this);
 		for (auto& arg : expr->getArguments())
@@ -280,29 +280,29 @@ public:
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(BoolLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(StringLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(IntLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(DoubleLiteralExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(FilesizeExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(EntrypointExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(AllExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(AnyExpression*) override { return {}; }
-	virtual Visitee::ReturnType visit(ThemExpression*) override { return {}; }
+	virtual VisitResult visit(BoolLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(StringLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(IntLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(DoubleLiteralExpression*) override { return {}; }
+	virtual VisitResult visit(FilesizeExpression*) override { return {}; }
+	virtual VisitResult visit(EntrypointExpression*) override { return {}; }
+	virtual VisitResult visit(AllExpression*) override { return {}; }
+	virtual VisitResult visit(AnyExpression*) override { return {}; }
+	virtual VisitResult visit(ThemExpression*) override { return {}; }
 
-	virtual Visitee::ReturnType visit(ParenthesesExpression* expr) override
+	virtual VisitResult visit(ParenthesesExpression* expr) override
 	{
 		expr->getEnclosedExpression()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(IntFunctionExpression* expr) override
+	virtual VisitResult visit(IntFunctionExpression* expr) override
 	{
 		expr->getArgument()->accept(this);
 		return {};
 	}
 
-	virtual Visitee::ReturnType visit(RegexpExpression*) override { return {}; }
+	virtual VisitResult visit(RegexpExpression*) override { return {}; }
 	/// @}
 
 

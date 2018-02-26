@@ -11,23 +11,23 @@
 class BoolSimplifier : public yaramod::ModifyingVisitor
 {
 public:
-	virtual yaramod::Visitee::ReturnType visit(yaramod::AndExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::AndExpression* expr) override
 	{
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retLeft))
+		if (auto leftExpr = mpark::get_if<yaramod::Expression::Ptr>(&retLeft))
 		{
 			if (*leftExpr)
-				leftBool = (*leftExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retRight))
+		if (auto rightExpr = mpark::get_if<yaramod::Expression::Ptr>(&retRight))
 		{
 			if (*rightExpr)
-				rightBool = (*rightExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		// If both sides of AND are boolean constants then determine the value based on truth table of AND
@@ -37,14 +37,14 @@ public:
 		// F and F = F
 		if (leftBool && rightBool)
 		{
-			return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(leftBool->getValue() && rightBool->getValue());
+			return std::make_shared<yaramod::BoolLiteralExpression>(leftBool->getValue() && rightBool->getValue());
 		}
 		// Only left-hand side is boolean constant
 		else if (leftBool)
 		{
 			// F and X = F
 			if (!leftBool->getValue())
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(false);
+				return std::make_shared<yaramod::BoolLiteralExpression>(false);
 			// T and X = X
 			else
 				return expr->getRightOperand();
@@ -54,7 +54,7 @@ public:
 		{
 			// X and F = F
 			if (!rightBool->getValue())
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(false);
+				return std::make_shared<yaramod::BoolLiteralExpression>(false);
 			// X and T = X
 			else
 				return expr->getLeftOperand();
@@ -63,23 +63,23 @@ public:
 		return defaultHandler(expr, retLeft, retRight);
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::OrExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::OrExpression* expr) override
 	{
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retLeft))
+		if (auto leftExpr = mpark::get_if<yaramod::Expression::Ptr>(&retLeft))
 		{
 			if (*leftExpr)
-				leftBool = (*leftExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&retRight))
+		if (auto rightExpr = mpark::get_if<yaramod::Expression::Ptr>(&retRight))
 		{
 			if (*rightExpr)
-				rightBool = (*rightExpr)->getExpression()->as<yaramod::BoolLiteralExpression>();
+				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		// If both sides of OR are boolean constants then determine the value based on truth table of OR
@@ -89,14 +89,14 @@ public:
 		// F or F = F
 		if (leftBool && rightBool)
 		{
-			return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(leftBool->getValue() || rightBool->getValue());
+			return std::make_shared<yaramod::BoolLiteralExpression>(leftBool->getValue() || rightBool->getValue());
 		}
 		// Only left-hand side is boolean constant
 		else if (leftBool)
 		{
 			// T or X = T
 			if (leftBool->getValue())
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(true);
+				return std::make_shared<yaramod::BoolLiteralExpression>(true);
 			// F or X = X
 			else
 				expr->getRightOperand();
@@ -106,7 +106,7 @@ public:
 		{
 			// X or T = T
 			if (rightBool->getValue())
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(true);
+				return std::make_shared<yaramod::BoolLiteralExpression>(true);
 			// X or F = X
 			else
 				return expr->getLeftOperand();
@@ -115,40 +115,40 @@ public:
 		return defaultHandler(expr, retLeft, retRight);
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::NotExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::NotExpression* expr) override
 	{
 		auto ret = expr->getOperand()->accept(this);
 
 		// Negate the value of boolean constant
-		if (auto newExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&ret))
+		if (auto newExpr = mpark::get_if<yaramod::Expression::Ptr>(&ret))
 		{
-			auto boolVal = *newExpr ? (*newExpr)->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+			auto boolVal = *newExpr ? (*newExpr)->as<yaramod::BoolLiteralExpression>() : nullptr;
 			if (boolVal)
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(!boolVal->getValue());
+				return std::make_shared<yaramod::BoolLiteralExpression>(!boolVal->getValue());
 		}
 
 		return defaultHandler(expr, ret);
 	}
 
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::ParenthesesExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ParenthesesExpression* expr) override
 	{
 		auto ret = expr->getEnclosedExpression()->accept(this);
 
 		// Remove parentheses around boolean constants and lift their value up
-		if (auto newExpr = mpark::get_if<yaramod::ASTNode::Ptr>(&ret))
+		if (auto newExpr = mpark::get_if<yaramod::Expression::Ptr>(&ret))
 		{
-			auto boolVal = *newExpr ? (*newExpr)->getExpression()->as<yaramod::BoolLiteralExpression>() : nullptr;
+			auto boolVal = *newExpr ? (*newExpr)->as<yaramod::BoolLiteralExpression>() : nullptr;
 			if (boolVal)
-				return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(boolVal->getValue());
+				return std::make_shared<yaramod::BoolLiteralExpression>(boolVal->getValue());
 		}
 
 		return defaultHandler(expr, ret);
 	}
 
-	virtual yaramod::Visitee::ReturnType visit(yaramod::BoolLiteralExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::BoolLiteralExpression* expr) override
 	{
 		// Lift up boolean value
-		return yaramod::makeASTNode<yaramod::BoolLiteralExpression>(expr->getValue());
+		return std::make_shared<yaramod::BoolLiteralExpression>(expr->getValue());
 	}
 };

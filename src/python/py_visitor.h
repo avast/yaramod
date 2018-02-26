@@ -8,14 +8,14 @@
 
 #include <pybind11/pybind11.h>
 
-#include <yaramod/utils/visitee.h>
+#include <yaramod/types/expression.h>
 #include <yaramod/utils/observing_visitor.h>
 #include <yaramod/utils/modifying_visitor.h>
 
 #define PURE_VISIT(type) \
-	virtual yaramod::Visitee::ReturnType visit(yaramod::type* expr) override { \
+	virtual yaramod::VisitResult visit(yaramod::type* expr) override { \
 		PYBIND11_OVERLOAD_PURE_NAME( \
-				yaramod::Visitee::ReturnType, \
+				yaramod::VisitResult, \
 				yaramod::Visitor, \
 				"visit_"#type, \
 				visit, \
@@ -82,9 +82,9 @@ public:
 };
 
 #define VISIT(parent, type) \
-	virtual yaramod::Visitee::ReturnType visit(yaramod::type* expr) override { \
+	virtual yaramod::VisitResult visit(yaramod::type* expr) override { \
 		PYBIND11_OVERLOAD_NAME( \
-				yaramod::Visitee::ReturnType, \
+				yaramod::VisitResult, \
 				yaramod::parent, \
 				"visit_"#type, \
 				visit, \

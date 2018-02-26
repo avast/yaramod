@@ -13,7 +13,7 @@
 
 namespace yaramod {
 
-class ASTNode;
+//class ASTNode;
 class Visitor;
 
 /**
@@ -25,6 +25,7 @@ class Visitor;
  * v->visit(this);
  * @endcode
  */
+template <typename ResultTypeT>
 class Visitee
 {
 public:
@@ -36,8 +37,6 @@ public:
 		Delete
 	};
 
-	using ReturnType = mpark::variant<std::shared_ptr<ASTNode>, Visitee::Action>;
-
 	/// @name Destructor
 	/// @{
 	virtual ~Visitee() {}
@@ -45,7 +44,7 @@ public:
 
 	/// @name Visitor method
 	/// @{
-	virtual Visitee::ReturnType accept(Visitor* v) = 0;
+	virtual ResultTypeT accept(Visitor* v) = 0;
 	/// @}
 };
 
