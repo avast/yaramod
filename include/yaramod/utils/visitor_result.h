@@ -14,6 +14,9 @@ namespace yaramod {
 
 class Expression;
 
+/**
+ * Represents the action that visitor should preform with the visited expression.
+ */
 enum class VisitAction
 {
 	Delete

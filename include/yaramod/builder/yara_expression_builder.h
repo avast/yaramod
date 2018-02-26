@@ -9,7 +9,6 @@
 #include <memory>
 #include <string>
 
-#include "yaramod/types/ast_node.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/symbol.h"
 
