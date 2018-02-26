@@ -319,8 +319,7 @@ condition
 expression
 	: boolean
 		{
-			//$$ = std::make_shared<BoolLiteralExpression>($1);
-			$$ = std::shared_ptr<BoolLiteralExpression>(new BoolLiteralExpression($1));
+			$$ = std::make_shared<BoolLiteralExpression>($1);
 			$$->setType(Expression::Type::Bool);
 		}
 	| STRING_ID

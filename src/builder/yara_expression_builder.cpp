@@ -564,10 +564,7 @@ YaraExpressionBuilder stringVal(const std::string& value)
  */
 YaraExpressionBuilder boolVal(bool value)
 {
-	//return YaraExpressionBuilder(std::make_shared<BoolLiteralExpression>(value));
-	auto ptr = new BoolLiteralExpression(value);
-	ptr->getText();
-	return YaraExpressionBuilder{std::shared_ptr<BoolLiteralExpression>{ptr}};
+	return YaraExpressionBuilder(std::make_shared<BoolLiteralExpression>(value));
 }
 
 /**

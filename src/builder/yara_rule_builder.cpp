@@ -16,7 +16,7 @@ namespace yaramod {
  * Constructor.
  */
 YaraRuleBuilder::YaraRuleBuilder() : _name("unknown"), _mod(Rule::Modifier::None), _tags(), _metas(),
-	_strings(std::make_shared<Rule::StringsTrie>()), _condition(new BoolLiteralExpression(true)/*std::make_shared<BoolLiteralExpression>(true)*/)
+	_strings(std::make_shared<Rule::StringsTrie>()), _condition(std::make_shared<BoolLiteralExpression>(true))
 {
 }
 
@@ -46,8 +46,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	_tags.clear();
 	_metas.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
-	//_condition = std::make_shared<BoolLiteralExpression>(true);
-	_condition = std::shared_ptr<BoolLiteralExpression>(new BoolLiteralExpression(true));
+	_condition = std::make_shared<BoolLiteralExpression>(true);
 	return rule;
 }
 
