@@ -454,6 +454,9 @@ public:
 			}
 		}
 
+		if (newElements.empty())
+			return VisitAction::Delete;
+
 		expr->setElements(newElements);
 		return {};
 	}
