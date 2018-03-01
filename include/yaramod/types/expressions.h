@@ -936,10 +936,8 @@ public:
 class SetExpression : public Expression
 {
 public:
-	SetExpression(const Expression::Ptr& single) : _single(true), _elements({single}) {}
-	SetExpression(const std::vector<Expression::Ptr>& elements) : _single(false), _elements({elements}) {}
-	SetExpression(Expression::Ptr&& single) : _single(true), _elements({std::move(single)}) {}
-	SetExpression(std::vector<Expression::Ptr>&& elements) : _single(false), _elements(std::move(elements)) {}
+	SetExpression(const std::vector<Expression::Ptr>& elements) : _elements(elements) {}
+	SetExpression(std::vector<Expression::Ptr>&& elements) : _elements(std::move(elements)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -948,10 +946,6 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		// Single expression, this can be only 'them'.
-		if (_single)
-			return _elements[0]->getText(indent);
-
 		std::ostringstream ss;
 		ss << '(';
 		for (const auto& elem : _elements)
@@ -971,17 +965,14 @@ public:
 	void setElements(const std::vector<Expression::Ptr>& elements)
 	{
 		_elements = elements;
-		_single = _elements.size() == 1;
 	}
 
 	void setElements(std::vector<Expression::Ptr>&& elements)
 	{
 		_elements = std::move(elements);
-		_single = _elements.size() == 1;
 	}
 
 private:
-	bool _single; ///< Single 'them' expression
 	std::vector<Expression::Ptr> _elements; ///< Elements of the set
 };
 

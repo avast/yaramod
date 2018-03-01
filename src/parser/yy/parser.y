@@ -837,7 +837,7 @@ for_expression
 
 integer_set
 	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($integer_enumeration)); }
-	| range { $$ = std::make_shared<SetExpression>(std::move($range)); }
+	| range { $$ = std::move($range); }
 	;
 
 integer_enumeration
@@ -866,7 +866,7 @@ integer_enumeration
 
 string_set
 	: LP string_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($string_enumeration)); }
-	| THEM { $$ = std::make_shared<SetExpression>(std::make_shared<ThemExpression>()); }
+	| THEM { $$ = std::make_shared<ThemExpression>(); }
 	;
 
 string_enumeration
