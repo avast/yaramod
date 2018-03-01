@@ -97,6 +97,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
 		.def("find_symbol", &YaraFile::findSymbol)
+		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
 		.def("remove_rules", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Rule>&)>& pred) {
 				self.removeRules(pred);
@@ -154,7 +155,8 @@ void addBasicClasses(py::module& module)
 
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
 	py::class_<HexString, String, std::shared_ptr<HexString>>(module, "HexString");
-	py::class_<Regexp, String, std::shared_ptr<Regexp>>(module, "Regexp");
+	py::class_<Regexp, String, std::shared_ptr<Regexp>>(module, "Regexp")
+		.def_property_readonly("suffix_modifiers", &Regexp::getSuffixModifiers);
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)
@@ -423,7 +425,7 @@ void addBuilderClasses(py::module& module)
 	module.def("bool_val", &boolVal);
 
 	module.def("id", &id);
-	module.def("paren", &paren, py::arg("enclosed_expr"), py::arg("linebreak") = false);
+	module.def("paren", &paren, py::arg("enclosed_expr"), py::arg("linebreaks") = false);
 
 	module.def("string_ref", &stringRef);
 	module.def("match_count", py::overload_cast<const std::string&>(&matchCount));
