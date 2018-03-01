@@ -348,7 +348,7 @@ public:
 
 	virtual std::string getText() const override
 	{
-		return '/' + getPureText() + '/' + getSuffixModifires() + getModifiersText();
+		return '/' + getPureText() + '/' + getSuffixModifiers() + getModifiersText();
 	}
 
 	virtual std::string getPureText() const override
@@ -356,7 +356,7 @@ public:
 		return _unit->getText();
 	}
 
-	const std::string& getSuffixModifires() const
+	const std::string& getSuffixModifiers() const
 	{
 		return _suffixMods;
 	}
