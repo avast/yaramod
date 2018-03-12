@@ -111,7 +111,7 @@ def get_long_description():
     return ''
 
 setup(
-    version='2.0.0b6',
+    version='2.0.0',
     name='yaramod',
     description='Library for manipulation of YARA files.',
     long_description=get_long_description(),
@@ -120,7 +120,7 @@ setup(
     url='https://github.com/avast-tl/yaramod',
     license='MIT',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Topic :: Software Development :: Libraries',
