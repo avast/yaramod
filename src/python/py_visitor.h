@@ -1,15 +1,21 @@
+/**
+ * @file src/python/py_visitor.h
+ * @brief Declaration of yaramod python bindings for visitors.
+ * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ */
+
 #pragma once
 
 #include <pybind11/pybind11.h>
 
-#include <yaramod/utils/deep_visitor.h>
-#include <yaramod/utils/passive_visitor.h>
-#include <yaramod/utils/visitor.h>
+#include <yaramod/types/expression.h>
+#include <yaramod/utils/observing_visitor.h>
+#include <yaramod/utils/modifying_visitor.h>
 
 #define PURE_VISIT(type) \
-	virtual void visit(yaramod::type* expr) override { \
+	virtual yaramod::VisitResult visit(yaramod::type* expr) override { \
 		PYBIND11_OVERLOAD_PURE_NAME( \
-				void, \
+				yaramod::VisitResult, \
 				yaramod::Visitor, \
 				"visit_"#type, \
 				visit, \
@@ -76,9 +82,9 @@ public:
 };
 
 #define VISIT(parent, type) \
-	virtual void visit(yaramod::type* expr) override { \
+	virtual yaramod::VisitResult visit(yaramod::type* expr) override { \
 		PYBIND11_OVERLOAD_NAME( \
-				void, \
+				yaramod::VisitResult, \
 				yaramod::parent, \
 				"visit_"#type, \
 				visit, \
@@ -86,120 +92,120 @@ public:
 			); \
 	}
 
-class PyDeepVisitor : public yaramod::DeepVisitor
+class PyObservingVisitor : public yaramod::ObservingVisitor
 {
 public:
-	using yaramod::DeepVisitor::DeepVisitor;
+	using yaramod::ObservingVisitor::ObservingVisitor;
 
-	VISIT(DeepVisitor, StringExpression)
-	VISIT(DeepVisitor, StringWildcardExpression)
-	VISIT(DeepVisitor, StringAtExpression)
-	VISIT(DeepVisitor, StringInRangeExpression)
-	VISIT(DeepVisitor, StringCountExpression)
-	VISIT(DeepVisitor, StringOffsetExpression)
-	VISIT(DeepVisitor, StringLengthExpression)
-	VISIT(DeepVisitor, NotExpression)
-	VISIT(DeepVisitor, UnaryMinusExpression)
-	VISIT(DeepVisitor, BitwiseNotExpression)
-	VISIT(DeepVisitor, AndExpression)
-	VISIT(DeepVisitor, OrExpression)
-	VISIT(DeepVisitor, LtExpression)
-	VISIT(DeepVisitor, GtExpression)
-	VISIT(DeepVisitor, LeExpression)
-	VISIT(DeepVisitor, GeExpression)
-	VISIT(DeepVisitor, EqExpression)
-	VISIT(DeepVisitor, NeqExpression)
-	VISIT(DeepVisitor, ContainsExpression)
-	VISIT(DeepVisitor, MatchesExpression)
-	VISIT(DeepVisitor, PlusExpression)
-	VISIT(DeepVisitor, MinusExpression)
-	VISIT(DeepVisitor, MultiplyExpression)
-	VISIT(DeepVisitor, DivideExpression)
-	VISIT(DeepVisitor, ModuloExpression)
-	VISIT(DeepVisitor, BitwiseXorExpression)
-	VISIT(DeepVisitor, BitwiseAndExpression)
-	VISIT(DeepVisitor, BitwiseOrExpression)
-	VISIT(DeepVisitor, ShiftLeftExpression)
-	VISIT(DeepVisitor, ShiftRightExpression)
-	VISIT(DeepVisitor, ForIntExpression)
-	VISIT(DeepVisitor, ForStringExpression)
-	VISIT(DeepVisitor, OfExpression)
-	VISIT(DeepVisitor, SetExpression)
-	VISIT(DeepVisitor, RangeExpression)
-	VISIT(DeepVisitor, IdExpression)
-	VISIT(DeepVisitor, StructAccessExpression)
-	VISIT(DeepVisitor, ArrayAccessExpression)
-	VISIT(DeepVisitor, FunctionCallExpression)
-	VISIT(DeepVisitor, BoolLiteralExpression)
-	VISIT(DeepVisitor, StringLiteralExpression)
-	VISIT(DeepVisitor, IntLiteralExpression)
-	VISIT(DeepVisitor, DoubleLiteralExpression)
-	VISIT(DeepVisitor, FilesizeExpression)
-	VISIT(DeepVisitor, EntrypointExpression)
-	VISIT(DeepVisitor, AllExpression)
-	VISIT(DeepVisitor, AnyExpression)
-	VISIT(DeepVisitor, ThemExpression)
-	VISIT(DeepVisitor, ParenthesesExpression)
-	VISIT(DeepVisitor, IntFunctionExpression)
-	VISIT(DeepVisitor, RegexpExpression)
+	VISIT(ObservingVisitor, StringExpression)
+	VISIT(ObservingVisitor, StringWildcardExpression)
+	VISIT(ObservingVisitor, StringAtExpression)
+	VISIT(ObservingVisitor, StringInRangeExpression)
+	VISIT(ObservingVisitor, StringCountExpression)
+	VISIT(ObservingVisitor, StringOffsetExpression)
+	VISIT(ObservingVisitor, StringLengthExpression)
+	VISIT(ObservingVisitor, NotExpression)
+	VISIT(ObservingVisitor, UnaryMinusExpression)
+	VISIT(ObservingVisitor, BitwiseNotExpression)
+	VISIT(ObservingVisitor, AndExpression)
+	VISIT(ObservingVisitor, OrExpression)
+	VISIT(ObservingVisitor, LtExpression)
+	VISIT(ObservingVisitor, GtExpression)
+	VISIT(ObservingVisitor, LeExpression)
+	VISIT(ObservingVisitor, GeExpression)
+	VISIT(ObservingVisitor, EqExpression)
+	VISIT(ObservingVisitor, NeqExpression)
+	VISIT(ObservingVisitor, ContainsExpression)
+	VISIT(ObservingVisitor, MatchesExpression)
+	VISIT(ObservingVisitor, PlusExpression)
+	VISIT(ObservingVisitor, MinusExpression)
+	VISIT(ObservingVisitor, MultiplyExpression)
+	VISIT(ObservingVisitor, DivideExpression)
+	VISIT(ObservingVisitor, ModuloExpression)
+	VISIT(ObservingVisitor, BitwiseXorExpression)
+	VISIT(ObservingVisitor, BitwiseAndExpression)
+	VISIT(ObservingVisitor, BitwiseOrExpression)
+	VISIT(ObservingVisitor, ShiftLeftExpression)
+	VISIT(ObservingVisitor, ShiftRightExpression)
+	VISIT(ObservingVisitor, ForIntExpression)
+	VISIT(ObservingVisitor, ForStringExpression)
+	VISIT(ObservingVisitor, OfExpression)
+	VISIT(ObservingVisitor, SetExpression)
+	VISIT(ObservingVisitor, RangeExpression)
+	VISIT(ObservingVisitor, IdExpression)
+	VISIT(ObservingVisitor, StructAccessExpression)
+	VISIT(ObservingVisitor, ArrayAccessExpression)
+	VISIT(ObservingVisitor, FunctionCallExpression)
+	VISIT(ObservingVisitor, BoolLiteralExpression)
+	VISIT(ObservingVisitor, StringLiteralExpression)
+	VISIT(ObservingVisitor, IntLiteralExpression)
+	VISIT(ObservingVisitor, DoubleLiteralExpression)
+	VISIT(ObservingVisitor, FilesizeExpression)
+	VISIT(ObservingVisitor, EntrypointExpression)
+	VISIT(ObservingVisitor, AllExpression)
+	VISIT(ObservingVisitor, AnyExpression)
+	VISIT(ObservingVisitor, ThemExpression)
+	VISIT(ObservingVisitor, ParenthesesExpression)
+	VISIT(ObservingVisitor, IntFunctionExpression)
+	VISIT(ObservingVisitor, RegexpExpression)
 };
 
-class PyPassiveVisitor : public yaramod::PassiveVisitor
+class PyModifyingVisitor : public yaramod::ModifyingVisitor
 {
 public:
-	using yaramod::PassiveVisitor::PassiveVisitor;
+	using yaramod::ModifyingVisitor::ModifyingVisitor;
 
-	VISIT(PassiveVisitor, StringExpression)
-	VISIT(PassiveVisitor, StringWildcardExpression)
-	VISIT(PassiveVisitor, StringAtExpression)
-	VISIT(PassiveVisitor, StringInRangeExpression)
-	VISIT(PassiveVisitor, StringCountExpression)
-	VISIT(PassiveVisitor, StringOffsetExpression)
-	VISIT(PassiveVisitor, StringLengthExpression)
-	VISIT(PassiveVisitor, NotExpression)
-	VISIT(PassiveVisitor, UnaryMinusExpression)
-	VISIT(PassiveVisitor, BitwiseNotExpression)
-	VISIT(PassiveVisitor, AndExpression)
-	VISIT(PassiveVisitor, OrExpression)
-	VISIT(PassiveVisitor, LtExpression)
-	VISIT(PassiveVisitor, GtExpression)
-	VISIT(PassiveVisitor, LeExpression)
-	VISIT(PassiveVisitor, GeExpression)
-	VISIT(PassiveVisitor, EqExpression)
-	VISIT(PassiveVisitor, NeqExpression)
-	VISIT(PassiveVisitor, ContainsExpression)
-	VISIT(PassiveVisitor, MatchesExpression)
-	VISIT(PassiveVisitor, PlusExpression)
-	VISIT(PassiveVisitor, MinusExpression)
-	VISIT(PassiveVisitor, MultiplyExpression)
-	VISIT(PassiveVisitor, DivideExpression)
-	VISIT(PassiveVisitor, ModuloExpression)
-	VISIT(PassiveVisitor, BitwiseXorExpression)
-	VISIT(PassiveVisitor, BitwiseAndExpression)
-	VISIT(PassiveVisitor, BitwiseOrExpression)
-	VISIT(PassiveVisitor, ShiftLeftExpression)
-	VISIT(PassiveVisitor, ShiftRightExpression)
-	VISIT(PassiveVisitor, ForIntExpression)
-	VISIT(PassiveVisitor, ForStringExpression)
-	VISIT(PassiveVisitor, OfExpression)
-	VISIT(PassiveVisitor, SetExpression)
-	VISIT(PassiveVisitor, RangeExpression)
-	VISIT(PassiveVisitor, IdExpression)
-	VISIT(PassiveVisitor, StructAccessExpression)
-	VISIT(PassiveVisitor, ArrayAccessExpression)
-	VISIT(PassiveVisitor, FunctionCallExpression)
-	VISIT(PassiveVisitor, BoolLiteralExpression)
-	VISIT(PassiveVisitor, StringLiteralExpression)
-	VISIT(PassiveVisitor, IntLiteralExpression)
-	VISIT(PassiveVisitor, DoubleLiteralExpression)
-	VISIT(PassiveVisitor, FilesizeExpression)
-	VISIT(PassiveVisitor, EntrypointExpression)
-	VISIT(PassiveVisitor, AllExpression)
-	VISIT(PassiveVisitor, AnyExpression)
-	VISIT(PassiveVisitor, ThemExpression)
-	VISIT(PassiveVisitor, ParenthesesExpression)
-	VISIT(PassiveVisitor, IntFunctionExpression)
-	VISIT(PassiveVisitor, RegexpExpression)
+	VISIT(ModifyingVisitor, StringExpression)
+	VISIT(ModifyingVisitor, StringWildcardExpression)
+	VISIT(ModifyingVisitor, StringAtExpression)
+	VISIT(ModifyingVisitor, StringInRangeExpression)
+	VISIT(ModifyingVisitor, StringCountExpression)
+	VISIT(ModifyingVisitor, StringOffsetExpression)
+	VISIT(ModifyingVisitor, StringLengthExpression)
+	VISIT(ModifyingVisitor, NotExpression)
+	VISIT(ModifyingVisitor, UnaryMinusExpression)
+	VISIT(ModifyingVisitor, BitwiseNotExpression)
+	VISIT(ModifyingVisitor, AndExpression)
+	VISIT(ModifyingVisitor, OrExpression)
+	VISIT(ModifyingVisitor, LtExpression)
+	VISIT(ModifyingVisitor, GtExpression)
+	VISIT(ModifyingVisitor, LeExpression)
+	VISIT(ModifyingVisitor, GeExpression)
+	VISIT(ModifyingVisitor, EqExpression)
+	VISIT(ModifyingVisitor, NeqExpression)
+	VISIT(ModifyingVisitor, ContainsExpression)
+	VISIT(ModifyingVisitor, MatchesExpression)
+	VISIT(ModifyingVisitor, PlusExpression)
+	VISIT(ModifyingVisitor, MinusExpression)
+	VISIT(ModifyingVisitor, MultiplyExpression)
+	VISIT(ModifyingVisitor, DivideExpression)
+	VISIT(ModifyingVisitor, ModuloExpression)
+	VISIT(ModifyingVisitor, BitwiseXorExpression)
+	VISIT(ModifyingVisitor, BitwiseAndExpression)
+	VISIT(ModifyingVisitor, BitwiseOrExpression)
+	VISIT(ModifyingVisitor, ShiftLeftExpression)
+	VISIT(ModifyingVisitor, ShiftRightExpression)
+	VISIT(ModifyingVisitor, ForIntExpression)
+	VISIT(ModifyingVisitor, ForStringExpression)
+	VISIT(ModifyingVisitor, OfExpression)
+	VISIT(ModifyingVisitor, SetExpression)
+	VISIT(ModifyingVisitor, RangeExpression)
+	VISIT(ModifyingVisitor, IdExpression)
+	VISIT(ModifyingVisitor, StructAccessExpression)
+	VISIT(ModifyingVisitor, ArrayAccessExpression)
+	VISIT(ModifyingVisitor, FunctionCallExpression)
+	VISIT(ModifyingVisitor, BoolLiteralExpression)
+	VISIT(ModifyingVisitor, StringLiteralExpression)
+	VISIT(ModifyingVisitor, IntLiteralExpression)
+	VISIT(ModifyingVisitor, DoubleLiteralExpression)
+	VISIT(ModifyingVisitor, FilesizeExpression)
+	VISIT(ModifyingVisitor, EntrypointExpression)
+	VISIT(ModifyingVisitor, AllExpression)
+	VISIT(ModifyingVisitor, AnyExpression)
+	VISIT(ModifyingVisitor, ThemExpression)
+	VISIT(ModifyingVisitor, ParenthesesExpression)
+	VISIT(ModifyingVisitor, IntFunctionExpression)
+	VISIT(ModifyingVisitor, RegexpExpression)
 };
 
 void addVisitorClasses(pybind11::module& module);

@@ -23,7 +23,7 @@ namespace yaramod {
  * @param tags Tags.
  */
 Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		std::shared_ptr<Expression>&& condition, std::vector<std::string>&& tags)
+		Expression::Ptr&& condition, std::vector<std::string>&& tags)
 	: _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
 		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
 		_location({"[stream]", 0})
@@ -145,7 +145,7 @@ const std::shared_ptr<Rule::StringsTrie>& Rule::getStringsTrie() const
  *
  * @return Condition expression.
  */
-const std::shared_ptr<Expression>& Rule::getCondition() const
+const Expression::Ptr& Rule::getCondition() const
 {
 	return _condition;
 }
@@ -207,7 +207,7 @@ const Rule::Location& Rule::getLocation() const
  *
  * @param condition Condition expression.
  */
-void Rule::setCondition(const std::shared_ptr<Expression>& condition)
+void Rule::setCondition(const Expression::Ptr& condition)
 {
 	_condition = condition;
 }

@@ -25,6 +25,16 @@ enum class IntMultiplier
 };
 
 /**
+ * Enum representing endianness of integer functions like
+ * `int16`, `int16be` etc.
+ */
+enum class IntFunctionEndianness
+{
+	Little,
+	Big
+};
+
+/**
  * Class representing builder of condition expression. You use this builder
  * to specify what you want in your condition expression and then you can obtain
  * your condition expression by calling method @c get. As soon as @c get is called,
@@ -38,8 +48,8 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraExpressionBuilder();
-	YaraExpressionBuilder(const std::shared_ptr<Expression>& expr);
-	YaraExpressionBuilder(std::shared_ptr<Expression>&& expr);
+	YaraExpressionBuilder(const Expression::Ptr& expr);
+	YaraExpressionBuilder(Expression::Ptr&& expr);
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -52,7 +62,7 @@ public:
 
 	/// @name Builder method
 	/// @{
-	std::shared_ptr<Expression> get() const;
+	Expression::Ptr get() const;
 	/// @}
 
 	/// @name Building methods
@@ -104,12 +114,12 @@ public:
 	YaraExpressionBuilder& access(const std::string& attr);
 	YaraExpressionBuilder& operator[](const YaraExpressionBuilder& other);
 
-	YaraExpressionBuilder& readInt8(bool bigEndian);
-	YaraExpressionBuilder& readInt16(bool bigEndian);
-	YaraExpressionBuilder& readInt32(bool bigEndian);
-	YaraExpressionBuilder& readUInt8(bool bigEndian);
-	YaraExpressionBuilder& readUInt16(bool bigEndian);
-	YaraExpressionBuilder& readUInt32(bool bigEndian);
+	YaraExpressionBuilder& readInt8(IntFunctionEndianness endianness);
+	YaraExpressionBuilder& readInt16(IntFunctionEndianness endianness);
+	YaraExpressionBuilder& readInt32(IntFunctionEndianness endianness);
+	YaraExpressionBuilder& readUInt8(IntFunctionEndianness endianness);
+	YaraExpressionBuilder& readUInt16(IntFunctionEndianness endianness);
+	YaraExpressionBuilder& readUInt32(IntFunctionEndianness endianness);
 	/// @}
 
 protected:
@@ -127,7 +137,7 @@ protected:
 	}
 
 private:
-	std::shared_ptr<Expression> _expr;
+	Expression::Ptr _expr;
 };
 
 /// @name Helper functions

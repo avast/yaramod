@@ -148,8 +148,8 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %type <std::uint32_t> string_mods
 %type <yaramod::Literal> literal
 %type <bool> boolean
-%type <std::shared_ptr<Expression>> condition expression primary_expression for_expression integer_set string_set range identifier
-%type <std::vector<std::shared_ptr<Expression>>> integer_enumeration string_enumeration arguments
+%type <Expression::Ptr> condition expression primary_expression for_expression integer_set string_set range identifier
+%type <std::vector<Expression::Ptr>> integer_enumeration string_enumeration arguments
 %type <std::vector<std::string>> tags tag_list
 
 %type <std::vector<std::shared_ptr<yaramod::HexStringUnit>>> hex_string hex_string_edge hex_string_body hex_byte
@@ -837,7 +837,7 @@ for_expression
 
 integer_set
 	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($integer_enumeration)); }
-	| range { $$ = std::make_shared<SetExpression>(std::move($range)); }
+	| range { $$ = std::move($range); }
 	;
 
 integer_enumeration
@@ -866,7 +866,7 @@ integer_enumeration
 
 string_set
 	: LP string_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($string_enumeration)); }
-	| THEM { $$ = std::make_shared<SetExpression>(std::make_shared<ThemExpression>()); }
+	| THEM { $$ = std::make_shared<ThemExpression>(); }
 	;
 
 string_enumeration
@@ -993,7 +993,7 @@ identifier
 			// Make copy of just argument types because symbols are not aware of expressions
 			std::vector<Expression::Type> argTypes;
 			std::for_each($arguments.begin(), $arguments.end(),
-				[&argTypes](const std::shared_ptr<Expression>& expr)
+				[&argTypes](const Expression::Ptr& expr)
 				{
 					argTypes.push_back(expr->getType());
 				});

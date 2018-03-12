@@ -224,7 +224,7 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withCondition(std::shared_ptr<Expression>&& condition)
+YaraRuleBuilder& YaraRuleBuilder::withCondition(Expression::Ptr&& condition)
 {
 	_condition = std::move(condition);
 	return *this;
@@ -237,7 +237,7 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(std::shared_ptr<Expression>&& co
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withCondition(const std::shared_ptr<Expression>& condition)
+YaraRuleBuilder& YaraRuleBuilder::withCondition(const Expression::Ptr& condition)
 {
 	_condition = condition;
 	return *this;

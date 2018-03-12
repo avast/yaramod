@@ -6,6 +6,10 @@
 
 #pragma once
 
+#include <variant/variant.hpp>
+
+#include "yaramod/utils/visitor_result.h"
+
 namespace yaramod {
 
 class StringExpression;
@@ -70,57 +74,57 @@ class Visitor
 public:
 	/// @name Visit methods
 	/// @{
-	virtual void visit(StringExpression* expr) = 0;
-	virtual void visit(StringWildcardExpression* expr) = 0;
-	virtual void visit(StringAtExpression* expr) = 0;
-	virtual void visit(StringInRangeExpression* expr) = 0;
-	virtual void visit(StringCountExpression* expr) = 0;
-	virtual void visit(StringOffsetExpression* expr) = 0;
-	virtual void visit(StringLengthExpression* expr) = 0;
-	virtual void visit(NotExpression* expr) = 0;
-	virtual void visit(UnaryMinusExpression* expr) = 0;
-	virtual void visit(BitwiseNotExpression* expr) = 0;
-	virtual void visit(AndExpression* expr) = 0;
-	virtual void visit(OrExpression* expr) = 0;
-	virtual void visit(LtExpression* expr) = 0;
-	virtual void visit(GtExpression* expr) = 0;
-	virtual void visit(LeExpression* expr) = 0;
-	virtual void visit(GeExpression* expr) = 0;
-	virtual void visit(EqExpression* expr) = 0;
-	virtual void visit(NeqExpression* expr) = 0;
-	virtual void visit(ContainsExpression* expr) = 0;
-	virtual void visit(MatchesExpression* expr) = 0;
-	virtual void visit(PlusExpression* expr) = 0;
-	virtual void visit(MinusExpression* expr) = 0;
-	virtual void visit(MultiplyExpression* expr) = 0;
-	virtual void visit(DivideExpression* expr) = 0;
-	virtual void visit(ModuloExpression* expr) = 0;
-	virtual void visit(BitwiseXorExpression* expr) = 0;
-	virtual void visit(BitwiseAndExpression* expr) = 0;
-	virtual void visit(BitwiseOrExpression* expr) = 0;
-	virtual void visit(ShiftLeftExpression* expr) = 0;
-	virtual void visit(ShiftRightExpression* expr) = 0;
-	virtual void visit(ForIntExpression* expr) = 0;
-	virtual void visit(ForStringExpression* expr) = 0;
-	virtual void visit(OfExpression* expr) = 0;
-	virtual void visit(SetExpression* expr) = 0;
-	virtual void visit(RangeExpression* expr) = 0;
-	virtual void visit(IdExpression* expr) = 0;
-	virtual void visit(StructAccessExpression* expr) = 0;
-	virtual void visit(ArrayAccessExpression* expr) = 0;
-	virtual void visit(FunctionCallExpression* expr) = 0;
-	virtual void visit(BoolLiteralExpression* expr) = 0;
-	virtual void visit(StringLiteralExpression* expr) = 0;
-	virtual void visit(IntLiteralExpression* expr) = 0;
-	virtual void visit(DoubleLiteralExpression* expr) = 0;
-	virtual void visit(FilesizeExpression* expr) = 0;
-	virtual void visit(EntrypointExpression* expr) = 0;
-	virtual void visit(AllExpression* expr) = 0;
-	virtual void visit(AnyExpression* expr) = 0;
-	virtual void visit(ThemExpression* expr) = 0;
-	virtual void visit(ParenthesesExpression* expr) = 0;
-	virtual void visit(IntFunctionExpression* expr) = 0;
-	virtual void visit(RegexpExpression* expr) = 0;
+	virtual VisitResult visit(StringExpression* expr) = 0;
+	virtual VisitResult visit(StringWildcardExpression* expr) = 0;
+	virtual VisitResult visit(StringAtExpression* expr) = 0;
+	virtual VisitResult visit(StringInRangeExpression* expr) = 0;
+	virtual VisitResult visit(StringCountExpression* expr) = 0;
+	virtual VisitResult visit(StringOffsetExpression* expr) = 0;
+	virtual VisitResult visit(StringLengthExpression* expr) = 0;
+	virtual VisitResult visit(NotExpression* expr) = 0;
+	virtual VisitResult visit(UnaryMinusExpression* expr) = 0;
+	virtual VisitResult visit(BitwiseNotExpression* expr) = 0;
+	virtual VisitResult visit(AndExpression* expr) = 0;
+	virtual VisitResult visit(OrExpression* expr) = 0;
+	virtual VisitResult visit(LtExpression* expr) = 0;
+	virtual VisitResult visit(GtExpression* expr) = 0;
+	virtual VisitResult visit(LeExpression* expr) = 0;
+	virtual VisitResult visit(GeExpression* expr) = 0;
+	virtual VisitResult visit(EqExpression* expr) = 0;
+	virtual VisitResult visit(NeqExpression* expr) = 0;
+	virtual VisitResult visit(ContainsExpression* expr) = 0;
+	virtual VisitResult visit(MatchesExpression* expr) = 0;
+	virtual VisitResult visit(PlusExpression* expr) = 0;
+	virtual VisitResult visit(MinusExpression* expr) = 0;
+	virtual VisitResult visit(MultiplyExpression* expr) = 0;
+	virtual VisitResult visit(DivideExpression* expr) = 0;
+	virtual VisitResult visit(ModuloExpression* expr) = 0;
+	virtual VisitResult visit(BitwiseXorExpression* expr) = 0;
+	virtual VisitResult visit(BitwiseAndExpression* expr) = 0;
+	virtual VisitResult visit(BitwiseOrExpression* expr) = 0;
+	virtual VisitResult visit(ShiftLeftExpression* expr) = 0;
+	virtual VisitResult visit(ShiftRightExpression* expr) = 0;
+	virtual VisitResult visit(ForIntExpression* expr) = 0;
+	virtual VisitResult visit(ForStringExpression* expr) = 0;
+	virtual VisitResult visit(OfExpression* expr) = 0;
+	virtual VisitResult visit(SetExpression* expr) = 0;
+	virtual VisitResult visit(RangeExpression* expr) = 0;
+	virtual VisitResult visit(IdExpression* expr) = 0;
+	virtual VisitResult visit(StructAccessExpression* expr) = 0;
+	virtual VisitResult visit(ArrayAccessExpression* expr) = 0;
+	virtual VisitResult visit(FunctionCallExpression* expr) = 0;
+	virtual VisitResult visit(BoolLiteralExpression* expr) = 0;
+	virtual VisitResult visit(StringLiteralExpression* expr) = 0;
+	virtual VisitResult visit(IntLiteralExpression* expr) = 0;
+	virtual VisitResult visit(DoubleLiteralExpression* expr) = 0;
+	virtual VisitResult visit(FilesizeExpression* expr) = 0;
+	virtual VisitResult visit(EntrypointExpression* expr) = 0;
+	virtual VisitResult visit(AllExpression* expr) = 0;
+	virtual VisitResult visit(AnyExpression* expr) = 0;
+	virtual VisitResult visit(ThemExpression* expr) = 0;
+	virtual VisitResult visit(ParenthesesExpression* expr) = 0;
+	virtual VisitResult visit(IntFunctionExpression* expr) = 0;
+	virtual VisitResult visit(RegexpExpression* expr) = 0;
 	/// @}
 };
 

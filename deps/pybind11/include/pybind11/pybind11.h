@@ -1884,38 +1884,47 @@ inline function get_type_overload(const void *this_ptr, const detail::type_info 
 
     /* Don't call dispatch code if invoked from overridden function.
        Unfortunately this doesn't work on PyPy. */
-#if !defined(PYPY_VERSION)
-    PyFrameObject *frame = PyThreadState_Get()->frame;
-    if (frame && (std::string) str(frame->f_code->co_name) == name &&
-        frame->f_code->co_argcount > 0) {
-        PyFrame_FastToLocals(frame);
-        PyObject *self_caller = PyDict_GetItem(
-            frame->f_locals, PyTuple_GET_ITEM(frame->f_code->co_varnames, 0));
-        if (self_caller == self.ptr())
-            return function();
-    }
-#else
-    /* PyPy currently doesn't provide a detailed cpyext emulation of
-       frame objects, so we have to emulate this using Python. This
-       is going to be slow..*/
-    dict d; d["self"] = self; d["name"] = pybind11::str(name);
-    PyObject *result = PyRun_String(
-        "import inspect\n"
-        "frame = inspect.currentframe()\n"
-        "if frame is not None:\n"
-        "    frame = frame.f_back\n"
-        "    if frame is not None and str(frame.f_code.co_name) == name and "
-        "frame.f_code.co_argcount > 0:\n"
-        "        self_caller = frame.f_locals[frame.f_code.co_varnames[0]]\n"
-        "        if self_caller == self:\n"
-        "            self = None\n",
-        Py_file_input, d.ptr(), d.ptr());
-    if (result == nullptr)
-        throw error_already_set();
-    if (d["self"].is_none())
-        return function();
-    Py_DECREF(result);
-#endif
+//
+// marek.milkovic: Commenting out this code because it causes problems in our Visitor interface
+// self_caller and self.ptr() are for some reason not equal when debugging our code, but it's always
+// equal when I try to make some minimal example. This results in not being able to call accept()
+// on expression in visit_XXX() function while the child expression has exactly the same type as the parent
+// so it would end up in visit_XXX() too. It has probably something to do with double-dispatch on
+// visitor but I am not able to reproduce it in isolated case. I don't entirely understand what that
+// piece of code is for, but it doesn't seem like something important and commenting it out works.
+//
+//#if !defined(PYPY_VERSION)
+//    PyFrameObject *frame = PyThreadState_Get()->frame;
+//    if (frame && (std::string) str(frame->f_code->co_name) == name &&
+//        frame->f_code->co_argcount > 0) {
+//        PyFrame_FastToLocals(frame);
+//        PyObject *self_caller = PyDict_GetItem(
+//            frame->f_locals, PyTuple_GET_ITEM(frame->f_code->co_varnames, 0));
+//        if (self_caller == self.ptr())
+//            return function();
+//    }
+//#else
+//    /* PyPy currently doesn't provide a detailed cpyext emulation of
+//       frame objects, so we have to emulate this using Python. This
+//       is going to be slow..*/
+//    dict d; d["self"] = self; d["name"] = pybind11::str(name);
+//    PyObject *result = PyRun_String(
+//        "import inspect\n"
+//        "frame = inspect.currentframe()\n"
+//        "if frame is not None:\n"
+//        "    frame = frame.f_back\n"
+//        "    if frame is not None and str(frame.f_code.co_name) == name and "
+//        "frame.f_code.co_argcount > 0:\n"
+//        "        self_caller = frame.f_locals[frame.f_code.co_varnames[0]]\n"
+//        "        if self_caller == self:\n"
+//        "            self = None\n",
+//        Py_file_input, d.ptr(), d.ptr());
+//    if (result == nullptr)
+//        throw error_already_set();
+//    if (d["self"].is_none())
+//        return function();
+//    Py_DECREF(result);
+//#endif
 
     return overload;
 }
