@@ -55,6 +55,12 @@ The easiest way to get Python bindings to work is through `pip` like this:
 pip install git+https://github.com/avast-tl/yaramod.git
 ```
 
+or you can install latest stable version from PyPI like this:
+
+```
+pip install yaramod
+```
+
 If you want to clone and build the repository yourselves you can do so by following these steps:
 
 * Setup virtual environment if you don't want to install `yaramod` into your system python:
