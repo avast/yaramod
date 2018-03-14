@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.0.0 (2018-03-14)
 
 * New: Python bindings were added to the `yaramod` library.
 * Enhancement: Parsed rules now contain information about the file they are located in and the line number.
