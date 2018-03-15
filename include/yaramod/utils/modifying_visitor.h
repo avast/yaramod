@@ -342,9 +342,6 @@ public:
 		else
 			expr->setIndexExpression(nullptr);
 
-		if (!expr->getIndexExpression())
-			return VisitAction::Delete;
-
 		return {};
 	}
 
