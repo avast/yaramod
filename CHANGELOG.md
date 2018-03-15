@@ -1,5 +1,9 @@
 # Changelog
 
+# v2.0.1 (2018-03-15)
+
+* Fix: `ModifyingVisitor` now won't delete string offset or length expression without array subscript on its own.
+
 # v2.0.0 (2018-03-14)
 
 * New: Python bindings were added to the `yaramod` library.
