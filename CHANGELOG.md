@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Fix: Integer based for-loops that now won't raise 'Redefinition of variable ...' error if they are independent of eachother. (#3)
+
 # v2.0.1 (2018-03-15)
 
 * Fix: `ModifyingVisitor` now won't delete string offset or length expression without array subscript on its own.

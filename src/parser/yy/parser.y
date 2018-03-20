@@ -372,9 +372,10 @@ expression
 		}
 		OP_IN integer_set COLON LP expression[expr] RP
 		{
+			/* Delete $id before we move it to ForIntExpression */
+			driver.removeLocalSymbol($id);
 			$$ = std::make_shared<ForIntExpression>(std::move($for_expression), std::move($id), std::move($integer_set), std::move($expr));
 			$$->setType(Expression::Type::Bool);
-			driver.removeLocalSymbol($id);
 		}
 	| FOR for_expression OF string_set
 		{
