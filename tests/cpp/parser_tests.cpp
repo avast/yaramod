@@ -652,7 +652,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.16: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.10: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
 	}
 }
 
@@ -678,7 +678,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.31: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.25: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
 	}
 }
 
@@ -1099,7 +1099,7 @@ rule regexp_with_undefined_range {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.20: Range in regular expression does not have defined lower bound nor higher bound", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.14: Range in regular expression does not have defined lower bound nor higher bound", err.getErrorMessage());
 	}
 }
 
@@ -1124,7 +1124,7 @@ rule regexp_with_invalid_range {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.22: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.16: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
 	}
 }
 
@@ -1765,7 +1765,7 @@ rule bool_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.14-17: syntax error, unexpected BOOL_TRUE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected BOOL_TRUE", err.getErrorMessage());
 	}
 }
 
@@ -1866,7 +1866,7 @@ rule string_wildcard_condition_with_no_matching_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 8.21-23: No string matched with wildcard '$c*'", err.getErrorMessage());
+		EXPECT_EQ("Error at 8.15-17: No string matched with wildcard '$c*'", err.getErrorMessage());
 	}
 }
 
@@ -1892,7 +1892,7 @@ rule same_variable_in_nested_for_loops {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 6.41: Redefinition of identifier 'i'", err.getErrorMessage());
+		EXPECT_EQ("Error at 6.35: Redefinition of identifier 'i'", err.getErrorMessage());
 	}
 }
 
@@ -2313,7 +2313,7 @@ R"(rule rule_with_invalid_escape_sequence {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 3.19-21: Unknown escape sequence '\\r'", err.getErrorMessage());
+		EXPECT_EQ("Error at 3.13-14: Unknown escape sequence '\\r'", err.getErrorMessage());
 	}
 }
 

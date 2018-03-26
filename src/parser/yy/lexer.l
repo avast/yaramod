@@ -30,8 +30,7 @@ digit       [0-9]
 hexdigit    [0-9a-fA-F]
 letter      [a-zA-Z]
 newline     \n
-tab         \t
-whitespace  [ \v\r]
+whitespace  [ \v\r\t]
 
 %option debug
 %option noyywrap
@@ -112,7 +111,6 @@ whitespace  [ \v\r]
 "include"    { BEGIN(INCLUDE); }
 
 <INCLUDE>{newline}           { }
-<INCLUDE>{tab}               { }
 <INCLUDE>{whitespace}*       { }
 <INCLUDE>"\""                { BEGIN(INCLUDE_FILE); }
 <INCLUDE>.                   { return yyterminate(); }
@@ -193,7 +191,6 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR_MULTILINE_COMMENT>"*/"     { BEGIN(HEXSTR); }
 <HEXSTR_MULTILINE_COMMENT>.        { }
 <HEXSTR,HEXSTR_JUMP>{whitespace}*  { }
-<HEXSTR,HEXSTR_JUMP>{tab}          { _driver.moveLocation(3); }
 <HEXSTR,HEXSTR_JUMP>.              { return yyterminate(); }
 <HEXSTR,HEXSTR_JUMP><<EOF>>        { return yyterminate(); }
 
@@ -284,7 +281,6 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <REGEXP_CLASS>.                    { _regexpClass += yytext[0]; }
 
 {newline}                          { _driver.moveLineLocation(); }
-{tab}                              { _driver.moveLocation(3); }
 {whitespace}*                      { }
 <<EOF>>                            {
 	if (!_driver.includeEnd())
