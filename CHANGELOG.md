@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.1.0 (2018-03-26)
 
 * Enhancement: Unknown escape sequences in plain string are now considered as parser errors.
 * Fix: Integer based for-loops that now won't raise 'Redefinition of variable ...' error if they are independent of eachother. (#3)
