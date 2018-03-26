@@ -2292,5 +2292,30 @@ rule rule_with_escaped_double_quotes_works {
 	EXPECT_EQ(expected, rule->getCondition()->getText());
 }
 
+TEST_F(ParserTests,
+InvalidEscapeSequence) {
+	prepareInput(
+R"(rule rule_with_invalid_escape_sequence {
+	strings:
+		$str = "\n\r"
+	condition:
+		$str
+}"
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 3.19-21: Unknown escape sequence '\\r'", err.getErrorMessage());
+	}
+}
+
 }
 }

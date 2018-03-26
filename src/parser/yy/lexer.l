@@ -136,10 +136,7 @@ whitespace  [ \v\r]
 
 "\""                      { BEGIN(STR); _strLiteral.clear(); }
 <STR>\\t                  { _strLiteral += '\t'; }
-<STR>\\r                  { _strLiteral += '\r'; }
 <STR>\\n                  { _strLiteral += '\n'; }
-<STR>\\f                  { _strLiteral += '\f'; }
-<STR>\\a                  { _strLiteral += '\a'; }
 <STR>\\x{hexdigit}{2}     {
 	std::uint64_t num = 0;
 	strToNum(std::string(yytext + 2, yyleng - 2), num, std::hex);
@@ -147,6 +144,10 @@ whitespace  [ \v\r]
 }
 <STR>\\\"                 { _strLiteral += '\"'; }
 <STR>\\\\                 { _strLiteral += '\\'; }
+<STR>\\.                  {
+	_driver.getParser().error(_driver.getLocation(), "Unknown escape sequence \'" + std::string(yytext, yyleng) + "\'");
+	return yyterminate();
+}
 <STR>([^\\"])+            { _strLiteral.append(std::string(yytext, yyleng)); }
 <STR>\"                   {
 	BEGIN(INITIAL);
