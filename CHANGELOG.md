@@ -2,10 +2,10 @@
 
 # v2.1.0 (2018-03-26)
 
-* Enhancement: Unknown escape sequences in plain string are now considered as parser errors.
-* Fix: Integer based for-loops that now won't raise 'Redefinition of variable ...' error if they are independent of eachother. (#3)
-* Fix: Plain strings now only allow escape sequences \n, \t, \\, \" and \xYZ.
-* Fix: TAB now count only as single character when reporting errors.
+* Enhancement: Unknown escape sequences in plain strings are now considered as parser errors.
+* Fix: Integer-based for-loops now won't raise the `'Redefinition of variable ...'` error if they are independent of each other (#3).
+* Fix: Plain strings now only allow escape sequences `\n`, `\t`, `\\`, `\"` and `\xYZ`.
+* Fix: TAB now counts only as a single character when reporting errors.
 
 # v2.0.1 (2018-03-15)
 
