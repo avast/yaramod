@@ -85,7 +85,7 @@ class BoolSimplifier(yaramod.ModifyingVisitor):
 
 def main():
     if len(sys.argv) != 2:
-        print('Usage: dump_rules_ast.py YARA_FILE')
+        print('Usage: simplify_bools.py YARA_FILE')
         sys.exit(1)
 
     simplifier = BoolSimplifier()
