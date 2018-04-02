@@ -582,7 +582,7 @@ public:
 
 		if (!expr->getArgument())
 			return VisitAction::Delete;
-	
+
 		return {};
 	}
 	/// @}
