@@ -51,7 +51,6 @@ public:
 	virtual std::string getText(const std::string& indent = "") const = 0;
 	/// @}
 
-
 	/// @name Getter methods
 	/// @{
 	Expression::Type getType() const { return _type; }

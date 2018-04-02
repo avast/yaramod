@@ -201,7 +201,6 @@ const Rule::Location& Rule::getLocation() const
 	return _location;
 }
 
-
 /**
  * Sets the condition expression of the YARA rule.
  *

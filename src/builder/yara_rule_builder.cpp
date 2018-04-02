@@ -159,7 +159,6 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 	return *this;
 }
 
-
 /**
  * Adds a plain string to a rule.
  *

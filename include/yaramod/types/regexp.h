@@ -114,7 +114,6 @@ public:
 	RegexpNonSpace() : RegexpText("\\S") {}
 };
 
-
 /**
  * Class representing unit for digit.
  * This is denoted as character @c \\d in regular expression.

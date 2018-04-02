@@ -308,8 +308,6 @@ public:
 	virtual VisitResult visit(RegexpExpression*) override { return {}; }
 	/// @}
 
-
-
 protected:
 	ObservingVisitor() = default;
 };

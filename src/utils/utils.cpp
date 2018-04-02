@@ -114,5 +114,4 @@ std::string trim(std::string str)
 	return str;
 }
 
-
 }

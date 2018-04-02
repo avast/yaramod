@@ -130,7 +130,6 @@ public:
 		return defaultHandler(expr, ret);
 	}
 
-
 	virtual yaramod::VisitResult visit(yaramod::ParenthesesExpression* expr) override
 	{
 		auto ret = expr->getEnclosedExpression()->accept(this);
