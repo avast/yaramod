@@ -171,6 +171,7 @@ bool ParserDriver::includeEnd()
 {
 	if (!_includedFileNames.empty())
 	{
+		_includedFiles.pop_back();
 		_includedFileNames.pop_back();
 		_loc = _includedFileLocs.back();
 		_includedFileLocs.pop_back();
