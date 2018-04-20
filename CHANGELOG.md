@@ -1,5 +1,9 @@
 # Changelog
 
+# v2.1.1 (2018-04-20)
+
+* Fix: Fixed problem with too many open files on Windows when includes are used.
+
 # v2.1.0 (2018-03-26)
 
 * Enhancement: Unknown escape sequences in plain strings are now considered as parser errors.
