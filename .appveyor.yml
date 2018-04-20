@@ -39,7 +39,7 @@ test_script:
   - cmd: build\tests\cpp\%configuration%\yaramod_tests.exe
   - cmd: '%PYTHON%\Scripts\green tests\python'
 
-dist_script:
+after_test:
   - cmd: '%PYTHON%\python setup.py bdist_wheel'
 
 branches:
