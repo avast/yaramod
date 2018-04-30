@@ -10,7 +10,7 @@
 #include <FlexLexer.h>
 #endif
 
-#include "yy/yy_parser.hpp"
+#include "yaramod/yy/yy_parser.hpp"
 
 namespace yaramod {
 
