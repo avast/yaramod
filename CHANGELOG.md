@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Added install target to build system.
+
 # v2.1.1 (2018-04-20)
 
 * Fix: Fixed problem with too many open files on Windows when includes are used.

@@ -12,6 +12,7 @@ option(YARAMOD_PYTHON   "Build Python extension" OFF)
 option(YARAMOD_EXAMPLES "Build examples" OFF)
 
 # Requirements.
+include(GNUInstallDirs)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 if(YARAMOD_DOC)
