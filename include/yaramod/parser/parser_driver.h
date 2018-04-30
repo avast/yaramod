@@ -13,7 +13,7 @@
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/yara_file.h"
-#include "yy_parser.hpp"
+#include "yy/yy_parser.hpp"
 
 namespace yaramod {
 

@@ -67,7 +67,7 @@ if(NOT TARGET yaramod)
 	# We need to be able to include the generated files from the build directory.
 	# By declaring the include path as a system path, we automatically discard
 	# warnings from the generated header files, which is useful.
-	target_include_directories(yaramod SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/yy")
+	target_include_directories(yaramod SYSTEM PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 	# To ensure that the compiler is able to find <FlexLexer.h> (this is needed at
 	# least for MSVC 2015):
 	target_include_directories(yaramod SYSTEM PUBLIC "${FLEX_INCLUDE_DIRS}")
