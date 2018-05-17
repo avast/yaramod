@@ -1,8 +1,9 @@
 # Changelog
 
-# dev
+# v2.1.2 (2018-05-17)
 
 * New: Added install target to build system.
+* New: Added new cuckoo module functions.
 
 # v2.1.1 (2018-04-20)
 
