@@ -48,6 +48,8 @@ bool CuckooModule::initialize()
 	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_read", Type::Int, Type::Regexp));
 	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_write", Type::Int, Type::Regexp));
 	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_delete", Type::Int, Type::Regexp));
+	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("pipe", Type::Int, Type::Regexp));
+	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("mailslot", Type::Int, Type::Regexp));
 
 	auto syncStruct = std::make_shared<StructureSymbol>("sync");
 	cuckooStruct->addAttribute(syncStruct);
@@ -56,10 +58,15 @@ bool CuckooModule::initialize()
 	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("semaphore", Type::Int, Type::Regexp));
 	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("atom", Type::Int, Type::Regexp));
 	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("section", Type::Int, Type::Regexp));
+	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("job", Type::Int, Type::Regexp));
+	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("timer", Type::Int, Type::Regexp));
 
 	auto processStruct = std::make_shared<StructureSymbol>("process");
 	cuckooStruct->addAttribute(processStruct);
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("executed_command", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("created_service", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("started_service", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("resolved_api", Type::Int, Type::Regexp));
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");
 	cuckooStruct->addAttribute(signatureStruct);
