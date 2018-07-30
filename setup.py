@@ -107,7 +107,7 @@ def get_long_description():
             import pypandoc
             return pypandoc.convert_file('README.md', 'rst')
         except (ImportError, OSError):
-            pass
+            print('===> PANDOC is not installed on the system!', file=sys.stderr)
     return ''
 
 setup(
