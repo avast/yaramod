@@ -7,6 +7,9 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 
+script_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+
 OPTIONS = [
     ('with-unit-tests', None, 'Enable yaramod unit tests.'),
     ('debug', None, 'Build debug configuration.')
@@ -105,7 +108,7 @@ def get_long_description():
     if len(sys.argv) > 1 and 'dist' in sys.argv[1]:
         try:
             import pypandoc
-            return pypandoc.convert_file('README.md', 'rst')
+            return pypandoc.convert_file(os.path.join(script_dir, 'README.md'), 'rst')
         except (ImportError, OSError):
             print('===> PANDOC is not installed on the system!', file=sys.stderr)
     return ''
