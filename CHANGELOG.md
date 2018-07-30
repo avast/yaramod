@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.2.0 (2018-07-30)
 
 * New: Added method for removing meta information from the rules.
 
