@@ -2,6 +2,8 @@ version: '{build}'
 
 environment:
   WINFLEXBISON_ARCHIVE: win_flex_bison-2.5.14.zip
+  PANDOC_VERSION: 2.2.2.1
+  PANDOC_ARCHIVE: pandoc-%PANDOC_VERSION%-windows-x86_64.zip
   matrix:
     - PYTHON: "C:\\Python36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
@@ -26,7 +28,9 @@ matrix:
 install:
   - appveyor DownloadFile "https://downloads.sourceforge.net/project/winflexbison/%WINFLEXBISON_ARCHIVE%"
   - 7z x -y -owinflexbison\ "%WINFLEXBISON_ARCHIVE%" > nul
-  - set Path=%CD%\winflexbison;%Path%
+  - appveyor DownloadFile "https://github.com/jgm/pandoc/releases/download/%PANDOC_VERSION%/%PANDOC_ARCHIVE%"
+  - 7z x -y "%PANDOC_ARCHIVE%" > nul
+  - set Path=%CD%\winflexbison;%CD%\pandoc-%PANDOC_VERSION%;%Path%
 
 before_build:
   - cmd: '%PYTHON%\Scripts\pip install -r requirements.txt'
