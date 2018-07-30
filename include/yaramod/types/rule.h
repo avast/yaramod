@@ -92,6 +92,7 @@ public:
 
 	/// @name Manipulation methods
 	/// @{
+	void removeMetas(const std::string& name);
 	void removeString(const std::string& id);
 	/// @}
 

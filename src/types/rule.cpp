@@ -242,6 +242,19 @@ bool Rule::isPrivate() const
 }
 
 /**
+ * Removes all metas with the provided name as key.
+ *
+ * @param name Name of the meta.
+ */
+void Rule::removeMetas(const std::string& name)
+{
+	auto newEnd = std::remove_if(_metas.begin(), _metas.end(), [name](const auto& meta) {
+		return meta.getKey() == name;
+	});
+	_metas.erase(newEnd, _metas.end());
+}
+
+/**
  * Removes string with the given identifier.
  *
  * @param id Identifier of the string to remove.

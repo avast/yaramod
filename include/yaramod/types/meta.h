@@ -27,6 +27,12 @@ public:
 	Meta(const Meta& meta) = default;
 	/// @}
 
+	/// @name Assignment
+	/// @{
+	Meta& operator=(const Meta&) = default;
+	Meta& operator=(Meta&&) = default;
+	/// @}
+
 	/// @name String representation
 	/// @{
 	std::string getText() const;

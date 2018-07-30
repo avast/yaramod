@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Added method for removing meta information from the rules.
+
 # v2.1.2 (2018-05-17)
 
 * New: Added install target to build system.
