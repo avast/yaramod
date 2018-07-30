@@ -30,7 +30,7 @@ install:
   - 7z x -y -owinflexbison\ "%WINFLEXBISON_ARCHIVE%" > nul
   - appveyor DownloadFile "https://github.com/jgm/pandoc/releases/download/%PANDOC_VERSION%/%PANDOC_ARCHIVE%"
   - 7z x -y "%PANDOC_ARCHIVE%" > nul
-  - set Path=%CD%\winflexbison;%CD%\pandoc-%PANDOC_VERSION%;%Path%
+  - set Path=%CD%\winflexbison;%CD%\pandoc-%PANDOC_VERSION%;%PYTHON%\Scripts;%Path%
 
 before_build:
   - cmd: '%PYTHON%\Scripts\pip install -r requirements.txt'
