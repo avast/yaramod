@@ -242,9 +242,10 @@ namespace std {
 #define MPARK_TYPE_PACK_ELEMENT
 #endif
 
-#if defined(__cpp_constexpr) && __cpp_constexpr >= 201304
-#define MPARK_CPP14_CONSTEXPR
-#endif
+#if defined(__cpp_constexpr) && __cpp_constexpr >= 201304 && \
+    !(defined(_MSC_VER) && _MSC_VER <= 1915)
+#define MPARK_CPP14_CONSTEXPR	#define MPARK_CPP14_CONSTEXPR
+#endif	#endif
 
 #if __has_feature(cxx_exceptions) || defined(__cpp_exceptions) || \
     (defined(_MSC_VER) && defined(_CPPUNWIND))
