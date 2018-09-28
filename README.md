@@ -19,7 +19,7 @@ See the [wiki](https://github.com/avast-tl/yaramod/wiki).
 * Flex (version >= 2.6)
 * Bison (version >= 3.0)
 
-If you are also insterested in Python bindings:
+If you are also interested in Python bindings:
 * GCC 5+ (for Linux/Unix, should remain the same for other compilers and platforms)
 * Python 3+
 
