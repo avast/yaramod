@@ -1,5 +1,9 @@
 # Changelog
 
+# v2.2.1 (2018-10-03)
+
+* Fix: Fixed build on certain specific MSVC versions.
+
 # v2.2.0 (2018-07-30)
 
 * New: Added method for removing meta information from the rules.
