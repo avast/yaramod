@@ -242,7 +242,8 @@ namespace std {
 #define MPARK_TYPE_PACK_ELEMENT
 #endif
 
-#if defined(__cpp_constexpr) && __cpp_constexpr >= 201304
+#if defined(__cpp_constexpr) && __cpp_constexpr >= 201304 && \
+    !(defined(_MSC_VER) && _MSC_VER <= 1915)
 #define MPARK_CPP14_CONSTEXPR
 #endif
 
@@ -328,10 +329,7 @@ namespace mpark {
 #include <utility>
 
 
-#define RETURN(...)                                          \
-  noexcept(noexcept(__VA_ARGS__)) -> decltype(__VA_ARGS__) { \
-    return __VA_ARGS__;                                      \
-  }
+#define RETURN(...) -> decltype(__VA_ARGS__) { return __VA_ARGS__; }
 
 namespace mpark {
   namespace lib {
@@ -523,8 +521,15 @@ namespace mpark {
 
           template <typename T, bool = is_swappable<T>::value>
           struct is_nothrow_swappable {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnoexcept"
+#endif
             static constexpr bool value =
                 noexcept(swap(std::declval<T &>(), std::declval<T &>()));
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
           };
 
           template <typename T>
@@ -615,7 +620,7 @@ namespace mpark {
       // <memory>
 #ifdef MPARK_BUILTIN_ADDRESSOF
       template <typename T>
-      inline constexpr T *addressof(T &arg) {
+      inline constexpr T *addressof(T &arg) noexcept {
         return __builtin_addressof(arg);
       }
 #else
@@ -640,19 +645,19 @@ namespace mpark {
         using has_addressof = bool_constant<has_addressof_impl::impl<T>()>;
 
         template <typename T>
-        inline constexpr T *addressof(T &arg, std::true_type) {
+        inline constexpr T *addressof(T &arg, std::true_type) noexcept {
           return std::addressof(arg);
         }
 
         template <typename T>
-        inline constexpr T *addressof(T &arg, std::false_type) {
+        inline constexpr T *addressof(T &arg, std::false_type) noexcept {
           return &arg;
         }
 
       }  // namespace detail
 
       template <typename T>
-      inline constexpr T *addressof(T &arg) {
+      inline constexpr T *addressof(T &arg) noexcept {
         return detail::addressof(arg, detail::has_addressof<T>{});
       }
 #endif
@@ -789,7 +794,7 @@ namespace mpark {
 
   class bad_variant_access : public std::exception {
     public:
-    virtual const char *what() const noexcept { return "bad_variant_access"; }
+    virtual const char *what() const noexcept override { return "bad_variant_access"; }
   };
 
   [[noreturn]] inline void throw_bad_variant_access() {
@@ -1040,13 +1045,13 @@ namespace mpark {
 
       struct base {
         template <typename T>
-        inline static constexpr const T &at(const T &elem) {
+        inline static constexpr const T &at(const T &elem) noexcept {
           return elem;
         }
 
         template <typename T, std::size_t N, typename... Is>
         inline static constexpr const lib::remove_all_extents_t<T> &at(
-            const lib::array<T, N> &elems, std::size_t i, Is... is) {
+            const lib::array<T, N> &elems, std::size_t i, Is... is) noexcept {
           return at(elems[i], is...);
         }
 
@@ -2069,7 +2074,7 @@ namespace mpark {
   namespace detail {
     template <std::size_t I, typename V>
     struct generic_get_impl {
-      constexpr generic_get_impl(int) {}
+      constexpr generic_get_impl(int) noexcept {}
 
       constexpr AUTO_REFREF operator()(V &&v) const
         AUTO_REFREF_RETURN(
@@ -2348,12 +2353,19 @@ namespace mpark {
                                                  lib::forward<Vs>(vs)...))
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnoexcept"
+#endif
   template <typename... Ts>
   inline auto swap(variant<Ts...> &lhs,
                    variant<Ts...> &rhs) noexcept(noexcept(lhs.swap(rhs)))
       -> decltype(lhs.swap(rhs)) {
     lhs.swap(rhs);
   }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
   namespace detail {
 
@@ -2363,14 +2375,14 @@ namespace mpark {
     namespace hash {
 
       template <typename H, typename K>
-      constexpr bool meets_requirements() {
+      constexpr bool meets_requirements() noexcept {
         return std::is_copy_constructible<H>::value &&
                std::is_move_constructible<H>::value &&
                lib::is_invocable_r<std::size_t, H, const K &>::value;
       }
 
       template <typename K>
-      constexpr bool is_enabled() {
+      constexpr bool is_enabled() noexcept {
         using H = std::hash<K>;
         return meets_requirements<H, K>() &&
                std::is_default_constructible<H>::value &&
