@@ -1,7 +1,7 @@
 version: '{build}'
 
 environment:
-  WINFLEXBISON_ARCHIVE: win_flex_bison-2.5.14.zip
+  WINFLEXBISON_ARCHIVE: winflexbison-2.5.16.zip
   PANDOC_VERSION: 2.2.2.1
   PANDOC_ARCHIVE: pandoc-%PANDOC_VERSION%-windows-x86_64.zip
   matrix:
