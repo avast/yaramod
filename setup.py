@@ -54,10 +54,11 @@ class BuildExtCommand(build_ext):
         self.debug = None
 
     def run(self):
-        self.set_undefined_options('build',
-                ('with_unit_tests', 'with_unit_tests'),
-                ('debug', 'debug')
-            )
+        self.set_undefined_options(
+            'build',
+            ('with_unit_tests', 'with_unit_tests'),
+            ('debug', 'debug')
+        )
 
         try:
             subprocess.check_output(['cmake', '--version'])
@@ -104,6 +105,7 @@ class BuildExtCommand(build_ext):
             subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
 
+
 def get_long_description():
     if len(sys.argv) > 1 and 'dist' in sys.argv[1]:
         try:
@@ -112,6 +114,7 @@ def get_long_description():
         except (ImportError, OSError):
             print('===> PANDOC is not installed on the system!', file=sys.stderr)
     return ''
+
 
 setup(
     version='2.2.1',
