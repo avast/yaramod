@@ -58,7 +58,7 @@ if(NOT TARGET yaramod)
 		endif()
 	endif()
 
-	# Library
+	# Library.
 	add_library(yaramod ${SOURCES})
 
 	# Library includes and interface.
