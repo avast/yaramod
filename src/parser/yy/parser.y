@@ -16,7 +16,22 @@
 #include "yaramod/types/rule.h"
 #include "yaramod/utils/trie.h"
 
-namespace yaramod { class ParserDriver; }
+namespace yaramod {
+
+class ParserDriver;
+
+// We need to provide alias to this type because since bison 3.2
+// types are enclosed in YY_RVREF() macro. The comma in template
+// parameter list is however parsed by preprocessor first and
+// therefore the preprocessor thinks we are passing it 2 arguments.
+// We then get error like this:
+//
+// error: too many arguments provided to function-like macro invocation
+//
+// See https://github.com/avast-tl/yaramod/issues/11 for further information.
+using RegexpRangePair = std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>;
+
+}
 
 // Uncomment for debugging
 // See also other occurrences of 'debugging' in this file and constructor of ParserDriver to enable it
@@ -137,7 +152,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token REGEXP_WORD_BOUNDARY
 %token REGEXP_NON_WORD_BOUNDARY
 %token <std::string> REGEXP_CHAR
-%token <std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>> REGEXP_RANGE
+%token <yaramod::RegexpRangePair> REGEXP_RANGE
 %token <std::string> REGEXP_CLASS
 
 %type <yaramod::Rule::Modifier> rule_mod

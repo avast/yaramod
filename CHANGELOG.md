@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Fix: Build with bison 3.2 ([#11](https://github.com/avast-tl/yaramod/issues/11)).
+
 # v2.2.1 (2018-10-03)
 
 * Fix: Fixed build on certain specific MSVC versions.
