@@ -1,8 +1,9 @@
 # Changelog
 
-# dev
+# v2.2.2 (2018-11-09)
 
 * Fix: Build with bison 3.2 ([#11](https://github.com/avast-tl/yaramod/issues/11)).
+* Enhancement: Updated optional-lite dependency to the newest version.
 
 # v2.2.1 (2018-10-03)
 
