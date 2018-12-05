@@ -334,8 +334,7 @@ class Dumper(yaramod.ObservingVisitor):
 
 def main():
     if len(sys.argv) != 2:
-        print('Usage: dump_rules_ast.py YARA_FILE')
-        sys.exit(1)
+        sys.exit('Usage: {} YARA_FILE'.format(sys.argv[0]))
 
     dumper = Dumper()
 
