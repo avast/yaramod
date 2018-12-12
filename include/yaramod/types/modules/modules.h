@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "yaramod/types/modules/androguard_module.h"
 #include "yaramod/types/modules/cuckoo_module.h"
 #include "yaramod/types/modules/dotnet_module.h"
 #include "yaramod/types/modules/elf_module.h"

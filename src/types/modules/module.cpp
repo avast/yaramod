@@ -16,13 +16,14 @@ namespace {
  */
 std::unordered_map<std::string, std::shared_ptr<Module>> knownModules =
 {
-	{ "cuckoo", std::make_shared<CuckooModule>() },
-	{ "dotnet", std::make_shared<DotnetModule>() },
-	{ "elf",    std::make_shared<ElfModule>()    },
-	{ "hash",   std::make_shared<HashModule>()   },
-	{ "magic",  std::make_shared<MagicModule>()  },
-	{ "math",   std::make_shared<MathModule>()   },
-	{ "pe",     std::make_shared<PeModule>()     }
+	{ "androguard", std::make_shared<AndroguardModule>() },
+	{ "cuckoo",     std::make_shared<CuckooModule>()     },
+	{ "dotnet",     std::make_shared<DotnetModule>()     },
+	{ "elf",        std::make_shared<ElfModule>()        },
+	{ "hash",       std::make_shared<HashModule>()       },
+	{ "magic",      std::make_shared<MagicModule>()      },
+	{ "math",       std::make_shared<MathModule>()       },
+	{ "pe",         std::make_shared<PeModule>()         }
 };
 
 }

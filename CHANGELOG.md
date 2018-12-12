@@ -1,5 +1,10 @@
 # Changelog
 
+# dev
+
+* New: Added module `androguard`.
+* New: Added new functions to `cuckoo` module related to matching Android executable files.
+
 # v2.2.2 (2018-11-09)
 
 * Fix: Build with bison 3.2 ([#11](https://github.com/avast-tl/yaramod/issues/11)).
