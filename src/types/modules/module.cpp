@@ -17,12 +17,15 @@ namespace {
 std::unordered_map<std::string, std::shared_ptr<Module>> knownModules =
 {
 	{ "cuckoo", std::make_shared<CuckooModule>() },
+	{ "dex",    std::make_shared<DexModule>()    },
 	{ "dotnet", std::make_shared<DotnetModule>() },
 	{ "elf",    std::make_shared<ElfModule>()    },
 	{ "hash",   std::make_shared<HashModule>()   },
+	{ "macho",  std::make_shared<MachoModule>()  },
 	{ "magic",  std::make_shared<MagicModule>()  },
 	{ "math",   std::make_shared<MathModule>()   },
-	{ "pe",     std::make_shared<PeModule>()     }
+	{ "pe",     std::make_shared<PeModule>()     },
+	{ "time",   std::make_shared<TimeModule>()   }
 };
 
 }

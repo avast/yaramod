@@ -34,7 +34,8 @@ public:
 		Ascii = 1,
 		Wide = 2,
 		Nocase = 4,
-		Fullword = 8
+		Fullword = 8,
+		Xor = 16
 	};
 
 	/// @name Constructors
@@ -72,6 +73,9 @@ public:
 		if (_mods & Modifiers::Fullword)
 			text += " fullword";
 
+		if (_mods & Modifiers::Xor)
+			text += " xor";
+
 		return text;
 	}
 	/// @}
@@ -93,6 +97,7 @@ public:
 	bool isWide() const { return _mods & Modifiers::Wide; }
 	bool isNocase() const { return _mods & Modifiers::Nocase; }
 	bool isFullword() const { return _mods & Modifiers::Fullword; }
+	bool isXor() const { return _mods & Modifiers::Xor; }
 	/// @}
 
 protected:

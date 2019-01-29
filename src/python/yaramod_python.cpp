@@ -75,6 +75,7 @@ void addEnums(py::module& module)
 		.value("Wide", String::Modifiers::Wide)
 		.value("Nocase", String::Modifiers::Nocase)
 		.value("Fullword", String::Modifiers::Fullword)
+		.value("Xor", String::Modifiers::Xor)
 		.export_values();
 
 	py::enum_<Expression::Type>(module, "ExpressionType")
@@ -152,6 +153,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_wide", &String::isWide)
 		.def_property_readonly("is_fullword", &String::isFullword)
 		.def_property_readonly("is_nocase", &String::isNocase)
+		.def_property_readonly("is_xor", &String::isXor)
 		.def_property_readonly("modifiers_text", &String::getModifiersText);
 
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");

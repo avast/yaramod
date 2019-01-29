@@ -105,6 +105,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token NOCASE
 %token WIDE
 %token FULLWORD
+%token XOR
 %token BOOL_TRUE
 %token BOOL_FALSE
 %token IMPORT_MODULE
@@ -1040,6 +1041,7 @@ string_mods
 	| string_mods WIDE { $$ = $1 | String::Modifiers::Wide; }
 	| string_mods NOCASE { $$ = $1 | String::Modifiers::Nocase; }
 	| string_mods FULLWORD { $$ = $1 | String::Modifiers::Fullword; }
+	| string_mods XOR { $$ = $1 | String::Modifiers::Xor; }
 	| %empty { $$ = String::Modifiers::None; }
 	;
 

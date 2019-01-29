@@ -1,5 +1,10 @@
 # Changelog
 
+# dev
+
+* Added modules `dex`, `macho`, `time` and new fields in `pe` module ([#14](https://github.com/avast-tl/yaramod/issues/14)).
+* Added support for `xor` string modifier ([#14](https://github.com/avast-tl/yaramod/issues/14)).
+
 # v2.2.2 (2018-11-09)
 
 * Fix: Build with bison 3.2 ([#11](https://github.com/avast-tl/yaramod/issues/11)).
