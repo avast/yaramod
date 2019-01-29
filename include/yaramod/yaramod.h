@@ -6,6 +6,16 @@
 
 #pragma once
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+#define YARAMOD_VERSION_MAJOR 2
+#define YARAMOD_VERSION_MINOR 3
+#define YARAMOD_VERSION_PATCH 0
+#define YARAMOD_VERSION STR(YARAMOD_VERSION_MAJOR) "." STR(YARAMOD_VERSION_MINOR) "." STR(YARAMOD_VERSION_PATCH)
+
+#define YARA_SYNTAX_VERSION "3.8"
+
 #include <memory>
 
 #include "yaramod/builder/yara_file_builder.h"

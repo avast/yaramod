@@ -48,6 +48,15 @@ decltype(auto) binaryOpClass(py::module& module, const std::string& name)
 	return exprClass<ExprType, BinaryOpExpression>(module, name);
 }
 
+void addVersionVariables(py::module& module)
+{
+	module.attr("YARAMOD_VERSION_MAJOR") = YARAMOD_VERSION_MAJOR;
+	module.attr("YARAMOD_VERSION_MINOR") = YARAMOD_VERSION_MINOR;
+	module.attr("YARAMOD_VERSION_PATCH") = YARAMOD_VERSION_PATCH;
+	module.attr("YARAMOD_VERSION") = YARAMOD_VERSION;
+	module.attr("YARA_SYNTAX_VERSION") = YARA_SYNTAX_VERSION;
+}
+
 void addEnums(py::module& module)
 {
 	py::enum_<ParserMode>(module, "ParserMode")
@@ -515,6 +524,7 @@ PYBIND11_MODULE(yaramod, module)
 			}
 		});
 
+	addVersionVariables(module);
 	addEnums(module);
 	addBasicClasses(module);
 	addExpressionClasses(module);
