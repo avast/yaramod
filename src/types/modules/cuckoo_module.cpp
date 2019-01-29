@@ -33,6 +33,12 @@ bool CuckooModule::initialize()
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_get", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_post", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp, Type::Regexp));
 
 	auto registryStruct = std::make_shared<StructureSymbol>("registry");
 	cuckooStruct->addAttribute(registryStruct);
@@ -67,10 +73,20 @@ bool CuckooModule::initialize()
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("created_service", Type::Int, Type::Regexp));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("started_service", Type::Int, Type::Regexp));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("resolved_api", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_path", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_sha256", Type::Int, Type::String));
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");
 	cuckooStruct->addAttribute(signatureStruct);
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String, Type::Regexp));
+
+	auto summaryStruct = std::make_shared<StructureSymbol>("summary");
+	cuckooStruct->addAttribute(summaryStruct);
+	summaryStruct->addAttribute(std::make_shared<FunctionSymbol>("ml_score", Type::Float, Type::Int));
 
 	_structure = cuckooStruct;
 	return true;

@@ -2,10 +2,11 @@
 
 # dev
 
-* Added modules `dex`, `macho`, `time` and new fields in `pe` module ([#14](https://github.com/avast-tl/yaramod/issues/14)).
-* Added support for `xor` string modifier ([#14](https://github.com/avast-tl/yaramod/issues/14)).
-* Added constants `YARAMOD_VERSION_MAJOR`, `YARAMOD_VERSION_MINOR`, `YARAMOD_VERSION_PATCH` and `YARAMOD_VERSION` which contain the version of the yaramod.
-* Added constant `YARA_SYNTAX_VERSION` which contains the version of YARA from which `yaramod` is based of.
+* New: Added modules `androguard`, `dex`, `macho`, `time` and new fields in `pe` module ([#14](https://github.com/avast-tl/yaramod/issues/14)).
+* New: Added new functions to `cuckoo` module related to matching Android executable files.
+* New: Added support for `xor` string modifier ([#14](https://github.com/avast-tl/yaramod/issues/14)).
+* New: Added constants `YARAMOD_VERSION_MAJOR`, `YARAMOD_VERSION_MINOR`, `YARAMOD_VERSION_PATCH` and `YARAMOD_VERSION` which contain the version of the yaramod.
+* New: Added constant `YARA_SYNTAX_VERSION` which contains the version of YARA from which `yaramod` is based of.
 
 # v2.2.2 (2018-11-09)
 
