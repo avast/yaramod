@@ -2349,5 +2349,30 @@ R"(rule rule_with_invalid_escape_sequence {
 	EXPECT_EQ("{ AA BB [5-6] CC }", string->getText());
 }
 
+TEST_F(ParserTests,
+ErrorWhenUnknownTokenAfterImport) {
+	prepareInput(
+R"(import "pe";
+
+rule public_rule {
+	condition:
+		true
+}"
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 1.12: syntax error, unexpected ;", err.getErrorMessage());
+	}
+}
+
 }
 }
