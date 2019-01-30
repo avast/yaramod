@@ -68,93 +68,99 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %define parse.trace
 %debug
 
-%token END
-%token RANGE
-%token DOT
-%token LT
-%token GT
-%token LE
-%token GE
-%token EQ
-%token NEQ
-%token SHIFT_LEFT
-%token SHIFT_RIGHT
-%token MINUS
-%token PLUS
-%token MULTIPLY
-%token DIVIDE
-%token MODULO
-%token BITWISE_XOR
-%token BITWISE_AND
-%token BITWISE_OR
-%token BITWISE_NOT
-%token LP
-%token RP
-%token LCB
-%token RCB
-%token ASSIGN
-%token COLON
-%token COMMA
-%token PRIVATE
-%token GLOBAL
-%token RULE
-%token META
-%token STRINGS
-%token CONDITION
-%token ASCII
-%token NOCASE
-%token WIDE
-%token FULLWORD
-%token XOR
-%token BOOL_TRUE
-%token BOOL_FALSE
-%token IMPORT_MODULE
-%token NOT
-%token AND
-%token OR
-%token ALL
-%token ANY
-%token OF
-%token THEM
-%token FOR
-%token ENTRYPOINT
-%token OP_AT
-%token OP_IN
-%token FILESIZE
-%token CONTAINS
-%token MATCHES
-%token <std::string> SLASH
-%token <std::string> STRING_LITERAL INTEGER DOUBLE
-%token <std::string> STRING_ID STRING_ID_WILDCARD STRING_LENGTH STRING_OFFSET STRING_COUNT
-%token <std::string> ID
-%token <std::string> INTEGER_FUNCTION
+%token END              "end of file"
+%token RANGE            "integer range"
+%token DOT              "."
+%token LT               "<"
+%token GT               ">"
+%token LE               "<="
+%token GE               ">="
+%token EQ               "=="
+%token NEQ              "!="
+%token SHIFT_LEFT       "<<"
+%token SHIFT_RIGHT      ">>"
+%token MINUS            "-"
+%token PLUS             "+"
+%token MULTIPLY         "*"
+%token DIVIDE           "\\"
+%token MODULO           "%"
+%token BITWISE_XOR      "^"
+%token BITWISE_AND      "&"
+%token BITWISE_OR       "|"
+%token BITWISE_NOT      "~"
+%token LP               "("
+%token RP               ")"
+%token LCB              "{"
+%token RCB              "}"
+%token ASSIGN           "="
+%token COLON            ":"
+%token COMMA            ","
+%token PRIVATE          "private"
+%token GLOBAL           "global"
+%token RULE             "rule"
+%token META             "meta"
+%token STRINGS          "strings"
+%token CONDITION        "condition"
+%token ASCII            "ascii"
+%token NOCASE           "nocase"
+%token WIDE             "wide"
+%token FULLWORD         "fullword"
+%token XOR              "xor"
+%token BOOL_TRUE        "true"
+%token BOOL_FALSE       "false"
+%token IMPORT_MODULE    "import"
+%token NOT              "not"
+%token AND              "and"
+%token OR               "or"
+%token ALL              "all"
+%token ANY              "any"
+%token OF               "of"
+%token THEM             "them"
+%token FOR              "for"
+%token ENTRYPOINT       "entrypoint"
+%token OP_AT            "at"
+%token OP_IN            "in"
+%token FILESIZE         "filesize"
+%token CONTAINS         "contains"
+%token MATCHES          "matches"
+%token <std::string> SLASH              "/"
+%token <std::string> STRING_LITERAL     "string literal"
+%token <std::string> INTEGER            "integer"
+%token <std::string> DOUBLE             "float"
+%token <std::string> STRING_ID          "string identifier"
+%token <std::string> STRING_ID_WILDCARD "string wildcard"
+%token <std::string> STRING_LENGTH      "string length"
+%token <std::string> STRING_OFFSET      "string offset"
+%token <std::string> STRING_COUNT       "string count"
+%token <std::string> ID                 "identifier"
+%token <std::string> INTEGER_FUNCTION   "fixed-width integer function"
 
-%token HEX_OR
-%token LSQB
-%token RSQB
-%token HEX_WILDCARD
-%token DASH
-%token <std::uint8_t> HEX_NIBBLE
-%token <std::uint64_t> HEX_INTEGER
+%token HEX_OR                      "hex string |"
+%token LSQB                        "hex string ["
+%token RSQB                        "hex string ]"
+%token HEX_WILDCARD                "hex string ?"
+%token DASH                        "hex string -"
+%token <std::uint8_t> HEX_NIBBLE   "hex string nibble"
+%token <std::uint64_t> HEX_INTEGER "hex string integer"
 
-%token REGEXP_OR
-%token REGEXP_ITER
-%token REGEXP_PITER
-%token REGEXP_OPTIONAL
-%token REGEXP_START_OF_LINE
-%token REGEXP_END_OF_LINE
-%token REGEXP_ANY_CHAR
-%token REGEXP_WORD_CHAR
-%token REGEXP_NON_WORD_CHAR
-%token REGEXP_SPACE
-%token REGEXP_NON_SPACE
-%token REGEXP_DIGIT
-%token REGEXP_NON_DIGIT
-%token REGEXP_WORD_BOUNDARY
-%token REGEXP_NON_WORD_BOUNDARY
-%token <std::string> REGEXP_CHAR
-%token <yaramod::RegexpRangePair> REGEXP_RANGE
-%token <std::string> REGEXP_CLASS
+%token REGEXP_OR                                "regexp |"
+%token REGEXP_ITER                              "regexp *"
+%token REGEXP_PITER                             "regexp +"
+%token REGEXP_OPTIONAL                          "regexp ?"
+%token REGEXP_START_OF_LINE                     "regexp ^"
+%token REGEXP_END_OF_LINE                       "regexp $"
+%token REGEXP_ANY_CHAR                          "regexp ."
+%token REGEXP_WORD_CHAR                         "regexp \\w"
+%token REGEXP_NON_WORD_CHAR                     "regexp \\W"
+%token REGEXP_SPACE                             "regexp \\s"
+%token REGEXP_NON_SPACE                         "regexp \\S"
+%token REGEXP_DIGIT                             "regexp \\d"
+%token REGEXP_NON_DIGIT                         "regexp \\D"
+%token REGEXP_WORD_BOUNDARY                     "regexp \\b"
+%token REGEXP_NON_WORD_BOUNDARY                 "regexp \\B"
+%token <std::string> REGEXP_CHAR                "regexp character"
+%token <yaramod::RegexpRangePair> REGEXP_RANGE  "regexp range"
+%token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <yaramod::Rule::Modifier> rule_mod
 %type <yaramod::Rule> rule

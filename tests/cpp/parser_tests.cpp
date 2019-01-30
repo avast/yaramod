@@ -652,7 +652,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.10: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.10: syntax error, unexpected [, expecting ( or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -678,7 +678,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.25: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.25: syntax error, unexpected }, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -1765,7 +1765,7 @@ rule bool_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected BOOL_TRUE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected true", err.getErrorMessage());
 	}
 }
 
