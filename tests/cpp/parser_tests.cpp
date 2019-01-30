@@ -2317,5 +2317,37 @@ R"(rule rule_with_invalid_escape_sequence {
 	}
 }
 
+TEST_F(ParserTests,
+NewlineInHexString) {
+	prepareInput(
+R"(rule rule_with_invalid_escape_sequence {
+	strings:
+		$str = { AA
+				 BB
+				 [ 5 -
+				 6 ]
+				 CC
+			   }
+	condition:
+		$str
+}"
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto string = strings[0];
+	ASSERT_TRUE(string->isHex());
+
+	EXPECT_EQ("{ AA BB [5-6] CC }", string->getText());
+}
+
 }
 }

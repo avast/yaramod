@@ -192,6 +192,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR_MULTILINE_COMMENT>"*/"     { BEGIN(HEXSTR); }
 <HEXSTR_MULTILINE_COMMENT>.        { }
 <HEXSTR,HEXSTR_JUMP>{whitespace}*  { }
+<HEXSTR,HEXSTR_JUMP>{newline}*     { }
 <HEXSTR,HEXSTR_JUMP>.              { return yyterminate(); }
 <HEXSTR,HEXSTR_JUMP><<EOF>>        { return yyterminate(); }
 
