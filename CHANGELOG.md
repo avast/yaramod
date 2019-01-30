@@ -7,6 +7,8 @@
 * New: Added support for `xor` string modifier ([#14](https://github.com/avast-tl/yaramod/issues/14)).
 * New: Added constants `YARAMOD_VERSION_MAJOR`, `YARAMOD_VERSION_MINOR`, `YARAMOD_VERSION_PATCH` and `YARAMOD_VERSION` which contain the version of the yaramod.
 * New: Added constant `YARA_SYNTAX_VERSION` which contains the version of YARA from which `yaramod` is based of.
+* Fix: Multiline hex strings are now correctly parsed ([#10](https://github.com/avast-tl/yaramod/issues/10)).
+* Fix: Unexpected character after import statement now raises an error. ([#16](https://github.com/avast-tl/yaramod/issues/16)).
 
 # v2.2.2 (2018-11-09)
 
