@@ -22,6 +22,7 @@ matrix:
             - bison
       env:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && NPROC=$(nproc)"
+        - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build
     - os: osx
       osx_image: xcode8.3
       env:
@@ -45,6 +46,15 @@ script:
   - python setup.py install
   - build/tests/cpp/yaramod_tests
   - green tests/python
+
+deploy:
+  provider: pypi
+  user: metthal
+  password:
+    secure: geoBr7JSbETmhDDC7BkrsQnbDakHqQ7edN1wyCGL3maUSgv9TlYdWYksvW39WA2XBqfBmZ819hSTdHQrGs/ZW6xZzjTXSxuo2MiwCgiNWYSzN/epo84DaKgzqJQTUxzbmpfTjBp1u6wWnEog9DcnOmRjUWiVH1mY0U2RGdiOuiC0KK88i0F0Y9Y1kws0C/Tu7wBUWiohIEq+amMMv7vLqh63hFR5vqrdjwrUR8tEt+qLh8OapC6KLHVs2Jym8pShMhdsH8Uhr/8ZNO1BrRWY+Oc3pUp1eTFgH8JGfVcWeLf42pAfuahGHfHIRti8c9bJxxiKRLXLC9sGOoXU5SSg/8Y0PT3Bsh2O1Z5bCy5SwSLiJLEH2eiASMYQM4k64VMclHa2aMmA1rJELfSgME+csyU755bFb9xxiRtFpLFbWCfcWV980MFbxGMAjn779xWXeR06+Orwke9h5COokuRFIMwVv1JjTkKvI2QF5JjjNt/fUO7abPQ4zrCSRo32adxNoE0vrhgGcsBd6Slf0Sbk2o3n/EmX1xwO2sPGr290rC3+0XZgLug0q9nA24P6rqAisZMmyG4hVhWDlKtl0/MSR642LJUzYkkYTPGJOw79DwCqBo+wA6WbncDDkCJznEQzcJKTwRpYLwoKVR0Jdx9f0ZK4PG81gMRVDXPBJGHvEtw=
+  on:
+    tags: true
+    condition: $DEPLOY_TO_PYPI = true
 
 branches:
   only:

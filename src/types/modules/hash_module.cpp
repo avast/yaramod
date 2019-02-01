@@ -27,12 +27,16 @@ bool HashModule::initialize()
 	using Type = Expression::Type;
 
 	auto hashStruct = std::make_shared<StructureSymbol>("hash");
+
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("md5", Type::String, Type::Int, Type::Int));
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("md5", Type::String, Type::String));
+
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("sha1", Type::String, Type::Int, Type::Int));
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("sha1", Type::String, Type::String));
+
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("sha256", Type::String, Type::Int, Type::Int));
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("sha256", Type::String, Type::String));
+
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("checksum32", Type::Int, Type::Int, Type::Int));
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("checksum32", Type::Int, Type::String));
 

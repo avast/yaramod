@@ -48,6 +48,15 @@ decltype(auto) binaryOpClass(py::module& module, const std::string& name)
 	return exprClass<ExprType, BinaryOpExpression>(module, name);
 }
 
+void addVersionVariables(py::module& module)
+{
+	module.attr("YARAMOD_VERSION_MAJOR") = YARAMOD_VERSION_MAJOR;
+	module.attr("YARAMOD_VERSION_MINOR") = YARAMOD_VERSION_MINOR;
+	module.attr("YARAMOD_VERSION_PATCH") = YARAMOD_VERSION_PATCH;
+	module.attr("YARAMOD_VERSION") = YARAMOD_VERSION;
+	module.attr("YARA_SYNTAX_VERSION") = YARA_SYNTAX_VERSION;
+}
+
 void addEnums(py::module& module)
 {
 	py::enum_<ParserMode>(module, "ParserMode")
@@ -75,6 +84,7 @@ void addEnums(py::module& module)
 		.value("Wide", String::Modifiers::Wide)
 		.value("Nocase", String::Modifiers::Nocase)
 		.value("Fullword", String::Modifiers::Fullword)
+		.value("Xor", String::Modifiers::Xor)
 		.export_values();
 
 	py::enum_<Expression::Type>(module, "ExpressionType")
@@ -152,6 +162,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_wide", &String::isWide)
 		.def_property_readonly("is_fullword", &String::isFullword)
 		.def_property_readonly("is_nocase", &String::isNocase)
+		.def_property_readonly("is_xor", &String::isXor)
 		.def_property_readonly("modifiers_text", &String::getModifiersText);
 
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
@@ -513,6 +524,7 @@ PYBIND11_MODULE(yaramod, module)
 			}
 		});
 
+	addVersionVariables(module);
 	addEnums(module);
 	addBasicClasses(module);
 	addExpressionClasses(module);

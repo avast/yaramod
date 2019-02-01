@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 
@@ -116,8 +117,20 @@ def get_long_description():
     return ''
 
 
+def parse_yaramod_version():
+    version_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_(MAJOR|MINOR|PATCH)[ \t]*([0-9]+)$')
+    version_parts = []
+    with open('include/yaramod/yaramod.h') as yaramod_file:
+        for line in yaramod_file:
+            matches = version_regexp.match(line)
+            if matches:
+                version_parts.append(matches.group(2))
+    assert len(version_parts) == 3
+    return '.'.join(version_parts)
+
+
 setup(
-    version='2.2.2',
+    version=parse_yaramod_version(),
     name='yaramod',
     description='Library for manipulation of YARA files.',
     long_description=get_long_description(),

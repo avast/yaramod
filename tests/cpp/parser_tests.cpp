@@ -652,7 +652,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.10: syntax error, unexpected LSQB, expecting LP or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.10: syntax error, unexpected hex string [, expecting ( or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -678,7 +678,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.25: syntax error, unexpected RCB, expecting LP or LSQB or HEX_WILDCARD or HEX_NIBBLE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.25: syntax error, unexpected }, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -1765,7 +1765,7 @@ rule bool_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected BOOL_TRUE", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected true", err.getErrorMessage());
 	}
 }
 
@@ -2314,6 +2314,63 @@ R"(rule rule_with_invalid_escape_sequence {
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 3.13-14: Unknown escape sequence '\\r'", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+NewlineInHexString) {
+	prepareInput(
+R"(rule rule_with_invalid_escape_sequence {
+	strings:
+		$str = { AA
+				 BB
+				 [ 5 -
+				 6 ]
+				 CC
+			   }
+	condition:
+		$str
+}"
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto string = strings[0];
+	ASSERT_TRUE(string->isHex());
+
+	EXPECT_EQ("{ AA BB [5-6] CC }", string->getText());
+}
+
+TEST_F(ParserTests,
+ErrorWhenUnknownTokenAfterImport) {
+	prepareInput(
+R"(import "pe";
+
+rule public_rule {
+	condition:
+		true
+}"
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 1.12: syntax error, unexpected ;", err.getErrorMessage());
 	}
 }
 

@@ -91,6 +91,7 @@ whitespace  [ \v\r\t]
 "nocase"     { return Parser::make_NOCASE(CURRENT_LOC); }
 "wide"       { return Parser::make_WIDE(CURRENT_LOC); }
 "fullword"   { return Parser::make_FULLWORD(CURRENT_LOC); }
+"xor"        { return Parser::make_XOR(CURRENT_LOC); }
 "true"       { return Parser::make_BOOL_TRUE(CURRENT_LOC); }
 "false"      { return Parser::make_BOOL_FALSE(CURRENT_LOC); }
 "import"     { return Parser::make_IMPORT_MODULE(CURRENT_LOC); }
@@ -191,6 +192,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR_MULTILINE_COMMENT>"*/"     { BEGIN(HEXSTR); }
 <HEXSTR_MULTILINE_COMMENT>.        { }
 <HEXSTR,HEXSTR_JUMP>{whitespace}*  { }
+<HEXSTR,HEXSTR_JUMP>{newline}*     { }
 <HEXSTR,HEXSTR_JUMP>.              { return yyterminate(); }
 <HEXSTR,HEXSTR_JUMP><<EOF>>        { return yyterminate(); }
 
@@ -286,7 +288,10 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 	if (!_driver.includeEnd())
 		return yyterminate();
 }
-<*>.|\n                            { return yyterminate(); }
+<*>.|\n                            {
+	using namespace std::string_literals;
+	throw yy::Parser::syntax_error(CURRENT_LOC, "syntax error, unexpected "s + yytext);
+}
 
 %%
 
