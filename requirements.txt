@@ -1,2 +1,2 @@
-green>=2.12.0
+pytest>=4.2.0
 pypandoc>=1.4
