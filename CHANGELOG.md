@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.3.0 (2019-02-01)
 
 * New: Added modules `androguard`, `dex`, `macho`, `time` and new fields in `pe` module ([#14](https://github.com/avast-tl/yaramod/issues/14)).
 * New: Added new functions to `cuckoo` module related to matching Android executable files.
