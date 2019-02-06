@@ -118,15 +118,24 @@ def get_long_description():
 
 
 def parse_yaramod_version():
-    version_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_(MAJOR|MINOR|PATCH)[ \t]*([0-9]+)$')
-    version_parts = []
+    version_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_(MAJOR|MINOR|PATCH|ADDEND)[ \t]*(([0-9]+)|("([a-zA-Z0-9]+)"))$')
+    addend_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_ADDEND[ \t]*"([a-zA-Z0-9]+)"')
+    version_parts = [None, None, None, '']
     with open('include/yaramod/yaramod.h') as yaramod_file:
         for line in yaramod_file:
             matches = version_regexp.match(line)
             if matches:
-                version_parts.append(matches.group(2))
-    assert len(version_parts) == 3
-    return '.'.join(version_parts)
+                version_type = matches.group(1)
+                if version_type == 'MAJOR':
+                    version_parts[0] = matches.group(3)
+                elif version_type == 'MINOR':
+                    version_parts[1] = matches.group(3)
+                elif version_type == 'PATCH':
+                    version_parts[2] = matches.group(3)
+                elif version_type == 'ADDEND':
+                    version_parts[3] = matches.group(5)
+    assert all(map(lambda x: x is not None, version_parts[:3])), 'Versions MAJOR, MINOR and PATCH need to be specified.'
+    return '.'.join(version_parts[:3]) + version_parts[3]
 
 
 setup(
