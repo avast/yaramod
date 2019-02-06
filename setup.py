@@ -119,7 +119,6 @@ def get_long_description():
 
 def parse_yaramod_version():
     version_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_(MAJOR|MINOR|PATCH|ADDEND)[ \t]*(([0-9]+)|("([a-zA-Z0-9]+)"))$')
-    addend_regexp = re.compile(r'^#[ \t]*define[ \t]*YARAMOD_VERSION_ADDEND[ \t]*"([a-zA-Z0-9]+)"')
     version_parts = [None, None, None, '']
     with open('include/yaramod/yaramod.h') as yaramod_file:
         for line in yaramod_file:
