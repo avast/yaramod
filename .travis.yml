@@ -22,7 +22,7 @@ matrix:
             - bison
       env:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && NPROC=$(nproc)"
-        - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build
+        - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build.
     - os: osx
       osx_image: xcode8.3
       env:
