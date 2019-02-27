@@ -54,7 +54,7 @@ build_script:
 
 test_script:
   - cmd: build\tests\cpp\%configuration%\yaramod_tests.exe
-  - cmd: '%PYTHON%\Scripts\pytest tests\python'
+  - cmd: '%PYTHON%\Scripts\pytest -v tests\python'
 
 after_test:
   - cmd: '%PYTHON%\python setup.py bdist_wheel'

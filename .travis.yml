@@ -45,7 +45,7 @@ script:
   - python setup.py build --with-unit-tests
   - python setup.py install
   - build/tests/cpp/yaramod_tests
-  - pytest tests/python
+  - pytest -v tests/python
 
 deploy:
   provider: pypi
