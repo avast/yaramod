@@ -7,9 +7,19 @@
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
+#include <locale>
 #include <sstream>
 
 #include "yaramod/utils/utils.h"
+
+// Enforce C locale because if we are called from Python bindings
+// UTF-8 locale seems to be used. Mixing default <cctype> functions
+// with non-default locales seems to be not portable across different systems.
+//
+// Linux: worked as usual
+// macOS: expected 'char' instead of 'unsigned char'
+// Windows: asserted on signed types
+static std::locale cLocale("C");
 
 namespace yaramod {
 
@@ -24,12 +34,12 @@ bool isValidIdentifier(const std::string& id)
 		return false;
 
 	const char firstChar = id[0];
-	if (!std::isalpha(firstChar) && firstChar != '_')
+	if (!std::isalpha(firstChar, cLocale) && firstChar != '_')
 		return false;
 
 	return std::all_of(id.begin() + 1, id.end(),
 			[](const char c) {
-				return c == '_' || std::isalnum(c);
+				return c == '_' || std::isalnum(c, cLocale);
 			});
 }
 
@@ -63,7 +73,7 @@ std::string escapeString(const std::string& str)
 				result += *itr;
 				break;
 			default:
-				if (std::isprint(c))
+				if (std::isprint(c, cLocale))
 				{
 					result += c;
 				}
