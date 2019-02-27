@@ -171,7 +171,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR>"?"                        { return Parser::make_HEX_WILDCARD(CURRENT_LOC); }
 <HEXSTR>"}"                        { BEGIN(INITIAL); return Parser::make_RCB(CURRENT_LOC); }
 <HEXSTR>{hexdigit}                 {
-	unsigned char firstChar = yytext[0];
+	char firstChar = yytext[0];
 	std::uint8_t nibble =
 		'A' <= std::toupper(firstChar) && std::toupper(firstChar) <= 'F'
 		? std::toupper(firstChar) - 'A' + 10

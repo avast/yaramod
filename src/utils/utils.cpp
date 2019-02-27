@@ -23,12 +23,12 @@ bool isValidIdentifier(const std::string& id)
 	if (id.empty())
 		return false;
 
-	const unsigned char firstChar = id[0];
+	const char firstChar = id[0];
 	if (!std::isalpha(firstChar) && firstChar != '_')
 		return false;
 
 	return std::all_of(id.begin() + 1, id.end(),
-			[](const unsigned char c) {
+			[](const char c) {
 				return c == '_' || std::isalnum(c);
 			});
 }
@@ -48,7 +48,7 @@ std::string escapeString(const std::string& str)
 
 	for (auto itr = str.begin(), end = str.end(); itr != end; ++itr)
 	{
-		const unsigned char c = *itr;
+		const char c = *itr;
 		switch (c)
 		{
 			case '\n':
@@ -72,7 +72,7 @@ std::string escapeString(const std::string& str)
 					writer.str({});
 					writer.clear();
 					// At first, we need to get rid of possible sign-extension so cast to uint8_t and then cast to integer type
-					writer << std::setw(2) << std::setfill('0') << std::hex << static_cast<std::uint32_t>(c);
+					writer << std::setw(2) << std::setfill('0') << std::hex << static_cast<std::uint32_t>(static_cast<std::uint8_t>(c));
 					result += "\\x" + writer.str();
 				}
 				break;
