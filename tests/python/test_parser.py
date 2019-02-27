@@ -95,13 +95,13 @@ rule rule_with_plain_strings {
         hello_world = rule.strings[0]
         self.assertEqual(hello_world.identifier, '$1')
         self.assertEqual(hello_world.text, '"Hello World!"')
-        self.assertEqual(hello_world.pure_text, 'Hello World!')
+        self.assertEqual(hello_world.pure_text, b'Hello World!')
         self.assertTrue(hello_world.is_ascii)
 
         bye_world = rule.strings[1]
         self.assertEqual(bye_world.identifier, '$2')
         self.assertEqual(bye_world.text, '"Bye World."')
-        self.assertEqual(bye_world.pure_text, 'Bye World.')
+        self.assertEqual(bye_world.pure_text, b'Bye World.')
         self.assertTrue(bye_world.is_ascii)
 
     def test_multiple_rules(self):
@@ -133,19 +133,19 @@ rule rule_3 {
         self.assertEqual(rule.name, 'rule_1')
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
         self.assertEqual(rule.strings[0].identifier, '$1')
-        self.assertEqual(rule.strings[0].pure_text, 'String from Rule 1')
+        self.assertEqual(rule.strings[0].pure_text, b'String from Rule 1')
 
         rule = yara_file.rules[1]
         self.assertEqual(rule.name, 'rule_2')
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
         self.assertEqual(rule.strings[0].identifier, '$1')
-        self.assertEqual(rule.strings[0].pure_text, 'String from Rule 2')
+        self.assertEqual(rule.strings[0].pure_text, b'String from Rule 2')
 
         rule = yara_file.rules[2]
         self.assertEqual(rule.name, 'rule_3')
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
         self.assertEqual(rule.strings[0].identifier, '$1')
-        self.assertEqual(rule.strings[0].pure_text, 'String from Rule 3')
+        self.assertEqual(rule.strings[0].pure_text, b'String from Rule 3')
 
     def test_plain_strings_with_modifiers(self):
         yara_file = yaramod.parse_string('''
@@ -936,6 +936,30 @@ rule of_condition {
         self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
         self.assertEqual(rule.condition.body, None)
         self.assertEqual(rule.condition.text, '1 of ($a, $b)')
+
+    def test_string_with_invalid_utf8_sequences(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_invalid_utf8_sequence {
+    strings:
+        $1 = "eKfI+`fKyD\xf4X h\xff\xf7\x98"
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_invalid_utf8_sequence')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        hello_world = rule.strings[0]
+        self.assertEqual(hello_world.identifier, '$1')
+        self.assertEqual(hello_world.text, r'"eKfI+`fKyD\xf4X h\xff\xf7\x98"')
+        self.assertEqual(hello_world.pure_text, b'eKfI+`fKyD\xf4X h\xff\xf7\x98')
+        self.assertTrue(hello_world.is_ascii)
 
     def test_parser_error(self):
         self.assertRaises(yaramod.ParserError, yaramod.parse_string, 'rule {')

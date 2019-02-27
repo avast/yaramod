@@ -152,7 +152,9 @@ void addBasicClasses(py::module& module)
 
 	py::class_<String, std::shared_ptr<String>>(module, "String")
 		.def_property_readonly("text", &String::getText)
-		.def_property_readonly("pure_text", &String::getPureText)
+		.def_property_readonly("pure_text", [](String& self) {
+			return py::bytes(self.getPureText());
+		 })
 		.def_property_readonly("type", &String::getType)
 		.def_property_readonly("identifier", &String::getIdentifier)
 		.def_property_readonly("is_plain", &String::isPlain)

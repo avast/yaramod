@@ -1,5 +1,9 @@
 # Changelog
 
+# v2.4.0 (2019-02-27)
+
+* Enhancement: Python interface of `String.pure_text` now returns `bytes` instead of `str` to prevent unicode decoding errors with strings containg invalid UTF-8 sequences.
+
 # v2.3.0 (2019-02-01)
 
 * New: Added modules `androguard`, `dex`, `macho`, `time` and new fields in `pe` module ([#14](https://github.com/avast-tl/yaramod/issues/14)).
