@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.4.2 (2019-04-02)
 
 * Fix: `pe.data_directories` is now correctly an array and not a structure.
 
