@@ -2374,5 +2374,26 @@ rule public_rule {
 	}
 }
 
+TEST_F(ParserTests,
+PeDataDirectoryIsArray) {
+	prepareInput(
+R"(import "pe"
+
+rule public_rule {
+	condition:
+		pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0
+}"
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0", rule->getCondition()->getText());
+}
+
 }
 }

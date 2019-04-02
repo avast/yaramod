@@ -202,10 +202,10 @@ bool PeModule::initialize()
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("size_of_heap_commit", Type::Int));
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("loader_flags", Type::Int));
 
-	auto dataDirectoriesnStruct = std::make_shared<StructureSymbol>("data_directories");
-	peStruct->addAttribute(dataDirectoriesnStruct);
-	dataDirectoriesnStruct->addAttribute(std::make_shared<ValueSymbol>("virtual_address", Type::Int));
-	dataDirectoriesnStruct->addAttribute(std::make_shared<ValueSymbol>("size", Type::Int));
+	auto dataDirectoriesStruct = std::make_shared<StructureSymbol>("data_directories");
+	dataDirectoriesStruct->addAttribute(std::make_shared<ValueSymbol>("virtual_address", Type::Int));
+	dataDirectoriesStruct->addAttribute(std::make_shared<ValueSymbol>("size", Type::Int));
+	peStruct->addAttribute(std::make_shared<ArraySymbol>("data_directories", dataDirectoriesStruct));
 
 	auto sectionsStruct = std::make_shared<StructureSymbol>("sections");
 	sectionsStruct->addAttribute(std::make_shared<ValueSymbol>("name", Type::String));
