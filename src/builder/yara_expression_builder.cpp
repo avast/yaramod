@@ -544,6 +544,18 @@ YaraExpressionBuilder hexIntVal(std::uint64_t value)
 }
 
 /**
+ * Creates the double expression from a number.
+ *
+ * @param value Double value.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder doubleVal(double value)
+{
+	return YaraExpressionBuilder(std::make_shared<DoubleLiteralExpression>(numToStr(value)));
+}
+
+/**
  * Creates the string expression.
  *
  * @param value String value.

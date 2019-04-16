@@ -134,6 +134,21 @@ import "elf"
 		true
 }''')
 
+    def test_rule_with_double_values(self):
+        cond = yaramod.double_val(3.14159) > yaramod.double_val(2.71828)
+        rule = self.new_rule \
+            .with_name('rule_with_double_values') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text, '''rule rule_with_double_values {
+	condition:
+		3.14159 > 2.71828
+}''')
+
     def test_multiple_rules(self):
         rule1 = self.new_rule \
             .with_name('rule_1') \
