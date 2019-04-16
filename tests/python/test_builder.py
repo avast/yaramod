@@ -209,21 +209,6 @@ rule rule_2 : Tag2 {
 		$1 at 100
 }''')
 
-    def test_rule_with_string_at_condition(self):
-        cond = yaramod.match_at('$1', yaramod.int_val(100))
-        rule = self.new_rule \
-            .with_name('rule_with_string_id_condition') \
-            .with_condition(cond.get()) \
-            .get()
-        yara_file = self.new_file \
-            .with_rule(rule) \
-            .get()
-
-        self.assertEqual(yara_file.text, '''rule rule_with_string_id_condition {
-	condition:
-		$1 at 100
-}''')
-
     def test_rule_with_match_in_range_condition(self):
         cond = yaramod.match_in_range('$1', yaramod.range(yaramod.int_val(100), yaramod.int_val(200)))
         rule = self.new_rule \
@@ -665,10 +650,10 @@ rule rule_with_structure_access_condition {
 		pe.linker_version.major
 }''')
 
-    def test_rule_with_structure_access_condition(self):
-        cond = yaramod.id('pe').access('linker_version').access('major')
+    def test_rule_with_array_access_condition(self):
+        cond = yaramod.id('pe').access('sections')[yaramod.int_val(0)].access('name')
         rule = self.new_rule \
-            .with_name('rule_with_structure_access_condition') \
+            .with_name('rule_with_array_access_condition') \
             .with_condition(cond.get()) \
             .get()
         yara_file = self.new_file \
@@ -678,9 +663,27 @@ rule rule_with_structure_access_condition {
 
         self.assertEqual(yara_file.text, '''import "pe"
 
-rule rule_with_structure_access_condition {
+rule rule_with_array_access_condition {
 	condition:
-		pe.linker_version.major
+		pe.sections[0].name
+}''')
+
+    def test_rule_with_dictionary_access_condition(self):
+        cond = yaramod.id('pe').access('version_info')[yaramod.string_val('CompanyName')]
+        rule = self.new_rule \
+            .with_name('rule_with_dictionary_access_condition') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_module('pe') \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text, '''import "pe"
+
+rule rule_with_dictionary_access_condition {
+	condition:
+		pe.version_info["CompanyName"]
 }''')
 
     def test_rule_with_complex_condition(self):
