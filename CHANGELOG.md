@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Expression builder now contains `doubleVal` for building double expressions ([#22](https://github.com/avast-tl/yaramod/issues/22)).
+
 # v2.4.2 (2019-04-02)
 
 * Fix: `pe.data_directories` is now correctly an array and not a structure.
