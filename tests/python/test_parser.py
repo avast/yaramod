@@ -452,9 +452,9 @@ rule less_equal_condition {
         self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
         self.assertEqual(rule.condition.text, 'filesize <= 10')
 
-    def test_greater_than_condition(self):
+    def test_greater_equal_condition(self):
         yara_file = yaramod.parse_string('''
-rule greater_than_condition {
+rule greater_equal_condition {
     condition:
         filesize >= 10
 }''')
@@ -525,21 +525,6 @@ rule plus_condition {
         self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
         self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
         self.assertEqual(rule.condition.text, 'filesize + 10')
-
-    def test_minus_condition(self):
-        yara_file = yaramod.parse_string('''
-rule minus_condition {
-    condition:
-        filesize - 10
-}''')
-
-        self.assertEqual(len(yara_file.rules), 1)
-
-        rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.MinusExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize - 10')
 
     def test_minus_condition(self):
         yara_file = yaramod.parse_string('''
@@ -674,21 +659,6 @@ rule bitwise_and_condition {
         self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
         self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
         self.assertEqual(rule.condition.text, 'filesize & 10')
-
-    def test_bitwise_or_condition(self):
-        yara_file = yaramod.parse_string('''
-rule bitwise_or_condition {
-    condition:
-        filesize | 10
-}''')
-
-        self.assertEqual(len(yara_file.rules), 1)
-
-        rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.BitwiseOrExpression))
-        self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
-        self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize | 10')
 
     def test_bitwise_or_condition(self):
         yara_file = yaramod.parse_string('''
