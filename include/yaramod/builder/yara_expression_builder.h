@@ -147,6 +147,7 @@ private:
 YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult = IntMultiplier::None);
 YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult = IntMultiplier::None);
 YaraExpressionBuilder hexIntVal(std::uint64_t value);
+YaraExpressionBuilder doubleVal(double value);
 YaraExpressionBuilder stringVal(const std::string& value);
 YaraExpressionBuilder boolVal(bool value);
 

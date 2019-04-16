@@ -524,6 +524,29 @@ RuleWithArithmeticOperationsWorks) {
 }
 
 TEST_F(BuilderTests,
+RuleWithArithmeticOperationsWithDoubleValuesWorks) {
+	auto cond = (paren(entrypoint() + doubleVal(2.71828) * intVal(10)) < paren(filesize() - doubleVal(1.61803) / doubleVal(3.14159)))
+		.get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_arithmetic_operations_with_double_values")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get();
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_arithmetic_operations_with_double_values {
+	condition:
+		(entrypoint + 2.71828 * 10) < (filesize - 1.61803 \ 3.14159)
+})", yaraFile->getText());
+}
+
+TEST_F(BuilderTests,
 RuleWithBitwiseOperationsWorks) {
 	auto cond = (id("pe").access("characteristics") & paren(id("pe").access("DLL") | id("pe").access("RELOCS_STRIPPED")))
 		.get();

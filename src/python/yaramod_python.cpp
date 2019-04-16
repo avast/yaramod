@@ -435,6 +435,7 @@ void addBuilderClasses(py::module& module)
 	module.def("int_val", &intVal, py::arg("value"), py::arg("mult") = IntMultiplier::None);
 	module.def("uint_val", &uintVal, py::arg("value"), py::arg("mult") = IntMultiplier::None);
 	module.def("hex_int_val", &hexIntVal);
+	module.def("double_val", &doubleVal);
 	module.def("string_val", &stringVal);
 	module.def("bool_val", &boolVal);
 
