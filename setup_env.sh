@@ -5,13 +5,13 @@ VIRTUALENV_DIR="${SCRIPT_DIR}/env"
 
 SED=$([[ $(command -v gsed) ]] && echo -n "gsed" || echo -n "sed")
 
-if [ -z ${PYTHON_EXECUTABLE} ]; then
+if [ -z "${PYTHON_EXECUTABLE}" ]; then
 	if [[ $(command -v python3) ]]; then
 		PYTHON_EXECUTABLE=python3
 	elif [[ $(command -v python) ]]; then
 		PYTHON_VERSION=$(python --version 2>&1 | $SED -r 's/^Python //g')
 		PYTHON_VERSION_MAJOR=$(echo "${PYTHON_VERSION}" | cut -d'.' -f1)
-		if [ ${PYTHON_VERSION_MAJOR} -lt 3 ]; then
+		if [ "${PYTHON_VERSION_MAJOR}" -lt 3 ]; then
 			echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
 			exit 1
 		fi
@@ -23,14 +23,14 @@ if [ -z ${PYTHON_EXECUTABLE} ]; then
 else
 	PYTHON_VERSION=$(${PYTHON_EXECUTABLE} --version 2>&1 | $SED -r 's/^Python //g')
 	PYTHON_VERSION_MAJOR=$(echo "${PYTHON_VERSION}" | cut -d'.' -f1)
-	if [ ${PYTHON_VERSION_MAJOR} -lt 3 ]; then
+	if [ "${PYTHON_VERSION_MAJOR}" -lt 3 ]; then
 		echo "Required Python version is at least 3.0 (yours is ${PYTHON_VERSION}). Please install appropriate version of Python or set PYTHON_EXECUTABLE in your environment to your Python interpreter." >&2
 		exit 1
 	fi
 fi
 
-if [[ $(${PYTHON_EXECUTABLE} -c 'import venv;print("OK")' 2>/dev/null) ]]; then
-	${PYTHON_EXECUTABLE} -m venv "${VIRTUALENV_DIR}"
+if [[ $("${PYTHON_EXECUTABLE}" -c 'import venv;print("OK")' 2>/dev/null) ]]; then
+	"${PYTHON_EXECUTABLE}" -m venv "${VIRTUALENV_DIR}"
 elif [[ $(command -v virtualenv) ]]; then
 	virtualenv -p "${PYTHON_EXECUTABLE}" "${VIRTUALENV_DIR}"
 else
