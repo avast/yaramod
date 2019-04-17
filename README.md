@@ -1,7 +1,7 @@
 # yaramod
 
-[![Travis CI build status](https://travis-ci.org/avast-tl/yaramod.svg?branch=master)](https://travis-ci.org/avast-tl/yaramod)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/avast-tl/yaramod?branch=master&svg=true)](https://ci.appveyor.com/project/avast-tl/yaramod?branch=master)
+[![Travis CI build status](https://travis-ci.org/avast/yaramod.svg?branch=master)](https://travis-ci.org/avast/yaramod)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/avast/yaramod?branch=master&svg=true)](https://ci.appveyor.com/project/avast/yaramod?branch=master)
 
 `yaramod` is a library that provides parsing of [YARA](https://github.com/VirusTotal/yara) rules into AST and a C++ programming interface to build new YARA rulesets. This project is not associated with the YARA project.
 
@@ -9,7 +9,7 @@
 
 ## Usage Example
 
-See the [wiki](https://github.com/avast-tl/yaramod/wiki).
+See the [wiki](https://github.com/avast/yaramod/wiki).
 
 ## Requirements
 
@@ -26,14 +26,14 @@ If you are also interested in Python bindings:
 ## Build and Installation
 
 * Clone the repository:
-  * `git clone https://github.com/avast-tl/yaramod.git`
+  * `git clone https://github.com/avast/yaramod.git`
 * Linux:
   * `cd yaramod`
   * `mkdir build && cd build`
   * `cmake -DCMAKE_BUILD_TYPE=<Debug|Release> .. [OPTIONS...]`
   * `make -jN` (`N` is the number of CPU cores to use for parallel build)
 * Windows:
-  * Open a command prompt (e.g. `C:\msys64\msys2_shell.cmd` from [MSYS2](https://github.com/avast-tl/retdec/wiki/Windows-Environment))
+  * Open a command prompt (e.g. `C:\msys64\msys2_shell.cmd` from [MSYS2](https://github.com/avast/retdec/wiki/Windows-Environment))
   * `cd yaramod`
   * `mkdir build && cd build`
   * `cmake -G<generator> .. [OPTIONS...]`
@@ -52,7 +52,7 @@ Available options are:
 The easiest way to get Python bindings to work is through `pip` like this:
 
 ```
-pip install git+https://github.com/avast-tl/yaramod.git
+pip install git+https://github.com/avast/yaramod.git
 ```
 
 or you can install latest stable version from PyPI like this:
@@ -85,4 +85,4 @@ Copyright (c) 2017 Avast Software, licensed under the MIT license. See the `LICE
 
 ## Contributing
 
-See [RetDec contribution guidelines](https://github.com/avast-tl/retdec/wiki/Contribution-Guidelines).
+See [RetDec contribution guidelines](https://github.com/avast/retdec/wiki/Contribution-Guidelines).

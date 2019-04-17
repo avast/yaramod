@@ -144,7 +144,7 @@ setup(
     long_description=get_long_description(),
     author='Marek Milkovic',
     author_email='marek.milkovic@avast.com',
-    url='https://github.com/avast-tl/yaramod',
+    url='https://github.com/avast/yaramod',
     license='MIT',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
