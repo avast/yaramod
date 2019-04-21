@@ -3,6 +3,7 @@
 # dev
 
 * New: Expression builder now contains `doubleVal` for building double expressions ([#22](https://github.com/avast/yaramod/issues/22)).
+* Fix: Compilation now works in Cygwin environment ([#25](https://github.com/avast/yaramod/issues/25)).
 
 # v2.4.2 (2019-04-02)
 
