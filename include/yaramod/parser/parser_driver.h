@@ -129,6 +129,12 @@ protected:
 	void removeLocalSymbol(const std::string& name);
 	/// @}
 
+	/// @name Method for handling anonymous strings
+	/// @{
+	bool isAnonymousStringId(const std::string& stringId) const;
+	std::string generateAnonymousStringPseudoId();
+	/// @}
+
 private:
 	bool isAlreadyIncluded(const std::string& includePath);
 	bool includeFileImpl(const std::string& includePath);
@@ -155,6 +161,7 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Symbol>> _localSymbols; ///< Context storage of local symbols
 
 	std::uint64_t _startOfRule; ///< Holds the line number where the last parsed rule starts
+	std::uint64_t _anonStringCounter; ///< Internal counter for generating pseudo identifiers of anonymous strings
 };
 
 }

@@ -2395,5 +2395,33 @@ rule public_rule {
 	EXPECT_EQ("pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0", rule->getCondition()->getText());
 }
 
+TEST_F(ParserTests,
+AnonymousStrings) {
+	prepareInput(
+R"(rule public_rule {
+	strings:
+		$ = "Hello World"
+		$ = "Bye World"
+	condition:
+		all of them
+}"
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(2u, strings.size());
+
+	EXPECT_EQ("$", strings[0]->getIdentifier());
+	EXPECT_EQ("Hello World", strings[0]->getPureText());
+	EXPECT_EQ("$", strings[1]->getIdentifier());
+	EXPECT_EQ("Bye World", strings[1]->getPureText());
+}
+
 }
 }

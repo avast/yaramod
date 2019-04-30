@@ -18,7 +18,8 @@ namespace yaramod {
  * @param parserMode Parsing mode.
  */
 ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
+	_startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
@@ -324,6 +325,30 @@ bool ParserDriver::addLocalSymbol(const std::shared_ptr<Symbol>& symbol)
 void ParserDriver::removeLocalSymbol(const std::string& name)
 {
 	_localSymbols.erase(name);
+}
+
+/**
+ * Indicates whether the string identifier is anonymous string
+ * identifier. That means just '$' alone.
+ *
+ * @param stringId String identifier.
+ * @return @c true if identifier of anonymous string, otherwise @c false.
+ */
+bool ParserDriver::isAnonymousStringId(const std::string& stringId) const
+{
+	return stringId == "$";
+}
+
+/**
+ * Generates psuedoidentifier for anonymous string.
+ *
+ * @return Unique pseudoidentifier.
+ */
+std::string ParserDriver::generateAnonymousStringPseudoId()
+{
+	std::ostringstream str;
+	str << "anon" << _anonStringCounter++;
+	return str.str();
 }
 
 bool ParserDriver::isAlreadyIncluded(const std::string& includePath)

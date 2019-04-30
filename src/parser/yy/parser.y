@@ -297,11 +297,12 @@ strings_body
 	: strings_body[body] STRING_ID[id] ASSIGN string
 		{
 			$$ = std::move($body);
-			$string->setIdentifier(std::move($id));
 
-			if (!$$->insert($string->getIdentifier(), std::move($string)))
+			auto trieId = driver.isAnonymousStringId($id) ? driver.generateAnonymousStringPseudoId() : $id;
+			$string->setIdentifier(std::move($id));
+			if (!$$->insert(trieId, std::move($string)))
 			{
-				error(driver.getLocation(), "Redefinition of string '" + $string->getIdentifier() + "'");
+				error(driver.getLocation(), "Redefinition of string '" + trieId + "'");
 				YYABORT;
 			}
 		}
