@@ -165,6 +165,16 @@ const Expression::Ptr& Rule::getCondition() const
  *
  * @return Tags.
  */
+std::vector<std::string>& Rule::getTags()
+{
+	return _tags;
+}
+
+/**
+ * Returns the tags of the YARA rule.
+ *
+ * @return Tags.
+ */
 const std::vector<std::string>& Rule::getTags() const
 {
 	return _tags;
@@ -209,6 +219,36 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
 const Rule::Location& Rule::getLocation() const
 {
 	return _location;
+}
+
+/**
+ * Sets the name of the rule.
+ *
+ * @param name Name of the rule.
+ */
+void Rule::setName(const std::string& name)
+{
+	_name = name;
+}
+
+/**
+ * Sets the metas of the rule.
+ *
+ * @param metas Metas to set.
+ */
+void Rule::setMetas(const std::vector<Meta>& metas)
+{
+	_metas = metas;
+}
+
+/**
+ * Sets the tags of the rule.
+ *
+ * @param tags Tags to set.
+ */
+void Rule::setTags(const std::vector<std::string>& tags)
+{
+	_tags = tags;
 }
 
 /**
@@ -283,6 +323,27 @@ void Rule::removeMetas(const std::string& name)
 void Rule::removeString(const std::string& id)
 {
 	_strings->remove(id);
+}
+
+/**
+ * Adds new tag at the end.
+ *
+ * @param tag Tag to add.
+ */
+void Rule::addTag(const std::string& tag)
+{
+	_tags.push_back(tag);
+}
+
+/**
+ * Removes tag from the rule.
+ *
+ * @param tag Tag to remove.
+ */
+void Rule::removeTags(const std::string& tag)
+{
+	auto new_end = std::remove(_tags.begin(), _tags.end(), tag);
+	_tags.erase(new_end, _tags.end());
 }
 
 }

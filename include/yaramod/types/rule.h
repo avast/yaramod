@@ -73,6 +73,7 @@ public:
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
 	const Expression::Ptr& getCondition() const;
+	std::vector<std::string>& getTags();
 	const std::vector<std::string>& getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
@@ -81,6 +82,9 @@ public:
 
 	/// @name Setter methods
 	/// @{
+	void setName(const std::string& name);
+	void setMetas(const std::vector<Meta>& metas);
+	void setTags(const std::vector<std::string>& tags);
 	void setCondition(const Expression::Ptr& condition);
 	void setLocation(const std::string& filePath, std::uint64_t lineNumber);
 	/// @}
@@ -96,6 +100,8 @@ public:
 	void addMeta(const std::string& name, const Literal& value);
 	void removeMetas(const std::string& name);
 	void removeString(const std::string& id);
+	void addTag(const std::string& tag);
+	void removeTags(const std::string& tag);
 	/// @}
 
 private:
