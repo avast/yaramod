@@ -557,7 +557,7 @@ rule multiply_condition {
         self.assertEqual(rule.condition.text, 'filesize * 10')
 
     def test_divide_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.parse_string(r'''
 rule divide_condition {
     condition:
         filesize \ 10
@@ -569,7 +569,7 @@ rule divide_condition {
         self.assertTrue(isinstance(rule.condition, yaramod.DivideExpression))
         self.assertTrue(isinstance(rule.condition.left_operand, yaramod.KeywordExpression))
         self.assertTrue(isinstance(rule.condition.right_operand, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.text, 'filesize \ 10')
+        self.assertEqual(rule.condition.text, r'filesize \ 10')
 
     def test_modulo_condition(self):
         yara_file = yaramod.parse_string('''
