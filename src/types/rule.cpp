@@ -109,6 +109,16 @@ Rule::Modifier Rule::getModifier() const
  *
  * @return Meta information.
  */
+std::vector<Meta>& Rule::getMetas()
+{
+	return _metas;
+}
+
+/**
+ * Returns the meta information of the YARA rule.
+ *
+ * @return Meta information.
+ */
 const std::vector<Meta>& Rule::getMetas() const
 {
 	return _metas;
@@ -239,6 +249,17 @@ bool Rule::isGlobal() const
 bool Rule::isPrivate() const
 {
 	return _mod == Rule::Modifier::Private;
+}
+
+/**
+ * Adds meta with specified name and value.
+ *
+ * @param name Name of the meta.
+ * @param value Value of the meta.
+ */
+void Rule::addMeta(const std::string& name, const Literal& value)
+{
+	_metas.emplace_back(name, value);
 }
 
 /**

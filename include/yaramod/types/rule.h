@@ -68,6 +68,7 @@ public:
 	/// @{
 	const std::string& getName() const;
 	Rule::Modifier getModifier() const;
+	std::vector<Meta>& getMetas();
 	const std::vector<Meta>& getMetas() const;
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
@@ -92,6 +93,7 @@ public:
 
 	/// @name Manipulation methods
 	/// @{
+	void addMeta(const std::string& name, const Literal& value);
 	void removeMetas(const std::string& name);
 	void removeString(const std::string& id);
 	/// @}

@@ -68,6 +68,11 @@ void addEnums(py::module& module)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
+	py::enum_<Literal::Type>(module, "LiteralType")
+		.value("String", Literal::Type::String)
+		.value("Int", Literal::Type::Int)
+		.value("Bool", Literal::Type::Bool);
+
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
@@ -119,7 +124,7 @@ void addBasicClasses(py::module& module)
 	py::class_<Rule, std::shared_ptr<Rule>>(module, "Rule")
 		.def_property_readonly("text", &Rule::getText)
 		.def_property_readonly("name", &Rule::getName)
-		.def_property_readonly("metas", &Rule::getMetas)
+		.def_property_readonly("metas", py::overload_cast<>(&Rule::getMetas), py::return_value_policy::reference)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
 		.def_property_readonly("tags", &Rule::getTags)
 		.def_property_readonly("modifier", &Rule::getModifier)
@@ -128,6 +133,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("location", &Rule::getLocation)
 		.def_property_readonly("symbol", &Rule::getSymbol)
 		.def_property("condition", &Rule::getCondition, &Rule::setCondition)
+		.def("add_meta", &Rule::addMeta)
 		.def("remove_metas", &Rule::removeMetas)
 		.def("remove_string", &Rule::removeString)
 		.def("get_meta_with_name", &Rule::getMetaWithName, py::return_value_policy::reference);
@@ -137,10 +143,12 @@ void addBasicClasses(py::module& module)
 		.def_readonly("line_number", &Rule::Location::lineNumber);
 
 	py::class_<Meta>(module, "Meta")
-		.def_property_readonly("key", &Meta::getKey)
-		.def_property_readonly("value", &Meta::getValue);
+		.def_property("key", &Meta::getKey, &Meta::setKey)
+		.def_property("value", &Meta::getValue, &Meta::setValue);
 
 	py::class_<Literal>(module, "Literal")
+		.def(py::init<std::string, Literal::Type>())
+		.def(py::init<bool>())
 		.def_property_readonly("text", &Literal::getText)
 		.def_property_readonly("pure_text", &Literal::getPureText)
 		.def_property_readonly("is_string", &Literal::isString)

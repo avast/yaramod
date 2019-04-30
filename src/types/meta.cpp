@@ -9,26 +9,6 @@
 namespace yaramod {
 
 /**
- * Constructor.
- *
- * @param key Key.
- * @param value Value.
- */
-Meta::Meta(const std::string& key, Literal&& value) : _key(key), _value(std::move(value))
-{
-}
-
-/**
- * Constructor.
- *
- * @param key Key.
- * @param value Value.
- */
-Meta::Meta(std::string&& key, Literal&& value) : _key(std::move(key)), _value(std::move(value))
-{
-}
-
-/**
  * Returns the string representation of the meta information.
  *
  * @return String representation.
@@ -56,6 +36,26 @@ const std::string& Meta::getKey() const
 const Literal& Meta::getValue() const
 {
 	return _value;
+}
+
+/**
+ * Set the key of a single meta information.
+ *
+ * @param key Key.
+ */
+void Meta::setKey(const std::string& key)
+{
+	_key = key;
+}
+
+/**
+ * Sets the value of a single meta information.
+ *
+ * @param value Value.
+ */
+void Meta::setValue(const Literal& value)
+{
+	_value = value;
 }
 
 }

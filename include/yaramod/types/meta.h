@@ -21,10 +21,10 @@ class Meta
 public:
 	/// @name Constructors
 	/// @{
-	explicit Meta(const std::string& key, Literal&& value);
-	explicit Meta(std::string&& key, Literal&& value);
-	Meta(Meta&& meta) = default;
+	template <typename KeyT, typename LiteralT>
+	explicit Meta(KeyT&& key, LiteralT&& value) : _key(std::forward<KeyT>(key)), _value(std::forward<LiteralT>(value)) {}
 	Meta(const Meta& meta) = default;
+	Meta(Meta&& meta) = default;
 	/// @}
 
 	/// @name Assignment
@@ -42,6 +42,12 @@ public:
 	/// @{
 	const std::string& getKey() const;
 	const Literal& getValue() const;
+	/// @}
+
+	/// @name Setter methods
+	/// @{
+	void setKey(const std::string& key);
+	void setValue(const Literal& value);
 	/// @}
 
 private:

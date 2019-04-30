@@ -39,6 +39,7 @@ public:
 	Literal(Literal&& literal) = default;
 	Literal(const Literal& literal) = default;
 	Literal& operator=(Literal&& literal) = default;
+	Literal& operator=(const Literal& literal) = default;
 	/// @}
 
 	/// @name String representation

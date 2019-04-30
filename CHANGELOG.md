@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Class `Rule` now has interface for direct manipulation with meta of the rules.
+
 # v2.5.0 (2019-04-21)
 
 * New: Expression builder now contains `doubleVal` for building double expressions ([#22](https://github.com/avast/yaramod/issues/22)).
