@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Fix: Support for anonymous string has been fixed ([#26](https://github.com/avast/yaramod/issues/26)).
+
 # v2.6.0 (2019-04-30)
 
 * New: Class `Rule` now has interface for direct manipulation with meta of the rules.
