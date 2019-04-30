@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.7.0 (2019-04-30)
 
 * New: Methods for manipulation of rule name and tags ([#27](https://github.com/avast/yaramod/issues/27)).
 * Fix: Support for anonymous string has been fixed ([#26](https://github.com/avast/yaramod/issues/26)).

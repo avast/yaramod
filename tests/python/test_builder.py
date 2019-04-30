@@ -444,7 +444,7 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text, '''rule rule_with_divide_condition {
+        self.assertEqual(yara_file.text, r'''rule rule_with_divide_condition {
 	condition:
 		filesize \ 100
 }''')
