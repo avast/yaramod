@@ -9,6 +9,7 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
+#include <pegtl/tao/pegtl.hpp>
 
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/symbol.h"
