@@ -291,6 +291,8 @@ bool PeModule::initialize()
 
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_signatures", Type::Int));
 
+	peStruct->addAttribute(std::make_shared<FunctionSymbol>("iconhash", Type::String));
+
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("rva_to_offset", Type::Int, Type::Int));
 
 	_structure = peStruct;
