@@ -1,5 +1,9 @@
 # Changelog
 
+# v2.8.0 (2019-05-16)
+
+* New: Added support for `pe.iconhash()` function.
+
 # v2.7.0 (2019-04-30)
 
 * New: Methods for manipulation of rule name and tags ([#27](https://github.com/avast/yaramod/issues/27)).
