@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "yaramod/parser/parser.h"
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
 
@@ -356,7 +357,7 @@ bool ParserDriver::isAlreadyIncluded(const std::string& includePath)
 	return _includedFilesCache.find(absolutePath(includePath)) != _includedFilesCache.end();
 }
 
-bool ParserDriver::includeFileImpl(const std::string& includePath)
+bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravit
 {
 	if (_mode == ParserMode::IncludeGuarded && isAlreadyIncluded(includePath))
 		return true;
