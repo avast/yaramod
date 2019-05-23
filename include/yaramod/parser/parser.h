@@ -1,17 +1,69 @@
-// Copyright (c) 2014-2019 Dr. Colin Hirsch and Daniel Frey
-// Please see LICENSE for license or visit https://github.com/taocpp/PEGTL/
+/**
+ * @file src/parser/parser_driver.h
+ * @brief Declaration of class ParserDriver.
+ * @copyright (c) 2019 Avast Software, licensed under the MIT license
+ */
+
+#pragma once
 
 #include <iostream>
+#include <memory>
+#include <vector>
 #include <string>
 #include <fstream>
 
 #include <pegtl/tao/pegtl.hpp>
 
-namespace pegtl = TAO_PEGTL_NAMESPACE;
+#include "yaramod/builder/yara_rule_builder.h"
+#include "yaramod/parser/parser_driver.h"
 
-namespace syntax
-{
-   using namespace pegtl;
+namespace pgl = TAO_PEGTL_NAMESPACE;
+
+namespace yaramod {
+
+class ParserDriver;
+
+namespace pp {
+
+namespace gr {
+
+   using namespace pgl;
+
+   struct _number : plus< ranges< '0', '9' > > {};
+   struct _word : plus< sor< ranges< 'a', 'z',  'A', 'Z', '0', '9' >, one<'='>, string< '/','"' >, one<'_'> > > {};
+   struct _space : star< one <' '> > {};
+   struct indent : seq< string< ' ',' ',' ',' ' > > {};
+
+   struct rule_name : _word {};
+   struct tag : _word {};
+
+   struct meta_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
+   struct meta_key : star< ranges< 'a', 'z', 'A', 'Z', '_'> > {};
+   struct meta_entry : seq< indent, indent, meta_key, string< ' ','=',' ','"' >, meta_value, one<'"'>, eol > {};
+   struct meta : seq< indent, string< 'm','e','t','a',':' >, eol, plus< meta_entry >  > {};
+
+   struct strings_modifier : seq< one< ' ' >, sor< string< 'a','s','c','i','i' >, string< 'f','u','l','l','w','o','r','d' >, string< 'n','o','c','a','s','e' >, string< 'w','i','d','e' > > > {};
+   struct slash : seq< plus< one< '\\' > >, pgl::any > {};
+   struct strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
+   struct strings_key : seq< one< '$' >, ranges< 'a', 'z' >, _number > {};    //$?<cislo>
+   struct strings_entry : seq< indent, indent, strings_key, string< ' ', '=', ' ', '"' >, strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
+   struct strings : seq< indent, string< 's','t','r','i','n','g','s',':'>, eol, plus< strings_entry > > {};
+
+
+   struct condition_line : until< eol, pgl::any > {};
+   struct condition_entry : seq< indent, indent, condition_line > {};
+   struct condition : seq< indent, string< 'c','o','n','d','i','t','i','o','n',':' >, eol, plus< condition_entry > > {};
+
+   struct grammar : seq<
+   string< 'r','u','l','e',' ' >, rule_name, _space,
+   sor< eol, seq< _space, one<':'>, plus< seq< _space, tag > >, _space,  opt< eol > > >,
+   one< '{' >, eol,
+   meta,
+   opt< strings >,
+   condition,
+   one< '}' >, eof >
+   {};
+
 
    struct token
    {
@@ -125,53 +177,6 @@ namespace syntax
       }
    };
 
-   struct _number : plus< ranges< '0', '9' > > {};
-   struct _word : plus< sor< range< 'a', 'z'>, range< 'A', 'Z'>, range< '0', '9'>, one<'='>, string< '/', '"' >, one< '_' > > > {};
-   struct _space : star< one <' '> > {};
-   struct indent : seq< string< ' ',' ',' ',' ' > > {};
-
-   struct rule_name : _word {};
-   struct tag : _word {};
-
-   struct meta_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
-   struct meta_key : star< ranges< 'a', 'z', 'A', 'Z', '_'> > {};
-   struct meta_entry : seq< indent, indent, meta_key, string< ' ','=',' ','"' >, meta_value, one<'"'>, eol > {};
-   struct meta : seq< indent, string< 'm','e','t','a',':' >, eol, plus< meta_entry >  > {};
-
-   struct strings_modifier : seq< one< ' ' >, sor< string< 'a','s','c','i','i' >, string< 'f','u','l','l','w','o','r','d' >, string< 'n','o','c','a','s','e' >, string< 'w','i','d','e' > > > {};
-   struct slash : seq< plus< one< '\\' > >, any > {};
-   struct strings_value : until< at< one< '"' > >, sor< slash, any > > {};
-   struct strings_key : seq< one< '$' >, ranges< 'a', 'z' >, _number > {};    //$?<cislo>
-   struct strings_entry : seq< indent, indent, strings_key, string< ' ', '=', ' ', '"' >, strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
-   struct strings : seq< indent, string< 's','t','r','i','n','g','s',':'>, eol, plus< strings_entry > > {};
-
-
-   struct condition_line : until< eol, any > {};
-   struct condition_entry : seq< indent, indent, condition_line > {};
-   struct condition : seq< indent, string< 'c','o','n','d','i','t','i','o','n',':' >, eol, plus< condition_entry > > {};
-
-   struct grammar : seq< string< 'r','u','l','e',' ' >, rule_name, _space, sor< eol, seq< _space, one<':'>, plus< seq< _space, tag > >, _space,  opt< eol > > >,
-   one< '{' >, eol,
-   meta,
-   opt< strings >,
-   condition,
-   one< '}' >, eof >
-   {};
-
-   // clang-format on
-
-   struct State
-   {
-      std::string name;
-      std::vector< std::string > tags;
-      std::vector< std::string > meta_keys;
-      std::vector< std::string > meta_values;
-      std::vector< std::vector< token::yytokentype > > strings_tokens;
-      std::vector< std::string > strings_keys;
-      std::vector< std::string > strings_values;
-      std::vector< std::string > condition;
-   };
-
    template< typename Rule >
    struct action {};
 
@@ -179,9 +184,10 @@ namespace syntax
    struct action< rule_name >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, yaramod::YaraRuleBuilder& builder)
       {
-         state.name = in.string();
+//         state.name = in.string();
+         builder.withName(in.string());
       }
    };
 
@@ -189,10 +195,10 @@ namespace syntax
    struct action< meta_key >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "'Called meta_key action with '" << in.string() << std::endl;
-         state.meta_keys.push_back(in.string());
+//         state.meta_keys.push_back(in.string());
       }
    };
 
@@ -200,10 +206,10 @@ namespace syntax
    struct action< tag >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "'Called tag action with '" << in.string() << std::endl;
-         state.tags.push_back(in.string());
+//         state.tags.push_back(in.string());
       }
    };
 
@@ -211,10 +217,10 @@ namespace syntax
    struct action< meta_value >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "'Called meta_value action with '" << in.string() << std::endl;
-         state.meta_values.push_back(in.string());
+//         state.meta_values.push_back(in.string());
       }
    };
 
@@ -222,10 +228,10 @@ namespace syntax
    struct action< condition_line >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "Called action condition_line with '" << in.string() << "'" << std::endl;
-         state.condition.push_back(in.string());
+//        state.condition.push_back(in.string());
       }
    };
 
@@ -233,10 +239,10 @@ namespace syntax
    struct action< strings_modifier >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
-         state.strings_tokens.back().push_back(token::type(in.string()));
+//         state.strings_tokens.back().push_back(token::type(in.string()));
       }
    };
 
@@ -244,7 +250,7 @@ namespace syntax
    struct action< strings_entry >
    {
       template< typename Input >
-      static void apply(const Input& in, const State& /*unused*/)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "Called action strings_entry with '" << in.string() << "'" << std::endl;
       }
@@ -254,11 +260,11 @@ namespace syntax
    struct action< strings_key >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "Called action strings_key with '" << in.string() << "'" << std::endl;
-         state.strings_keys.push_back(in.string());
-         state.strings_tokens.emplace_back();
+//         state.strings_keys.push_back(in.string());
+//         state.strings_tokens.emplace_back();
       }
    };
 
@@ -266,63 +272,87 @@ namespace syntax
    struct action< strings_value >
    {
       template< typename Input >
-      static void apply(const Input& in, State& state)
+      static void apply(const Input& in, const yaramod::YaraRuleBuilder& /*unused*/)
       {
          std::cout << "Called action strings_value with '" << in.string() << "'" << std::endl;
-         state.strings_values.push_back(in.string());
+//         state.strings_values.push_back(in.string());
       }
    };
 
-   struct Parser {
-      State state;
-      std::ifstream in_stream;
-      uint max_size = 0;
+} //namespace gr
 
-      Parser(std::ifstream&& stream, uint max_size)
-         : in_stream(std::move(stream))
+
+   class Parser {
+      ParserDriver& driver;
+      YaraRuleBuilder builder;
+      std::vector< std::unique_ptr< std::istream > > streams;
+      std::istream* initial_stream = nullptr;
+      uint max_size = 0;
+      int current_stream = -1;
+
+   public:
+
+      Parser(ParserDriver& driver, std::istream& input, uint max_size)
+         : driver(driver)
+         , initial_stream(&input)
          , max_size(max_size)
       {
+         current_stream = -1;
       }
 
-      Parser(const std::string& source_file, uint max_size)
-         : max_size(max_size)
+      Parser(ParserDriver& driver, const std::string& input_path, uint max_size)
+         : driver(driver)
+//         , initial_stream(nullptr)
       {
-         in_stream.open(source_file, std::ifstream::in);
+         includeStream(input_path, max_size);
+         current_stream = 0;
       }
 
-//    Parser( const std::string& input )
-//    {
-//    }
+      void includeStream(std::unique_ptr< std::istream >&& input, uint max_size) { //nahrada lexer::includeFile
+         streams.push_back(std::move(input));
+         this->max_size = max_size;
+      }
+
+      void includeStream(const std::string& source_file, uint max_size) {
+         auto ptr = std::make_unique< std::ifstream >( source_file, std::ifstream::in );
+         streams.push_back(std::move(ptr));
+         this->max_size = max_size;
+      }
+
+      std::istream* nextStream() {
+         return initial_stream;
+         /*if(initial_stream) TODO
+         {
+            if(current_stream_id == -1)
+            {
+               current_stream_id = 0;
+               return initial_stream;
+            }
+            else
+            {
+               ++current_stream_id;
+            }
+         }
+         else return streams[0].get();*/
+      }
 
       int parse() {
-         auto input = pegtl::istream_input(in_stream, max_size, "from_content");
+         std::cout << "Parser::parse called" << std::endl;
+         auto stream = nextStream();
+         auto input = pgl::istream_input(*stream, max_size, "from_content");
 
-         auto result = pegtl::parse< grammar, action >(input);
+         auto result = pgl::parse< gr::grammar, gr::action >(input, builder);
+         std::unique_ptr<Rule> rule = builder.get();
+         //driver->_file.addRule(rule);
+
          if(result)
             std::cout << "parsing OK" << std::endl;
          else
             std::cout << "parsing failed" << std::endl;
+
          return result;
-      }
-
-      void printResultForDebug() { //TODO: DELETE BEFORE DEPLOY
-         std::cout << "Parsed rule " << state.name << "with the following tags: " << std::endl;
-         for(const auto& tag : state.tags)
-            std::cout << tag << ", ";
-         std::cout << "and metas: " << std::endl;
-         for(size_t i = 0; i < state.meta_keys.size(); ++i)
-            std::cout << "Meta " << state.meta_keys[i] << " has value " << state.meta_values[i] << "." << std::endl;
-
-         std::cout << "Parsed strings:" << std::endl;
-         for(size_t i = 0; i < state.strings_keys.size(); ++i) {
-            std::cout << "String " << state.strings_keys[i] << " has value " << state.strings_values[i] << " and modifiers:" << std::endl;
-               for(const auto& modifier : state.strings_tokens[i])
-                  std::cout << modifier << std::endl;
-         }
-         std::cout << "Parsed condition:" << std::endl;
-         for(const auto& line : state.condition)
-            std::cout << line;
       }
    };
 
-}  // namespace syntax
+}  // namespace pp
+}  // namespace yaramod
