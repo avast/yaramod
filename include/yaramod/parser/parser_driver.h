@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <pegtl/tao/pegtl.hpp>
 
+#include "yaramod/parser/parser.h"
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/yara_file.h"
@@ -58,6 +59,7 @@ class ParserDriver
 {
 	friend class yy::Lexer;
 	friend class yy::Parser;
+   friend class pp::Parser;
 
 public:
 	/// @name Constructors
@@ -142,9 +144,11 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	yy::Lexer _lexer; ///< Flex lexer
-	yy::Parser _parser; ///< Bison parser
+	yy::Lexer _lexer; ///< Flex lexer //TODO:delete
+	yy::Parser _parser; ///< Bison parser //TODO:delete
 	yy::location _loc; ///< Location
+
+   pp::Parser pegtl_parser; ///< PEGTL parser
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names

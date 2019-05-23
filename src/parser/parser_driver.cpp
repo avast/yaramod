@@ -6,7 +6,6 @@
 
 #include <string>
 
-#include "yaramod/parser/parser.h"
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
 
@@ -18,8 +17,8 @@ namespace yaramod {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this), _loc(nullptr),
+	pegtl_parser(*this, filePath, 100000), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
 	_startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
@@ -38,8 +37,8 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this), _loc(nullptr),
+	pegtl_parser(*this, input, 100000), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
@@ -103,9 +102,12 @@ const YaraFile& ParserDriver::getParsedFile() const
  */
 bool ParserDriver::parse()
 {
+	std::cout << "ParserDriver::parse() called" << std::endl;
 	if (!_valid)
 		return false;
 
+
+	std::cout << "PEGTL parser::parse() output: " << pegtl_parser.parse() << std::endl;
 	return _parser.parse() == 0;
 }
 
