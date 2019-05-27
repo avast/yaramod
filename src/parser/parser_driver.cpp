@@ -11,14 +11,175 @@
 
 namespace yaramod {
 
+namespace gr {
+	template<>
+   struct action< rule_name >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         d.builder.withName(in.string());
+      }
+   };
+
+   template<>
+   struct action< tag >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         d.builder.withTag(in.string());
+      }
+   };
+
+   template<>
+   struct action< meta_key >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Saving h.meta_key= " << in.string() << std::endl;
+         d.meta_key = in.string();
+      }
+   };
+
+   template<>
+   struct action< meta_string_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Called meta_string_value action with '" << in.string() << std::endl;
+         d.builder.withStringMeta(d.meta_key, in.string());
+      }
+   };
+
+   template<>
+   struct action< meta_uint_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Called meta_uint_value action with '" << in.string() << std::endl;
+         int64_t meta_value = std::stoi(in.string());
+         d.builder.withUIntMeta(d.meta_key, meta_value);
+      }
+   };
+
+   template<>
+   struct action< meta_negate_int_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Called meta_negate_int_value action with '" << in.string() << std::endl;
+         int64_t meta_value = (-1) * std::stoi(in.string());
+         d.builder.withIntMeta(d.meta_key, meta_value);
+      }
+   };
+
+   template<>
+   struct action< meta_hex_uint_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Called meta_hex_uint_value action with '" << in.string() << std::endl;
+         int64_t meta_value = std::stoi(in.string());
+         d.builder.withUIntMeta(d.meta_key, meta_value);
+      }
+   };
+
+   template<>
+   struct action< meta_bool_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cerr << "'Called meta_bool_value action with '" << in.string() << std::endl;
+         if(in.string() == "true")
+            d.builder.withBoolMeta(d.meta_key, true);
+         else if(in.string() == "false")
+            d.builder.withBoolMeta(d.meta_key, false);
+         else assert(false && "meta_bool_value value must match 'true' or 'false' only");
+      }
+   };
+
+   template<>
+   struct action< condition_line >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cerr << "Called action condition_line with '" << in.string() << "'" << std::endl;
+//        state.condition.push_back(in.string());
+      }
+   };
+
+   template<>
+   struct action< strings_modifier >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cerr << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
+//         state.strings_tokens.back().push_back(token::type(in.string()));
+      }
+   };
+
+   template<>
+   struct action< strings_entry >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cerr << "Called action strings_entry with '" << in.string() << "'" << std::endl;
+      }
+   };
+
+   template<>
+   struct action< strings_key >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cerr << "Called action strings_key with '" << in.string() << "'" << std::endl;
+//         state.strings_keys.push_back(in.string());
+//         state.strings_tokens.emplace_back();
+      }
+   };
+
+   template<>
+   struct action< strings_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cerr << "Called action strings_value with '" << in.string() << "'" << std::endl;
+//         state.strings_values.push_back(in.string());
+      }
+   };
+
+   template<>
+   struct action< end_of_rule >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+      	(void) in;
+         d.finishRule();
+      }
+   };
+} // namespace gr
+
 /**
  * Constructor.
  *
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this), _loc(nullptr),
-	pegtl_parser(*this, filePath, 100000), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr),
+   current_stream(0), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
 	_startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
@@ -37,8 +198,8 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this), _loc(nullptr),
-	pegtl_parser(*this, input, 100000), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr),
+	initial_stream(&input), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
@@ -50,20 +211,20 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(p
  *
  * @return Lexer.
  */
-yy::Lexer& ParserDriver::getLexer()
-{
-	return _lexer;
-}
+//yy::Lexer& ParserDriver::getLexer()
+//{
+//	return _lexer;
+//}
 
 /**
  * Returns the parser.
  *
  * @return parser.
  */
-yy::Parser& ParserDriver::getParser()
-{
-	return _parser;
-}
+//yy::Parser& ParserDriver::getParser()
+//{
+//	return _parser;
+//}
 
 /**
  * Returns the location in the file.
@@ -95,6 +256,15 @@ const YaraFile& ParserDriver::getParsedFile() const
 	return _file;
 }
 
+
+std::istream* ParserDriver::currentStream()
+{
+	if(initial_stream)
+		return initial_stream;
+	else
+	   return _includedFiles[0].get();
+}
+
 /**
  * Parses the input stream or file.
  *
@@ -102,13 +272,22 @@ const YaraFile& ParserDriver::getParsedFile() const
  */
 bool ParserDriver::parse()
 {
-	std::cout << "ParserDriver::parse() called" << std::endl;
+	//std::cout << "ParserDriver::parse() called" << std::endl;
 	if (!_valid)
 		return false;
 
+	std::cerr << "ParserDriver::parse called" << std::endl;
+   auto stream = currentStream();
+   auto input = pgl::istream_input(*stream, max_size, "from_content");
 
-	std::cout << "PEGTL parser::parse() output: " << pegtl_parser.parse() << std::endl;
-	return _parser.parse() == 0;
+   auto result = pgl::parse< gr::grammar, gr::action >(input, *this);
+
+   if(result)
+      std::cerr << "parsing OK" << std::endl;
+   else
+      std::cerr << "parsing failed" << std::endl;
+
+	return result == 0;
 }
 
 /**
@@ -181,7 +360,8 @@ bool ParserDriver::includeEnd()
 		_includedFileLocs.pop_back();
 	}
 
-	return _lexer.includeEnd();
+	//return _lexer.includeEnd();
+	return false; //TODO fix this
 }
 
 /**
@@ -210,6 +390,12 @@ void ParserDriver::addRule(Rule&& rule)
 	if (!_includedFileNames.empty())
 		rule.setLocation(_includedFileNames.back(), _startOfRule);
 	_file.addRule(std::move(rule));
+}
+
+void ParserDriver::finishRule()
+{
+   auto rule = *(builder.get());
+   addRule(std::move(rule));
 }
 
 /**
@@ -370,7 +556,8 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 	if (!includedFile->is_open())
 		return false;
 
-	_lexer.includeFile(includedFile.get());
+	//_lexer.includeFile(includedFile.get());
+
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
 	_includedFileLocs.push_back(_loc);
@@ -382,4 +569,21 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 	return true;
 }
 
+/*
+bool ParserDriver::includeEnd()
+{
+	// yypop_buffer_state();
+	if (!YY_CURRENT_BUFFER)
+		return false;
+
+	return true;
 }
+
+void ParserDriver::includeFile(std::istream* input)
+{
+	//vlastni rozhrani kterym loadnu treba jiny file s jinym pravidlem
+	//tady mas istream, ted parsuj z neho
+	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
+}
+*/
+} //namespace yaramod
