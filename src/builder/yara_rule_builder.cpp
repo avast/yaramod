@@ -104,7 +104,7 @@ YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
 YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const std::string& value)
 {
 	if(key == "" || value == "")
-		throw RuleBuilderError("Error: Meta key and value must be non-empty.");
+		throw RuleBuilderError("Error: String-Meta key and value must be non-empty.");
 	_metas.emplace_back(key, Literal(value, Literal::Type::String));
 	return *this;
 }
@@ -119,6 +119,8 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
  */
 YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value)
 {
+	if(key == "")
+		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
 	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
 	return *this;
 }
@@ -133,6 +135,8 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
  */
 YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value)
 {
+	if(key == "")
+		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
 	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
 	return *this;
 }
@@ -147,6 +151,8 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
  */
 YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value)
 {
+	if(key == "")
+		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
 	_metas.emplace_back(key, Literal(numToStr(value, std::hex, true), Literal::Type::Int));
 	return *this;
 }
@@ -161,6 +167,8 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
  */
 YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool value)
 {
+	if(key == "")
+		throw RuleBuilderError("Error: Bool-Meta key must be non-empty.");
 	_metas.emplace_back(key, Literal(value));
 	return *this;
 }
@@ -176,6 +184,8 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
  */
 YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const std::string& value, std::uint32_t mods)
 {
+	if(id == "" || value == "")
+		throw RuleBuilderError("Error: Plain string id and value must be non-empty.");
 	auto plainString = std::make_shared<PlainString>(value);
 	plainString->setIdentifier(id);
 	plainString->setModifiers(mods);
@@ -193,6 +203,8 @@ YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const s
  */
 YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString)
 {
+	if(id == "" || hexString->getText() == "")
+		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
 	hexString->setIdentifier(id);
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));
 	return *this;
@@ -214,6 +226,8 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::string& value,
 		const std::string& suffixMods, std::uint32_t mods)
 {
+	if(id == "" || value == "")
+		throw RuleBuilderError("Error: Regexp id and value must be non-empty.");
 	auto regexp = std::make_shared<Regexp>(std::make_shared<RegexpText>(value));
 	regexp->setIdentifier(id);
 	regexp->setModifiers(mods);
