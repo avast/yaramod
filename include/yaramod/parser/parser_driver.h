@@ -13,7 +13,6 @@
 #include <set>
 
 #include <pegtl/tao/pegtl.hpp>
-#include <pegtl/tao/pegtl/internal/rules.hpp>
 
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/parser/lexer.h"
@@ -30,6 +29,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    using namespace pgl;
 
    struct _number : plus< pgl::digit > {};
+   struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
    struct ws : one< ' ', '\t' > {};
    struct ws_enter : one< ' ', '\t', '\n', '\b' > {};
@@ -53,7 +53,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
    struct strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
-   struct strings_key : seq< one< '$' >, ranges< 'a', 'z' >, _number > {};    //$?<cislo>
+   struct strings_key : seq< one< '$' >, _identificator > {};    //$?<cislo>
    struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = \""), strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
@@ -70,13 +70,16 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct grammar :
    seq<
-   star<
-	   seq<
-	   	star<line>,
-	   	TAO_PEGTL_STRING("rule "), rule_name, opt_space,
-		   sor< line,
-		   	seq<
-		   		opt_space, one<':'>, plus< seq< opt_space, tag > >, opt_space, opt< line > >,
+	   star<
+		   seq<
+		   	star<line>,
+		   	TAO_PEGTL_STRING("rule "), rule_name, opt_space,
+			   sor< line,
+			   	seq<
+			   		opt_space, one<':'>,
+			   		plus< seq< opt_space, tag > >,
+			   		opt_space, opt< line >
+		   		>,
 		   		opt_space
 	   		>,
 	   		one< '{' >, line,
@@ -86,7 +89,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 	   		end_of_rule
    		>
    	>,
-   end_of_file
+	   end_of_file
 	>
    {};
 
@@ -370,6 +373,7 @@ private:
    std::istream* initial_stream = nullptr;
 
 	std::string meta_key;
+	std::string string_key;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names

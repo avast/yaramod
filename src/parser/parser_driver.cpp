@@ -177,9 +177,10 @@ namespace gr {
    struct action< strings_key >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      static void apply(const Input& in, ParserDriver& d)
       {
          std::cout << "Called action strings_key with '" << in.string() << "'" << std::endl;
+         d.string_key = in.string();
 //         state.strings_keys.push_back(in.string());
 //         state.strings_tokens.emplace_back();
       }
@@ -189,10 +190,21 @@ namespace gr {
    struct action< strings_value >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      static void apply(const Input& in, ParserDriver& d)
       {
          std::cout << "Called action strings_value with '" << in.string() << "'" << std::endl;
+         d.builder.withPlainString(d.string_key, in.string(), String::Modifiers::Ascii);
 //         state.strings_values.push_back(in.string());
+      }
+   };
+
+   template<>
+   struct action< strings >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cout << "Called action strings with '" << in.string() << "'" << std::endl;
       }
    };
 
