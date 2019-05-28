@@ -114,7 +114,9 @@ namespace gr {
             d.builder.withBoolMeta(d.meta_key, true);
          else if(in.string() == "false")
             d.builder.withBoolMeta(d.meta_key, false);
-         else assert(false && "meta_bool_value value must match 'true' or 'false' only");
+         else
+         	assert(false && "meta_bool_value value must match 'true' or 'false' only");
+         d.meta_key = "";
       }
    };
 
@@ -156,10 +158,11 @@ namespace gr {
    struct action< strings_modifier >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      static void apply(const Input& in, ParserDriver& d)
       {
          std::cout << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
-//         state.strings_tokens.back().push_back(token::type(in.string()));
+         d.str_modifiers |= token::type(in.string());
+         std::cout << "Changed d.str_modifiers to " << d.str_modifiers << std::endl;
       }
    };
 
@@ -167,9 +170,14 @@ namespace gr {
    struct action< strings_entry >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Called action strings_entry with '" << in.string() << "'" << std::endl;
+         std::cout << "XXX Called action strings_value with '" << in.string() << "'"
+                   << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
+         d.builder.withPlainString(d.str_key, d.str_value, d.str_modifiers);
+         d.str_key = "";
+         d.str_value = "";
+         d.str_modifiers = 0;
       }
    };
 
@@ -180,9 +188,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          std::cout << "Called action strings_key with '" << in.string() << "'" << std::endl;
-         d.string_key = in.string();
-//         state.strings_keys.push_back(in.string());
-//         state.strings_tokens.emplace_back();
+         d.str_key = in.string();
       }
    };
 
@@ -192,9 +198,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Called action strings_value with '" << in.string() << "'" << std::endl;
-         d.builder.withPlainString(d.string_key, in.string(), String::Modifiers::Ascii);
-//         state.strings_values.push_back(in.string());
+         d.str_value = in.string();
       }
    };
 
