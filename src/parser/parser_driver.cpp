@@ -172,12 +172,28 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "XXX Called action strings_value with '" << in.string() << "'"
+         std::cout << "XXX Called action plain_strings_entry with '" << in.string() << "'"
                    << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
-         d.builder.withPlainString(d.str_key, d.str_value, d.str_modifiers);
+         d.builder.withPlainString(d.str_key, d.plain_str_value, d.str_modifiers);
          d.str_key = "";
-         d.str_value = "";
-         d.str_modifiers = 0;
+         d.plain_str_value = "";
+         d.str_modifiers = 0u;
+      }
+   };
+
+   template<>
+   struct action< hex_strings_entry >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cout << "XXX Called action hex_strings_entry with '" << in.string() << "'"
+                   << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
+         auto hex = std::make_shared<HexString>(std::move(HexString(d.hex_str_value)));
+         d.builder.withHexString(d.str_key, hex);
+         d.str_key = "";
+         d.hex_str_value = "";
+         d.str_modifiers = 0u;
       }
    };
 
@@ -198,7 +214,18 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         d.str_value = in.string();
+         d.plain_str_value = in.string();
+      }
+   };
+
+//TODO: make following action< hex_strings_value > use action< plain_strings_value >
+   template<>
+   struct action< hex_strings_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         d.hex_str_value = ""; //TODO fix this (in -> Yaramod hexstring)
       }
    };
 
