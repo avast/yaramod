@@ -25,6 +25,19 @@ namespace pgl = TAO_PEGTL_NAMESPACE;
 
 namespace yaramod {
 
+/**
+ * Represents error during parsing.
+ */
+class ParserError : public YaramodError{
+public:
+	ParserError(const std::string& errorMsg)
+		: YaramodError(errorMsg)
+	{
+	}
+	ParserError(const ParserError&) = default;
+};
+
+
 namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    using namespace pgl;
@@ -194,16 +207,16 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          INVALID = 16384
       };
 
-      static yytokentype type( const std::string& str ) {
+      static String::Modifiers type( const std::string& str ) {
          if(str == " ascii")
-            return token::ASCII;
+            return String::Modifiers::Ascii;
          if(str == " wide")
-            return token::WIDE;
+            return String::Modifiers::Wide;
          if(str == " nocase")
-            return token::NOCASE;
+            return String::Modifiers::Nocase;
          if(str == " fullword")
-            return token::FULLWORD;
-         return token::INVALID;
+            return String::Modifiers::Fullword;
+         throw ParserError("Invalid string modifier.");
       }
    };
 
@@ -213,37 +226,6 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
 
 } //namespace gr
-/*
-class Parser {
-
-public:
-
-   void includeStream(std::unique_ptr< std::istream >&& input) { //nahrada lexer::includeFile
-      streams.push(std::move(input));
-   }
-
-   void includeStream(const std::string& source_file) {
-      auto ptr = std::make_unique< std::ifstream >( source_file, std::ifstream::in );
-      streams.push(std::move(ptr));
-      current_stream_id++;
-   }
-
-
-
-};
-*/
-
-/**
- * Represents error during parsing.
- */
-class ParserError : public YaramodError{
-public:
-	ParserError(const std::string& errorMsg)
-		: YaramodError(errorMsg)
-	{
-	}
-	ParserError(const ParserError&) = default;
-};
 
 /**
  * Specifies different parsing modes.
@@ -363,7 +345,9 @@ private:
    std::istream* initial_stream = nullptr;
 
 	std::string meta_key;
-	std::string string_key;
+	std::string str_key;
+	std::string str_value;
+	uint32_t str_modifiers;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
