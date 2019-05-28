@@ -59,6 +59,8 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
  */
 YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
 {
+	if(name == "")
+		throw RuleBuilderError("Error: name must be non-empty.");
 	_name = name;
 	return *this;
 }
@@ -85,6 +87,8 @@ YaraRuleBuilder& YaraRuleBuilder::withModifier(Rule::Modifier mod)
  */
 YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
 {
+	if(tag == "")
+		throw RuleBuilderError("Error: tag must be non-empty.");
 	_tags.push_back(tag);
 	return *this;
 }
@@ -99,6 +103,8 @@ YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
  */
 YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const std::string& value)
 {
+	if(key == "" || value == "")
+		throw RuleBuilderError("Error: Meta key and value must be non-empty.");
 	_metas.emplace_back(key, Literal(value, Literal::Type::String));
 	return *this;
 }
