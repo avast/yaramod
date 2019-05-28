@@ -10,6 +10,8 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/plain_string.h"
 
+#include <pegtl/tao/pegtl/analyze.hpp>
+
 using namespace ::testing;
 
 namespace yaramod {
@@ -27,6 +29,13 @@ public:
 
 	std::stringstream input;
 };
+
+TEST_F(ParserTests,
+GrammarAnalysis) {
+	const std::size_t issues_found = tao::pegtl::analyze<gr::grammar>();
+
+	EXPECT_EQ(0u, issues_found);
+}
 
 TEST_F(ParserTests,
 EmptyInputWorks) {
