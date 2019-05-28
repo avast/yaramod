@@ -66,9 +66,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
-   struct strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
+   struct hex_strings_value : until< at< one< '}' > >, sor< slash, pgl::any > > {};
+   struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
    struct strings_key : seq< one< '$' >, _identificator > {};    //$?<cislo>
-   struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = \""), strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
+   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< strings_modifier > > {};
+   struct hex_strings_entry : seq< at< one< '{' > >, hex_strings_value, at< one<'}'> >, star< strings_modifier > > {};
+   struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor<plain_strings_entry, hex_strings_entry>, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
    // condition must read all lines until '}'.
