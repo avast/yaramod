@@ -167,7 +167,7 @@ namespace gr {
    };
 
    template<>
-   struct action< strings_entry >
+   struct action< plain_strings_entry >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
@@ -193,7 +193,7 @@ namespace gr {
    };
 
    template<>
-   struct action< strings_value >
+   struct action< plain_strings_value >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
