@@ -98,8 +98,8 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          std::cout << "'Called meta_hex_uint_value action with '" << in.string() << std::endl;
-         int64_t meta_value = std::stoi(in.string());
-         d.builder.withUIntMeta(d.meta_key, meta_value);
+         int64_t meta_value = std::stoi(in.string(), nullptr, 16);
+         d.builder.withHexIntMeta(d.meta_key, meta_value);
       }
    };
 
