@@ -15,6 +15,7 @@
 #include <pegtl/tao/pegtl.hpp>
 
 #include "yaramod/builder/yara_rule_builder.h"
+#include "yaramod/yaramod_error.h"
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/yara_file.h"
@@ -235,24 +236,13 @@ public:
 /**
  * Represents error during parsing.
  */
-class ParserError : public std::exception
-{
+class ParserError : public YaramodError{
 public:
-	ParserError(const std::string& errorMsg) : _errorMsg(errorMsg) {}
+	ParserError(const std::string& errorMsg)
+		: YaramodError(errorMsg)
+	{
+	}
 	ParserError(const ParserError&) = default;
-
-	const std::string& getErrorMessage() const noexcept
-	{
-		return _errorMsg;
-	}
-
-	virtual const char* what() const noexcept override
-	{
-		return _errorMsg.c_str();
-	}
-
-private:
-	std::string _errorMsg;
 };
 
 /**

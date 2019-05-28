@@ -8,10 +8,23 @@
 
 #include <string>
 
+#include <yaramod/yaramod_error.h>
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/rule.h"
 
 namespace yaramod {
+
+/**
+ * Represents error during building.
+ */
+class RuleBuilderError : public YaramodError {
+	public:
+	RuleBuilderError(const std::string& errorMsg)
+		: YaramodError(errorMsg)
+	{
+	}
+	RuleBuilderError(const RuleBuilderError&) = default;
+};
 
 /**
  * Class representing builder of YARA rules. You use this builder
@@ -38,6 +51,8 @@ public:
 	YaraRuleBuilder& withName(const std::string& name);
 	YaraRuleBuilder& withModifier(Rule::Modifier mod);
 	YaraRuleBuilder& withTag(const std::string& tag);
+
+	//TODO: add methods with<...> accepting string r-values (std::string&&)
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
 	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value);
