@@ -17,6 +17,7 @@
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/yaramod_error.h"
 #include "yaramod/parser/lexer.h"
+#include "yaramod/types/hex_string.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/yara_file.h"
 #include "yaramod/yy/yy_parser.hpp"
@@ -66,10 +67,10 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
-   struct hex_strings_value : until< at< one< '}' > >, sor< slash, pgl::any > > {};
+   struct hex_strings_value : until< one< '}' >, sor< slash, pgl::any > > {};
    struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
    struct strings_key : seq< one< '$' >, _identificator > {};    //$?<cislo>
-   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< strings_modifier > > {};
+   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'> > {};
    struct hex_strings_entry : seq< at< one< '{' > >, hex_strings_value, at< one<'}'> >, star< strings_modifier > > {};
    struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor<plain_strings_entry, hex_strings_entry>, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
@@ -349,8 +350,9 @@ private:
 
 	std::string meta_key;
 	std::string str_key;
-	std::string str_value;
-	uint32_t str_modifiers;
+	std::string plain_str_value;
+	std::string hex_str_value;
+	uint32_t str_modifiers = 0u;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
@@ -372,4 +374,4 @@ private:
 	std::uint64_t _anonStringCounter; ///< Internal counter for generating pseudo identifiers of anonymous strings
 };
 
-}
+} // namespace yaramod
