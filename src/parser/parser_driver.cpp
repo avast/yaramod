@@ -8,16 +8,29 @@
 
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
+#include "yaramod/types/expressions.h"
 
 namespace yaramod {
 
 namespace gr {
+
+	template<>
+   struct action< line >
+   {
+      template< typename Input >
+      static void apply(const Input& /*unused*/, const ParserDriver& /*unused*/)
+      {
+      	std::cout << "LINE" << std::endl;
+      }
+   };
+
 	template<>
    struct action< rule_name >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
+      	std::cout << "Rule name: " << in.string() << std::endl;
          d.builder.withName(in.string());
       }
    };
@@ -38,7 +51,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Saving h.meta_key= " << in.string() << std::endl;
+         std::cout << "'Saving h.meta_key= " << in.string() << std::endl;
          d.meta_key = in.string();
       }
    };
@@ -49,7 +62,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Called meta_string_value action with '" << in.string() << std::endl;
+         std::cout << "'Called meta_string_value action with '" << in.string() << std::endl;
          d.builder.withStringMeta(d.meta_key, in.string());
       }
    };
@@ -60,7 +73,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Called meta_uint_value action with '" << in.string() << std::endl;
+         std::cout << "'Called meta_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
       }
@@ -72,7 +85,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Called meta_negate_int_value action with '" << in.string() << std::endl;
+         std::cout << "'Called meta_negate_int_value action with '" << in.string() << std::endl;
          int64_t meta_value = (-1) * std::stoi(in.string());
          d.builder.withIntMeta(d.meta_key, meta_value);
       }
@@ -84,7 +97,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Called meta_hex_uint_value action with '" << in.string() << std::endl;
+         std::cout << "'Called meta_hex_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
       }
@@ -96,7 +109,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cerr << "'Called meta_bool_value action with '" << in.string() << std::endl;
+         std::cout << "'Called meta_bool_value action with '" << in.string() << std::endl;
          if(in.string() == "true")
             d.builder.withBoolMeta(d.meta_key, true);
          else if(in.string() == "false")
@@ -106,12 +119,35 @@ namespace gr {
    };
 
    template<>
+   struct action< condition_true >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in /*unused*/, ParserDriver& d)
+   	{
+   		(void) in;
+   		std::cout << "Condition true called" << std::endl;
+   		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
+   	}
+   };
+
+   template<>
    struct action< condition_line >
    {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cerr << "Called action condition_line with '" << in.string() << "'" << std::endl;
+         std::cout << "Called action condition_line with '" << in.string() << "'" << std::endl;
+//        state.condition.push_back(in.string());
+      }
+   };
+
+   template<>
+   struct action< condition >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      {
+         std::cout << "Called action condition with '" << in.string() << "'" << std::endl;
 //        state.condition.push_back(in.string());
       }
    };
@@ -122,7 +158,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cerr << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
+         std::cout << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
 //         state.strings_tokens.back().push_back(token::type(in.string()));
       }
    };
@@ -133,7 +169,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cerr << "Called action strings_entry with '" << in.string() << "'" << std::endl;
+         std::cout << "Called action strings_entry with '" << in.string() << "'" << std::endl;
       }
    };
 
@@ -143,7 +179,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cerr << "Called action strings_key with '" << in.string() << "'" << std::endl;
+         std::cout << "Called action strings_key with '" << in.string() << "'" << std::endl;
 //         state.strings_keys.push_back(in.string());
 //         state.strings_tokens.emplace_back();
       }
@@ -155,7 +191,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cerr << "Called action strings_value with '" << in.string() << "'" << std::endl;
+         std::cout << "Called action strings_value with '" << in.string() << "'" << std::endl;
 //         state.strings_values.push_back(in.string());
       }
    };
@@ -166,8 +202,19 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
+      	std::cout << "Rule was finished!" << std::endl;
       	(void) in;
          d.finishRule();
+      }
+   };
+
+   template<>
+   struct action< end_of_file >
+   {
+      template< typename Input >
+      static void apply(const Input&, const ParserDriver&)
+      {
+      	std::cout << "TADA!" << std::endl;
       }
    };
 } // namespace gr
@@ -287,7 +334,7 @@ bool ParserDriver::parse()
    else
       std::cerr << "parsing failed" << std::endl;
 
-	return result == 0;
+	return result == 1;
 }
 
 /**
@@ -387,14 +434,32 @@ bool ParserDriver::ruleExists(const std::string& name) const
  */
 void ParserDriver::addRule(Rule&& rule)
 {
+	std::cout << "ParserDriver::addRule called" << std::endl;
+	addRule(std::make_unique<Rule>(std::move(rule)));
+}
+
+/**
+ * Adds the rule into the YARA file and properly sets up its location.
+ *
+ * @param rule Rule to add.
+ */
+void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
+{
+	std::cout << "ParserDriver::addRule called" << std::endl;
 	if (!_includedFileNames.empty())
-		rule.setLocation(_includedFileNames.back(), _startOfRule);
-	_file.addRule(std::move(rule));
+		rule->setLocation(_includedFileNames.back(), _startOfRule);
+	bool success = _parsed_rule_names.insert(rule->getName()).second;
+	if(!success)
+		throw ParserError("Error at <TODO location>: Redefinition of rule <TODO name>");
+	else
+		_file.addRule(std::move(rule));
 }
 
 void ParserDriver::finishRule()
 {
-   auto rule = *(builder.get());
+	std::cout << "ParserDriver::finishRule called" << std::endl;
+   std::unique_ptr<Rule> rule = builder.get();
+   std::cerr << "Rule: " << rule->getText() << std::endl;
    addRule(std::move(rule));
 }
 
@@ -543,6 +608,11 @@ std::string ParserDriver::generateAnonymousStringPseudoId()
 bool ParserDriver::isAlreadyIncluded(const std::string& includePath)
 {
 	return _includedFilesCache.find(absolutePath(includePath)) != _includedFilesCache.end();
+}
+
+bool ParserDriver::hasRuleWithName(const std::string& name) const
+{
+	return _parsed_rule_names.count(name) != 0;
 }
 
 bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravit
