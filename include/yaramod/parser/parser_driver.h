@@ -7,11 +7,13 @@
 #pragma once
 
 #include <fstream>
+#include <limits.h>
 #include <memory>
 #include <unordered_map>
-#include <limits.h>
+#include <set>
 
 #include <pegtl/tao/pegtl.hpp>
+#include <pegtl/tao/pegtl/internal/rules.hpp>
 
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/parser/lexer.h"
@@ -29,11 +31,13 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct _number : plus< pgl::digit > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
-   struct _space : star< one<' '> > {};
-   struct indent : seq< TAO_PEGTL_STRING("    ") > {};
+   struct ws : one< ' ', '\t' > {};
+   struct ws_enter : one< ' ', '\t', '\n', '\b' > {};
+   struct opt_space : star< ws > {};
 
    struct rule_name : _word {};
    struct tag : _word {};
+   struct line : eol {};
 
    struct meta_string_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
    struct meta_uint_value : _number{};
@@ -43,34 +47,47 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct meta_bool_value : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
    struct meta_value : sor< seq< one<'"'>, meta_string_value, one<'"'> >, meta_number_value, meta_bool_value > {};
    struct meta_key : star< ranges< 'a', 'z', 'A', 'Z', '_'> > {};
-   struct meta_entry : seq< indent, indent, meta_key, TAO_PEGTL_STRING(" = "), meta_value, eol > {};
-   struct meta : seq< indent, TAO_PEGTL_STRING("meta:"), eol, plus< meta_entry >  > {};
+   struct meta_entry : seq< opt_space, meta_key, TAO_PEGTL_STRING(" = "), meta_value, eol > {};
+   struct meta : seq< opt_space, TAO_PEGTL_STRING("meta:"), eol, star< meta_entry >  > {};
 
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
    struct strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
    struct strings_key : seq< one< '$' >, ranges< 'a', 'z' >, _number > {};    //$?<cislo>
-   struct strings_entry : seq< indent, indent, strings_key, TAO_PEGTL_STRING(" = \""), strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
-   struct strings : seq< indent, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
+   struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = \""), strings_value, one<'"'>, star< strings_modifier >, opt< eol > > {};
+   struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
+   // condition must read all lines until '}'.
+   struct condition_true : seq< TAO_PEGTL_STRING("true"), opt_space > {};
+   struct condition_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, eol > {};
+   struct condition_last_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, one< '}' > > {};
+   struct condition_line :  seq< condition_true, line >   {};//, condition_part, condition_last_part > {};
+   struct condition_entry : seq< opt_space, condition_line > {};
+   struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), eol, plus< condition_entry > > {};
 
-   struct condition_line : until< eol, pgl::any > {};
-   struct condition_entry : seq< indent, indent, condition_line > {};
-   struct condition : seq< indent, TAO_PEGTL_STRING("condition:"), eol, plus< condition_entry > > {};
+   struct end_of_rule : one<'}'> {};
+   struct end_of_file : opt< eolf > {};
 
-   struct end_of_rule : plus< eolf > {};
-
-   struct grammar : star<
-   seq< star<eol>,
-   TAO_PEGTL_STRING("rule "), rule_name, _space,
-   sor< eol, seq< _space, one<':'>, plus< seq< _space, tag > >, _space,  opt< eol > > >,
-   one< '{' >, eol,
-   meta,
-   opt< strings >,
-   condition,
-   one< '}' >,
-   end_of_rule >
-   >
+   struct grammar :
+   seq<
+   star<
+	   seq<
+	   	star<line>,
+	   	TAO_PEGTL_STRING("rule "), rule_name, opt_space,
+		   sor< line,
+		   	seq<
+		   		opt_space, one<':'>, plus< seq< opt_space, tag > >, opt_space, opt< line > >,
+		   		opt_space
+	   		>,
+	   		one< '{' >, line,
+	   		opt< meta >,
+	   		opt< strings >,
+	   		condition,
+	   		end_of_rule
+   		>
+   	>,
+   end_of_file
+	>
    {};
 
 
@@ -305,6 +322,7 @@ protected:
 	/// @{
 	bool ruleExists(const std::string& name) const;
 	void addRule(Rule&& rule);
+	void addRule(std::unique_ptr<Rule>&& rule);
 	void finishRule();
 	void markStartOfRule();
 	/// @}
@@ -337,6 +355,7 @@ protected:
 
 private:
 	bool isAlreadyIncluded(const std::string& includePath);
+	bool hasRuleWithName(const std::string& name) const;
 	bool includeFileImpl(const std::string& includePath);
 
 	ParserMode _mode; ///< Parser mode.
@@ -362,6 +381,7 @@ private:
 	std::ifstream _inputFile; ///< Input file or stream
 
 	YaraFile _file; ///< Parsed file
+	std::set<std::string> _parsed_rule_names;
 
 	std::weak_ptr<Rule::StringsTrie> _currentStrings; ///< Context storage of current strings trie
 	bool _stringLoop; ///< Context storage of for loop indicator
