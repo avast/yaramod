@@ -14,6 +14,7 @@
 
 #include <pegtl/tao/pegtl.hpp>
 
+#include "yaramod/builder/yara_hex_string_builder.h"
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/yaramod_error.h"
 #include "yaramod/parser/lexer.h"
@@ -65,14 +66,35 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct meta_entry : seq< opt_space, meta_key, TAO_PEGTL_STRING(" = "), meta_value, eol > {};
    struct meta : seq< opt_space, TAO_PEGTL_STRING("meta:"), eol, star< meta_entry >  > {};
 
-   struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
-   struct hex_strings_value : until< one< '}' >, sor< slash, pgl::any > > {};
+
+
+   struct hex_atom_literal : ranges< 'a', 'f', 'A', 'F', '0', '9' > {};
+   struct hex_normal : seq< hex_atom_literal, hex_atom_literal > {};
+   struct hex_wildcard_high : seq< one<'?'>, hex_atom_literal > {};
+   struct hex_wildcard_low : seq< hex_atom_literal, one<'?'> > {};
+   struct hex_wildcard_full : seq< one<'?'>, one<'?'> > {};
+   struct hex_jump_varying : TAO_PEGTL_STRING("[-]") {};
+   struct hex_jump_varying_range : seq< one<'['>, _number, one<'-'>, one<']'> > {};
+   struct hex_jump_range : seq< one<'['>, _number, one<'-'>, _number, one<']'> > {};
+   struct hex_jump_fixed : seq< one<'['>, _number, one<']'> > {};
+
+   struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
+
+   struct hex_comp;
+   struct hex_alt : seq< hex_comp, opt<one<' '>>, one<'|'>, hex_comp > {};
+   struct hex_alt_brackets : seq< opt<one<' '>>, one<'('>, hex_comp, opt<one<' '>>, one<'|'>, hex_comp, opt<one<' '>>, one<')'> > {};
+   struct hex_comp : seq< opt<one<' '>>, hex_atom > {}; //sor< hex_alt_brackets, hex_alt, seq< one<' '>, hex_atom >, seq< hex_comp, hex_comp > > {};
+
+	struct hex_strings_value : seq< opt_space, star< hex_comp >, opt_space > {};
+	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
+
+   struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
+   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< strings_modifier > > {};
+
    struct strings_key : seq< one< '$' >, _identificator > {};    //$?<cislo>
-   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'> > {};
-   struct hex_strings_entry : seq< at< one< '{' > >, hex_strings_value, at< one<'}'> >, star< strings_modifier > > {};
-   struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor<plain_strings_entry, hex_strings_entry>, opt< eol > > {};
+   struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor< plain_strings_entry, hex_strings_entry >, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
    // condition must read all lines until '}'.
@@ -344,6 +366,7 @@ private:
 	yy::location _loc; ///< Location
 
 	YaraRuleBuilder builder;
+	YaraHexStringBuilder hex_builder;
    size_t max_size = UINT_MAX; //-1
    int current_stream = -1;
    std::istream* initial_stream = nullptr;

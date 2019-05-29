@@ -62,7 +62,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Called meta_string_value action with '" << in.string() << std::endl;
+         std::cout << "'Matched meta_string_value action with '" << in.string() << std::endl;
          d.builder.withStringMeta(d.meta_key, in.string());
       }
    };
@@ -73,7 +73,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Called meta_uint_value action with '" << in.string() << std::endl;
+         std::cout << "'Matched meta_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
       }
@@ -85,7 +85,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Called meta_negate_int_value action with '" << in.string() << std::endl;
+         std::cout << "'Matched meta_negate_int_value action with '" << in.string() << std::endl;
          int64_t meta_value = (-1) * std::stoi(in.string());
          d.builder.withIntMeta(d.meta_key, meta_value);
       }
@@ -97,7 +97,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Called meta_hex_uint_value action with '" << in.string() << std::endl;
+         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string(), nullptr, 16);
          d.builder.withHexIntMeta(d.meta_key, meta_value);
       }
@@ -109,7 +109,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Called meta_bool_value action with '" << in.string() << std::endl;
+         std::cout << "'Matched meta_bool_value action with '" << in.string() << std::endl;
          if(in.string() == "true")
             d.builder.withBoolMeta(d.meta_key, true);
          else if(in.string() == "false")
@@ -138,7 +138,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cout << "Called action condition_line with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
 //        state.condition.push_back(in.string());
       }
    };
@@ -149,7 +149,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cout << "Called action condition with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched condition with '" << in.string() << "'" << std::endl;
 //        state.condition.push_back(in.string());
       }
    };
@@ -160,7 +160,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Called action strings_modifier with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched strings_modifier with '" << in.string() << "'" << std::endl;
          d.str_modifiers |= token::type(in.string());
          std::cout << "Changed d.str_modifiers to " << d.str_modifiers << std::endl;
       }
@@ -172,12 +172,56 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "XXX Called action plain_strings_entry with '" << in.string() << "'"
-                   << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
+         std::cout << "SSS Matched plain_strings_entry with '" << in.string() << "'"
+                   << "   SSS d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
          d.builder.withPlainString(d.str_key, d.plain_str_value, d.str_modifiers);
          d.str_key = "";
          d.plain_str_value = "";
          d.str_modifiers = 0u;
+      }
+   };
+
+   template<>
+   struct action< hex_atom_literal >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver&)
+      {
+         std::cout << "Matched hex_atom_literal with '" << in.string() << std::endl;
+      }
+   };
+
+   template<>
+   struct action< hex_normal >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+   		std::cout << "Matched hex_atom_literal with '" << in.string() << std::endl;
+   		auto cislo = std::stoi(in.string(), nullptr, 16);
+   		std::cout << "Result " << cislo << std::endl;
+      	//d.hex_builder.add()
+   	}
+   };
+
+   template<>
+   struct action< hex_atom >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver&)
+      {
+         std::cout << "Matched hex_atom with '" << in.string() << std::endl;
+      }
+   };
+
+   template<>
+   struct action< hex_strings_value >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+      	(void) in;
+         d.hex_str_value = ""; //TODO fix this (in -> Yaramod hexstring)
       }
    };
 
@@ -187,10 +231,10 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "XXX Called action hex_strings_entry with '" << in.string() << "'"
+         std::cout << "XXX Matched hex_strings_entry with '" << in.string() << "'"
                    << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
-         auto hex = std::make_shared<HexString>(std::move(HexString(d.hex_str_value)));
-         d.builder.withHexString(d.str_key, hex);
+         //TODO auto hex = std::make_shared<HexString>(std::move(HexString(d.hex_str_value)));
+         //d.builder.withHexString(d.str_key, hex);
          d.str_key = "";
          d.hex_str_value = "";
          d.str_modifiers = 0u;
@@ -203,7 +247,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Called action strings_key with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched strings_key with '" << in.string() << "'" << std::endl;
          d.str_key = in.string();
       }
    };
@@ -218,24 +262,13 @@ namespace gr {
       }
    };
 
-//TODO: make following action< hex_strings_value > use action< plain_strings_value >
-   template<>
-   struct action< hex_strings_value >
-   {
-      template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
-      {
-         d.hex_str_value = ""; //TODO fix this (in -> Yaramod hexstring)
-      }
-   };
-
    template<>
    struct action< strings >
    {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cout << "Called action strings with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched strings with '" << in.string() << "'" << std::endl;
       }
    };
 
