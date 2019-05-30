@@ -15,16 +15,6 @@ namespace yaramod {
 namespace gr {
 
 	template<>
-   struct action< line >
-   {
-      template< typename Input >
-      static void apply(const Input& /*unused*/, const ParserDriver& /*unused*/)
-      {
-      	std::cout << "LINE" << std::endl;
-      }
-   };
-
-	template<>
    struct action< rule_name >
    {
       template< typename Input >
@@ -51,7 +41,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Saving h.meta_key= " << in.string() << std::endl;
+//         std::cout << "'Saving h.meta_key= " << in.string() << std::endl;
          d.meta_key = in.string();
       }
    };
@@ -62,7 +52,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Matched meta_string_value action with '" << in.string() << std::endl;
+//         std::cout << "'Matched meta_string_value action with '" << in.string() << std::endl;
          d.builder.withStringMeta(d.meta_key, in.string());
       }
    };
@@ -73,7 +63,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Matched meta_uint_value action with '" << in.string() << std::endl;
+//         std::cout << "'Matched meta_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
       }
@@ -85,7 +75,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Matched meta_negate_int_value action with '" << in.string() << std::endl;
+//         std::cout << "'Matched meta_negate_int_value action with '" << in.string() << std::endl;
          int64_t meta_value = (-1) * std::stoi(in.string());
          d.builder.withIntMeta(d.meta_key, meta_value);
       }
@@ -97,7 +87,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << std::endl;
+//         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << std::endl;
          int64_t meta_value = std::stoi(in.string(), nullptr, 16);
          d.builder.withHexIntMeta(d.meta_key, meta_value);
       }
@@ -109,7 +99,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "'Matched meta_bool_value action with '" << in.string() << std::endl;
+//         std::cout << "'Matched meta_bool_value action with '" << in.string() << std::endl;
          if(in.string() == "true")
             d.builder.withBoolMeta(d.meta_key, true);
          else if(in.string() == "false")
@@ -127,7 +117,7 @@ namespace gr {
    	static void apply(const Input& in /*unused*/, ParserDriver& d)
    	{
    		(void) in;
-   		std::cout << "Condition true called" << std::endl;
+//   		std::cout << "Condition true called" << std::endl;
    		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
    	}
    };
@@ -138,7 +128,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver& /*unused*/)
       {
-         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
+//         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
 //        state.condition.push_back(in.string());
       }
    };
@@ -155,14 +145,12 @@ namespace gr {
    };
 
    template<>
-   struct action< strings_modifier >
+   struct action< plain_strings_value >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Matched strings_modifier with '" << in.string() << "'" << std::endl;
-         d.str_modifiers |= token::type(in.string());
-         std::cout << "Changed d.str_modifiers to " << d.str_modifiers << std::endl;
+         d.plain_str_value = in.string();
       }
    };
 
@@ -182,12 +170,12 @@ namespace gr {
    };
 
    template<>
-   struct action< hex_atom_literal >
+   struct action< hex_literal >
    {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver&)
       {
-         std::cout << "Matched hex_atom_literal with '" << in.string() << std::endl;
+         std::cout << "Matched hex_literal with '" << in.string() << std::endl;
       }
    };
 
@@ -197,20 +185,112 @@ namespace gr {
    	template< typename Input >
    	static void apply(const Input& in, ParserDriver& d)
    	{
-   		std::cout << "Matched hex_atom_literal with '" << in.string() << std::endl;
-   		auto cislo = std::stoi(in.string(), nullptr, 16);
-   		std::cout << "Result " << cislo << std::endl;
-      	//d.hex_builder.add()
+//   		std::cout << "Matched hex_normal with '" << in.string() << std::endl;
+   		const auto hex_n = std::stoi(in.string(), nullptr, 16);
+   		d.hex_builder.add(hex_n);
+//   		std::cout << "Result " << hex_n << std::endl;
    	}
    };
 
    template<>
-   struct action< hex_atom >
+   struct action< hex_wildcard_high >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+//   		std::cout << "Matched hex_wildcard_high with '" << in.string() << std::endl;
+   		assert(in.string().length() == 2);
+   		const auto hex_high = std::stoi(in.string().substr(1,1), nullptr, 16);
+   		assert(hex_high <= 16);
+   		d.hex_builder.add(wildcardHigh(hex_high));
+//   		std::cout << "Result " << hex_high << std::endl;
+   	}
+   };
+
+   template<>
+   struct action< hex_wildcard_low >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+//   		std::cout << "Matched hex_wildcard_low with '" << in.string() << std::endl;
+   		assert(in.string().length() == 2);
+   		const auto hex_low = std::stoi(in.string().substr(0,1), nullptr, 16);
+   		assert(hex_low <= 16);
+   		d.hex_builder.add(wildcardLow(hex_low));
+//   		std::cout << "Result " << hex_low << std::endl;
+   	}
+   };
+
+   template<>
+   struct action< hex_wildcard_full >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+//   		std::cout << "Matched hex_wildcard_full with '" << in.string() << std::endl;
+   		d.hex_builder.add(wildcard());
+     	}
+   };
+
+   template<>
+   struct action< hex_jump_varying >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+//   		std::cout << "Matched hex_jump_varying with '" << in.string() << std::endl;
+   		d.hex_builder.add(jumpVarying());
+   	}
+   };
+
+   template<>
+   struct action< hex_jump_number1 >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d) { d.hex_jump_number1 = std::stoi(in.string()); }
+   };
+
+   template<>
+   struct action< hex_jump_number2 >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d) { d.hex_jump_number2 = std::stoi(in.string()); }
+   };
+
+   template<>
+   struct action< hex_jump_varying_range >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+//   		std::cout << "Matched hex_jump_varying_range with '" << in.string() << std::endl;
+   		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
+   		d.hex_jump_number1 = -1;
+   	}
+   };
+
+   template<>
+   struct action< hex_jump_range >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
+      static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Matched hex_atom with '" << in.string() << std::endl;
+//         std::cout << "Matched hex_jump_range with '" << in.string() << std::endl;
+      	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
+      	d.hex_jump_number1 = d.hex_jump_number2 = -1;
+      }
+   };
+
+   template<>
+   struct action< hex_jump_fixed >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+//         std::cout << "Matched hex_jump_fixed with '" << in.string() << std::endl;
+         d.hex_builder.add(jumpFixed(d.hex_jump_number1));
+         d.hex_jump_number1 = -1;
       }
    };
 
@@ -221,7 +301,9 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
       	(void) in;
-         d.hex_str_value = ""; //TODO fix this (in -> Yaramod hexstring)
+      	auto hex_string = d.hex_builder.get();
+      	d.builder.withHexString(d.str_key, hex_string);
+      	d.str_key = "";
       }
    };
 
@@ -233,11 +315,19 @@ namespace gr {
       {
          std::cout << "XXX Matched hex_strings_entry with '" << in.string() << "'"
                    << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
-         //TODO auto hex = std::make_shared<HexString>(std::move(HexString(d.hex_str_value)));
-         //d.builder.withHexString(d.str_key, hex);
-         d.str_key = "";
-         d.hex_str_value = "";
          d.str_modifiers = 0u;
+      }
+   };
+
+   template<>
+   struct action< strings_modifier >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cout << "Matched strings_modifier with '" << in.string() << "'" << std::endl;
+         d.str_modifiers |= token::type(in.string());
+         std::cout << "Changed d.str_modifiers to " << d.str_modifiers << std::endl;
       }
    };
 
@@ -249,16 +339,6 @@ namespace gr {
       {
          std::cout << "Matched strings_key with '" << in.string() << "'" << std::endl;
          d.str_key = in.string();
-      }
-   };
-
-   template<>
-   struct action< plain_strings_value >
-   {
-      template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
-      {
-         d.plain_str_value = in.string();
       }
    };
 
