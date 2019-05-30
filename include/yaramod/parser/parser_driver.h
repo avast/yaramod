@@ -85,8 +85,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct hex_comp;
    struct hex_alt : seq< hex_comp, opt<one<' '>>, one<'|'>, hex_comp > {};
-   struct hex_alt_brackets : seq< opt<one<' '>>, one<'('>, hex_comp, opt<one<' '>>, one<'|'>, hex_comp, opt<one<' '>>, one<')'> > {};
-   struct hex_comp : seq< opt<one<' '>>, hex_atom > {}; //sor< hex_alt_brackets, hex_alt, seq< one<' '>, hex_atom >, seq< hex_comp, hex_comp > > {};
+   struct hex_alt_with_brackets : seq< opt<one<' '>>, one<'('>, hex_comp, opt<one<' '>>, one<'|'>, hex_comp, opt<one<' '>>, one<')'> > {};
+   struct hex_comp : seq< opt<one<' '>>, hex_atom > {}; //sor< hex_alt_with_brackets, hex_alt, seq< one<' '>, hex_atom >, seq< hex_comp, hex_comp > > {};
 
 	struct hex_strings_value : seq< opt_space, star< hex_comp >, opt_space > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
