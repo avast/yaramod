@@ -69,15 +69,17 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct slash : seq< plus< one< '\\' > >, pgl::any > {};
 
 
-   struct hex_atom_literal : ranges< 'a', 'f', 'A', 'F', '0', '9' > {};
-   struct hex_normal : seq< hex_atom_literal, hex_atom_literal > {};
-   struct hex_wildcard_high : seq< one<'?'>, hex_atom_literal > {};
-   struct hex_wildcard_low : seq< hex_atom_literal, one<'?'> > {};
+   struct hex_literal : ranges< 'a', 'f', 'A', 'F', '0', '9' > {};
+   struct hex_normal : seq< hex_literal, hex_literal > {};
+   struct hex_wildcard_high : seq< one<'?'>, hex_literal > {};
+   struct hex_wildcard_low : seq< hex_literal, one<'?'> > {};
    struct hex_wildcard_full : seq< one<'?'>, one<'?'> > {};
    struct hex_jump_varying : TAO_PEGTL_STRING("[-]") {};
-   struct hex_jump_varying_range : seq< one<'['>, _number, one<'-'>, one<']'> > {};
-   struct hex_jump_range : seq< one<'['>, _number, one<'-'>, _number, one<']'> > {};
-   struct hex_jump_fixed : seq< one<'['>, _number, one<']'> > {};
+   struct hex_jump_number1 : _number {};
+   struct hex_jump_number2 : _number {};
+   struct hex_jump_varying_range : seq< one<'['>, hex_jump_number1, one<'-'>, one<']'> > {};
+   struct hex_jump_range : seq< one<'['>, hex_jump_number1, one<'-'>, hex_jump_number2, one<']'> > {};
+   struct hex_jump_fixed : seq< one<'['>, hex_jump_number1, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
 
@@ -376,6 +378,8 @@ private:
 	std::string plain_str_value;
 	std::string hex_str_value;
 	uint32_t str_modifiers = 0u;
+	int hex_jump_number1 = -1;
+	int hex_jump_number2 = -1;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
