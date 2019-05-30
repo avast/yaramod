@@ -114,25 +114,23 @@ namespace gr {
    struct action< condition_true >
    {
    	template< typename Input >
-   	static void apply(const Input& in /*unused*/, ParserDriver& d)
+   	static void apply(const Input& /*unused*/, ParserDriver& d)
    	{
-   		(void) in;
 //   		std::cout << "Condition true called" << std::endl;
    		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
    	}
    };
-
+/*
    template<>
    struct action< condition_line >
    {
       template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
+      static void apply(const Input& in, const ParserDriver& )
       {
-//         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
-//        state.condition.push_back(in.string());
+         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
       }
    };
-
+*/
    template<>
    struct action< condition >
    {
@@ -226,7 +224,7 @@ namespace gr {
    struct action< hex_wildcard_full >
    {
    	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
+   	static void apply(const Input& /*unused*/, ParserDriver& d)
    	{
 //   		std::cout << "Matched hex_wildcard_full with '" << in.string() << std::endl;
    		d.hex_builder.add(wildcard());
@@ -237,7 +235,7 @@ namespace gr {
    struct action< hex_jump_varying >
    {
    	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
+   	static void apply(const Input& /*unused*/, ParserDriver& d)
    	{
 //   		std::cout << "Matched hex_jump_varying with '" << in.string() << std::endl;
    		d.hex_builder.add(jumpVarying());
@@ -262,7 +260,7 @@ namespace gr {
    struct action< hex_jump_varying_range >
    {
    	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
+   	static void apply(const Input& /*unused*/, ParserDriver& d)
    	{
 //   		std::cout << "Matched hex_jump_varying_range with '" << in.string() << std::endl;
    		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
@@ -274,7 +272,7 @@ namespace gr {
    struct action< hex_jump_range >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*unused*/, ParserDriver& d)
       {
 //         std::cout << "Matched hex_jump_range with '" << in.string() << std::endl;
       	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
@@ -286,7 +284,7 @@ namespace gr {
    struct action< hex_jump_fixed >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*unused*/, ParserDriver& d)
       {
 //         std::cout << "Matched hex_jump_fixed with '" << in.string() << std::endl;
          d.hex_builder.add(jumpFixed(d.hex_jump_number1));
