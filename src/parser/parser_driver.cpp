@@ -173,7 +173,8 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver&)
       {
-         std::cout << "Matched hex_literal with '" << in.string() << "'" << std::endl;
+      	(void) in;
+//         std::cout << "Matched hex_literal with '" << in.string() << "'" << std::endl;
       }
    };
 
