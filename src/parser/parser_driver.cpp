@@ -313,7 +313,7 @@ namespace gr {
          std::cout << "Matched hex_atom_alt_brackets with '" << in.string() << "'" << std::endl;
       }
    };
-
+/*
    template<>
    struct action< hex_comp_alt_no_brackets >
    {
@@ -323,7 +323,7 @@ namespace gr {
          std::cout << "Matched hex_comp_alt_no_brackets with '" << in.string() << "'" << std::endl;
       }
    };
-
+*/
    template<>
    struct action< helperC >
    {
