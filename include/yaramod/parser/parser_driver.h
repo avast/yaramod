@@ -82,18 +82,11 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_jump_fixed : seq< one<'['>, hex_jump_number1, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
-/*
-   struct hex_comp;
-   struct hex_comp_alt_brackets : seq< one< '(' >, hex_comp, opt<one<' '>>, one< '|' >, hex_comp, opt<one<' '>>, one< ')' > > {};
-   struct hex_comp_alt_no_brackets : seq< opt< one< ' ' > >, one< '|' >, hex_comp > {};
-   struct helperC : seq< sor< hex_comp, hex_comp_alt_no_brackets >, opt< helperC> > {};
-   struct hex_comp : seq< opt< one<' '> >, sor< hex_comp_alt_brackets, hex_atom >, opt< helperC > > {};
-*/
 
    struct hex_comp;
-   struct hex_comp_alt_brackets : seq< one< '(' >, hex_comp, one< ')' > > {};
-   struct helperC : seq< one< '|' >, hex_comp > {};
-   struct hex_comp : seq< sor< hex_comp_alt_brackets, plus< hex_atom > >, star< helperC > > {};
+   struct hex_comp_alt_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
+   struct helperC : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
+   struct hex_comp : seq< sor< hex_comp_alt_brackets, plus< hex_atom, one<' '> > >, star< helperC > > {};
 
 
 // hex_alt_with_brackets, hex_alt,
