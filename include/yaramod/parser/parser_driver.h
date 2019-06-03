@@ -85,11 +85,18 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_atom_space : seq< hex_atom, ws > {};
 
    struct hex_comp;
-   struct hex_comp_alt_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
+   struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
    struct helperC : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
+   //struct hex_comp : sor<
+   //						seq< plus< hex_atom_space >, opt< hex_brackets >, star< hex_atom_space >, star< helperC > >,
+	//						seq< hex_brackets, star< hex_atom_space >, star< helperC > >
+   //						> {};
+
+   struct X : seq< hex_atom_space, opt< X > > {};
+   struct Y : seq< helperC, opt< X > > {};
    struct hex_comp : sor<
-   						seq< plus< hex_atom_space >, opt< hex_comp_alt_brackets >, star< hex_atom_space >, star< helperC > >,
-							seq< hex_comp_alt_brackets, star< hex_atom_space >, star< helperC > >
+   						seq< X, opt< hex_brackets >, opt<X>, opt<Y> >,
+							seq< hex_brackets, opt< X >, opt< Y > >
    						> {};
 
 
