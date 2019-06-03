@@ -82,11 +82,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_jump_fixed : seq< one<'['>, hex_jump_number1, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
+   struct hex_atom_space : seq< hex_atom, ws > {};
 
    struct hex_comp;
    struct hex_comp_alt_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
    struct helperC : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
-   struct hex_comp : seq< sor< hex_comp_alt_brackets, plus< hex_atom, one<' '> > >, star< helperC > > {};
+   struct hex_comp : sor<
+   						seq< plus< hex_atom_space >, opt< hex_comp_alt_brackets >, star< hex_atom_space >, star< helperC > >,
+							seq< hex_comp_alt_brackets, star< hex_atom_space >, star< helperC > >
+   						> {};
 
 
 // hex_alt_with_brackets, hex_alt,
