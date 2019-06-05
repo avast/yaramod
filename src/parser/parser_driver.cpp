@@ -456,7 +456,11 @@ namespace gr {
   		for ( const auto& child : root->children )
   		{
   			std::cout << "Child with source '" << child->source << "' name '" << child->name() << "' string '" << child->string() << "'" << std::endl;
-  			if( child->name() == "yaramod::gr::hex_normal" )
+  			if( child->name() == "yaramod::gr::hex_atom_group" )
+  			{
+  				builder.add( parse_hex_tree( child.get() ) );
+  			}
+  			else if( child->name() == "yaramod::gr::hex_normal" )
   			{
   				builder.add( stoi( child->string(), nullptr, 16 ) );
   			}
@@ -512,7 +516,11 @@ namespace gr {
   			else {
   				assert(child->name() == "yaramod::gr::hex_alt");
   				YaraHexStringBuilder alt_builder;
-  				alt_builder.add( alt( builder, std::move(parse_hex_tree( child.get() ) ) ) );
+  				std::vector< YaraHexStringBuilder > builders_to_alt;
+  				builders_to_alt.push_back(builder);
+  				for( const auto& subchild : child->children )
+  					builders_to_alt.push_back( parse_hex_tree( subchild.get() ) );
+  				alt_builder.add( alt( builders_to_alt ) );
   				return std::move(alt_builder);
   			}
   		}

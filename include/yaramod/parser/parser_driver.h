@@ -77,50 +77,38 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_wildcard_low : seq< hex_literal, one<'?'> > {};
    struct hex_wildcard_full : seq< one<'?'>, one<'?'> > {};
    struct hex_jump_varying : TAO_PEGTL_STRING("[-]") {};
-   //struct hex_jump_number1 : _number {};
-   //struct hex_jump_number2 : _number {};
+
    struct hex_jump_varying_range : seq< one<'['>, _number, one<'-'>, one<']'> > {};
    struct hex_jump_range : seq< one<'['>, _number, one<'-'>, _number, one<']'> > {};
    struct hex_jump_fixed : seq< one<'['>, _number, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
    struct hex_atom_space : seq< hex_atom, opt_space > {};
-/*
-   struct hex_comp;
-   struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
-   struct helperC : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
-   //struct hex_comp : sor<
-   //						seq< plus< hex_atom_space >, opt< hex_brackets >, star< hex_atom_space >, star< helperC > >,
-	//						seq< hex_brackets, star< hex_atom_space >, star< helperC > >
-   //						> {};
+   struct hex_atom_group : plus< hex_atom_space > {};
 
-   struct X : seq< hex_atom_space, opt< X > > {};
-   struct Y : seq< helperC, opt< Y > > {};
-   struct hex_comp : sor<
-   						seq< X, opt< hex_brackets >, opt<X>, opt<Y> >,
-							seq< hex_brackets, opt< X >, opt< Y > >
-   						> {};
-*/
    struct hex_comp;
    struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
-   struct hex_alt : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
+   struct hex_comp_no_alt : seq< opt_space, sor<
+  				       seq< hex_atom_group, opt< hex_brackets >, opt<hex_atom_group> >,
+        				 seq< hex_brackets, opt<hex_atom_group> >
+                   >, opt_space > {};
+
+   struct hex_alt : plus< seq< one< '|' >, opt_space, hex_comp_no_alt > > {};
    struct hex_comp : seq< opt_space, sor<
-  				       seq< plus< hex_atom_space >, opt< hex_brackets >, star< hex_atom_space >, star< hex_alt > >,
-        				 seq< hex_brackets, star< hex_atom_space >, star< hex_alt > >
+  				       seq< hex_atom_group, opt< hex_brackets >, opt<hex_atom_group>, opt<hex_alt> >,
+        				 seq< hex_brackets, opt<hex_atom_group>, opt<hex_alt> >
                    >, opt_space > {};
 
 
-// hex_alt_with_brackets, hex_alt,
+
 	struct hex_strings_value : seq< opt_space, until< at< one<'}'> >, pgl::any > > {};
-//	struct hex_strings_value : seq< opt_space, hex_comp , opt_space > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
-//	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
 
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
    struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< strings_modifier > > {};
 
-   struct strings_key : seq< one< '$' >, _identificator > {};    //$?<cislo>
+   struct strings_key : seq< one< '$' >, _identificator > {};
    struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor< plain_strings_entry, hex_strings_entry >, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
@@ -128,7 +116,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct condition_true : seq< TAO_PEGTL_STRING("true"), opt_space > {};
    struct condition_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, eol > {};
    struct condition_last_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, one< '}' > > {};
-   struct condition_line :  seq< condition_true, line >   {};//, condition_part, condition_last_part > {};
+   struct condition_line :  seq< condition_true, line >   {};
    struct condition_entry : seq< opt_space, condition_line > {};
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), eol, plus< condition_entry > > {};
 
@@ -283,6 +271,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_selector : std::false_type {};
    template<> struct hex_selector< hex_brackets > : std::true_type {}; //non-leaf,
    template<> struct hex_selector< hex_alt > : std::true_type {}; //non-leaf
+   template<> struct hex_selector< hex_atom_group > : std::true_type {}; //non-leaf
    template<> struct hex_selector< hex_normal > : std::true_type {}; //atom is always leaf
    template<> struct hex_selector< _number > : std::true_type {};
    template<> struct hex_selector< hex_wildcard_full > : std::true_type {}; //atom is always leaf
