@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <pegtl/tao/pegtl/contrib/parse_tree_to_dot.hpp>
+
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
 #include "yaramod/types/expressions.h"
@@ -242,7 +244,7 @@ namespace gr {
    		d.hex_builder.add(jumpVarying());
    	}
    };
-
+/*
    template<>
    struct action< hex_jump_number1 >
    {
@@ -256,14 +258,14 @@ namespace gr {
    	template< typename Input >
    	static void apply(const Input& in, ParserDriver& d) { d.hex_jump_number2 = std::stoi(in.string()); }
    };
-
+*/
    template<>
    struct action< hex_jump_varying_range >
    {
    	template< typename Input >
-   	static void apply(const Input& /*unused*/, ParserDriver& d)
+   	static void apply(const Input& in, ParserDriver& d)
    	{
-//   		std::cout << "Matched hex_jump_varying_range with '" << in.string() << "'" << std::endl;
+   		std::cout << "Matched hex_jump_varying_range with '" << in.string() << "'" << std::endl;
    		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
    		d.hex_jump_number1 = -1;
    	}
@@ -273,9 +275,9 @@ namespace gr {
    struct action< hex_jump_range >
    {
       template< typename Input >
-      static void apply(const Input& /*unused*/, ParserDriver& d)
+      static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "Matched hex_jump_range with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched hex_jump_range with '" << in.string() << "'" << std::endl;
       	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
       	d.hex_jump_number1 = d.hex_jump_number2 = -1;
       }
@@ -285,9 +287,9 @@ namespace gr {
    struct action< hex_jump_fixed >
    {
       template< typename Input >
-      static void apply(const Input& /*unused*/, ParserDriver& d)
+      static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "Matched hex_jump_fixed with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched hex_jump_fixed with '" << in.string() << "'" << std::endl;
          d.hex_builder.add(jumpFixed(d.hex_jump_number1));
          d.hex_jump_number1 = -1;
       }
@@ -305,12 +307,12 @@ namespace gr {
    };
 
    template<>
-   struct action< hex_comp_alt_brackets >
+   struct action< hex_brackets >
    {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver&)
       {
-         std::cout << "Matched hex_atom_alt_brackets with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched hex_brackets with '" << in.string() << "'" << std::endl;
       }
    };
 /*
@@ -323,14 +325,24 @@ namespace gr {
          std::cout << "Matched hex_comp_alt_no_brackets with '" << in.string() << "'" << std::endl;
       }
    };
-*/
+*//*
    template<>
-   struct action< helperC >
+   struct action< opt_space >
    {
       template< typename Input >
       static void apply(const Input& in, const ParserDriver&)
       {
-         std::cout << "Matched helperC with '" << in.string() << "'" << std::endl;
+         std::cout << "Matched opt_space with '" << in.string() << "'" << std::endl;
+      }
+   };*/
+
+   template<>
+   struct action< hex_alt >
+   {
+      template< typename Input >
+      static void apply(const Input& in, const ParserDriver&)
+      {
+         std::cout << "Matched hex_alt with '" << in.string() << "'" << std::endl;
       }
    };
 
@@ -349,12 +361,23 @@ namespace gr {
    struct action< hex_strings_value >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply( Input& in, ParserDriver& d)
       {
+      	(void) d;
       	(void) in;
-      	auto hex_string = d.hex_builder.get();
-      	d.builder.withHexString(d.str_key, hex_string);
-      	d.str_key = "";
+      	std::cout << "Called hex_strings_value with '" << in.string() << "'" << std::endl;
+/*	      auto hex_string = d.hex_builder.get();
+	      d.builder.withHexString(d.str_key, hex_string);
+	      d.str_key = "";*/
+      	string_input si( in.string(), "from_content" );
+         auto root = pgl::parse_tree::parse< hex_comp, hex_selector > (si, d);
+      	// variable root now holds a parse tree of hex_string that we need to process
+      	if(root) {
+	      	pgl::parse_tree::print_dot( std::cout, *root );
+	      	d.hex_builder.add(parse_hex_tree(root.get()));
+      	}
+	      else
+	      	std::cerr << "Parsing hexstring '" << in.string() << "' failed." << std::endl;
       }
    };
 
@@ -364,9 +387,11 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
+      	assert(d.str_modifiers == 0u);
          std::cout << "XXX Matched hex_strings_entry with '" << in.string() << "'"
-                   << "XXX d.str_modifiers =  " << d.str_modifiers << " key=" << d.str_key << std::endl;
-         d.str_modifiers = 0u;
+                   << " key=" << d.str_key << std::endl;
+         d.builder.withHexString(d.str_key, d.hex_builder.get());
+         d.str_key = "";
       }
    };
 
@@ -424,6 +449,76 @@ namespace gr {
       	std::cout << "TADA!" << std::endl;
       }
    };
+
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root )
+  	{
+  		YaraHexStringBuilder builder;
+  		for ( const auto& child : root->children )
+  		{
+  			std::cout << "Child with source '" << child->source << "' name '" << child->name() << "' string '" << child->string() << "'" << std::endl;
+  			if( child->name() == "yaramod::gr::hex_normal" )
+  			{
+  				builder.add( stoi( child->string(), nullptr, 16 ) );
+  			}
+  			else if( child->name() == "yaramod::gr::hex_wildcard_full" )
+  			{
+  				builder.add(wildcard());
+  			}
+  			else if( child->name() == "yaramod::gr::hex_wildcard_high" )
+  			{
+   			assert(child->string().length() == 2);
+   			const auto hex_high = std::stoi(child->string().substr(1,1), nullptr, 16);
+   			assert(hex_high <= 16);
+   			builder.add(wildcardHigh(hex_high));
+  			}
+  			else if( child->name() == "yaramod::gr::hex_wildcard_low" )
+  			{
+  				assert(child->string().length() == 2);
+	   		const auto hex_low = std::stoi(child->string().substr(0,1), nullptr, 16);
+   			assert(hex_low <= 16);
+   			builder.add(wildcardLow(hex_low));
+  			}
+  			else if( child->name() == "yaramod::gr::hex_jump_varying" )
+  			{
+  				builder.add(jumpVarying());
+  			}
+  			else if( child->name() == "yaramod::gr::hex_jump_varying_range" ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
+  			{
+  				assert( child->children.size() == 1 );
+  				assert( child->children[0]->name() == "yaramod::gr::_number" );
+  				int arg = std::stoi( child->children[0]->string() );
+  				builder.add( jumpVaryingRange( arg ) );
+  			}
+  			else if( child->name() == "yaramod::gr::hex_jump_range" )
+  			{
+  				assert( child->children.size() == 2 );
+  				assert( child->children[0]->name() == "yaramod::gr::_number" );
+  				assert( child->children[1]->name() == "yaramod::gr::_number" );
+  				int left = std::stoi( child->children[0]->string() );
+  				int right = std::stoi( child->children[1]->string() );
+  				builder.add( jumpRange( left, right ) );
+  			}
+  			else if( child->name() == "yaramod::gr::hex_jump_fixed" )
+  			{
+  				assert( child->children.size() == 1 );
+  				assert( child->children[0]->name() == "yaramod::gr::_number" );
+  				int arg = std::stoi( child->children[0]->string() );
+  				builder.add( jumpFixed( arg ) );
+  			}
+  			else if( child->name() == "yaramod::gr::hex_brackets" )
+  			{
+  				builder.add( parse_hex_tree( child.get() ) );
+  			}
+  			else {
+  				assert(child->name() == "yaramod::gr::hex_alt");
+  				YaraHexStringBuilder alt_builder;
+  				alt_builder.add( alt( builder, std::move(parse_hex_tree( child.get() ) ) ) );
+  				return std::move(alt_builder);
+  			}
+  		}
+  		return builder;
+  	}
+
 } // namespace gr
 
 /**
@@ -436,9 +531,6 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
    current_stream(0), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
 	_startOfRule(0), _anonStringCounter(0)
 {
-	// Uncomment for debugging
-	// See also occurrences of 'debugging' in parser.y to enable it
-	//_parser.set_debug_level(1);
 
 	// When creating ParserDriver from real file (not from some stringstream) we need to somehow tell lexer which file to process
 	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
@@ -455,9 +547,10 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
 ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr),
 	initial_stream(&input), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
-	// Uncomment for debugging
-	// See also occurrences of 'debugging' in parser.y to enable it
-	//_parser.set_debug_level(1);
+/*
+	auto is = pgl::istream_input(input, max_size, "from_content");
+   auto result = pgl::parse< gr::grammar, gr::action >(is, *this);
+*/
 }
 
 /**
@@ -845,6 +938,7 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 	_loc.end.initialize(_loc.end.filename, 1, 1);
 	return true;
 }
+
 
 /*
 bool ParserDriver::includeEnd()

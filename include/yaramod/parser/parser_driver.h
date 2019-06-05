@@ -13,6 +13,8 @@
 #include <set>
 
 #include <pegtl/tao/pegtl.hpp>
+#include <pegtl/tao/pegtl/contrib/parse_tree.hpp>
+
 
 #include "yaramod/builder/yara_hex_string_builder.h"
 #include "yaramod/builder/yara_rule_builder.h"
@@ -75,15 +77,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_wildcard_low : seq< hex_literal, one<'?'> > {};
    struct hex_wildcard_full : seq< one<'?'>, one<'?'> > {};
    struct hex_jump_varying : TAO_PEGTL_STRING("[-]") {};
-   struct hex_jump_number1 : _number {};
-   struct hex_jump_number2 : _number {};
-   struct hex_jump_varying_range : seq< one<'['>, hex_jump_number1, one<'-'>, one<']'> > {};
-   struct hex_jump_range : seq< one<'['>, hex_jump_number1, one<'-'>, hex_jump_number2, one<']'> > {};
-   struct hex_jump_fixed : seq< one<'['>, hex_jump_number1, one<']'> > {};
+   //struct hex_jump_number1 : _number {};
+   //struct hex_jump_number2 : _number {};
+   struct hex_jump_varying_range : seq< one<'['>, _number, one<'-'>, one<']'> > {};
+   struct hex_jump_range : seq< one<'['>, _number, one<'-'>, _number, one<']'> > {};
+   struct hex_jump_fixed : seq< one<'['>, _number, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
-   struct hex_atom_space : seq< hex_atom, ws > {};
-
+   struct hex_atom_space : seq< hex_atom, opt_space > {};
+/*
    struct hex_comp;
    struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
    struct helperC : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
@@ -93,16 +95,26 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    //						> {};
 
    struct X : seq< hex_atom_space, opt< X > > {};
-   struct Y : seq< helperC, opt< X > > {};
+   struct Y : seq< helperC, opt< Y > > {};
    struct hex_comp : sor<
    						seq< X, opt< hex_brackets >, opt<X>, opt<Y> >,
 							seq< hex_brackets, opt< X >, opt< Y > >
    						> {};
+*/
+   struct hex_comp;
+   struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
+   struct hex_alt : seq< one< '|' >, opt< one<' '> >, hex_comp > {};
+   struct hex_comp : seq< opt_space, sor<
+  				       seq< plus< hex_atom_space >, opt< hex_brackets >, star< hex_atom_space >, star< hex_alt > >,
+        				 seq< hex_brackets, star< hex_atom_space >, star< hex_alt > >
+                   >, opt_space > {};
 
 
 // hex_alt_with_brackets, hex_alt,
-	struct hex_strings_value : seq< opt_space, hex_comp , opt_space > {};
+	struct hex_strings_value : seq< opt_space, until< at< one<'}'> >, pgl::any > > {};
+//	struct hex_strings_value : seq< opt_space, hex_comp , opt_space > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
+//	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
 
    struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
    struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
@@ -265,7 +277,21 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template< typename Rule >
    struct action {};
 
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root );
 
+   template< typename Rule >
+   struct hex_selector : std::false_type {};
+   template<> struct hex_selector< hex_brackets > : std::true_type {}; //non-leaf,
+   template<> struct hex_selector< hex_alt > : std::true_type {}; //non-leaf
+   template<> struct hex_selector< hex_normal > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< _number > : std::true_type {};
+   template<> struct hex_selector< hex_wildcard_full > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_wildcard_high > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_wildcard_low > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_jump_varying > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_jump_varying_range > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_jump_range > : std::true_type {}; //atom is always leaf
+   template<> struct hex_selector< hex_jump_fixed > : std::true_type {}; //atom is always leaf
 
 } //namespace gr
 
