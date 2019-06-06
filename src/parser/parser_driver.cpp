@@ -370,7 +370,7 @@ namespace gr {
 	      d.builder.withHexString(d.str_key, hex_string);
 	      d.str_key = "";*/
       	string_input si( in.string(), "from_content" );
-         auto root = pgl::parse_tree::parse< hex_comp, hex_selector > (si, d);
+         auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
       	// variable root now holds a parse tree of hex_string that we need to process
       	if(root) {
 	      	pgl::parse_tree::print_dot( std::cout, *root );
@@ -452,46 +452,46 @@ namespace gr {
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root )
   	{
-  		YaraHexStringBuilder builder;
+  		std::vector<YaraHexStringBuilder> alt_builders;
+  		alt_builders.emplace_back();
   		for ( const auto& child : root->children )
   		{
-  			std::cout << "Child with source '" << child->source << "' name '" << child->name() << "' string '" << child->string() << "'" << std::endl;
   			if( child->name() == "yaramod::gr::hex_atom_group" )
   			{
-  				builder.add( parse_hex_tree( child.get() ) );
+  				alt_builders[0].add( parse_hex_tree( child.get() ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_normal" )
   			{
-  				builder.add( stoi( child->string(), nullptr, 16 ) );
+  				alt_builders[0].add( stoi( child->string(), nullptr, 16 ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_full" )
   			{
-  				builder.add(wildcard());
+  				alt_builders[0].add(wildcard());
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_high" )
   			{
    			assert(child->string().length() == 2);
    			const auto hex_high = std::stoi(child->string().substr(1,1), nullptr, 16);
    			assert(hex_high <= 16);
-   			builder.add(wildcardHigh(hex_high));
+   			alt_builders[0].add(wildcardHigh(hex_high));
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_low" )
   			{
   				assert(child->string().length() == 2);
 	   		const auto hex_low = std::stoi(child->string().substr(0,1), nullptr, 16);
    			assert(hex_low <= 16);
-   			builder.add(wildcardLow(hex_low));
+   			alt_builders[0].add(wildcardLow(hex_low));
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_varying" )
   			{
-  				builder.add(jumpVarying());
+  				alt_builders[0].add(jumpVarying());
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_varying_range" ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
   			{
   				assert( child->children.size() == 1 );
   				assert( child->children[0]->name() == "yaramod::gr::_number" );
   				int arg = std::stoi( child->children[0]->string() );
-  				builder.add( jumpVaryingRange( arg ) );
+  				alt_builders[0].add( jumpVaryingRange( arg ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_range" )
   			{
@@ -500,31 +500,34 @@ namespace gr {
   				assert( child->children[1]->name() == "yaramod::gr::_number" );
   				int left = std::stoi( child->children[0]->string() );
   				int right = std::stoi( child->children[1]->string() );
-  				builder.add( jumpRange( left, right ) );
+  				alt_builders[0].add( jumpRange( left, right ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_fixed" )
   			{
   				assert( child->children.size() == 1 );
   				assert( child->children[0]->name() == "yaramod::gr::_number" );
   				int arg = std::stoi( child->children[0]->string() );
-  				builder.add( jumpFixed( arg ) );
+  				alt_builders[0].add( jumpFixed( arg ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_brackets" )
   			{
-  				builder.add( parse_hex_tree( child.get() ) );
+  				alt_builders[0].add( parse_hex_tree( child.get() ) );
   			}
   			else {
   				assert(child->name() == "yaramod::gr::hex_alt");
-  				YaraHexStringBuilder alt_builder;
-  				std::vector< YaraHexStringBuilder > builders_to_alt;
+  				alt_builders.emplace_back( parse_hex_tree( child.get() ) );
+  				/*std::vector< YaraHexStringBuilder > builders_to_alt;
   				builders_to_alt.push_back(builder);
   				for( const auto& subchild : child->children )
   					builders_to_alt.push_back( parse_hex_tree( subchild.get() ) );
   				alt_builder.add( alt( builders_to_alt ) );
-  				return std::move(alt_builder);
+  				builder = std::move(alt_builder);*/
   			}
   		}
-  		return builder;
+  		if( alt_builders.size() == 1 )
+  			return alt_builders[0];
+  		else
+	  		return YaraHexStringBuilder(alt(alt_builders));
   	}
 
 } // namespace gr
@@ -767,7 +770,6 @@ void ParserDriver::finishRule()
 {
 	std::cout << "ParserDriver::finishRule called" << std::endl;
    std::unique_ptr<Rule> rule = builder.get();
-   std::cerr << "Rule: " << rule->getText() << std::endl;
    addRule(std::move(rule));
 }
 
