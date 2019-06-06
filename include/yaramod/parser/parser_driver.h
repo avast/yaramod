@@ -85,9 +85,9 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
    struct hex_atom_space : seq< hex_atom, opt_space > {};
    struct hex_atom_group : plus< hex_atom_space > {};
-
+/*
    struct hex_comp;
-   struct hex_brackets : seq< one< '(' >, opt< one<' '> >, hex_comp, one< ')' >, opt< one<' '> > > {};
+   struct hex_brackets : seq< one< '(' >, opt_space, hex_comp, one< ')' >, opt_space > {};
    struct hex_comp_no_alt : seq< opt_space, sor<
   				       seq< hex_atom_group, opt< hex_brackets >, opt<hex_atom_group> >,
         				 seq< hex_brackets, opt<hex_atom_group> >
@@ -98,8 +98,44 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
   				       seq< hex_atom_group, opt< hex_brackets >, opt<hex_atom_group>, opt<hex_alt> >,
         				 seq< hex_brackets, opt<hex_atom_group>, opt<hex_alt> >
                    >, opt_space > {};
+*/
+/*
+   struct hex_comp;
+   struct hex_brackets : seq< one< '(' >, opt_space, hex_comp, one<')'>, opt_space > {};
 
+   struct hex_comp_no_alt : seq< opt_space, sor<
+  				       seq< hex_brackets, opt<hex_comp> >,
+                   seq< opt< hex_atom_group >, opt< hex_comp > >
+        				 >, opt_space > {};
 
+   struct hex_alt : plus< seq< one< '|' >, opt_space, hex_comp_no_alt > > {};
+   struct hex_comp : seq< opt_space, sor<
+  				       seq< hex_brackets, opt<hex_comp> >,
+                   seq< opt< hex_atom_group >, opt<hex_alt>, opt< hex_comp > >
+        				 >, opt_space > {};
+   struct hex_comp_start : seq< opt_space, sor<
+  				       seq< hex_atom_group, opt< hex_comp > >,
+        				 seq< hex_brackets, opt<hex_comp> >
+                   >, opt_space > {};
+*/
+   struct hex_comp;
+   struct hex_comp_after_alt;
+   struct hex_brackets : seq< opt_space, one<'('>, hex_comp, opt_space, one<')'> > {};
+   struct hex_alt : seq< opt_space, one<'|'>, opt_space, hex_comp_after_alt > {};
+   struct hex_comp_after_alt : sor<
+   				seq< hex_brackets, opt_space, opt< hex_comp_after_alt > >,
+   				seq< opt_space, hex_atom_group, opt< hex_comp_after_alt > >
+   				> {};
+	struct hex_comp : sor<
+   				seq< hex_brackets, opt_space, hex_comp >,
+   				seq< opt_space, hex_atom_group, hex_comp >,
+   				plus< hex_alt >,
+   				opt_space
+   				> {};
+	struct hex_comp_start : sor<
+   				seq< hex_brackets, opt_space, hex_comp >,
+   				seq< opt_space, hex_atom_group, hex_comp >
+   				> {};
 
 	struct hex_strings_value : seq< opt_space, until< at< one<'}'> >, pgl::any > > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
