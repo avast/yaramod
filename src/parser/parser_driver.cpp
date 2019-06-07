@@ -12,9 +12,117 @@
 #include "yaramod/utils/filesystem.h"
 #include "yaramod/types/expressions.h"
 
+
+#include <pegtl/tao/pegtl/position.hpp>
+#include <pegtl/tao/pegtl/tracking_mode.hpp>
+
 namespace yaramod {
 
 namespace gr {
+
+
+	/*
+{
+   	RULE_NAME = 1,
+   	TAG = 2,
+
+      END = 258,
+      RANGE = 259,
+      DOT = 260,
+      LT = 261,
+      GT = 262,
+      LE = 263,
+      GE = 264,
+      EQ = 265,
+      NEQ = 266,
+      SHIFT_LEFT = 267,
+      SHIFT_RIGHT = 268,
+      MINUS = 269,
+      PLUS = 270,
+      MULTIPLY = 271,
+      DIVIDE = 272,
+      MODULO = 273,
+      BITWISE_XOR = 274,
+      BITWISE_AND = 275,
+      BITWISE_OR = 276,
+      BITWISE_NOT = 277,
+      LP = 278,
+      RP = 279,
+      LCB = 280,
+      RCB = 281,
+      ASSIGN = 282,
+      COLON = 283,
+      COMMA = 284,
+      PRIVATE = 285,
+      GLOBAL = 286,
+      RULE = 287,
+      STRINGS = 289,
+      CONDITION = 290,
+      ASCII = 291,
+      NOCASE = 292,
+      WIDE = 293,
+      FULLWORD = 294,
+      XOR = 295,
+      BOOL_TRUE = 296,
+      BOOL_FALSE = 297,
+      IMPORT_MODULE = 298,
+      NOT = 299,
+      AND = 300,
+      OR = 301,
+      ALL = 302,
+      ANY = 303,
+      OF = 304,
+      THEM = 305,
+      FOR = 306,
+      ENTRYPOINT = 307,
+      OP_AT = 308,
+      OP_IN = 309,
+      FILESIZE = 310,
+      CONTAINS = 311,
+      MATCHES = 312,
+      SLASH = 313,
+      STRING_LITERAL = 314,
+      INTEGER = 315,
+      DOUBLE = 316,
+      STRING_ID = 317,
+      STRING_ID_WILDCARD = 318,
+      STRING_LENGTH = 319,
+      STRING_OFFSET = 320,
+      STRING_COUNT = 321,
+      ID = 322,
+      INTEGER_FUNCTION = 323,
+      HEX_OR = 324,
+      LSQB = 325,
+      RSQB = 326,
+      HEX_WILDCARD = 327,
+      DASH = 328,
+      HEX_NIBBLE = 329,
+      HEX_INTEGER = 330,
+      REGEXP_OR = 331,
+      REGEXP_ITER = 332,
+      REGEXP_PITER = 333,
+      REGEXP_OPTIONAL = 334,
+      REGEXP_START_OF_LINE = 335,
+      REGEXP_END_OF_LINE = 336,
+      REGEXP_ANY_CHAR = 337,
+      REGEXP_WORD_CHAR = 338,
+      REGEXP_NON_WORD_CHAR = 339,
+      REGEXP_SPACE = 340,
+      REGEXP_NON_SPACE = 341,
+      REGEXP_DIGIT = 342,
+      REGEXP_NON_DIGIT = 343,
+      REGEXP_WORD_BOUNDARY = 344,
+      REGEXP_NON_WORD_BOUNDARY = 345,
+      REGEXP_CHAR = 346,
+      REGEXP_RANGE = 347,
+      REGEXP_CLASS = 348,
+      UNARY_MINUS = 349,
+      META_KEY = 288,
+      META_VALUE = 289,
+
+      INVALID = 16384
+   };
+	*/
 
 	template<>
    struct action< rule_name >
@@ -22,8 +130,9 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-      	std::cout << "Rule name: " << in.string() << "'" << std::endl;
+      	std::cout << "Rule name: " << in.string() << "' found on position '" << in.position() <<"'." << std::endl;
          d.builder.withName(in.string());
+         d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
       }
    };
 
@@ -34,6 +143,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.builder.withTag(in.string());
+         d.tokens.emplace_back(Tokentype::TAG, in.string(), in.position());
       }
    };
 
@@ -45,6 +155,7 @@ namespace gr {
       {
 //         std::cout << "'Saving h.meta_key= " << in.string() << "'" << std::endl;
          d.meta_key = in.string();
+         d.tokens.emplace_back(Tokentype::META_KEY, in.string(), in.position());
       }
    };
 
@@ -56,6 +167,7 @@ namespace gr {
       {
 //         std::cout << "'Matched meta_string_value action with '" << in.string() << "'" << std::endl;
          d.builder.withStringMeta(d.meta_key, in.string());
+         d.tokens.emplace_back(Tokentype::META_VALUE, in.string(), in.position());
       }
    };
 
@@ -68,6 +180,7 @@ namespace gr {
 //         std::cout << "'Matched meta_uint_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
+         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
 
@@ -80,6 +193,7 @@ namespace gr {
 //         std::cout << "'Matched meta_negate_int_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = (-1) * std::stoi(in.string());
          d.builder.withIntMeta(d.meta_key, meta_value);
+         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
 
@@ -92,6 +206,7 @@ namespace gr {
 //         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = std::stoi(in.string(), nullptr, 16);
          d.builder.withHexIntMeta(d.meta_key, meta_value);
+         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
 
@@ -102,10 +217,14 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
 //         std::cout << "'Matched meta_bool_value action with '" << in.string() << "'" << std::endl;
-         if(in.string() == "true")
+         if(in.string() == "true") {
             d.builder.withBoolMeta(d.meta_key, true);
-         else if(in.string() == "false")
+	         d.tokens.emplace_back(Tokentype::META_VALUE, true, in.position());
+	      }
+         else if(in.string() == "false") {
             d.builder.withBoolMeta(d.meta_key, false);
+	         d.tokens.emplace_back(Tokentype::META_VALUE, false, in.position());
+	      }
          else
          	assert(false && "meta_bool_value value must match 'true' or 'false' only");
          d.meta_key = "";
@@ -133,6 +252,19 @@ namespace gr {
       }
    };
 */
+
+   template<>
+   struct action< strings_key >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         std::cout << "Matched strings_key with '" << in.string() << "'" << std::endl;
+         d.str_key = in.string();
+         d.tokens.emplace_back(Tokentype::STRING_KEY, d.str_key, in.position());
+      }
+   };
+
    template<>
    struct action< condition >
    {
@@ -151,6 +283,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.plain_str_value = in.string();
+         d.tokens.emplace_back(Tokentype::PLAIN_STRING_VALUE, in.string(), in.position());
       }
    };
 
@@ -168,18 +301,7 @@ namespace gr {
          d.str_modifiers = 0u;
       }
    };
-
-   template<>
-   struct action< hex_literal >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-      	(void) in;
-//         std::cout << "Matched hex_literal with '" << in.string() << "'" << std::endl;
-      }
-   };
-
+/*
    template<>
    struct action< hex_normal >
    {
@@ -227,7 +349,7 @@ namespace gr {
    struct action< hex_wildcard_full >
    {
    	template< typename Input >
-   	static void apply(const Input& /*unused*/, ParserDriver& d)
+   	static void apply(const Input& , ParserDriver& d)
    	{
 //   		std::cout << "Matched hex_wildcard_full with '" << in.string() << "'" << std::endl;
    		d.hex_builder.add(wildcard());
@@ -238,27 +360,13 @@ namespace gr {
    struct action< hex_jump_varying >
    {
    	template< typename Input >
-   	static void apply(const Input& /*unused*/, ParserDriver& d)
+   	static void apply(const Input& , ParserDriver& d)
    	{
 //   		std::cout << "Matched hex_jump_varying with '" << in.string() << "'" << std::endl;
    		d.hex_builder.add(jumpVarying());
    	}
    };
-/*
-   template<>
-   struct action< hex_jump_number1 >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d) { d.hex_jump_number1 = std::stoi(in.string()); }
-   };
 
-   template<>
-   struct action< hex_jump_number2 >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d) { d.hex_jump_number2 = std::stoi(in.string()); }
-   };
-*/
    template<>
    struct action< hex_jump_varying_range >
    {
@@ -295,7 +403,6 @@ namespace gr {
       }
    };
 
-
    template<>
    struct action< hex_atom >
    {
@@ -314,7 +421,7 @@ namespace gr {
       {
          std::cout << "Matched hex_brackets with '" << in.string() << "'" << std::endl;
       }
-   };
+   };*/
 /*
    template<>
    struct action< hex_comp_alt_no_brackets >
@@ -335,7 +442,7 @@ namespace gr {
          std::cout << "Matched opt_space with '" << in.string() << "'" << std::endl;
       }
    };*/
-
+/*
    template<>
    struct action< hex_alt >
    {
@@ -355,7 +462,7 @@ namespace gr {
          std::cout << "Matched hex_comp with '" << in.string() << "'" << std::endl;
       }
    };
-
+*/
 
    template<>
    struct action< hex_strings_value >
@@ -363,17 +470,11 @@ namespace gr {
       template< typename Input >
       static void apply( Input& in, ParserDriver& d)
       {
-      	(void) d;
-      	(void) in;
-      	std::cout << "Called hex_strings_value with '" << in.string() << "'" << std::endl;
-/*	      auto hex_string = d.hex_builder.get();
-	      d.builder.withHexString(d.str_key, hex_string);
-	      d.str_key = "";*/
       	string_input si( in.string(), "from_content" );
          auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
       	// variable root now holds a parse tree of hex_string that we need to process
       	if(root) {
-	      	pgl::parse_tree::print_dot( std::cout, *root );
+	      	//pgl::parse_tree::print_dot( std::cout, *root );
 	      	d.hex_builder.add(parse_hex_tree(root.get()));
       	}
 	      else
@@ -396,25 +497,46 @@ namespace gr {
    };
 
    template<>
-   struct action< strings_modifier >
+   struct action< strings_modifier_ascii >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Matched strings_modifier with '" << in.string() << "'" << std::endl;
-         d.str_modifiers |= token::type(in.string());
-         std::cout << "Changed d.str_modifiers to " << d.str_modifiers << std::endl;
+         d.str_modifiers |= String::Modifiers::Ascii;
+         d.tokens.emplace_back(Tokentype::ASCII, in.string(), in.position());
       }
    };
 
    template<>
-   struct action< strings_key >
+   struct action< strings_modifier_nocase >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-         std::cout << "Matched strings_key with '" << in.string() << "'" << std::endl;
-         d.str_key = in.string();
+         d.str_modifiers |= String::Modifiers::Nocase;
+         d.tokens.emplace_back(Tokentype::NOCASE, in.string(), in.position());
+      }
+   };
+
+   template<>
+   struct action< strings_modifier_wide >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         d.str_modifiers |= String::Modifiers::Wide;
+         d.tokens.emplace_back(Tokentype::WIDE, in.string(), in.position());
+      }
+   };
+
+   template<>
+   struct action< strings_modifier_fullword >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+         d.str_modifiers |= String::Modifiers::Fullword;
+         d.tokens.emplace_back(Tokentype::FULLWORD, in.string(), in.position());
       }
    };
 
@@ -513,15 +635,10 @@ namespace gr {
   			{
   				alt_builders[0].add( parse_hex_tree( child.get() ) );
   			}
-  			else {
+  			else
+  			{
   				assert(child->name() == "yaramod::gr::hex_alt");
   				alt_builders.emplace_back( parse_hex_tree( child.get() ) );
-  				/*std::vector< YaraHexStringBuilder > builders_to_alt;
-  				builders_to_alt.push_back(builder);
-  				for( const auto& subchild : child->children )
-  					builders_to_alt.push_back( parse_hex_tree( subchild.get() ) );
-  				alt_builder.add( alt( builders_to_alt ) );
-  				builder = std::move(alt_builder);*/
   			}
   		}
   		if( alt_builders.size() == 1 )
@@ -637,6 +754,9 @@ bool ParserDriver::parse()
 	std::cerr << "ParserDriver::parse called" << std::endl;
    auto stream = currentStream();
    auto input = pgl::istream_input(*stream, max_size, "from_content");
+
+//memory_input< tracking_mode::lazy, Eol > i2( data.data(), data.data() + data.size(), file );
+
 
    auto result = pgl::parse< gr::grammar, gr::action >(input, *this);
 
@@ -761,7 +881,7 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = _parsed_rule_names.insert(rule->getName()).second;
 	if(!success)
-		throw ParserError("Error at <TODO location>: Redefinition of rule <TODO name>");
+		throw ParserError(std::string("Error at <TODO location>: Redefinition of rule ") + rule->getName());
 	else
 		_file.addRule(std::move(rule));
 }
