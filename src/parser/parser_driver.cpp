@@ -475,7 +475,7 @@ namespace gr {
       	// variable root now holds a parse tree of hex_string that we need to process
       	if(root) {
 	      	//pgl::parse_tree::print_dot( std::cout, *root );
-	      	d.hex_builder.add(parse_hex_tree(root.get()));
+	      	d.hex_builder.add(parse_hex_tree(root.get(), d.tokens));
       	}
 	      else
 	      	std::cerr << "Parsing hexstring '" << in.string() << "' failed." << std::endl;
@@ -541,23 +541,15 @@ namespace gr {
    };
 
    template<>
-   struct action< strings >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver& /*unused*/)
-      {
-         std::cout << "Matched strings with '" << in.string() << "'" << std::endl;
-      }
-   };
-
-   template<>
    struct action< end_of_rule >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
       	std::cout << "Rule was finished!" << std::endl;
-      	(void) in;
+   	   d.tokens.emplace_back(Tokentype::RULE_END, in.string(), in.position());
+   	   for( const auto& token : d.tokens )
+	   	   std::cout << token << "; ";
          d.finishRule();
       }
    };
@@ -566,13 +558,14 @@ namespace gr {
    struct action< end_of_file >
    {
       template< typename Input >
-      static void apply(const Input&, const ParserDriver&)
+      static void apply(const Input& in, ParserDriver& d)
       {
       	std::cout << "TADA!" << std::endl;
+   	   d.tokens.emplace_back(Tokentype::FILE_END, in.string(), in.position());
       }
    };
 
-  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root )
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
   	{
   		std::vector<YaraHexStringBuilder> alt_builders;
   		alt_builders.emplace_back();
@@ -580,33 +573,39 @@ namespace gr {
   		{
   			if( child->name() == "yaramod::gr::hex_atom_group" )
   			{
-  				alt_builders[0].add( parse_hex_tree( child.get() ) );
+  				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
   			}
   			else if( child->name() == "yaramod::gr::hex_normal" )
   			{
-  				alt_builders[0].add( stoi( child->string(), nullptr, 16 ) );
+  				auto hex = stoi( child->string(), nullptr, 16 );
+  				alt_builders[0].add( hex );
+  				tokens.emplace_back( Tokentype::HEX_NORMAL, hex, child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_full" )
   			{
   				alt_builders[0].add(wildcard());
+  				tokens.emplace_back( Tokentype::HEX_WILDCARD_FULL, child->string(), child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_high" )
   			{
-   			assert(child->string().length() == 2);
-   			const auto hex_high = std::stoi(child->string().substr(1,1), nullptr, 16);
+   			assert( child->string().length() == 2 );
+   			const auto hex_high = std::stoi( child->string().substr(1,1), nullptr, 16 );
    			assert(hex_high <= 16);
-   			alt_builders[0].add(wildcardHigh(hex_high));
+   			alt_builders[0].add( wildcardHigh( hex_high ) );
+  				tokens.emplace_back( Tokentype::HEX_WILDCARD_HIGH, hex_high, child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_wildcard_low" )
   			{
-  				assert(child->string().length() == 2);
-	   		const auto hex_low = std::stoi(child->string().substr(0,1), nullptr, 16);
-   			assert(hex_low <= 16);
-   			alt_builders[0].add(wildcardLow(hex_low));
+  				assert( child->string().length() == 2 );
+	   		const auto hex_low = std::stoi( child->string().substr(0,1), nullptr, 16 );
+   			assert( hex_low <= 16 );
+   			alt_builders[0].add( wildcardLow( hex_low ) );
+  				tokens.emplace_back( Tokentype::HEX_WILDCARD_LOW, hex_low, child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_varying" )
   			{
-  				alt_builders[0].add(jumpVarying());
+  				alt_builders[0].add( jumpVarying() );
+  				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING, child->string(), child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_varying_range" ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
   			{
@@ -614,6 +613,7 @@ namespace gr {
   				assert( child->children[0]->name() == "yaramod::gr::_number" );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpVaryingRange( arg ) );
+  				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING_RANGE, arg, child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_range" )
   			{
@@ -623,6 +623,7 @@ namespace gr {
   				int left = std::stoi( child->children[0]->string() );
   				int right = std::stoi( child->children[1]->string() );
   				alt_builders[0].add( jumpRange( left, right ) );
+  				tokens.emplace_back( Tokentype::HEX_JUMP_RANGE, child->string(), child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_jump_fixed" )
   			{
@@ -630,15 +631,23 @@ namespace gr {
   				assert( child->children[0]->name() == "yaramod::gr::_number" );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpFixed( arg ) );
+  				tokens.emplace_back( Tokentype::HEX_JUMP_FIXED, arg, child->begin() );
   			}
   			else if( child->name() == "yaramod::gr::hex_brackets" )
   			{
-  				alt_builders[0].add( parse_hex_tree( child.get() ) );
+  				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
   			}
-  			else
-  			{
-  				assert(child->name() == "yaramod::gr::hex_alt");
-  				alt_builders.emplace_back( parse_hex_tree( child.get() ) );
+  			else if(child->name() == "yaramod::gr::hex_alt") {
+  				alt_builders.emplace_back( parse_hex_tree( child.get(), tokens ) );
+  			}
+  			else if(child->name() == "yaramod::gr::hex_left_bracket") {
+  				tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
+  			}
+  			else if(child->name() == "yaramod::gr::hex_righ_bracket") {
+  				tokens.emplace_back( Tokentype::HEX_RIGHT_BRACKET, child->string(), child->begin() );
+  			}
+  			else {
+  				assert(false && "Unknown node name.");
   			}
   		}
   		if( alt_builders.size() == 1 )
