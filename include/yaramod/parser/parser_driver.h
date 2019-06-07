@@ -9,8 +9,9 @@
 #include <fstream>
 #include <limits.h>
 #include <memory>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
+#include <variant>
 
 #include <pegtl/tao/pegtl.hpp>
 #include <pegtl/tao/pegtl/contrib/parse_tree.hpp>
@@ -109,9 +110,13 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 	struct hex_strings_value : seq< opt_space, until< at< one<'}'> >, pgl::any > > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
 
-   struct strings_modifier : seq< one< ' ' >, sor< TAO_PEGTL_STRING("ascii"), TAO_PEGTL_STRING("fullword"), TAO_PEGTL_STRING("nocase"), TAO_PEGTL_STRING("wide") > > {};
+	struct strings_modifier_ascii : TAO_PEGTL_STRING("ascii") {};
+	struct strings_modifier_fullword : TAO_PEGTL_STRING("fullword") {};
+	struct strings_modifier_nocase : TAO_PEGTL_STRING("nocase") {};
+	struct strings_modifier_wide : TAO_PEGTL_STRING("wide") {};
+   struct strings_modifier : sor< strings_modifier_ascii, strings_modifier_fullword, strings_modifier_nocase, strings_modifier_wide > {};
    struct plain_strings_value : until< at< one< '"' > >, sor< slash, pgl::any > > {};
-   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< strings_modifier > > {};
+   struct plain_strings_entry : seq< one<'"'>, plain_strings_value, one<'"'>, star< seq< opt_space, strings_modifier > > > {};
 
    struct strings_key : seq< one< '$' >, _identificator > {};
    struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor< plain_strings_entry, hex_strings_entry >, opt< eol > > {};
@@ -128,143 +133,32 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct end_of_rule : one<'}'> {};
    struct end_of_file : opt< eolf > {};
 
+   struct rule : seq<
+	   	star<line>,
+	   	TAO_PEGTL_STRING("rule "), must< rule_name >, opt_space,
+		   sor< line,
+		   	seq<
+		   		opt_space, one<':'>,
+		   		plus< seq< opt_space, tag > >,
+		   		opt_space, opt< line >
+	   		>,
+	   		opt_space
+   		>,
+   		one< '{' >, line,
+   		opt< meta >,
+   		opt< strings >,
+   		condition,
+   		end_of_rule
+		> {};
+
    struct grammar :
    must<
-	   star<
-		   seq<
-		   	star<line>,
-		   	TAO_PEGTL_STRING("rule "), rule_name, opt_space,
-			   sor< line,
-			   	seq<
-			   		opt_space, one<':'>,
-			   		plus< seq< opt_space, tag > >,
-			   		opt_space, opt< line >
-		   		>,
-		   		opt_space
-	   		>,
-	   		one< '{' >, line,
-	   		opt< meta >,
-	   		opt< strings >,
-	   		condition,
-	   		end_of_rule
-   		>
-   	>,
+	   star< rule >,
 	   end_of_file
-	>
-   {};
+		> {};
 
-   struct token
-   {
-      enum yytokentype
-      {
-         END = 258,
-         RANGE = 259,
-         DOT = 260,
-         LT = 261,
-         GT = 262,
-         LE = 263,
-         GE = 264,
-         EQ = 265,
-         NEQ = 266,
-         SHIFT_LEFT = 267,
-         SHIFT_RIGHT = 268,
-         MINUS = 269,
-         PLUS = 270,
-         MULTIPLY = 271,
-         DIVIDE = 272,
-         MODULO = 273,
-         BITWISE_XOR = 274,
-         BITWISE_AND = 275,
-         BITWISE_OR = 276,
-         BITWISE_NOT = 277,
-         LP = 278,
-         RP = 279,
-         LCB = 280,
-         RCB = 281,
-         ASSIGN = 282,
-         COLON = 283,
-         COMMA = 284,
-         PRIVATE = 285,
-         GLOBAL = 286,
-         RULE = 287,
-         META = 288,
-         STRINGS = 289,
-         CONDITION = 290,
-         ASCII = 291,
-         NOCASE = 292,
-         WIDE = 293,
-         FULLWORD = 294,
-         XOR = 295,
-         BOOL_TRUE = 296,
-         BOOL_FALSE = 297,
-         IMPORT_MODULE = 298,
-         NOT = 299,
-         AND = 300,
-         OR = 301,
-         ALL = 302,
-         ANY = 303,
-         OF = 304,
-         THEM = 305,
-         FOR = 306,
-         ENTRYPOINT = 307,
-         OP_AT = 308,
-         OP_IN = 309,
-         FILESIZE = 310,
-         CONTAINS = 311,
-         MATCHES = 312,
-         SLASH = 313,
-         STRING_LITERAL = 314,
-         INTEGER = 315,
-         DOUBLE = 316,
-         STRING_ID = 317,
-         STRING_ID_WILDCARD = 318,
-         STRING_LENGTH = 319,
-         STRING_OFFSET = 320,
-         STRING_COUNT = 321,
-         ID = 322,
-         INTEGER_FUNCTION = 323,
-         HEX_OR = 324,
-         LSQB = 325,
-         RSQB = 326,
-         HEX_WILDCARD = 327,
-         DASH = 328,
-         HEX_NIBBLE = 329,
-         HEX_INTEGER = 330,
-         REGEXP_OR = 331,
-         REGEXP_ITER = 332,
-         REGEXP_PITER = 333,
-         REGEXP_OPTIONAL = 334,
-         REGEXP_START_OF_LINE = 335,
-         REGEXP_END_OF_LINE = 336,
-         REGEXP_ANY_CHAR = 337,
-         REGEXP_WORD_CHAR = 338,
-         REGEXP_NON_WORD_CHAR = 339,
-         REGEXP_SPACE = 340,
-         REGEXP_NON_SPACE = 341,
-         REGEXP_DIGIT = 342,
-         REGEXP_NON_DIGIT = 343,
-         REGEXP_WORD_BOUNDARY = 344,
-         REGEXP_NON_WORD_BOUNDARY = 345,
-         REGEXP_CHAR = 346,
-         REGEXP_RANGE = 347,
-         REGEXP_CLASS = 348,
-         UNARY_MINUS = 349,
-         INVALID = 16384
-      };
 
-      static String::Modifiers type( const std::string& str )
-      {
-         if(str == " ascii")
-            return String::Modifiers::Ascii;
-         if(str == " wide")
-            return String::Modifiers::Wide;
-         if(str == " nocase")
-            return String::Modifiers::Nocase;
-         if(str == " fullword")
-            return String::Modifiers::Fullword;
-         throw ParserError("Invalid string modifier.");
-      }
-   };
+
 
    template< typename Rule >
    struct action {};
@@ -299,6 +193,190 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 	};
 
 } //namespace gr
+
+enum Tokentype
+   {
+   	RULE_NAME = 1,
+   	TAG = 2,
+
+      END = 258,
+      RANGE = 259,
+      DOT = 260,
+      LT = 261,
+      GT = 262,
+      LE = 263,
+      GE = 264,
+      EQ = 265,
+      NEQ = 266,
+      SHIFT_LEFT = 267,
+      SHIFT_RIGHT = 268,
+      MINUS = 269,
+      PLUS = 270,
+      MULTIPLY = 271,
+      DIVIDE = 272,
+      MODULO = 273,
+      BITWISE_XOR = 274,
+      BITWISE_AND = 275,
+      BITWISE_OR = 276,
+      BITWISE_NOT = 277,
+      LP = 278,
+      RP = 279,
+      LCB = 280,
+      RCB = 281,
+      ASSIGN = 282,
+      COLON = 283,
+      COMMA = 284,
+      PRIVATE = 285,
+      GLOBAL = 286,
+      RULE = 287,
+      STRINGS = 289,
+      CONDITION = 290,
+      ASCII = 291,
+      NOCASE = 292,
+      WIDE = 293,
+      FULLWORD = 294,
+      XOR = 295,
+      BOOL_TRUE = 296,
+      BOOL_FALSE = 297,
+      IMPORT_MODULE = 298,
+      NOT = 299,
+      AND = 300,
+      OR = 301,
+      ALL = 302,
+      ANY = 303,
+      OF = 304,
+      THEM = 305,
+      FOR = 306,
+      ENTRYPOINT = 307,
+      OP_AT = 308,
+      OP_IN = 309,
+      FILESIZE = 310,
+      CONTAINS = 311,
+      MATCHES = 312,
+      SLASH = 313,
+      STRING_LITERAL = 314,
+      INTEGER = 315,
+      DOUBLE = 316,
+      STRING_ID = 317,
+      STRING_ID_WILDCARD = 318,
+      STRING_LENGTH = 319,
+      STRING_OFFSET = 320,
+      STRING_COUNT = 321,
+      ID = 322,
+      INTEGER_FUNCTION = 323,
+      HEX_OR = 324,
+      LSQB = 325,
+      RSQB = 326,
+      HEX_WILDCARD = 327,
+      DASH = 328,
+      HEX_NIBBLE = 329,
+      HEX_INTEGER = 330,
+      REGEXP_OR = 331,
+      REGEXP_ITER = 332,
+      REGEXP_PITER = 333,
+      REGEXP_OPTIONAL = 334,
+      REGEXP_START_OF_LINE = 335,
+      REGEXP_END_OF_LINE = 336,
+      REGEXP_ANY_CHAR = 337,
+      REGEXP_WORD_CHAR = 338,
+      REGEXP_NON_WORD_CHAR = 339,
+      REGEXP_SPACE = 340,
+      REGEXP_NON_SPACE = 341,
+      REGEXP_DIGIT = 342,
+      REGEXP_NON_DIGIT = 343,
+      REGEXP_WORD_BOUNDARY = 344,
+      REGEXP_NON_WORD_BOUNDARY = 345,
+      REGEXP_CHAR = 346,
+      REGEXP_RANGE = 347,
+      REGEXP_CLASS = 348,
+      UNARY_MINUS = 349,
+      META_KEY = 288,
+      META_VALUE = 289,
+      STRING_KEY = 290,
+      PLAIN_STRING_VALUE = 291,
+
+
+
+      INVALID = 16384
+   };
+
+/**
+ * Class representing tokens that YARA rules consist of.
+ */
+struct Token
+{
+	void stream_value(std::ostream& o) const {
+ 		std::visit(
+      [&o](auto&& v)
+      	{
+	         if constexpr(std::is_same_v< decltype(v), std::string& >)
+	            o << "'"<< v <<"'";
+	         else
+	            o << v;
+         },
+         value
+ 		);
+	}
+
+   Token(Tokentype type, int value, pgl::position position)
+   	: type(type)
+   	, value(value)
+   	, position(position)
+   {
+   }
+
+   Token(Tokentype type, uint value, pgl::position position)
+   	: type(type)
+   	, value(value)
+   	, position(position)
+   {
+   }
+
+   Token(Tokentype type, bool value, pgl::position position)
+   	: type(type)
+   	, value(value)
+   	, position(position)
+   {
+   }
+
+   Token(Tokentype type, int64_t value, pgl::position position)
+   	: type(type)
+   	, value(value)
+   	, position(position)
+   {
+   }
+
+   Token(Tokentype type, const std::string& value, pgl::position position)
+   	: type(type)
+   	, value(value)
+   	, position(position)
+   {
+   }
+
+   Token(const Token& other) = default;
+
+   Token(Token&& other) = default;
+
+   friend std::ostream& operator<<(std::ostream& o, const Token& t) {
+   	o << t.type << ':';
+   	std::visit(
+      [&o](auto&& v)
+      	{
+	         if constexpr(std::is_same_v< decltype(v), std::string& >)
+	            o << "'"<< v <<"'";
+	         else
+	            o << v;
+         },
+         t.value
+ 		);
+   	return o << ':' << t.position;
+ 	}
+
+	Tokentype type;
+	std::variant<int, uint, int64_t, bool, std::string> value;
+	pgl::position position;
+};
+
 
 /**
  * Specifies different parsing modes.
@@ -359,6 +437,7 @@ public:
 
 protected:
 	std::istream* currentStream();
+	std::vector< Token > tokens;
 
 	/// @name Methods for handling includes
 	/// @{
