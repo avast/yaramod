@@ -206,19 +206,19 @@ struct Token
 
    Token(Token&& other) = default;
 
-   friend std::ostream& operator<<(std::ostream& o, const Token& t) {
-   	o << t.type << ':';
+   friend std::ostream& operator<<(std::ostream& os, const Token& token) {
+   	os << "[" << token.type << ":";
    	std::visit(
-      [&o](auto&& v)
+      [&os](auto&& v)
       	{
 	         if constexpr(std::is_same_v< decltype(v), std::string& >)
-	            o << "'"<< v <<"'";
+	            os << "'"<< v <<"'";
 	         else
-	            o << v;
+	            os << v;
          },
-         t.value
+         token.value
  		);
-   	return o << ':' << t.position;
+   	return os << "; " << token.position << "]";
  	}
 
 	Tokentype type;
@@ -324,7 +324,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct rule : seq<
 	   	star<line>,
-	   	TAO_PEGTL_STRING("rule "), must< rule_name >, opt_space,
+	   	TAO_PEGTL_STRING("rule"), opt_space, must< rule_name >, opt_space,
 		   sor< line,
 		   	seq<
 		   		opt_space, one<':'>,
