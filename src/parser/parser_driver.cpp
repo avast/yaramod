@@ -125,9 +125,17 @@ namespace gr {
    };
 	*/
 
-	void error_handle( const std::string& msg, const pgl::position& p, size_t length, bool except = true ) {
+	void error_handle( const std::string& msg, std::size_t line, std::optional<std::size_t> byte = std::nullopt, std::optional<std::size_t> length = std::nullopt, bool except = true ) {
 		std::stringstream ss;
-		ss << "Error at " << p.line << "." << p.byte_in_line+1 << "-" << p.byte_in_line + length << ": " << msg;
+		ss << "Error at ";
+		if( byte ) {
+			ss << line << "." << byte.value() + 1;
+			if( length )
+				ss << "-" << byte.value() + length.value();
+		}
+		else
+			ss << "line " << line;
+		ss << ": " << msg;
 		if( except )
 			throw ParserError( ss.str() );
 		else
@@ -142,7 +150,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
       	if(d._parsed_rule_names.count(in.string()) != 0)
-				error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position(), in.string().size() );
+				error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position().line, in.position().byte_in_line, in.string().size() );
          d.builder.withName(in.string());
          d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
       }
@@ -165,7 +173,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "'Saving h.meta_key= " << in.string() << "'" << std::endl;
          d.meta_key = in.string();
          d.tokens.emplace_back(Tokentype::META_KEY, in.string(), in.position());
       }
@@ -177,7 +184,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "'Matched meta_string_value action with '" << in.string() << "'" << std::endl;
          d.builder.withStringMeta(d.meta_key, in.string());
          d.tokens.emplace_back(Tokentype::META_VALUE, in.string(), in.position());
       }
@@ -189,7 +195,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "'Matched meta_uint_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
          d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
@@ -501,9 +506,13 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
       	assert(d.str_modifiers == 0u);
-         std::cout << "XXX Matched hex_strings_entry with '" << in.string() << "'"
-                   << " key=" << d.str_key << std::endl;
-         d.builder.withHexString(d.str_key, d.hex_builder.get());
+         const auto& hex_string = d.hex_builder.get();
+         const auto& units = hex_string->getUnits();
+         if( units.front()->isJump() )
+         	error_handle("hex-string syntax error: Unexpected jump '" + units.front()->getText() + "' at the beginning of hex-string, expecting ( or ? or nibble.", in.position().line);
+         if( units.back()->isJump() )
+         	error_handle("hex-string syntax error: Unexpected jump '" + units.back()->getText() + "' at the end of hex-string, expecting ( or ? or nibble.", in.position().line);
+         d.builder.withHexString(d.str_key, hex_string);
          d.str_key = "";
       }
    };
