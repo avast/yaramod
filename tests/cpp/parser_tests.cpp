@@ -661,7 +661,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.10: syntax error, unexpected hex string [, expecting ( or hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at line 4: hex-string syntax error: Unexpected jump '[5-6]' at the beginning of hex-string, expecting ( or ? or nibble.", err.getErrorMessage());
 	}
 }
 
@@ -687,7 +687,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.25: syntax error, unexpected }, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at line 4: hex-string syntax error: Unexpected jump '[5-6]' at the end of hex-string, expecting ( or ? or nibble.", err.getErrorMessage());
 	}
 }
 
