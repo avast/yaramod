@@ -13,8 +13,9 @@
 #include "yaramod/types/expressions.h"
 
 
-#include <pegtl/tao/pegtl/position.hpp>
+#include <pegtl/tao/pegtl/parse_error.hpp>
 #include <pegtl/tao/pegtl/tracking_mode.hpp>
+//#include <pegtl/tao/pegtl/istream_input.hpp>
 
 namespace yaramod {
 
@@ -124,13 +125,24 @@ namespace gr {
    };
 	*/
 
+	void error_handle( const std::string& msg, const pgl::position& p, size_t length, bool except = true ) {
+		std::stringstream ss;
+		ss << "Error at " << p.line << "." << p.byte_in_line+1 << "-" << p.byte_in_line + length << ": " << msg;
+		if( except )
+			throw ParserError( ss.str() );
+		else
+			std::cerr << ss.str() << std::endl;
+	}
+
+
 	template<>
    struct action< rule_name >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-      	std::cout << "Rule name: " << in.string() << "' found on position '" << in.position() <<"'." << std::endl;
+      	if(d._parsed_rule_names.count(in.string()) != 0)
+				error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position(), in.string().size() );
          d.builder.withName(in.string());
          d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
       }
@@ -470,7 +482,7 @@ namespace gr {
       template< typename Input >
       static void apply( Input& in, ParserDriver& d)
       {
-      	string_input si( in.string(), "from_content" );
+      	string_input si( in.string(), "hex" );
          auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
       	// variable root now holds a parse tree of hex_string that we need to process
       	if(root) {
@@ -762,7 +774,7 @@ bool ParserDriver::parse()
 
 	std::cerr << "ParserDriver::parse called" << std::endl;
    auto stream = currentStream();
-   auto input = pgl::istream_input(*stream, max_size, "from_content");
+   auto input = pgl::istream_input(*stream, max_size, "src");
 
 //memory_input< tracking_mode::lazy, Eol > i2( data.data(), data.data() + data.size(), file );
 
@@ -890,7 +902,7 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = _parsed_rule_names.insert(rule->getName()).second;
 	if(!success)
-		throw ParserError(std::string("Error at <TODO location>: Redefinition of rule ") + rule->getName());
+		throw ParserError(std::string("Error at <TODO>: Redefinition of rule "+rule->getName()));
 	else
 		_file.addRule(std::move(rule));
 }
