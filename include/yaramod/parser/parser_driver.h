@@ -358,7 +358,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct action {};
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
-
+/*
    template< typename Rule >
    struct hex_selector : std::false_type {};
    template<> struct hex_selector< hex_brackets > : std::true_type {}; //arity 3,
@@ -375,6 +375,24 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct hex_selector< hex_jump_varying_range > : std::true_type {}; //arity 1
    template<> struct hex_selector< hex_jump_range > : std::true_type {}; //arity 2
    template<> struct hex_selector< hex_jump_fixed > : std::true_type {}; //arity 1
+*/
+	template< typename Rule >
+   using hex_selector = pgl::parse_tree::selector< Rule,
+   	pgl::parse_tree::store_content::on<
+      hex_brackets,
+      hex_left_bracket,
+      hex_righ_bracket,
+      hex_alt,
+      hex_atom_group,
+      hex_normal,
+      _number,
+      hex_wildcard_full,
+      hex_wildcard_high,
+      hex_wildcard_low,
+      hex_jump_varying,
+      hex_jump_varying_range,
+      hex_jump_range,
+		hex_jump_fixed > >;
 
    template< typename Rule >
 	struct my_control : tao::pegtl::normal< Rule >
