@@ -485,17 +485,8 @@ namespace gr {
    struct action< hex_strings_value >
    {
       template< typename Input >
-      static void apply( Input& in, ParserDriver& d)
+      static void apply( const Input&, const ParserDriver&)
       {
-      	string_input si( in.string(), "hex" );
-         auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
-      	// variable root now holds a parse tree of hex_string that we need to process
-      	if(root) {
-	      	//pgl::parse_tree::print_dot( std::cout, *root );
-	      	d.hex_builder.add(parse_hex_tree(root.get(), d.tokens));
-      	}
-	      else
-	      	std::cerr << "Parsing hexstring '" << in.string() << "' failed." << std::endl;
       }
    };
 
@@ -505,8 +496,24 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
+			YaraHexStringBuilder hex_builder;
+			string_input si( in.string(), "hex" );
+         try {
+         	auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
+         	if(root) {
+	      	//pgl::parse_tree::print_dot( std::cout, *root );
+	      	hex_builder.add(parse_hex_tree(root.get(), d.tokens));
+	      	}
+		      else
+      	   	error_handle("Parsing hex-string '" + in.string() + "' failed.", in.position().line);
+      		}
+      	catch( const std::exception& e ) {
+      		error_handle("Parsing hex-string '" + in.string() + "' failed.", in.position().line);
+      	}
+
+
       	assert(d.str_modifiers == 0u);
-         const auto& hex_string = d.hex_builder.get();
+         const auto& hex_string = hex_builder.get();
          const auto& units = hex_string->getUnits();
          if( units.front()->isJump() )
          	error_handle("hex-string syntax error: Unexpected jump '" + units.front()->getText() + "' at the beginning of hex-string, expecting ( or ? or nibble.", in.position().line);

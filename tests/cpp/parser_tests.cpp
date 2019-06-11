@@ -692,6 +692,87 @@ rule hex_string_with_jump_at_end {
 }
 
 TEST_F(ParserTests,
+InvalidHexStringAtom1) {
+	prepareInput(
+R"(
+rule invalid_hex_string {
+	strings:
+	  	$1 = { 01 0X } }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 0X }' failed.", err.getErrorMessage());
+	}
+
+}
+
+TEST_F(ParserTests,
+InvalidHexStringAtom2) {
+	prepareInput(
+R"(
+rule invalid_hex_string {
+	strings:
+	  	$1 = { 01 0 } }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 0 }' failed.", err.getErrorMessage());
+	}
+
+}
+
+TEST_F(ParserTests,
+InvalidHexStringOr) {
+	prepareInput(
+R"(
+rule invalid_hex_string {
+	strings:
+	  	$1 = { 01 | } }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 | }' failed.", err.getErrorMessage());
+	}
+
+}
+
+TEST_F(ParserTests,
 RegexpWithJustCharsWorks) {
 	prepareInput(
 R"(
