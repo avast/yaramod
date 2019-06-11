@@ -238,7 +238,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
    struct ws : one< ' ', '\t' > {};
-   struct ws_enter : one< ' ', '\t', '\n', '\b' > {};
+   struct ws_enter : sor< one< ' ', '\t', '\n', '\b'> , eol > {};
    struct opt_space : star< ws > {};
    struct opt_space_enter : star< ws_enter > {};
 
@@ -291,10 +291,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    				plus< hex_alt >,
    				opt_space_enter
    				> {};
-	struct hex_comp_start : sor<
-   				seq< hex_brackets, opt_space_enter, hex_comp >,
-   				seq< opt_space_enter, hex_atom_group, hex_comp >
-   				> {};
+	struct hex_comp_start : must<
+					one<'{'>,
+					opt_space_enter,
+					sor<
+	   				seq< hex_brackets, opt_space_enter, hex_comp >,
+	   				seq< opt_space_enter, hex_atom_group, hex_comp >
+						>,
+					opt_space_enter,
+					one<'}'> > {};
 
 	struct hex_strings_value : seq< opt_space, until< at< one<'}'> >, pgl::any > > {};
 	struct hex_strings_entry : seq< one< '{' >, hex_strings_value, one<'}'> > {};
@@ -312,18 +317,18 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
    // condition must read all lines until '}'.
-   struct condition_true : seq< TAO_PEGTL_STRING("true"), opt_space > {};
+   struct condition_true : seq< TAO_PEGTL_STRING("true"), opt_space_enter > {};
    struct condition_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, eol > {};
    struct condition_last_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, one< '}' > > {};
-   struct condition_line :  seq< condition_true, line >   {};
+   struct condition_line :  seq< condition_true >   {};
    struct condition_entry : seq< opt_space, condition_line > {};
-   struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), eol, plus< condition_entry > > {};
+   struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, plus< condition_entry > > {};
 
    struct end_of_rule : one<'}'> {};
    struct end_of_file : opt< eolf > {};
 
    struct rule : seq<
-	   	star<line>,
+	   	opt_space_enter,
 	   	TAO_PEGTL_STRING("rule"), opt_space, must< rule_name >, opt_space,
 		   sor< line,
 		   	seq<
@@ -502,7 +507,7 @@ private:
 	yy::location _loc; ///< Location
 
 	YaraRuleBuilder builder;
-	YaraHexStringBuilder hex_builder;
+//	YaraHexStringBuilder hex_builder;
    size_t max_size = UINT_MAX; //-1
    int current_stream = -1;
    std::istream* initial_stream = nullptr;
