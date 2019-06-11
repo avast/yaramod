@@ -17,6 +17,7 @@
 #include <pegtl/tao/pegtl/contrib/parse_tree.hpp>
 
 
+#include "yaramod/builder/yara_expression_builder.h"
 #include "yaramod/builder/yara_hex_string_builder.h"
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/yaramod_error.h"
@@ -317,12 +318,89 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
    // condition must read all lines until '}'.
-   struct condition_true : seq< TAO_PEGTL_STRING("true"), opt_space_enter > {};
+   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
    struct condition_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, eol > {};
    struct condition_last_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, one< '}' > > {};
    struct condition_line :  seq< condition_true >   {};
    struct condition_entry : seq< opt_space, condition_line > {};
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, plus< condition_entry > > {};
+
+
+
+   struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+   struct cond_string_identificator : seq< one<'$'>, _identificator > {};
+   struct cond_string_count : seq< one<'#'>, _identificator > {};
+   struct cond_number : _number {};
+   struct cond_comparable : sor< cond_string_count, cond_number > {};
+   struct cond_equation_equal : seq< cond_comparable, opt_space_enter, TAO_PEGTL_STRING("=="), opt_space_enter, cond_comparable > {};
+
+   struct cond_formula;
+   struct cond_after_and;
+   struct cond_after_or;
+
+   struct cond_left_bracket : one<'('> {};
+   struct cond_righ_bracket : one<')'> {};
+   struct cond_brackets : seq< cond_left_bracket, cond_formula, opt_space_enter, cond_righ_bracket > {};
+   struct cond_and : seq< opt_space, TAO_PEGTL_STRING("and"), cond_after_and > {};
+   struct cond_or : seq< opt_space, TAO_PEGTL_STRING("or"), cond_after_or > {};
+
+   struct cond_after_or :
+              seq<
+                 opt_space_enter,
+                 sor<
+                    cond_brackets,
+                    seq<
+                       sor<
+                          cond_string_identificator,
+                          cond_equation_equal
+                       >,
+                       star< cond_and >,
+                       opt_space_enter
+                    >
+                 >,
+                 opt_space_enter
+              > {};
+
+   struct cond_after_and :
+             seq<
+                opt_space_enter,
+                sor<
+                   cond_brackets,
+                   seq<
+                      sor<
+                         cond_string_identificator,
+                         cond_equation_equal
+                      >,
+                      opt_space_enter
+                   >
+                >,
+                opt_space_enter
+             > {};
+
+   struct cond_formula : seq<
+                opt_space_enter,
+                sor<
+                    boolean,
+                    cond_brackets,
+                    seq<
+                        sor<
+                            cond_string_identificator,
+                            cond_equation_equal
+                        >,
+                        star< cond_and >,
+                        star< cond_or >,
+                        opt_space_enter
+                    >
+                >,
+                opt_space_enter
+             > {};
+
+
+
+
+
+
+
 
    struct end_of_rule : one<'}'> {};
    struct end_of_file : opt< eolf > {};
@@ -393,6 +471,26 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
       hex_jump_varying_range,
       hex_jump_range,
 		hex_jump_fixed > >;
+
+
+
+   template< typename Rule >
+   struct cond_selector : std::false_type {};
+   template<> struct cond_selector< cond_string_identificator > : std::true_type {};
+   template<> struct cond_selector< boolean > : std::true_type {};
+   template<> struct cond_selector< cond_string_count > : std::true_type {};
+   template<> struct cond_selector< cond_number > : std::true_type {};
+   template<> struct cond_selector< cond_equation_equal > : std::true_type {};
+   template<> struct cond_selector< cond_formula > : std::true_type {};
+   template<> struct cond_selector< cond_left_bracket > : std::true_type {};
+   template<> struct cond_selector< cond_righ_bracket > : std::true_type {};
+   template<> struct cond_selector< cond_brackets > : std::true_type {};
+   //template<> struct cond_selector< cond_after_and > : std::true_type {};
+   //template<> struct cond_selector< cond_after_or > : std::true_type {};
+   template<> struct cond_selector< cond_and > : std::true_type {};
+   template<> struct cond_selector< cond_or > : std::true_type {};
+   template<> struct cond_selector< grammar > : std::true_type {};
+
 
    template< typename Rule >
 	struct my_control : tao::pegtl::normal< Rule >
@@ -525,7 +623,7 @@ private:
 	yy::location _loc; ///< Location
 
 	YaraRuleBuilder builder;
-//	YaraHexStringBuilder hex_builder;
+	YaraExpressionBuilder expression_builder;
    size_t max_size = UINT_MAX; //-1
    int current_stream = -1;
    std::istream* initial_stream = nullptr;
