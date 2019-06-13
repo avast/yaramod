@@ -317,17 +317,11 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct strings_entry : seq< opt_space, strings_key, TAO_PEGTL_STRING(" = "), sor< plain_strings_entry, hex_strings_entry >, opt< eol > > {};
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
-   // condition must read all lines until '}'.
-   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
-   struct condition_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, eol > {};
-   struct condition_last_part : seq< plus< not_at< one< '}' > >, not_at< eolf >, pgl::any >, one< '}' > > {};
-   struct condition_line :  seq< condition_true >   {};
-   struct condition_entry : seq< opt_space, condition_line > {};
-   struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, plus< condition_entry > > {};
 
 
 
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+   struct opt_not : TAO_PEGTL_STRING("not") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
    struct cond_number : _number {};
@@ -394,13 +388,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                 >,
                 opt_space_enter
              > {};
+   // condition must read all lines until '}'.
+   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
+   struct condition_entry : seq< opt_space, condition_true > {};
+   struct condition_block : sor< plus< condition_entry >, seq< plus< not_at< one< '}' > >, pgl::any >, opt_space_enter > > {};
 
-
-
-
-
-
-
+   struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, condition_block > {};
 
    struct end_of_rule : one<'}'> {};
    struct end_of_file : opt< eolf > {};
@@ -436,6 +429,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct action {};
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
+  	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
 /*
    template< typename Rule >
    struct hex_selector : std::false_type {};

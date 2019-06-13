@@ -150,23 +150,38 @@ namespace gr {
    struct action< condition_true >
    {
    	template< typename Input >
-   	static void apply(const Input& /*unused*/, ParserDriver& d)
+   	static void apply(const Input&, ParserDriver& )
    	{
 //   		std::cout << "Condition true called" << std::endl;
-   		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
+//   		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
    	}
    };
-/*
+
    template<>
-   struct action< condition_line >
+   struct action< condition_block >
    {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver& )
-      {
-         std::cout << "Matched condition_line with '" << in.string() << "'" << std::endl;
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+   		std::cout << "Matched condition_block with '" << in.string() << "'" << std::endl;
+   		string_input si( in.string(), "cond" );
+         try {
+         	auto root = pgl::parse_tree::parse< cond_formula, cond_selector > (si, d);
+         	if(root)
+         	{
+		      	pgl::parse_tree::print_dot( std::cout, *root );
+		      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
+		      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
+	   		   d.builder.withCondition( condition );
+         	}
+		      else
+      	   	error_handle( "Parsing condition '" + in.string() + "' failed.", in.position().line );
+      		}
+      	catch( const std::exception& e ) {
+      		error_handle( "Parsing condition '" + in.string() + "' failed.", in.position().line );
+      	}
       }
    };
-*/
 
    template<>
    struct action< strings_key >
@@ -394,9 +409,10 @@ namespace gr {
 			string_input si( in.string(), "hex" );
          try {
          	auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
-         	if(root) {
-	      	//pgl::parse_tree::print_dot( std::cout, *root );
-	      	hex_builder.add(parse_hex_tree(root.get(), d.tokens));
+         	if(root)
+         	{
+	      		//pgl::parse_tree::print_dot( std::cout, *root );
+	      		hex_builder.add(parse_hex_tree(root.get(), d.tokens));
 	      	}
 		      else
       	   	error_handle("Parsing hex-string '" + in.string() + "' failed.", in.position().line);
@@ -486,6 +502,66 @@ namespace gr {
    	   d.tokens.emplace_back(Tokentype::FILE_END, in.string(), in.position());
       }
    };
+
+   void print_vector(const std::vector< YaraExpressionBuilder >& v)
+   {
+   	std::cout << "size:"<<v.size() << std::endl;
+   	for(size_t i = 0; i < v.size(); ++i) {
+   		std::cout << i << "-th item: " << v[i].get()->getText() << std::endl;
+   	}
+   }
+
+   YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
+   {
+   	if( !root->is_root() )
+   		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
+   	if( root->children.empty() )
+   	{
+   		if( root->name() == "yaramod::gr::boolean" )
+   		{
+   			if( root->string() == "true" )
+	   			return boolVal( true );
+	   		else if( root->string() == "false" )
+	   			return boolVal( false );
+	   		else assert( false && "internal error: expected 'true' or 'false'" );
+   		}
+   		else if( root->name() == "yaramod::gr::cond_string_identificator" )
+   		{
+   			return stringRef( root->string() );
+   		}
+   		else{
+	   		std::cout << "XXX unknown leaf '" << std::endl;
+	   		return boolVal( false );
+	   	}
+   	}
+   	else
+   	{
+	   	std::vector< YaraExpressionBuilder > conjuncts;
+	   	std::vector< YaraExpressionBuilder > disjuncts;
+	   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
+				if( (*it)->name() == "yaramod::gr::cond_or" ) {
+	   			for(  ; it != root->children.end(); ++it ) {
+	   				disjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
+	   			}
+	   			break;
+	   		}
+				else
+				{
+					conjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
+				}
+	   	}
+			std::vector< YaraExpressionBuilder > disjunctsPref;
+	   	const auto& first = ( conjuncts.size() >= 2 ) ? conjunction( conjuncts ) : conjuncts[0];
+	   	if( disjuncts.empty() )
+	   		return first;
+	   	else
+	   	{
+	   		disjunctsPref.emplace_back(std::move(first));
+				disjunctsPref.insert( disjunctsPref.end(), disjuncts.begin(), disjuncts.end() );
+				return disjunction( disjunctsPref );
+			}
+		}
+   }
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
   	{
