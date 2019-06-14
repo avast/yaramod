@@ -524,8 +524,12 @@ namespace gr {
 
    YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
    {
-   	if( !root->is_root() )
-   		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
+   	if( root->is_root() )
+   	{
+   		assert( root->children.size() <= 1 );
+   		return parse_cond_tree( root->children.front().get(), tokens );
+   	}
+		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
    	if( root->children.empty() )
    	{
    		if( root->name() == "yaramod::gr::boolean" )
@@ -537,41 +541,74 @@ namespace gr {
 	   		else assert( false && "Internal error: expected 'true' or 'false'" );
    		}
    		else if( root->name() == "yaramod::gr::cond_string_identificator" )
-   		{
    			return stringRef( root->string() );
-   		}
-   		else{
-	   		std::cout << "Internal error: unknown leaf '" << std::endl;
+   		else if( root->name() == "yaramod::gr::cond_filesize" )
+   			return filesize();
+   		else if( root->name() == "yaramod::gr::cond_number" )
+   			return intVal( std::stoi( root->string(), nullptr ) );
+   		else if( root->name() == "yaramod::gr::string_count" )
+   			return matchLength( root->string() );
+   		else {
+   			assert( false && "Internal error: unknown leaf." );
 	   		return boolVal( false );
 	   	}
    	}
+   	else if( root->children.size() == 1 )
+   	{
+   		if( root->name() == "yaramod::gr::cond_not" )
+   		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
+   		else
+   			return parse_cond_tree( root->children.front().get(), tokens );
+   	}
    	else
    	{
-		   if( !root->is_root() && root->name() == "yaramod::gr::cond_not" )
-   		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
-	   	std::vector< YaraExpressionBuilder > conjuncts;
-	   	std::vector< YaraExpressionBuilder > disjuncts;
-	   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
-				if( (*it)->name() == "yaramod::gr::cond_or" ) {
-	   			for(  ; it != root->children.end(); ++it ) {
-	   				disjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
-	   			}
-	   			break;
-	   		}
+   		//first deal with roots that have 1 child at most:
+			if( root->name() == "yaramod::gr::cond_relation" )
+			{
+				const auto& op = root->children[1]->string();
+				if( op == "==" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) == parse_cond_tree( root->children[2].get(), tokens ));
+				else if( op == ">=" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) >= parse_cond_tree( root->children[2].get(), tokens ));
+				else if( op == "<=" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) <= parse_cond_tree( root->children[2].get(), tokens ));
+				else if( op == ">" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) > parse_cond_tree( root->children[2].get(), tokens ));
+				else if( op == "<" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) < parse_cond_tree( root->children[2].get(), tokens ));
+				else if( op == "!=" )
+					return (parse_cond_tree( root->children[0].get(), tokens ) != parse_cond_tree( root->children[2].get(), tokens ));
 				else
-				{
-					conjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
+					assert(false && "Internal error: unknown operator.");
+   		}
+   		else if( root->name() == "yaramod::gr::cond_brackets" )
+   			return paren( parse_cond_tree( root->children[1].get(), tokens ) );
+   		else
+   		{
+	   		std::vector< YaraExpressionBuilder > conjuncts;
+		   	std::vector< YaraExpressionBuilder > disjuncts;
+		   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
+					if( (*it)->name() == "yaramod::gr::cond_or" ) {
+		   			for(  ; it != root->children.end(); ++it ) {
+		   				disjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
+		   			}
+		   			break;
+		   		}
+					else
+					{
+						conjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
+					}
+		   	}
+				std::vector< YaraExpressionBuilder > disjunctsPref;
+		   	const auto& first = ( conjuncts.size() >= 2 ) ? conjunction( conjuncts ) : conjuncts[0];
+		   	if( disjuncts.empty() )
+		   		return first;
+		   	else
+		   	{
+		   		disjunctsPref.emplace_back(std::move(first));
+					disjunctsPref.insert( disjunctsPref.end(), disjuncts.begin(), disjuncts.end() );
+					return disjunction( disjunctsPref );
 				}
-	   	}
-			std::vector< YaraExpressionBuilder > disjunctsPref;
-	   	const auto& first = ( conjuncts.size() >= 2 ) ? conjunction( conjuncts ) : conjuncts[0];
-	   	if( disjuncts.empty() )
-	   		return first;
-	   	else
-	   	{
-	   		disjunctsPref.emplace_back(std::move(first));
-				disjunctsPref.insert( disjunctsPref.end(), disjuncts.begin(), disjuncts.end() );
-				return disjunction( disjunctsPref );
 			}
 		}
    }

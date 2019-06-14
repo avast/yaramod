@@ -324,8 +324,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
    struct cond_number : _number {};
-   struct cond_comparable : sor< cond_string_count, cond_number > {};
-   struct cond_equation_equal : seq< cond_comparable, opt_space_enter, TAO_PEGTL_STRING("=="), opt_space_enter, cond_comparable > {};
+   struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
+   struct cond_comparable :
+   				sor<
+   					cond_string_count,
+   					cond_number,
+   					cond_filesize
+					> {};
+   struct cond_relation_op : sor< TAO_PEGTL_STRING(">="), TAO_PEGTL_STRING("<="), TAO_PEGTL_STRING("=="), TAO_PEGTL_STRING("<"), TAO_PEGTL_STRING(">"), TAO_PEGTL_STRING("!=") > {};
+	struct cond_relation : seq< cond_comparable, opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > {};
 
    struct cond_formula;
    struct cond_after_and;
@@ -343,7 +350,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                   sor<
                      cond_brackets,
                      boolean,
-                     cond_equation_equal,
+                     cond_relation,
                      cond_string_identificator
                   >,
                   opt_space_enter
@@ -360,7 +367,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
-                     cond_equation_equal,
+                     cond_relation,
                      cond_string_identificator
                   >,
                   star< cond_and >,
@@ -377,7 +384,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
-                     cond_equation_equal,
+                     cond_relation,
                      cond_string_identificator
                   >,
                   opt_space_enter
@@ -392,7 +399,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
-                     cond_equation_equal,
+                     cond_relation,
                      cond_string_identificator
                   >,
                   star< cond_and >,
@@ -468,8 +475,10 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_string_identificator > : std::true_type {};
    template<> struct cond_selector< boolean > : std::true_type {};
    template<> struct cond_selector< cond_string_count > : std::true_type {};
+   template<> struct cond_selector< cond_filesize > : std::true_type {};
    template<> struct cond_selector< cond_number > : std::true_type {};
-   template<> struct cond_selector< cond_equation_equal > : std::true_type {};
+   template<> struct cond_selector< cond_relation > : std::true_type {};
+   template<> struct cond_selector< cond_relation_op > : std::true_type {};
    template<> struct cond_selector< cond_formula > : std::true_type {};
    //template<> struct cond_selector< cond_formula_start > : std::true_type {};
    template<> struct cond_selector< cond_left_bracket > : std::true_type {};
