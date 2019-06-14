@@ -15,6 +15,7 @@
 
 #include <pegtl/tao/pegtl/parse_error.hpp>
 #include <pegtl/tao/pegtl/tracking_mode.hpp>
+#include <pegtl/tao/pegtl/contrib/tracer.hpp>
 //#include <pegtl/tao/pegtl/istream_input.hpp>
 
 namespace yaramod {
@@ -141,11 +142,11 @@ namespace gr {
 	         d.tokens.emplace_back(Tokentype::META_VALUE, false, in.position());
 	      }
          else
-         	assert(false && "meta_bool_value value must match 'true' or 'false' only");
+         	assert(false && "Internal error: meta_bool_value value must match 'true' or 'false' only");
          d.meta_key = "";
       }
    };
-
+/*
    template<>
    struct action< condition_true >
    {
@@ -156,6 +157,7 @@ namespace gr {
 //   		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
    	}
    };
+*/
 
    template<>
    struct action< condition_block >
@@ -163,24 +165,24 @@ namespace gr {
    	template< typename Input >
    	static void apply(const Input& in, ParserDriver& d)
    	{
-   		std::cout << "Matched condition_block with '" << in.string() << "'" << std::endl;
    		string_input si( in.string(), "cond" );
+         std::unique_ptr< pgl::parse_tree::node > root;
          try {
-         	auto root = pgl::parse_tree::parse< cond_formula, cond_selector > (si, d);
-         	if(root)
-         	{
-		      	pgl::parse_tree::print_dot( std::cout, *root );
-		      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
-		      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
-	   		   d.builder.withCondition( condition );
-         	}
-		      else
-      	   	error_handle( "Parsing condition '" + in.string() + "' failed.", in.position().line );
-      		}
+         	root = pgl::parse_tree::parse< cond_formula_start, cond_selector/*, pgl::tracer*/ > (si, d);
+         }
       	catch( const std::exception& e ) {
-      		error_handle( "Parsing condition '" + in.string() + "' failed.", in.position().line );
+      		error_handle( "Parsing condition '" + in.string() + "' failed with " + e.what() + ".", in.position().line );
       	}
-      }
+      	if( root )
+      	{
+	      	pgl::parse_tree::print_dot( std::cout, *root );
+	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
+	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
+   		   d.builder.withCondition( condition );
+   		}
+	      else
+	      	error_handle( "Parsing the following condition was not successfull:\n" + in.string(), in.position().line );
+		}
    };
 
    template<>
@@ -227,177 +229,177 @@ namespace gr {
          d.str_modifiers = 0u;
       }
    };
-/*
-   template<>
-   struct action< hex_normal >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
-   	{
-   		std::cout << "Matched hex_normal with '" << in.string() << "'" << std::endl;
-   		const auto hex_n = std::stoi(in.string(), nullptr, 16);
-   		d.hex_builder.add(hex_n);
-//   		std::cout << "Result " << hex_n << std::endl;
-   	}
-   };
 
-   template<>
-   struct action< hex_wildcard_high >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
-   	{
-//   		std::cout << "Matched hex_wildcard_high with '" << in.string() << "'" << std::endl;
-   		assert(in.string().length() == 2);
-   		const auto hex_high = std::stoi(in.string().substr(1,1), nullptr, 16);
-   		assert(hex_high <= 16);
-   		d.hex_builder.add(wildcardHigh(hex_high));
-//   		std::cout << "Result " << hex_high << std::endl;
-   	}
-   };
+//    template<>
+//    struct action< hex_normal >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& in, ParserDriver& d)
+//    	{
+//    		std::cout << "Matched hex_normal with '" << in.string() << "'" << std::endl;
+//    		const auto hex_n = std::stoi(in.string(), nullptr, 16);
+//    		d.hex_builder.add(hex_n);
+// //   		std::cout << "Result " << hex_n << std::endl;
+//    	}
+//    };
 
-   template<>
-   struct action< hex_wildcard_low >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
-   	{
-//   		std::cout << "Matched hex_wildcard_low with '" << in.string() << "'" << std::endl;
-   		assert(in.string().length() == 2);
-   		const auto hex_low = std::stoi(in.string().substr(0,1), nullptr, 16);
-   		assert(hex_low <= 16);
-   		d.hex_builder.add(wildcardLow(hex_low));
-//   		std::cout << "Result " << hex_low << std::endl;
-   	}
-   };
+//    template<>
+//    struct action< hex_wildcard_high >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& in, ParserDriver& d)
+//    	{
+// //   		std::cout << "Matched hex_wildcard_high with '" << in.string() << "'" << std::endl;
+//    		assert(in.string().length() == 2);
+//    		const auto hex_high = std::stoi(in.string().substr(1,1), nullptr, 16);
+//    		assert(hex_high <= 16);
+//    		d.hex_builder.add(wildcardHigh(hex_high));
+// //   		std::cout << "Result " << hex_high << std::endl;
+//    	}
+//    };
 
-   template<>
-   struct action< hex_wildcard_full >
-   {
-   	template< typename Input >
-   	static void apply(const Input& , ParserDriver& d)
-   	{
-//   		std::cout << "Matched hex_wildcard_full with '" << in.string() << "'" << std::endl;
-   		d.hex_builder.add(wildcard());
-     	}
-   };
+//    template<>
+//    struct action< hex_wildcard_low >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& in, ParserDriver& d)
+//    	{
+// //   		std::cout << "Matched hex_wildcard_low with '" << in.string() << "'" << std::endl;
+//    		assert(in.string().length() == 2);
+//    		const auto hex_low = std::stoi(in.string().substr(0,1), nullptr, 16);
+//    		assert(hex_low <= 16);
+//    		d.hex_builder.add(wildcardLow(hex_low));
+// //   		std::cout << "Result " << hex_low << std::endl;
+//    	}
+//    };
 
-   template<>
-   struct action< hex_jump_varying >
-   {
-   	template< typename Input >
-   	static void apply(const Input& , ParserDriver& d)
-   	{
-//   		std::cout << "Matched hex_jump_varying with '" << in.string() << "'" << std::endl;
-   		d.hex_builder.add(jumpVarying());
-   	}
-   };
+//    template<>
+//    struct action< hex_wildcard_full >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& , ParserDriver& d)
+//    	{
+// //   		std::cout << "Matched hex_wildcard_full with '" << in.string() << "'" << std::endl;
+//    		d.hex_builder.add(wildcard());
+//      	}
+//    };
 
-   template<>
-   struct action< hex_jump_varying_range >
-   {
-   	template< typename Input >
-   	static void apply(const Input& in, ParserDriver& d)
-   	{
-   		std::cout << "Matched hex_jump_varying_range with '" << in.string() << "'" << std::endl;
-   		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
-   		d.hex_jump_number1 = -1;
-   	}
-   };
+//    template<>
+//    struct action< hex_jump_varying >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& , ParserDriver& d)
+//    	{
+// //   		std::cout << "Matched hex_jump_varying with '" << in.string() << "'" << std::endl;
+//    		d.hex_builder.add(jumpVarying());
+//    	}
+//    };
 
-   template<>
-   struct action< hex_jump_range >
-   {
-      template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
-      {
-         std::cout << "Matched hex_jump_range with '" << in.string() << "'" << std::endl;
-      	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
-      	d.hex_jump_number1 = d.hex_jump_number2 = -1;
-      }
-   };
+//    template<>
+//    struct action< hex_jump_varying_range >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& in, ParserDriver& d)
+//    	{
+//    		std::cout << "Matched hex_jump_varying_range with '" << in.string() << "'" << std::endl;
+//    		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
+//    		d.hex_jump_number1 = -1;
+//    	}
+//    };
 
-   template<>
-   struct action< hex_jump_fixed >
-   {
-      template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
-      {
-         std::cout << "Matched hex_jump_fixed with '" << in.string() << "'" << std::endl;
-         d.hex_builder.add(jumpFixed(d.hex_jump_number1));
-         d.hex_jump_number1 = -1;
-      }
-   };
+//    template<>
+//    struct action< hex_jump_range >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, ParserDriver& d)
+//       {
+//          std::cout << "Matched hex_jump_range with '" << in.string() << "'" << std::endl;
+//       	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
+//       	d.hex_jump_number1 = d.hex_jump_number2 = -1;
+//       }
+//    };
 
-   template<>
-   struct action< hex_atom >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched hex_atom with '" << in.string() << "'" << std::endl;
-      }
-   };
+//    template<>
+//    struct action< hex_jump_fixed >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, ParserDriver& d)
+//       {
+//          std::cout << "Matched hex_jump_fixed with '" << in.string() << "'" << std::endl;
+//          d.hex_builder.add(jumpFixed(d.hex_jump_number1));
+//          d.hex_jump_number1 = -1;
+//       }
+//    };
 
-   template<>
-   struct action< hex_brackets >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched hex_brackets with '" << in.string() << "'" << std::endl;
-      }
-   };*/
-/*
-   template<>
-   struct action< hex_comp_alt_no_brackets >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched hex_comp_alt_no_brackets with '" << in.string() << "'" << std::endl;
-      }
-   };
-*//*
-   template<>
-   struct action< opt_space >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched opt_space with '" << in.string() << "'" << std::endl;
-      }
-   };*/
-/*
-   template<>
-   struct action< hex_alt >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched hex_alt with '" << in.string() << "'" << std::endl;
-      }
-   };
+//    template<>
+//    struct action< hex_atom >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched hex_atom with '" << in.string() << "'" << std::endl;
+//       }
+//    };
 
-   template<>
-   struct action< hex_comp >
-   {
-      template< typename Input >
-      static void apply(const Input& in, const ParserDriver&)
-      {
-         std::cout << "Matched hex_comp with '" << in.string() << "'" << std::endl;
-      }
-   };
-*/
+//    template<>
+//    struct action< hex_brackets >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched hex_brackets with '" << in.string() << "'" << std::endl;
+//       }
+//    };
 
-   template<>
-   struct action< hex_strings_value >
-   {
-      template< typename Input >
-      static void apply( const Input&, const ParserDriver&)
-      {
-      }
-   };
+//    template<>
+//    struct action< hex_comp_alt_no_brackets >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched hex_comp_alt_no_brackets with '" << in.string() << "'" << std::endl;
+//       }
+//    };
+
+//    template<>
+//    struct action< opt_space >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched opt_space with '" << in.string() << "'" << std::endl;
+//       }
+//    };
+
+//    template<>
+//    struct action< hex_alt >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched hex_alt with '" << in.string() << "'" << std::endl;
+//       }
+//    };
+
+//    template<>
+//    struct action< hex_comp >
+//    {
+//       template< typename Input >
+//       static void apply(const Input& in, const ParserDriver&)
+//       {
+//          std::cout << "Matched hex_comp with '" << in.string() << "'" << std::endl;
+//       }
+//    };
+
+
+//    template<>
+//    struct action< hex_strings_value >
+//    {
+//       template< typename Input >
+//       static void apply( const Input&, const ParserDriver&)
+//       {
+//       }
+//   };
 
    template<>
    struct action< hex_strings_entry >
@@ -477,7 +479,7 @@ namespace gr {
          d.tokens.emplace_back(Tokentype::FULLWORD, in.string(), in.position());
       }
    };
-
+/*
    template<>
    struct action< end_of_rule >
    {
@@ -488,6 +490,18 @@ namespace gr {
    	   d.tokens.emplace_back(Tokentype::RULE_END, in.string(), in.position());
 //   	   for( const auto& token : d.tokens )
 //	   	   std::cout << token << "; ";
+         d.finishRule();
+      }
+   };*/
+
+   template<>
+   struct action< rule >
+   {
+      template< typename Input >
+      static void apply(const Input&, ParserDriver& d)
+      {
+      	std::cout << "Rule was finished!";
+//   	   d.tokens.emplace_back(Tokentype::RULE_END, in.string(), in.position());
          d.finishRule();
       }
    };
@@ -523,14 +537,14 @@ namespace gr {
 	   			return boolVal( true );
 	   		else if( root->string() == "false" )
 	   			return boolVal( false );
-	   		else assert( false && "internal error: expected 'true' or 'false'" );
+	   		else assert( false && "Internal error: expected 'true' or 'false'" );
    		}
    		else if( root->name() == "yaramod::gr::cond_string_identificator" )
    		{
    			return stringRef( root->string() );
    		}
    		else{
-	   		std::cout << "XXX unknown leaf '" << std::endl;
+	   		std::cout << "Internal error: unknown leaf '" << std::endl;
 	   		return boolVal( false );
 	   	}
    	}
