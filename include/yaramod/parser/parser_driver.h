@@ -321,7 +321,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
 
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
-   struct opt_not : TAO_PEGTL_STRING("not") {};
+   struct cond_not : TAO_PEGTL_STRING("not") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
    struct cond_number : _number {};
@@ -338,27 +338,29 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_and : seq< opt_space, TAO_PEGTL_STRING("and"), cond_after_and > {};
    struct cond_or : seq< opt_space, TAO_PEGTL_STRING("or"), cond_after_or > {};
 
-   struct cond_after_or :
-              seq<
-                 opt_space_enter,
-                 sor<
-                    cond_brackets,
-                    seq<
-                       sor<
-                          cond_string_identificator,
-                          cond_equation_equal
-                       >,
-                       star< cond_and >,
-                       opt_space_enter
-                    >
-                 >,
-                 opt_space_enter
-              > {};
-
-   struct cond_after_and :
+   struct cond_after_or : // toto pravidlo uz nevyrobi zadne OR (leda pres zavorky)
              seq<
                 opt_space_enter,
                 sor<
+                   plus< seq< cond_not, cond_after_or > >,
+                   cond_brackets,
+                   seq<
+                      sor<
+                         cond_string_identificator,
+                         cond_equation_equal
+                      >,
+                      star< cond_and >,
+                      opt_space_enter
+                   >
+                >,
+                opt_space_enter
+             > {};
+
+   struct cond_after_and : // Toto pravidlo uz nevyrobi zadne AND ani OR (leda by slo pres zavorky)
+             seq<
+                opt_space_enter,
+                sor<
+                	 plus< seq< cond_not, cond_after_and > >,
                    cond_brackets,
                    seq<
                       sor<
@@ -374,29 +376,37 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_formula : seq<
                 opt_space_enter,
                 sor<
-                    boolean,
-                    cond_brackets,
-                    seq<
-                        sor<
-                            cond_string_identificator,
-                            cond_equation_equal
-                        >,
-                        star< cond_and >,
-                        star< cond_or >,
-                        opt_space_enter
-                    >
-                >,
-                opt_space_enter
+                	 plus< seq< cond_not, cond_formula > >,
+                   boolean,
+                   cond_brackets,
+                   seq<
+                      sor<
+                         cond_string_identificator,
+                         cond_equation_equal
+                      >,
+                      star< cond_and >,
+                      star< cond_or >,
+                      opt_space_enter
+                   >
+                >
              > {};
    // condition must read all lines until '}'.
-   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
-   struct condition_entry : seq< opt_space, condition_true > {};
-   struct condition_block : sor< plus< condition_entry >, seq< plus< not_at< one< '}' > >, pgl::any >, opt_space_enter > > {};
+   struct end_of_rule : seq< opt_space_enter, one<'}'> > {};
+   struct end_of_file : opt< eolf > {};
+   struct cond_formula_start : seq< cond_formula, end_of_rule > {};
+
+//   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
+//   struct condition_entry : seq< opt_space, condition_true > {};
+
+
+
+
+
+// struct condition_block : sor< seq< plus< not_at< one< '}' > >, pgl::any >, opt_space_enter > > {};
+   struct condition_block : seq< plus< not_at< one< '}' > >, pgl::any >, opt< end_of_rule >, opt_space_enter > {};
 
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, condition_block > {};
 
-   struct end_of_rule : one<'}'> {};
-   struct end_of_file : opt< eolf > {};
 
    struct rule : seq<
 	   	opt_space_enter,
@@ -413,7 +423,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    		opt< meta >,
    		opt< strings >,
    		condition,
-   		end_of_rule
+   		opt_space_enter
 		> {};
 
    struct grammar :
@@ -476,14 +486,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_number > : std::true_type {};
    template<> struct cond_selector< cond_equation_equal > : std::true_type {};
    template<> struct cond_selector< cond_formula > : std::true_type {};
+   template<> struct cond_selector< cond_formula_start > : std::true_type {};
    template<> struct cond_selector< cond_left_bracket > : std::true_type {};
    template<> struct cond_selector< cond_righ_bracket > : std::true_type {};
    template<> struct cond_selector< cond_brackets > : std::true_type {};
    //template<> struct cond_selector< cond_after_and > : std::true_type {};
    //template<> struct cond_selector< cond_after_or > : std::true_type {};
+   template<> struct cond_selector< cond_not > : std::true_type {};
    template<> struct cond_selector< cond_and > : std::true_type {};
    template<> struct cond_selector< cond_or > : std::true_type {};
-   template<> struct cond_selector< grammar > : std::true_type {};
 
 
    template< typename Rule >
