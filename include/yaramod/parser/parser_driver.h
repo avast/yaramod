@@ -321,7 +321,6 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
 
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
-   struct cond_not : TAO_PEGTL_STRING("not") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
    struct cond_number : _number {};
@@ -338,72 +337,75 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_and : seq< opt_space, TAO_PEGTL_STRING("and"), cond_after_and > {};
    struct cond_or : seq< opt_space, TAO_PEGTL_STRING("or"), cond_after_or > {};
 
+   struct cond_after_not :
+               seq<
+                  opt_space_enter,
+                  sor<
+                     cond_brackets,
+                     boolean,
+                     cond_equation_equal,
+                     cond_string_identificator
+                  >,
+                  opt_space_enter
+               > {};
+   struct cond_negated;
+   struct cond_not : seq< TAO_PEGTL_STRING("not"), cond_negated > {};
+   struct cond_negated : sor< cond_not, cond_after_not > {};
+
    struct cond_after_or : // toto pravidlo uz nevyrobi zadne OR (leda pres zavorky)
-             seq<
-                opt_space_enter,
-                sor<
-                   plus< seq< cond_not, cond_after_or > >,
-                   cond_brackets,
-                   seq<
-                      sor<
-                         cond_string_identificator,
-                         cond_equation_equal
-                      >,
-                      star< cond_and >,
-                      opt_space_enter
-                   >
-                >,
-                opt_space_enter
-             > {};
+            sor<
+               seq<
+                  opt_space_enter,
+                  sor<
+                     cond_not,
+                     cond_brackets,
+                     boolean,
+                     cond_equation_equal,
+                     cond_string_identificator
+                  >,
+                  star< cond_and >,
+                  opt_space_enter
+               >
+            > {};
+
 
    struct cond_after_and : // Toto pravidlo uz nevyrobi zadne AND ani OR (leda by slo pres zavorky)
-             seq<
-                opt_space_enter,
-                sor<
-                	 plus< seq< cond_not, cond_after_and > >,
-                   cond_brackets,
-                   seq<
-                      sor<
-                         cond_string_identificator,
-                         cond_equation_equal
-                      >,
-                      opt_space_enter
-                   >
-                >,
-                opt_space_enter
-             > {};
+            sor<
+               seq<
+                  opt_space_enter,
+                  sor<
+                     cond_not,
+                     cond_brackets,
+                     boolean,
+                     cond_equation_equal,
+                     cond_string_identificator
+                  >,
+                  opt_space_enter
+               >
+            > {};
 
-   struct cond_formula : seq<
-                opt_space_enter,
-                sor<
-                	 plus< seq< cond_not, cond_formula > >,
-                   boolean,
-                   cond_brackets,
-                   seq<
-                      sor<
-                         cond_string_identificator,
-                         cond_equation_equal
-                      >,
-                      star< cond_and >,
-                      star< cond_or >,
-                      opt_space_enter
-                   >
-                >
-             > {};
+   struct cond_formula :
+            sor<
+               seq<
+                  opt_space_enter,
+                  sor<
+                     cond_not,
+                     cond_brackets,
+                     boolean,
+                     cond_equation_equal,
+                     cond_string_identificator
+                  >,
+                  star< cond_and >,
+                  star< cond_or >,
+                  opt_space_enter
+               >
+            > {};
    // condition must read all lines until '}'.
    struct end_of_rule : seq< opt_space_enter, one<'}'> > {};
    struct end_of_file : opt< eolf > {};
    struct cond_formula_start : seq< cond_formula, end_of_rule > {};
 
-//   struct condition_true : seq< sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false")>, opt_space_enter > {};
-//   struct condition_entry : seq< opt_space, condition_true > {};
-
-
-
-
-
-// struct condition_block : sor< seq< plus< not_at< one< '}' > >, pgl::any >, opt_space_enter > > {};
-   struct condition_block : seq< plus< not_at< one< '}' > >, pgl::any >, opt< end_of_rule >, opt_space_enter > {};
+   struct condition_block : seq< plus< not_at< one< '}' > >, pgl::any >, end_of_rule, opt_space_enter > {};
 
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, condition_block > {};
 
@@ -440,24 +442,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
   	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
-/*
-   template< typename Rule >
-   struct hex_selector : std::false_type {};
-   template<> struct hex_selector< hex_brackets > : std::true_type {}; //arity 3,
-   template<> struct hex_selector< hex_left_bracket > : std::true_type {}; //leaf,
-   template<> struct hex_selector< hex_righ_bracket > : std::true_type {}; //leaf,
-   template<> struct hex_selector< hex_alt > : std::true_type {}; //non-leaf
-   template<> struct hex_selector< hex_atom_group > : std::true_type {}; //non-leaf
-   template<> struct hex_selector< hex_normal > : std::true_type {}; //leaf
-   template<> struct hex_selector< _number > : std::true_type {}; //leaf
-   template<> struct hex_selector< hex_wildcard_full > : std::true_type {}; //leaf
-   template<> struct hex_selector< hex_wildcard_high > : std::true_type {}; //arity 1
-   template<> struct hex_selector< hex_wildcard_low > : std::true_type {}; //arity 1
-   template<> struct hex_selector< hex_jump_varying > : std::true_type {}; //leaf
-   template<> struct hex_selector< hex_jump_varying_range > : std::true_type {}; //arity 1
-   template<> struct hex_selector< hex_jump_range > : std::true_type {}; //arity 2
-   template<> struct hex_selector< hex_jump_fixed > : std::true_type {}; //arity 1
-*/
+
 	template< typename Rule >
    using hex_selector = pgl::parse_tree::selector< Rule,
    	pgl::parse_tree::store_content::on<
@@ -486,7 +471,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_number > : std::true_type {};
    template<> struct cond_selector< cond_equation_equal > : std::true_type {};
    template<> struct cond_selector< cond_formula > : std::true_type {};
-   template<> struct cond_selector< cond_formula_start > : std::true_type {};
+   //template<> struct cond_selector< cond_formula_start > : std::true_type {};
    template<> struct cond_selector< cond_left_bracket > : std::true_type {};
    template<> struct cond_selector< cond_righ_bracket > : std::true_type {};
    template<> struct cond_selector< cond_brackets > : std::true_type {};
