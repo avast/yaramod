@@ -106,7 +106,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-//         std::cout << "'Matched meta_negate_int_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = (-1) * std::stoi(in.string());
          d.builder.withIntMeta(d.meta_key, meta_value);
          d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
@@ -500,7 +499,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input&, ParserDriver& d)
       {
-      	std::cout << "Rule was finished!";
 //   	   d.tokens.emplace_back(Tokentype::RULE_END, in.string(), in.position());
          d.finishRule();
       }
@@ -512,7 +510,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-      	std::cout << "TADA!" << std::endl;
    	   d.tokens.emplace_back(Tokentype::FILE_END, in.string(), in.position());
       }
    };
@@ -550,6 +547,8 @@ namespace gr {
    	}
    	else
    	{
+		   if( !root->is_root() && root->name() == "yaramod::gr::cond_not" )
+   		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
 	   	std::vector< YaraExpressionBuilder > conjuncts;
 	   	std::vector< YaraExpressionBuilder > disjuncts;
 	   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
@@ -768,7 +767,6 @@ std::istream* ParserDriver::currentStream()
  */
 bool ParserDriver::parse()
 {
-	//std::cout << "ParserDriver::parse() called" << std::endl;
 	if (!_valid)
 		return false;
 
@@ -886,7 +884,6 @@ bool ParserDriver::ruleExists(const std::string& name) const
  */
 void ParserDriver::addRule(Rule&& rule)
 {
-	std::cout << "ParserDriver::addRule called" << std::endl;
 	addRule(std::make_unique<Rule>(std::move(rule)));
 }
 
@@ -897,7 +894,6 @@ void ParserDriver::addRule(Rule&& rule)
  */
 void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 {
-	std::cout << "ParserDriver::addRule called" << std::endl;
 	if (!_includedFileNames.empty())
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = _parsed_rule_names.insert(rule->getName()).second;
@@ -909,7 +905,6 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 
 void ParserDriver::finishRule()
 {
-	std::cout << "ParserDriver::finishRule called" << std::endl;
    std::unique_ptr<Rule> rule = builder.get();
    addRule(std::move(rule));
 }
