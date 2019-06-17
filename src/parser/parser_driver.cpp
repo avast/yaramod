@@ -529,7 +529,7 @@ namespace gr {
    		assert( root->children.size() <= 1 );
    		return parse_cond_tree( root->children.front().get(), tokens );
    	}
-		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
+//		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
    	if( root->children.empty() )
    	{
    		if( root->name() == "yaramod::gr::boolean" )
@@ -544,10 +544,12 @@ namespace gr {
    			return stringRef( root->string() );
    		else if( root->name() == "yaramod::gr::cond_filesize" )
    			return filesize();
-   		else if( root->name() == "yaramod::gr::cond_number" )
+   		else if( root->name() == "yaramod::gr::_number" )
    			return intVal( std::stoi( root->string(), nullptr ) );
    		else if( root->name() == "yaramod::gr::string_count" )
    			return matchLength( root->string() );
+   		else if( root->name() == "yaramod::gr::cond_entrypoint")
+   			return entrypoint();
    		else {
    			assert( false && "Internal error: unknown leaf." );
 	   		return boolVal( false );
@@ -557,6 +559,8 @@ namespace gr {
    	{
    		if( root->name() == "yaramod::gr::cond_not" )
    		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
+   		else if( root->name() == "yaramod::gr::cond_brackets" || root->name() == "yaramod::gr::cond_number_brackets" )
+   			return paren( parse_cond_tree( root->children[0].get(), tokens ) );
    		else
    			return parse_cond_tree( root->children.front().get(), tokens );
    	}
@@ -581,8 +585,8 @@ namespace gr {
 				else
 					assert(false && "Internal error: unknown operator.");
    		}
-   		else if( root->name() == "yaramod::gr::cond_brackets" )
-   			return paren( parse_cond_tree( root->children[1].get(), tokens ) );
+   		else if( root->name() == "yaramod::gr::cond_at_expression")
+   			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
    		else
    		{
 	   		std::vector< YaraExpressionBuilder > conjuncts;

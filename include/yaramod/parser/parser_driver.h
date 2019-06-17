@@ -318,15 +318,21 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct strings : seq< opt_space, TAO_PEGTL_STRING("strings:"), eol, plus< strings_entry > > {};
 
 
+   struct cond_left_bracket : one<'('> {};
+   struct cond_righ_bracket : one<')'> {};
 
 
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+   struct cond_entrypoint : sor< TAO_PEGTL_STRING("entrypoint") > {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
-   struct cond_number : _number {};
+   struct cond_number;
+   struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
+   struct cond_number : sor< cond_entrypoint, _number, cond_number_brackets > {};
    struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
    struct cond_comparable :
    				sor<
+   					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
    					cond_string_count,
    					cond_number,
    					cond_filesize
@@ -334,12 +340,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_relation_op : sor< TAO_PEGTL_STRING(">="), TAO_PEGTL_STRING("<="), TAO_PEGTL_STRING("=="), TAO_PEGTL_STRING("<"), TAO_PEGTL_STRING(">"), TAO_PEGTL_STRING("!=") > {};
 	struct cond_relation : seq< cond_comparable, opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > {};
 
+	struct cond_at_expression : seq< cond_string_identificator, opt_space_enter, TAO_PEGTL_STRING("at"), opt_space_enter, cond_number > {};
+
    struct cond_formula;
    struct cond_after_and;
    struct cond_after_or;
 
-   struct cond_left_bracket : one<'('> {};
-   struct cond_righ_bracket : one<')'> {};
    struct cond_brackets : seq< cond_left_bracket, cond_formula, opt_space_enter, cond_righ_bracket > {};
    struct cond_and : seq< opt_space, TAO_PEGTL_STRING("and"), cond_after_and > {};
    struct cond_or : seq< opt_space, TAO_PEGTL_STRING("or"), cond_after_or > {};
@@ -350,6 +356,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                   sor<
                      cond_brackets,
                      boolean,
+                     cond_at_expression,
                      cond_relation,
                      cond_string_identificator
                   >,
@@ -367,6 +374,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
+                     cond_at_expression,
                      cond_relation,
                      cond_string_identificator
                   >,
@@ -384,6 +392,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
+                     cond_at_expression,
                      cond_relation,
                      cond_string_identificator
                   >,
@@ -399,6 +408,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_not,
                      cond_brackets,
                      boolean,
+                     cond_at_expression,
                      cond_relation,
                      cond_string_identificator
                   >,
@@ -474,16 +484,17 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_selector : std::false_type {};
    template<> struct cond_selector< cond_string_identificator > : std::true_type {};
    template<> struct cond_selector< boolean > : std::true_type {};
+   template<> struct cond_selector< _number > : std::true_type {};
    template<> struct cond_selector< cond_string_count > : std::true_type {};
    template<> struct cond_selector< cond_filesize > : std::true_type {};
-   template<> struct cond_selector< cond_number > : std::true_type {};
    template<> struct cond_selector< cond_relation > : std::true_type {};
    template<> struct cond_selector< cond_relation_op > : std::true_type {};
+   template<> struct cond_selector< cond_at_expression > : std::true_type {};
+   template<> struct cond_selector< cond_entrypoint > : std::true_type {};
    template<> struct cond_selector< cond_formula > : std::true_type {};
    //template<> struct cond_selector< cond_formula_start > : std::true_type {};
-   template<> struct cond_selector< cond_left_bracket > : std::true_type {};
-   template<> struct cond_selector< cond_righ_bracket > : std::true_type {};
    template<> struct cond_selector< cond_brackets > : std::true_type {};
+   template<> struct cond_selector< cond_number_brackets > : std::true_type {};
    //template<> struct cond_selector< cond_after_and > : std::true_type {};
    //template<> struct cond_selector< cond_after_or > : std::true_type {};
    template<> struct cond_selector< cond_not > : std::true_type {};
