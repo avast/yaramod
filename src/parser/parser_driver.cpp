@@ -546,8 +546,8 @@ namespace gr {
    			return filesize();
    		else if( root->name() == "yaramod::gr::_number" )
    			return intVal( std::stoi( root->string(), nullptr ) );
-   		else if( root->name() == "yaramod::gr::string_count" )
-   			return matchLength( root->string() );
+   		else if( root->name() == "yaramod::gr::cond_string_count" )
+   			return matchCount( root->string() );
    		else if( root->name() == "yaramod::gr::cond_entrypoint")
    			return entrypoint();
    		else {
