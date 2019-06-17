@@ -323,13 +323,13 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
 
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
-   struct cond_entrypoint : sor< TAO_PEGTL_STRING("entrypoint") > {};
+   struct cond_entrypoint : TAO_PEGTL_STRING("entrypoint") {};
+   struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
    struct cond_number;
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
-   struct cond_number : sor< cond_entrypoint, _number, cond_number_brackets > {};
-   struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
+   struct cond_number : sor< cond_entrypoint, cond_filesize, _number, cond_number_brackets > {};
    struct cond_comparable :
    				sor<
    					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
