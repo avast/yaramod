@@ -628,7 +628,7 @@ YaraExpressionBuilder stringRef(const std::string& id)
  */
 YaraExpressionBuilder matchCount(const std::string& id)
 {
-	assert(!id.empty() && id[0] == '$');
+	assert(!id.empty() && (id[0] == '$' || id[0] == '#'));
 
 	// Replace '$' with '#'
 	auto countId = id;
@@ -645,7 +645,7 @@ YaraExpressionBuilder matchCount(const std::string& id)
  */
 YaraExpressionBuilder matchLength(const std::string& id)
 {
-	assert(!id.empty() && id[0] == '$');
+	assert(!id.empty() && (id[0] == '$' || id[0] == '!'));
 
 	// Replace '$' with '!'
 	auto lengthId = id;
@@ -662,7 +662,7 @@ YaraExpressionBuilder matchLength(const std::string& id)
  */
 YaraExpressionBuilder matchOffset(const std::string& id)
 {
-	assert(!id.empty() && id[0] == '$');
+	assert(!id.empty() && id[0] == '$' || id[0] == '@'));
 
 	// Replace '$' with '@'
 	auto offsetId = id;
@@ -680,7 +680,7 @@ YaraExpressionBuilder matchOffset(const std::string& id)
  */
 YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBuilder& other)
 {
-	assert(!id.empty() && id[0] == '$');
+	assert(!id.empty() && id[0] == '$' || id[0] == '!'));
 
 	// Replace '$' with '!'
 	auto lengthId = id;
@@ -698,7 +698,7 @@ YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBui
  */
 YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBuilder& other)
 {
-	assert(!id.empty() && id[0] == '$');
+	assert(!id.empty() && id[0] == '$' || id[0] == '@'));
 
 	// Replace '$' with '@'
 	auto offsetId = id;
