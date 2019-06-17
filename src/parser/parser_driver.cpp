@@ -587,6 +587,10 @@ namespace gr {
    		}
    		else if( root->name() == "yaramod::gr::cond_at_expression")
    			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
+   		else if( root->name() == "yaramod::gr::cond_in_expression")
+   			return matchInRange( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
+   		else if( root->name() == "yaramod::gr::cond_range")
+   			return range( parse_cond_tree( root->children[0].get(), tokens ), parse_cond_tree( root->children[1].get(), tokens ) );
    		else
    		{
 	   		std::vector< YaraExpressionBuilder > conjuncts;
