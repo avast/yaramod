@@ -530,7 +530,19 @@ namespace gr {
    		return parse_cond_tree( root->children.front().get(), tokens );
    	}
 //		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
-   	if( root->children.empty() )
+   	// Section **
+   	// Nodes of rules that do not have determined number of children
+   	if( root->name() == "yaramod::gr::cond_string_offset" )
+   	{
+   		if( root->children.size() == 1 )
+   			return matchOffset( root->string() );
+   		else {
+   			assert( root->children.size() == 2 );
+   			return matchOffset( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
+   		}
+   	}
+   	// Nodes of rules that do not have 0 children AND are not discussed in section **
+   	else if( root->children.empty() )
    	{
    		if( root->name() == "yaramod::gr::boolean" )
    		{
@@ -551,10 +563,12 @@ namespace gr {
    		else if( root->name() == "yaramod::gr::cond_entrypoint")
    			return entrypoint();
    		else {
+   			std::cerr << "Internal error: unknown leaf " << root->string() << std::endl;
    			assert( false && "Internal error: unknown leaf." );
 	   		return boolVal( false );
 	   	}
    	}
+   	// Nodes of rules that do not have 1 child AND are not discussed in section **
    	else if( root->children.size() == 1 )
    	{
    		if( root->name() == "yaramod::gr::cond_not" )
@@ -564,9 +578,9 @@ namespace gr {
    		else
    			return parse_cond_tree( root->children.front().get(), tokens );
    	}
+   	// Nodes of rules that have at least 2 children AND are not discussed in section **
    	else
    	{
-   		//first deal with roots that have 1 child at most:
 			if( root->name() == "yaramod::gr::cond_relation" )
 			{
 				const auto& op = root->children[1]->string();
