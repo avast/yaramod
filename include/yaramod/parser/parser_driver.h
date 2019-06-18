@@ -321,7 +321,6 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_left_bracket : one<'('> {};
    struct cond_righ_bracket : one<')'> {};
 
-
    struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
    struct cond_entrypoint : TAO_PEGTL_STRING("entrypoint") {};
    struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
@@ -338,6 +337,37 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_int_with_opt_multiplier : seq< _number, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
    struct cond_number : sor< cond_entrypoint, cond_filesize, cond_int_with_opt_multiplier, cond_number_brackets > {};
+
+	struct _float_number : seq< _number, one<'.'>, _number > {};
+   struct value : sor< _float_number, _number > {};
+   struct variable : sor< _identificator > {};
+   struct operator_multiplicative : sor< one<'*'>, one<'\\'>, one<'%'> > {};
+   struct operator_additive : sor< one<'-'>, one<'+'> > {};
+   struct eU;
+   struct eV;
+   struct eT : seq< eU, opt< seq< operator_additive, eT > > > {};
+   struct eU : seq< eV, opt< seq< operator_multiplicative, eU > > > {};
+   struct eV : sor< seq< one<'('>, eT, one<')'> >, value, variable > {};
+   struct cond_arithmetical_expression : eU {};
+
+   struct operator_negation : one<'~'> {};
+   struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
+   struct operator_bitwise_and : one<'&'> {};
+   struct operator_bitwise_or_exclusive : one<'^'> {};
+   struct operator_bitwise_or_inclusive : one<'|'> {};
+   struct bB;
+   struct bC;
+   struct bD;
+   struct bE;
+   struct bF;
+   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, bA > > > {};
+   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, bB > > > {};
+   struct bC : seq< bD, opt< seq< operator_bitwise_and, bC > > > {};
+   struct bD : seq< bE, opt< seq< operator_shifts, bD > > > {};
+   struct bE : sor< bF, seq< operator_negation, bE > > {};
+   struct bF : sor< seq< one<'('>, bA, one<')'> >, value, variable > {};
+   struct cond_bitwise_expression : bA {};
+
    struct cond_comparable :
    				sor<
    					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
@@ -530,35 +560,6 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
 
 
-   struct _float_number : seq< _number, one<'.'>, _number > {};
-   struct value : sor< _float_number, _number > {};
-   struct variable : sor< _identificator > {};
-   struct operator_multiplicative : sor< one<'*'>, one<'\\'>, one<'%'> > {};
-   struct operator_additive : sor< one<'-'>, one<'+'> > {};
-   struct eU;
-   struct eV;
-   struct eT : seq< eU, opt< seq< operator_additive, eT > > > {};
-   struct eU : seq< eV, opt< seq< operator_multiplicative, eU > > > {};
-   struct eV : sor< seq< one<'('>, eT, one<')'> >, value, variable > {};
-   struct cond_arithmetical_expression : eU {};
-
-   struct operator_negation : one<'~'> {};
-   struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
-   struct operator_bitwise_and : one<'&'> {};
-   struct operator_bitwise_or_exclusive : one<'^'> {};
-   struct operator_bitwise_or_inclusive : one<'|'> {};
-   struct bB;
-   struct bC;
-   struct bD;
-   struct bE;
-   struct bF;
-   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, bA > > > {};
-   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, bB > > > {};
-   struct bC : seq< bD, opt< seq< operator_bitwise_and, bC > > > {};
-   struct bD : seq< bE, opt< seq< operator_shifts, bD > > > {};
-   struct bE : sor< bF, seq< operator_negation, bE > > {};
-   struct bF : sor< seq< one<'('>, bA, one<')'> >, value, variable > {};
-   struct cond_bitwise_expression : bA {};
 
    template<> struct cond_selector< variable > : std::true_type {};
    template<> struct cond_selector< value > : std::true_type {};
