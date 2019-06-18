@@ -541,6 +541,15 @@ namespace gr {
    			return matchOffset( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
    		}
    	}
+   	if( root->is< yaramod::gr::cond_string_length >() )
+   	{
+   		if( root->children.size() == 1 )
+   			return matchLength( root->string() );
+   		else {
+   			assert( root->children.size() == 2 );
+   			return matchLength( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
+   		}
+   	}
    	// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( root->children.empty() )
    	{
@@ -565,7 +574,6 @@ namespace gr {
    		else {
    			std::cerr << "Internal error: unknown leaf " << root->string() << std::endl;
    			assert( false && "Internal error: unknown leaf." );
-	   		return boolVal( false );
 	   	}
    	}
    	// Nodes of rules that do not have 1 child AND are not discussed in section **
@@ -596,8 +604,10 @@ namespace gr {
 					return (parse_cond_tree( root->children[0].get(), tokens ) < parse_cond_tree( root->children[2].get(), tokens ));
 				else if( op == "!=" )
 					return (parse_cond_tree( root->children[0].get(), tokens ) != parse_cond_tree( root->children[2].get(), tokens ));
-				else
-					assert(false && "Internal error: unknown operator.");
+				else{
+	   			std::cerr << "Internal error: unknown operator " << root->string() << std::endl;
+	   			assert( false && "Internal error: unknown operator." );
+	   		}
    		}
    		else if( root->is< yaramod::gr::cond_at_expression>() )
    			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );

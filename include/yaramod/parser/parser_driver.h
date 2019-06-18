@@ -330,6 +330,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_number;
    struct cond_string_identificator_offset : seq< one<'@'>, _identificator > {};
    struct cond_string_offset : seq< cond_string_identificator_offset, opt< seq< one<'['>, cond_number, one<']'> > > > {};
+   struct cond_string_identificator_length : seq< one<'!'>, _identificator > {};
+   struct cond_string_length : seq< cond_string_identificator_length, opt< seq< one<'['>, cond_number, one<']'> > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
    struct cond_number : sor< cond_entrypoint, cond_filesize, _number, cond_number_brackets > {};
    struct cond_comparable :
@@ -337,6 +339,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
    					cond_string_count,
    					cond_string_offset,
+   					cond_string_length,
    					cond_number,
    					cond_filesize
 					> {};
@@ -498,6 +501,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_string_count > : std::true_type {};
    template<> struct cond_selector< cond_string_offset > : std::true_type {};
    template<> struct cond_selector< cond_string_identificator_offset > : std::true_type {};
+   template<> struct cond_selector< cond_string_length > : std::true_type {};
+   template<> struct cond_selector< cond_string_identificator_length > : std::true_type {};
    template<> struct cond_selector< cond_filesize > : std::true_type {};
    template<> struct cond_selector< cond_relation > : std::true_type {};
    template<> struct cond_selector< cond_relation_op > : std::true_type {};
