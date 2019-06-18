@@ -505,8 +505,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_at_expression > : std::true_type {};
    template<> struct cond_selector< cond_in_expression > : std::true_type {};
    template<> struct cond_selector< cond_entrypoint > : std::true_type {};
-   template<> struct cond_selector< cond_formula > : std::true_type {};
-   //template<> struct cond_selector< cond_formula_start > : std::true_type {};
+   //template<> struct cond_selector< cond_formula > : std::true_type {};
+   template<> struct cond_selector< cond_formula_start > : std::true_type {};
    template<> struct cond_selector< cond_brackets > : std::true_type {};
    template<> struct cond_selector< cond_number_brackets > : std::true_type {};
    //template<> struct cond_selector< cond_after_and > : std::true_type {};
