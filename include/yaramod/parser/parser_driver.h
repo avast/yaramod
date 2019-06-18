@@ -535,58 +535,52 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct variable : sor< _identificator > {};
    struct operator_multiplicative : sor< one<'*'>, one<'\\'>, one<'%'> > {};
    struct operator_additive : sor< one<'-'>, one<'+'> > {};
-   struct T;
-   struct V;
-   struct U : seq< T, opt< seq< operator_additive, U > > > {};
-   struct T : seq< V, opt< seq< operator_multiplicative, T > > > {};
-   struct V : sor< seq< one<'('>, U, one<')'> >, value, variable > {};
-   struct arithmetical_expression : U {};
-
+   struct eU;
+   struct eV;
+   struct eT : seq< eU, opt< seq< operator_additive, eT > > > {};
+   struct eU : seq< eV, opt< seq< operator_multiplicative, eU > > > {};
+   struct eV : sor< seq< one<'('>, eT, one<')'> >, value, variable > {};
+   struct cond_arithmetical_expression : eU {};
 
    struct operator_negation : one<'~'> {};
    struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
    struct operator_bitwise_and : one<'&'> {};
    struct operator_bitwise_or_exclusive : one<'^'> {};
    struct operator_bitwise_or_inclusive : one<'|'> {};
+   struct bB;
+   struct bC;
+   struct bD;
+   struct bE;
+   struct bF;
+   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, bA > > > {};
+   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, bB > > > {};
+   struct bC : seq< bD, opt< seq< operator_bitwise_and, bC > > > {};
+   struct bD : seq< bE, opt< seq< operator_shifts, bD > > > {};
+   struct bE : sor< bF, seq< operator_negation, bE > > {};
+   struct bF : sor< seq< one<'('>, bA, one<')'> >, value, variable > {};
+   struct cond_bitwise_expression : bA {};
 
-   struct B;
-   struct C;
-   struct D;
-   struct E;
-   struct F;
-   struct A : seq< B, opt< seq< operator_bitwise_or_inclusive, A > > > {};
-   struct B : seq< C, opt< seq< operator_bitwise_or_exclusive, B > > > {};
-   struct C : seq< D, opt< seq< operator_bitwise_and, C > > > {};
-   struct D : seq< E, opt< seq< operator_shifts, D > > > {};
-   struct E : sor< F, seq< operator_negation, E > > {};
-   struct F : sor< seq< one<'('>, A, one<')'> >, value, variable > {};
+   template<> struct cond_selector< variable > : std::true_type {};
+   template<> struct cond_selector< value > : std::true_type {};
+   template<> struct cond_selector< cond_arithmetical_expression > : std::true_type {};
+   template<> struct cond_selector< operator_multiplicative > : std::true_type {};
+   template<> struct cond_selector< operator_additive > : std::true_type {};
+   template<> struct cond_selector< eT > : std::true_type {};
+   // template<> struct cond_selector< eV > : std::true_type {};
+   template<> struct cond_selector< eU > : std::true_type {};
 
-
-
-   template< typename Rule >
-   struct exp_selector : std::false_type {};
-   template<> struct exp_selector< arithmetical_expression > : std::true_type {};
-   template<> struct exp_selector< operator_multiplicative > : std::true_type {};
-   template<> struct exp_selector< operator_additive > : std::true_type {};
-   template<> struct exp_selector< T > : std::true_type {};
-   // template<> struct exp_selector< V > : std::true_type {};
-   template<> struct exp_selector< U > : std::true_type {};
-   template<> struct exp_selector< variable > : std::true_type {};
-   template<> struct exp_selector< value > : std::true_type {};
-
-   template<> struct exp_selector< A > : std::true_type {};
-   template<> struct exp_selector< operator_negation > : std::true_type {};
-   template<> struct exp_selector< operator_shifts > : std::true_type {};
-   template<> struct exp_selector< operator_bitwise_and > : std::true_type {};
-   template<> struct exp_selector< operator_bitwise_or_exclusive > : std::true_type {};
-   template<> struct exp_selector< operator_bitwise_or_inclusive > : std::true_type {};
-   //template<> struct exp_selector< B > : std::true_type {};
-   template<> struct exp_selector< C > : std::true_type {};
-   //template<> struct exp_selector< D > : std::true_type {};
-   template<> struct exp_selector< E > : std::true_type {};
-   //template<> struct exp_selector< F > : std::true_type {};
-
-
+   template<> struct cond_selector< cond_bitwise_expression > : std::true_type {};
+   template<> struct cond_selector< bA > : std::true_type {};
+   template<> struct cond_selector< operator_negation > : std::true_type {};
+   template<> struct cond_selector< operator_shifts > : std::true_type {};
+   template<> struct cond_selector< operator_bitwise_and > : std::true_type {};
+   template<> struct cond_selector< operator_bitwise_or_exclusive > : std::true_type {};
+   template<> struct cond_selector< operator_bitwise_or_inclusive > : std::true_type {};
+   //template<> struct cond_selector< bB > : std::true_type {};
+   template<> struct cond_selector< bC > : std::true_type {};
+   //template<> struct cond_selector< bD > : std::true_type {};
+   template<> struct cond_selector< bE > : std::true_type {};
+   //template<> struct cond_selector< bF > : std::true_type {};
 
 
    template< typename Rule >
