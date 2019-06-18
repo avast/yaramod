@@ -332,8 +332,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_string_offset : seq< cond_string_identificator_offset, opt< seq< one<'['>, cond_number, one<']'> > > > {};
    struct cond_string_identificator_length : seq< one<'!'>, _identificator > {};
    struct cond_string_length : seq< cond_string_identificator_length, opt< seq< one<'['>, cond_number, one<']'> > > > {};
+   struct cond_int_multiplier_mega : seq< sor< one<'M'>, one<'m'> >, sor< one<'B'>, one<'b'> > > {};
+   struct cond_int_multiplier_kilo : seq< sor< one<'K'>, one<'k'> >, sor< one<'B'>, one<'b'> > > {};
+   struct cond_int_multiplier_none : sor< one<'b'>, one<'B'> > {};
+   struct cond_int_with_opt_multiplier : seq< _number, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
-   struct cond_number : sor< cond_entrypoint, cond_filesize, _number, cond_number_brackets > {};
+   struct cond_number : sor< cond_entrypoint, cond_filesize, cond_int_with_opt_multiplier, cond_number_brackets > {};
    struct cond_comparable :
    				sor<
    					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
@@ -497,12 +501,16 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_selector : std::false_type {};
    template<> struct cond_selector< cond_string_identificator > : std::true_type {};
    template<> struct cond_selector< boolean > : std::true_type {};
-   template<> struct cond_selector< _number > : std::true_type {};
    template<> struct cond_selector< cond_string_count > : std::true_type {};
    template<> struct cond_selector< cond_string_offset > : std::true_type {};
    template<> struct cond_selector< cond_string_identificator_offset > : std::true_type {};
    template<> struct cond_selector< cond_string_length > : std::true_type {};
    template<> struct cond_selector< cond_string_identificator_length > : std::true_type {};
+   template<> struct cond_selector< _number > : std::true_type {};
+   template<> struct cond_selector< cond_int_multiplier_mega > : std::true_type {};
+   template<> struct cond_selector< cond_int_multiplier_kilo > : std::true_type {};
+   template<> struct cond_selector< cond_int_multiplier_none > : std::true_type {};
+   template<> struct cond_selector< cond_int_with_opt_multiplier > : std::true_type {};
    template<> struct cond_selector< cond_filesize > : std::true_type {};
    template<> struct cond_selector< cond_relation > : std::true_type {};
    template<> struct cond_selector< cond_relation_op > : std::true_type {};

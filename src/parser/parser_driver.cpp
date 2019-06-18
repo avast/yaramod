@@ -541,7 +541,7 @@ namespace gr {
    			return matchOffset( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
    		}
    	}
-   	if( root->is< yaramod::gr::cond_string_length >() )
+   	else if( root->is< yaramod::gr::cond_string_length >() )
    	{
    		if( root->children.size() == 1 )
    			return matchLength( root->string() );
@@ -550,7 +550,21 @@ namespace gr {
    			return matchLength( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
    		}
    	}
-   	// Nodes of rules that do not have 0 children AND are not discussed in section **
+   	else if( root->is< yaramod::gr::cond_int_with_opt_multiplier >() )
+		{
+			const auto& n = std::stoi( root->children.front()->string(), nullptr);
+			if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
+				return intVal( n, IntMultiplier::None );
+			else if( root->children.back()->is< cond_int_multiplier_kilo >() )
+				return intVal( n, IntMultiplier::Kilobytes );
+			else if( root->children.back()->is< cond_int_multiplier_mega >() )
+				return intVal( n, IntMultiplier::Megabytes );
+			else {
+				std::cerr << "Internal error: unknown int modifier." << root->string() << std::endl;
+   			assert(false && "Internal error: unknown int modifier.");
+			}
+		}
+		// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( root->children.empty() )
    	{
    		if( root->is< yaramod::gr::boolean >() )
@@ -559,20 +573,18 @@ namespace gr {
 	   			return boolVal( true );
 	   		else if( root->string() == "false" )
 	   			return boolVal( false );
-	   		else assert( false && "Internal error: expected 'true' or 'false'" );
+	   		else assert( false && "Internal error: expected 'true' or 'false'." );
    		}
    		else if( root->is< yaramod::gr::cond_string_identificator >() )
    			return stringRef( root->string() );
    		else if( root->is< yaramod::gr::cond_filesize >() )
    			return filesize();
-   		else if( root->is< yaramod::gr::_number >() )
-   			return intVal( std::stoi( root->string(), nullptr ) );
    		else if( root->is< yaramod::gr::cond_string_count >() )
    			return matchCount( root->string() );
    		else if( root->is< yaramod::gr::cond_entrypoint >() )
    			return entrypoint();
    		else {
-   			std::cerr << "Internal error: unknown leaf " << root->string() << std::endl;
+   			std::cerr << "Internal error: unknown leaf." << root->string() << std::endl;
    			assert( false && "Internal error: unknown leaf." );
 	   	}
    	}
@@ -589,7 +601,7 @@ namespace gr {
    	// Nodes of rules that have at least 2 children AND are not discussed in section **
    	else
    	{
-			if( root->is< yaramod::gr::cond_relation >() )
+   		if( root->is< yaramod::gr::cond_relation >() )
 			{
 				const auto& op = root->children[1]->string();
 				if( op == "==" )
@@ -605,7 +617,7 @@ namespace gr {
 				else if( op == "!=" )
 					return (parse_cond_tree( root->children[0].get(), tokens ) != parse_cond_tree( root->children[2].get(), tokens ));
 				else{
-	   			std::cerr << "Internal error: unknown operator " << root->string() << std::endl;
+	   			std::cerr << "Internal error: unknown operator." << root->string() << std::endl;
 	   			assert( false && "Internal error: unknown operator." );
 	   		}
    		}
