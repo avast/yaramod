@@ -529,6 +529,66 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_or > : std::true_type {};
 
 
+
+   struct _float_number : seq< _number, one<'.'>, _number > {};
+   struct value : sor< _float_number, _number > {};
+   struct variable : sor< _identificator > {};
+   struct operator_multiplicative : sor< one<'*'>, one<'\\'>, one<'%'> > {};
+   struct operator_additive : sor< one<'-'>, one<'+'> > {};
+   struct T;
+   struct V;
+   struct U : seq< T, opt< seq< operator_additive, U > > > {};
+   struct T : seq< V, opt< seq< operator_multiplicative, T > > > {};
+   struct V : sor< seq< one<'('>, U, one<')'> >, value, variable > {};
+   struct arithmetical_expression : U {};
+
+
+   struct operator_negation : one<'~'> {};
+   struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
+   struct operator_bitwise_and : one<'&'> {};
+   struct operator_bitwise_or_exclusive : one<'^'> {};
+   struct operator_bitwise_or_inclusive : one<'|'> {};
+
+   struct B;
+   struct C;
+   struct D;
+   struct E;
+   struct F;
+   struct A : seq< B, opt< seq< operator_bitwise_or_inclusive, A > > > {};
+   struct B : seq< C, opt< seq< operator_bitwise_or_exclusive, B > > > {};
+   struct C : seq< D, opt< seq< operator_bitwise_and, C > > > {};
+   struct D : seq< E, opt< seq< operator_shifts, D > > > {};
+   struct E : sor< F, seq< operator_negation, E > > {};
+   struct F : sor< seq< one<'('>, A, one<')'> >, value, variable > {};
+
+
+
+   template< typename Rule >
+   struct exp_selector : std::false_type {};
+   template<> struct exp_selector< arithmetical_expression > : std::true_type {};
+   template<> struct exp_selector< operator_multiplicative > : std::true_type {};
+   template<> struct exp_selector< operator_additive > : std::true_type {};
+   template<> struct exp_selector< T > : std::true_type {};
+   // template<> struct exp_selector< V > : std::true_type {};
+   template<> struct exp_selector< U > : std::true_type {};
+   template<> struct exp_selector< variable > : std::true_type {};
+   template<> struct exp_selector< value > : std::true_type {};
+
+   template<> struct exp_selector< A > : std::true_type {};
+   template<> struct exp_selector< operator_negation > : std::true_type {};
+   template<> struct exp_selector< operator_shifts > : std::true_type {};
+   template<> struct exp_selector< operator_bitwise_and > : std::true_type {};
+   template<> struct exp_selector< operator_bitwise_or_exclusive > : std::true_type {};
+   template<> struct exp_selector< operator_bitwise_or_inclusive > : std::true_type {};
+   //template<> struct exp_selector< B > : std::true_type {};
+   template<> struct exp_selector< C > : std::true_type {};
+   //template<> struct exp_selector< D > : std::true_type {};
+   template<> struct exp_selector< E > : std::true_type {};
+   //template<> struct exp_selector< F > : std::true_type {};
+
+
+
+
    template< typename Rule >
 	struct my_control : tao::pegtl::normal< Rule >
 	{
