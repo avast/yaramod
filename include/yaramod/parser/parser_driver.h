@@ -235,7 +235,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    				seq< TAO_PEGTL_STRING("//"), until< at< eolf >, pgl::any > >,
    				seq< TAO_PEGTL_STRING("/*"), until< at< one<'*'>, one<'/'> > >, TAO_PEGTL_STRING("*/") >
    				> {};
-   struct _number : plus< pgl::digit > {};
+   struct _operator_plus : one<'+'> {};
+   struct _operator_minus : one<'-'> {};
+   struct _operator_multiply : one<'*'> {};
+   struct _operator_divide : one<'\\'> {};
+   struct _operator_modulo : one<'%'> {};
+
+   struct _uint : plus< pgl::digit > {};
+   struct _int : seq< opt< _operator_minus >, _uint > {};
+   struct _float_number : seq< _uint, one<'.'>, _uint > {};
    struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
    struct ws : one< ' ', '\t' > {};
@@ -248,10 +256,10 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct line : eol {};
 
    struct meta_string_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
-   struct meta_uint_value : _number{};
-   struct meta_negate_int_value : _number{};
+   struct meta_int_value : _int{};
+   //struct meta_negate_int_value : _number{};
    struct meta_hex_uint_value : seq< one<'0'>, one<'x'>, plus< ranges< '0', '9', 'a', 'f', 'A', 'F' > > >{};
-   struct meta_number_value : sor< seq< one<'-'>, meta_negate_int_value >, meta_hex_uint_value, meta_uint_value > {};
+   struct meta_number_value : sor< meta_hex_uint_value, meta_int_value > {};
    struct meta_bool_value : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
    struct meta_value : sor< seq< one<'"'>, meta_string_value, one<'"'> >, meta_number_value, meta_bool_value > {};
    struct meta_key : star< ranges< 'a', 'z', 'A', 'Z', '_'> > {};
@@ -268,9 +276,9 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct hex_wildcard_full : seq< one<'?'>, one<'?'> > {};
    struct hex_jump_varying : TAO_PEGTL_STRING("[-]") {};
 
-   struct hex_jump_varying_range : seq< one<'['>, _number, one<'-'>, one<']'> > {};
-   struct hex_jump_range : seq< one<'['>, _number, one<'-'>, _number, one<']'> > {};
-   struct hex_jump_fixed : seq< one<'['>, _number, one<']'> > {};
+   struct hex_jump_varying_range : seq< one<'['>, _uint, one<'-'>, one<']'> > {};
+   struct hex_jump_range : seq< one<'['>, _uint, one<'-'>, _uint, one<']'> > {};
+   struct hex_jump_fixed : seq< one<'['>, _uint, one<']'> > {};
 
    struct hex_atom : sor< hex_normal, hex_wildcard_full, hex_wildcard_high, hex_wildcard_low, hex_jump_varying, hex_jump_varying_range, hex_jump_range, hex_jump_fixed > {};
    struct hex_atom_space : seq< hex_atom, opt_space_enter > {};
@@ -334,21 +342,31 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_int_multiplier_mega : seq< sor< one<'M'>, one<'m'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_kilo : seq< sor< one<'K'>, one<'k'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_none : sor< one<'b'>, one<'B'> > {};
-   struct cond_int_with_opt_multiplier : seq< _number, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
+   struct cond_int_with_opt_multiplier : seq< /*_float_number,*/ _int, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
    struct cond_number : sor< cond_entrypoint, cond_filesize, cond_int_with_opt_multiplier, cond_number_brackets > {};
 
-	struct _float_number : seq< _number, one<'.'>, _number > {};
-   struct value : sor< _float_number, _number > {};
-   struct variable : sor< _identificator > {};
-   struct operator_multiplicative : sor< one<'*'>, one<'\\'>, one<'%'> > {};
-   struct operator_additive : sor< one<'-'>, one<'+'> > {};
+	struct cond_comparable_atom :
+   				sor<
+   					seq< cond_left_bracket, cond_comparable_atom, cond_righ_bracket >,
+   					cond_string_count,
+   					cond_string_offset,
+   					cond_string_length,
+   					cond_number,
+   					cond_filesize
+					> {};
+
+//	struct value : sor< _float_number, _number > {};
+//	struct value : cond_comparable_atom {};
+//   struct variable : sor< _identificator > {};
+   struct operator_multiplicative : sor< _operator_multiply, _operator_divide, _operator_modulo > {};
+   struct operator_additive : sor< _operator_plus, _operator_minus > {};
    struct eU;
    struct eV;
-   struct eT : seq< eU, opt< seq< operator_additive, eT > > > {};
-   struct eU : seq< eV, opt< seq< operator_multiplicative, eU > > > {};
-   struct eV : sor< seq< one<'('>, eT, one<')'> >, value, variable > {};
-   struct cond_arithmetical_expression : eU {};
+   struct eT : seq< eU, opt< opt_space_enter, seq< operator_additive, opt_space_enter, eT > > > {};
+   struct eU : seq< eV, opt< opt_space_enter, seq< operator_multiplicative, opt_space_enter, eU > > > {};
+   struct eV : sor< seq< one<'('>, opt_space_enter, eT, opt_space_enter, one<')'> >, cond_comparable_atom > {};
+   struct cond_arithmetic_expression : seq< opt_space_enter, eT, opt_space_enter > {};
 
    struct operator_negation : one<'~'> {};
    struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
@@ -360,23 +378,17 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct bD;
    struct bE;
    struct bF;
-   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, bA > > > {};
-   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, bB > > > {};
-   struct bC : seq< bD, opt< seq< operator_bitwise_and, bC > > > {};
-   struct bD : seq< bE, opt< seq< operator_shifts, bD > > > {};
-   struct bE : sor< bF, seq< operator_negation, bE > > {};
-   struct bF : sor< seq< one<'('>, bA, one<')'> >, value, variable > {};
-   struct cond_bitwise_expression : bA {};
+   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, opt_space_enter, bA > > > {};
+   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, opt_space_enter, bB > > > {};
+   struct bC : seq< bD, opt< seq< operator_bitwise_and, opt_space_enter, bC > > > {};
+   struct bD : seq< bE, opt< seq< operator_shifts, opt_space_enter, bD > > > {};
+   struct bE : sor< bF, seq< operator_negation, opt_space_enter, bE > > {};
+   struct bF : sor< seq< opt_space_enter, one<'('>, opt_space_enter, bA, opt_space_enter, one<')'>, opt_space_enter >, cond_comparable_atom > {};
+   struct cond_bitwise_expression : seq< opt_space_enter, bA, opt_space_enter > {};
 
-   struct cond_comparable :
-   				sor<
-   					seq< cond_left_bracket, cond_comparable, cond_righ_bracket >,
-   					cond_string_count,
-   					cond_string_offset,
-   					cond_string_length,
-   					cond_number,
-   					cond_filesize
-					> {};
+
+	struct cond_comparable : sor< cond_arithmetic_expression, cond_bitwise_expression > {};
+
    struct cond_relation_op : sor< TAO_PEGTL_STRING(">="), TAO_PEGTL_STRING("<="), TAO_PEGTL_STRING("=="), TAO_PEGTL_STRING("<"), TAO_PEGTL_STRING(">"), TAO_PEGTL_STRING("!=") > {};
 	struct cond_relation : seq< cond_comparable, opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > {};
 
@@ -402,10 +414,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
+                     cond_comparable,
                      cond_string_identificator
                   >,
                   opt_space_enter
                > {};
+
    struct cond_negated;
    struct cond_not : seq< TAO_PEGTL_STRING("not"), cond_negated > {};
    struct cond_negated : sor< cond_not, cond_after_not > {};
@@ -421,6 +435,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
+                     cond_comparable,
                      cond_string_identificator
                   >,
                   star< cond_and >,
@@ -440,6 +455,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
+                     cond_comparable,
                      cond_string_identificator
                   >,
                   opt_space_enter
@@ -457,6 +473,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
+                     cond_comparable,
                      cond_string_identificator
                   >,
                   star< cond_and >,
@@ -516,7 +533,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
       hex_alt,
       hex_atom_group,
       hex_normal,
-      _number,
+      _uint,
       hex_wildcard_full,
       hex_wildcard_high,
       hex_wildcard_low,
@@ -524,7 +541,6 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
       hex_jump_varying_range,
       hex_jump_range,
 		hex_jump_fixed > >;
-
 
 
    template< typename Rule >
@@ -536,7 +552,13 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_string_identificator_offset > : std::true_type {};
    template<> struct cond_selector< cond_string_length > : std::true_type {};
    template<> struct cond_selector< cond_string_identificator_length > : std::true_type {};
-   template<> struct cond_selector< _number > : std::true_type {};
+   template<> struct cond_selector< _operator_plus > : std::true_type {};
+   template<> struct cond_selector< _operator_minus > : std::true_type {};
+   template<> struct cond_selector< _operator_multiply > : std::true_type {};
+   template<> struct cond_selector< _operator_divide > : std::true_type {};
+   template<> struct cond_selector< _operator_modulo > : std::true_type {};
+   template<> struct cond_selector< _int > : std::true_type {};
+   template<> struct cond_selector< _uint > : std::true_type {};
    template<> struct cond_selector< cond_int_multiplier_mega > : std::true_type {};
    template<> struct cond_selector< cond_int_multiplier_kilo > : std::true_type {};
    template<> struct cond_selector< cond_int_multiplier_none > : std::true_type {};
@@ -559,13 +581,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template<> struct cond_selector< cond_or > : std::true_type {};
 
 
-
-
-   template<> struct cond_selector< variable > : std::true_type {};
-   template<> struct cond_selector< value > : std::true_type {};
-   template<> struct cond_selector< cond_arithmetical_expression > : std::true_type {};
-   template<> struct cond_selector< operator_multiplicative > : std::true_type {};
-   template<> struct cond_selector< operator_additive > : std::true_type {};
+//   template<> struct cond_selector< value > : std::true_type {};
+//   template<> struct cond_selector< cond_arithmetic_expression > : std::true_type {};
    template<> struct cond_selector< eT > : std::true_type {};
    // template<> struct cond_selector< eV > : std::true_type {};
    template<> struct cond_selector< eU > : std::true_type {};
