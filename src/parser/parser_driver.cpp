@@ -89,25 +89,13 @@ namespace gr {
    };
 
    template<>
-   struct action< meta_uint_value >
+   struct action< meta_int_value >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
-         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
-      }
-   };
-
-   template<>
-   struct action< meta_negate_int_value >
-   {
-      template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
-      {
-         int64_t meta_value = (-1) * std::stoi(in.string());
-         d.builder.withIntMeta(d.meta_key, meta_value);
          d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
@@ -174,7 +162,7 @@ namespace gr {
       	}
       	if( root )
       	{
-	      	pgl::parse_tree::print_dot( std::cout, *root );
+	      	pgl::parse_tree::print_dot( std::cerr, *root );
 	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
 	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
@@ -529,10 +517,7 @@ namespace gr {
    		assert( root->children.size() <= 1 );
    		return parse_cond_tree( root->children.front().get(), tokens );
    	}
-//		std::cout << "parse_cond_tree called for '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
-   	// Section **
-   	// Nodes of rules that do not have determined number of children
-   	if( root->is< yaramod::gr::cond_string_offset >() )
+   	else if( root->is< yaramod::gr::cond_string_offset >() )
    	{
    		if( root->children.size() == 1 )
    			return matchOffset( root->string() );
@@ -552,16 +537,36 @@ namespace gr {
    	}
    	else if( root->is< yaramod::gr::cond_int_with_opt_multiplier >() )
 		{
-			const auto& n = std::stoi( root->children.front()->string(), nullptr);
-			if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
-				return intVal( n, IntMultiplier::None );
-			else if( root->children.back()->is< cond_int_multiplier_kilo >() )
-				return intVal( n, IntMultiplier::Kilobytes );
-			else if( root->children.back()->is< cond_int_multiplier_mega >() )
-				return intVal( n, IntMultiplier::Megabytes );
-			else {
-				std::cerr << "Internal error: unknown int modifier." << root->string() << std::endl;
-   			assert(false && "Internal error: unknown int modifier.");
+			const auto& child = root->children.front();
+			if( child->children.size() == 1) // there is no minus sign
+			{
+				auto x = std::stoi( child->children.front()->string(), nullptr);
+				if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
+					return intVal( x, IntMultiplier::None );
+				else if( root->children.back()->is< cond_int_multiplier_kilo >() )
+					return intVal( x, IntMultiplier::Kilobytes );
+				else if( root->children.back()->is< cond_int_multiplier_mega >() )
+					return intVal( x, IntMultiplier::Megabytes );
+				else {
+					std::cerr << "Internal error: unknown int modifier '" << root->string() << "'" << std::endl;
+	   			assert(false && "Internal error: unknown int modifier.");
+				}
+			}
+			else
+			{
+				assert( child->children.size() == 2 );
+				assert( child->children.front()->is< yaramod::gr::_operator_minus >() );
+				auto x = std::stoi( child->children.back()->string(), nullptr);
+				if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
+					return -intVal( x, IntMultiplier::None );
+				else if( root->children.back()->is< cond_int_multiplier_kilo >() )
+					return -intVal( x, IntMultiplier::Kilobytes );
+				else if( root->children.back()->is< cond_int_multiplier_mega >() )
+					return -intVal( x, IntMultiplier::Megabytes );
+				else {
+					std::cerr << "Internal error: unknown int modifier '" << root->string() << "'" << std::endl;
+	   			assert(false && "Internal error: unknown int modifier.");
+				}
 			}
 		}
 		// Nodes of rules that do not have 0 children AND are not discussed in section **
@@ -584,7 +589,7 @@ namespace gr {
    		else if( root->is< yaramod::gr::cond_entrypoint >() )
    			return entrypoint();
    		else {
-   			std::cerr << "Internal error: unknown leaf." << root->string() << std::endl;
+   			std::cerr << "Internal error: unknown leaf '" << root->string() << "'" << std::endl;
    			assert( false && "Internal error: unknown leaf." );
 	   	}
    	}
@@ -621,12 +626,28 @@ namespace gr {
 	   			assert( false && "Internal error: unknown operator." );
 	   		}
    		}
-   		else if( root->is< yaramod::gr::cond_at_expression>() )
+   		else if( root->is< yaramod::gr::cond_at_expression >() )
    			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< yaramod::gr::cond_in_expression>() )
+   		else if( root->is< yaramod::gr::cond_in_expression >() )
    			return matchInRange( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
    		else if( root->is< yaramod::gr::cond_range >() )
    			return range( parse_cond_tree( root->children[0].get(), tokens ), parse_cond_tree( root->children[1].get(), tokens ) );
+   		else if( root->is< yaramod::gr::eT >() ){
+		   	assert( root->children.size() == 3 );
+		   	if( root->children[1]->is< yaramod::gr::_operator_plus >() )
+		   		return (parse_cond_tree(root->children[0].get(), tokens) + parse_cond_tree(root->children[2].get(), tokens));
+		   	else
+		   		return (parse_cond_tree(root->children[0].get(), tokens) - parse_cond_tree(root->children[2].get(), tokens));
+   		}
+   		else if( root->is< yaramod::gr::eU >() ){
+		   	assert( root->children.size() == 3 );
+		   	if( root->children[1]->is< yaramod::gr::_operator_multiply >() )
+		   		return (parse_cond_tree(root->children[0].get(), tokens) * parse_cond_tree(root->children[2].get(), tokens));
+		   	else if( root->children[1]->is< yaramod::gr::_operator_divide >() )
+		   		return (parse_cond_tree(root->children[0].get(), tokens) / parse_cond_tree(root->children[2].get(), tokens));
+		   	else
+		   		return (parse_cond_tree(root->children[0].get(), tokens) % parse_cond_tree(root->children[2].get(), tokens));
+   		}
    		else
    		{
 	   		std::vector< YaraExpressionBuilder > conjuncts;
@@ -702,7 +723,7 @@ namespace gr {
   			else if( child->is< yaramod::gr::hex_jump_varying_range >() ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
   			{
   				assert( child->children.size() == 1 );
-  				assert( child->children[0]->name() == "yaramod::gr::_number" );
+  				assert( child->children[0]->is< yaramod::gr::_uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpVaryingRange( arg ) );
   				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING_RANGE, arg, child->begin() );
@@ -710,8 +731,8 @@ namespace gr {
   			else if( child->is< yaramod::gr::hex_jump_range >() )
   			{
   				assert( child->children.size() == 2 );
-  				assert( child->children[0]->name() == "yaramod::gr::_number" );
-  				assert( child->children[1]->name() == "yaramod::gr::_number" );
+  				assert( child->children[0]->is< yaramod::gr::_uint >() );
+  				assert( child->children[1]->is< yaramod::gr::_uint >() );
   				int left = std::stoi( child->children[0]->string() );
   				int right = std::stoi( child->children[1]->string() );
   				alt_builders[0].add( jumpRange( left, right ) );
@@ -720,7 +741,7 @@ namespace gr {
   			else if( child->is< yaramod::gr::hex_jump_fixed >() )
   			{
   				assert( child->children.size() == 1 );
-  				assert( child->children[0]->name() == "yaramod::gr::_number" );
+  				assert( child->children[0]->is< yaramod::gr::_uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpFixed( arg ) );
   				tokens.emplace_back( Tokentype::HEX_JUMP_FIXED, arg, child->begin() );
