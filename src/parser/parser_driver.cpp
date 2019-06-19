@@ -517,7 +517,7 @@ namespace gr {
    		assert( root->children.size() <= 1 );
    		return parse_cond_tree( root->children.front().get(), tokens );
    	}
-   	else if( root->is< yaramod::gr::cond_string_offset >() )
+   	else if( root->is< cond_string_offset >() )
    	{
    		if( root->children.size() == 1 )
    			return matchOffset( root->string() );
@@ -526,7 +526,7 @@ namespace gr {
    			return matchOffset( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
    		}
    	}
-   	else if( root->is< yaramod::gr::cond_string_length >() )
+   	else if( root->is< cond_string_length >() )
    	{
    		if( root->children.size() == 1 )
    			return matchLength( root->string() );
@@ -535,7 +535,7 @@ namespace gr {
    			return matchLength( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
    		}
    	}
-   	else if( root->is< yaramod::gr::cond_int_with_opt_multiplier >() )
+   	else if( root->is< cond_int_with_opt_multiplier >() )
 		{
 			const auto& child = root->children.front();
 			if( child->children.size() == 1) // there is no minus sign
@@ -555,7 +555,7 @@ namespace gr {
 			else
 			{
 				assert( child->children.size() == 2 );
-				assert( child->children.front()->is< yaramod::gr::_operator_minus >() );
+				assert( child->children.front()->is< _operator_minus >() );
 				auto x = std::stoi( child->children.back()->string(), nullptr);
 				if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
 					return -intVal( x, IntMultiplier::None );
@@ -572,7 +572,8 @@ namespace gr {
 		// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( root->children.empty() )
    	{
-   		if( root->is< yaramod::gr::boolean >() )
+   		std::cout << "0" << std::endl;
+   		if( root->is< boolean >() )
    		{
    			if( root->string() == "true" )
 	   			return boolVal( true );
@@ -580,25 +581,28 @@ namespace gr {
 	   			return boolVal( false );
 	   		else assert( false && "Internal error: expected 'true' or 'false'." );
    		}
-   		else if( root->is< yaramod::gr::cond_string_identificator >() )
+   		else if( root->is< cond_string_identificator >() )
    			return stringRef( root->string() );
-   		else if( root->is< yaramod::gr::cond_filesize >() )
+   		else if( root->is< cond_filesize >() )
    			return filesize();
-   		else if( root->is< yaramod::gr::cond_string_count >() )
+   		else if( root->is< cond_string_count >() )
    			return matchCount( root->string() );
-   		else if( root->is< yaramod::gr::cond_entrypoint >() )
+   		else if( root->is< cond_entrypoint >() )
    			return entrypoint();
+   		else if( root->is< _uint >() )
+   			return intVal( std::stoi( root->string(), nullptr ) );
    		else {
-   			std::cerr << "Internal error: unknown leaf '" << root->string() << "'" << std::endl;
+   			std::cerr << "Internal error: unknown leaf '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
    			assert( false && "Internal error: unknown leaf." );
 	   	}
    	}
    	// Nodes of rules that do not have 1 child AND are not discussed in section **
    	else if( root->children.size() == 1 )
    	{
-   		if( root->is< yaramod::gr::cond_not >() )
+   		std::cout << "1" << std::endl;
+   		if( root->is< cond_not >() )
    		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
-   		else if( root->is< yaramod::gr::cond_brackets >() || root->is< yaramod::gr::cond_number_brackets >() )
+   		else if( root->is< cond_brackets >() || root->is< cond_number_brackets >() )
    			return paren( parse_cond_tree( root->children[0].get(), tokens ) );
    		else
    			return parse_cond_tree( root->children.front().get(), tokens );
@@ -606,7 +610,8 @@ namespace gr {
    	// Nodes of rules that have at least 2 children AND are not discussed in section **
    	else
    	{
-   		if( root->is< yaramod::gr::cond_relation >() )
+   		std::cout << "2<" << std::endl;
+   		if( root->is< cond_relation >() )
 			{
 				const auto& op = root->children[1]->string();
 				if( op == "==" )
@@ -621,39 +626,73 @@ namespace gr {
 					return (parse_cond_tree( root->children[0].get(), tokens ) < parse_cond_tree( root->children[2].get(), tokens ));
 				else if( op == "!=" )
 					return (parse_cond_tree( root->children[0].get(), tokens ) != parse_cond_tree( root->children[2].get(), tokens ));
-				else{
+				else
+				{
 	   			std::cerr << "Internal error: unknown operator." << root->string() << std::endl;
 	   			assert( false && "Internal error: unknown operator." );
 	   		}
    		}
-   		else if( root->is< yaramod::gr::cond_at_expression >() )
+   		else if( root->is< cond_at_expression >() )
    			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< yaramod::gr::cond_in_expression >() )
+   		else if( root->is< cond_in_expression >() )
    			return matchInRange( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< yaramod::gr::cond_range >() )
+   		else if( root->is< cond_range >() )
    			return range( parse_cond_tree( root->children[0].get(), tokens ), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< yaramod::gr::eT >() ){
+   		else if(    root->is< e1 >()
+   			      || root->is< e2 >()
+   			      || root->is< e3 >()
+   			      || root->is< e4 >()
+   			      || root->is< e5 >()
+   			      || root->is< e6 >()
+   			      || root->is< e8 >() )
+   		{
 		   	assert( root->children.size() == 3 );
-		   	if( root->children[1]->is< yaramod::gr::_operator_plus >() )
-		   		return (parse_cond_tree(root->children[0].get(), tokens) + parse_cond_tree(root->children[2].get(), tokens));
+		   	auto&& l = parse_cond_tree(root->children[0].get(), tokens);
+		   	auto&& r = parse_cond_tree(root->children[2].get(), tokens);
+
+		   	if( root->children[1]->is< _operator_bitwise_or >())
+		   		return ( l | r );
+		   	else if( root->children[1]->is< _operator_bitwise_xor >() )
+		   		return ( l ^ r );
+		   	else if( root->children[1]->is< _operator_bitwise_and >())
+		   		return ( l & r );
+		   	else if( root->children[1]->is< _operator_shift_left >() )
+		   		return ( l << r );
+		   	else if( root->children[1]->is< _operator_shift_right >() )
+		   		return ( l >> r );
+		   	else if( root->children[1]->is< _operator_plus >())
+		   		return ( l + r );
+		   	else if( root->children[1]->is< _operator_minus >())
+		   		return ( l - r );
+		   	else if( root->children[1]->is< _operator_multiply >() )
+		   		return ( l * r );
+		   	else if( root->children[1]->is< _operator_divide >() )
+		   		return ( l / r );
+		   	else if( root->children[1]->is< _operator_modulo >() )
+		   		return ( l % r );
 		   	else
-		   		return (parse_cond_tree(root->children[0].get(), tokens) - parse_cond_tree(root->children[2].get(), tokens));
+		   	{
+		   		std::cout << "Internal error: unknown operator" << root->children[1]->string() << std::endl;
+	   			assert( false && "Internal error: unknown operator." );
+		   	}
    		}
-   		else if( root->is< yaramod::gr::eU >() ){
-		   	assert( root->children.size() == 3 );
-		   	if( root->children[1]->is< yaramod::gr::_operator_multiply >() )
-		   		return (parse_cond_tree(root->children[0].get(), tokens) * parse_cond_tree(root->children[2].get(), tokens));
-		   	else if( root->children[1]->is< yaramod::gr::_operator_divide >() )
-		   		return (parse_cond_tree(root->children[0].get(), tokens) / parse_cond_tree(root->children[2].get(), tokens));
-		   	else
-		   		return (parse_cond_tree(root->children[0].get(), tokens) % parse_cond_tree(root->children[2].get(), tokens));
+   		else if( root->is< e7 >() )
+   		{
+   			assert( root->children.size() == 2 );
+				auto&& r = parse_cond_tree(root->children[1].get(), tokens);
+				if( root->children[0]->is< _operator_negation >())
+		   		return ( !r );
+		   	else{
+		   		std::cout << "Internal error: unknown operator" << root->children[1]->string() << std::endl;
+   				assert( false && "Internal error: unknown operator." );
+   			}
    		}
    		else
    		{
 	   		std::vector< YaraExpressionBuilder > conjuncts;
 		   	std::vector< YaraExpressionBuilder > disjuncts;
 		   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
-					if( (*it)->is< yaramod::gr::cond_or >() ) {
+					if( (*it)->is< cond_or >() ) {
 		   			for(  ; it != root->children.end(); ++it ) {
 		   				disjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
 		   			}
@@ -684,22 +723,22 @@ namespace gr {
   		alt_builders.emplace_back();
   		for ( const auto& child : root->children )
   		{
-  			if( child->is< yaramod::gr::hex_atom_group >() )
+  			if( child->is< hex_atom_group >() )
   			{
   				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
   			}
-  			else if( child->is< yaramod::gr::hex_normal >() )
+  			else if( child->is< hex_normal >() )
   			{
   				auto hex = stoi( child->string(), nullptr, 16 );
   				alt_builders[0].add( hex );
   				tokens.emplace_back( Tokentype::HEX_NORMAL, hex, child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_wildcard_full >() )
+  			else if( child->is< hex_wildcard_full >() )
   			{
   				alt_builders[0].add(wildcard());
   				tokens.emplace_back( Tokentype::HEX_WILDCARD_FULL, child->string(), child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_wildcard_high >() )
+  			else if( child->is< hex_wildcard_high >() )
   			{
    			assert( child->string().length() == 2 );
    			const auto hex_high = std::stoi( child->string().substr(1,1), nullptr, 16 );
@@ -707,7 +746,7 @@ namespace gr {
    			alt_builders[0].add( wildcardHigh( hex_high ) );
   				tokens.emplace_back( Tokentype::HEX_WILDCARD_HIGH, hex_high, child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_wildcard_low >() )
+  			else if( child->is< hex_wildcard_low >() )
   			{
   				assert( child->string().length() == 2 );
 	   		const auto hex_low = std::stoi( child->string().substr(0,1), nullptr, 16 );
@@ -715,48 +754,48 @@ namespace gr {
    			alt_builders[0].add( wildcardLow( hex_low ) );
   				tokens.emplace_back( Tokentype::HEX_WILDCARD_LOW, hex_low, child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_jump_varying >() )
+  			else if( child->is< hex_jump_varying >() )
   			{
   				alt_builders[0].add( jumpVarying() );
   				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING, child->string(), child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_jump_varying_range >() ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
+  			else if( child->is< hex_jump_varying_range >() ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
   			{
   				assert( child->children.size() == 1 );
-  				assert( child->children[0]->is< yaramod::gr::_uint >() );
+  				assert( child->children[0]->is< _uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpVaryingRange( arg ) );
   				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING_RANGE, arg, child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_jump_range >() )
+  			else if( child->is< hex_jump_range >() )
   			{
   				assert( child->children.size() == 2 );
-  				assert( child->children[0]->is< yaramod::gr::_uint >() );
-  				assert( child->children[1]->is< yaramod::gr::_uint >() );
+  				assert( child->children[0]->is< _uint >() );
+  				assert( child->children[1]->is< _uint >() );
   				int left = std::stoi( child->children[0]->string() );
   				int right = std::stoi( child->children[1]->string() );
   				alt_builders[0].add( jumpRange( left, right ) );
   				tokens.emplace_back( Tokentype::HEX_JUMP_RANGE, child->string(), child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_jump_fixed >() )
+  			else if( child->is< hex_jump_fixed >() )
   			{
   				assert( child->children.size() == 1 );
-  				assert( child->children[0]->is< yaramod::gr::_uint >() );
+  				assert( child->children[0]->is< _uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpFixed( arg ) );
   				tokens.emplace_back( Tokentype::HEX_JUMP_FIXED, arg, child->begin() );
   			}
-  			else if( child->is< yaramod::gr::hex_brackets >() )
+  			else if( child->is< hex_brackets >() )
   			{
   				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
   			}
-  			else if(child->is< yaramod::gr::hex_alt >() ) {
+  			else if(child->is< hex_alt >() ) {
   				alt_builders.emplace_back( parse_hex_tree( child.get(), tokens ) );
   			}
-  			else if(child->is< yaramod::gr::hex_left_bracket >() ) {
+  			else if(child->is< hex_left_bracket >() ) {
   				tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
   			}
-  			else if(child->is< yaramod::gr::hex_righ_bracket >() ) {
+  			else if(child->is< hex_righ_bracket >() ) {
   				tokens.emplace_back( Tokentype::HEX_RIGHT_BRACKET, child->string(), child->begin() );
   			}
   			else {

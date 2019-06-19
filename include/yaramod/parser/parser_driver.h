@@ -235,11 +235,21 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    				seq< TAO_PEGTL_STRING("//"), until< at< eolf >, pgl::any > >,
    				seq< TAO_PEGTL_STRING("/*"), until< at< one<'*'>, one<'/'> > >, TAO_PEGTL_STRING("*/") >
    				> {};
+   struct _operator_negation : one<'~'> {};
    struct _operator_plus : one<'+'> {};
    struct _operator_minus : one<'-'> {};
    struct _operator_multiply : one<'*'> {};
    struct _operator_divide : one<'\\'> {};
    struct _operator_modulo : one<'%'> {};
+   struct _operator_shift_right : seq< one<'>'>, one<'>'> > {};
+   struct _operator_shift_left : seq< one<'<'>, one<'<'> > {};
+   struct operator_shifts : sor< _operator_shift_right, _operator_shift_left > {};
+   struct _operator_bitwise_and : one<'&'> {};
+   struct _operator_bitwise_xor : one<'^'> {};
+   struct _operator_bitwise_or : one<'|'> {};
+   struct operator_multiplicative : sor< _operator_multiply, _operator_divide, _operator_modulo > {};
+   struct operator_additive : sor< _operator_plus, _operator_minus > {};
+
 
    struct _uint : plus< pgl::digit > {};
    struct _int : seq< opt< _operator_minus >, _uint > {};
@@ -356,38 +366,26 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    					cond_filesize
 					> {};
 
-//	struct value : sor< _float_number, _number > {};
-//	struct value : cond_comparable_atom {};
-//   struct variable : sor< _identificator > {};
-   struct operator_multiplicative : sor< _operator_multiply, _operator_divide, _operator_modulo > {};
-   struct operator_additive : sor< _operator_plus, _operator_minus > {};
-   struct eU;
-   struct eV;
-   struct eT : seq< eU, opt< opt_space_enter, seq< operator_additive, opt_space_enter, eT > > > {};
-   struct eU : seq< eV, opt< opt_space_enter, seq< operator_multiplicative, opt_space_enter, eU > > > {};
-   struct eV : sor< seq< one<'('>, opt_space_enter, eT, opt_space_enter, one<')'> >, cond_comparable_atom > {};
-   struct cond_arithmetic_expression : seq< opt_space_enter, eT, opt_space_enter > {};
+   struct e2;
+   struct e3;
+   struct e4;
+   struct e5;
+   struct e6;
+   struct e7;
+   struct e8;
 
-   struct operator_negation : one<'~'> {};
-   struct operator_shifts : sor< TAO_PEGTL_STRING(">>"), TAO_PEGTL_STRING("<<") > {};
-   struct operator_bitwise_and : one<'&'> {};
-   struct operator_bitwise_or_exclusive : one<'^'> {};
-   struct operator_bitwise_or_inclusive : one<'|'> {};
-   struct bB;
-   struct bC;
-   struct bD;
-   struct bE;
-   struct bF;
-   struct bA : seq< bB, opt< seq< operator_bitwise_or_inclusive, opt_space_enter, bA > > > {};
-   struct bB : seq< bC, opt< seq< operator_bitwise_or_exclusive, opt_space_enter, bB > > > {};
-   struct bC : seq< bD, opt< seq< operator_bitwise_and, opt_space_enter, bC > > > {};
-   struct bD : seq< bE, opt< seq< operator_shifts, opt_space_enter, bD > > > {};
-   struct bE : sor< bF, seq< operator_negation, opt_space_enter, bE > > {};
-   struct bF : sor< seq< opt_space_enter, one<'('>, opt_space_enter, bA, opt_space_enter, one<')'>, opt_space_enter >, cond_comparable_atom > {};
-   struct cond_bitwise_expression : seq< opt_space_enter, bA, opt_space_enter > {};
+   struct e1 : seq< e2, opt< opt_space_enter, _operator_bitwise_or, opt_space_enter, e1 > > {};
+   struct e2 : seq< e3, opt< opt_space_enter, _operator_bitwise_xor, opt_space_enter, e2 > > {};
+   struct e3 : seq< e4, opt< opt_space_enter, _operator_bitwise_and,          opt_space_enter, e3 > > {};
+   struct e4 : seq< e5, opt< opt_space_enter, operator_shifts,                opt_space_enter, e4 > > {};
+   struct e5 : seq< e6, opt< opt_space_enter, operator_additive,              opt_space_enter, e5 > > {};
+   struct e6 : seq< e7, opt< opt_space_enter, operator_multiplicative,        opt_space_enter, e6 > > {};
+   struct e7 : sor< e8, seq< opt_space_enter, _operator_negation,             opt_space_enter, e7 > > {};
+   struct e8 : sor< seq< one<'('>, opt_space_enter, e1, opt_space_enter, one<')'>, opt_space_enter >, cond_comparable_atom > {};
+   struct cond_expression : seq< opt_space_enter, e1, opt_space_enter > {};
 
 
-	struct cond_comparable : sor< cond_arithmetic_expression, cond_bitwise_expression > {};
+	struct cond_comparable : cond_expression {};
 
    struct cond_relation_op : sor< TAO_PEGTL_STRING(">="), TAO_PEGTL_STRING("<="), TAO_PEGTL_STRING("=="), TAO_PEGTL_STRING("<"), TAO_PEGTL_STRING(">"), TAO_PEGTL_STRING("!=") > {};
 	struct cond_relation : seq< cond_comparable, opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > {};
@@ -542,64 +540,69 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
       hex_jump_range,
 		hex_jump_fixed > >;
 
+	struct rearrange
+        : pgl::parse_tree::apply< rearrange >  // allows bulk selection, see selector<...>
+     {
+        template< typename... States >
+        static void transform( std::unique_ptr< pgl::parse_tree::node >& n, States&&... st )
+        {
+           if( n->children.size() == 1 && !n->children.front()->is<_operator_negation>() ) {
+              n = std::move( n->children.back() );
+           }
+           else{
+            for( auto& child : n->children )
+               transform( child, st... );
+           }
+        }
+    };
 
-   template< typename Rule >
-   struct cond_selector : std::false_type {};
-   template<> struct cond_selector< cond_string_identificator > : std::true_type {};
-   template<> struct cond_selector< boolean > : std::true_type {};
-   template<> struct cond_selector< cond_string_count > : std::true_type {};
-   template<> struct cond_selector< cond_string_offset > : std::true_type {};
-   template<> struct cond_selector< cond_string_identificator_offset > : std::true_type {};
-   template<> struct cond_selector< cond_string_length > : std::true_type {};
-   template<> struct cond_selector< cond_string_identificator_length > : std::true_type {};
-   template<> struct cond_selector< _operator_plus > : std::true_type {};
-   template<> struct cond_selector< _operator_minus > : std::true_type {};
-   template<> struct cond_selector< _operator_multiply > : std::true_type {};
-   template<> struct cond_selector< _operator_divide > : std::true_type {};
-   template<> struct cond_selector< _operator_modulo > : std::true_type {};
-   template<> struct cond_selector< _int > : std::true_type {};
-   template<> struct cond_selector< _uint > : std::true_type {};
-   template<> struct cond_selector< cond_int_multiplier_mega > : std::true_type {};
-   template<> struct cond_selector< cond_int_multiplier_kilo > : std::true_type {};
-   template<> struct cond_selector< cond_int_multiplier_none > : std::true_type {};
-   template<> struct cond_selector< cond_int_with_opt_multiplier > : std::true_type {};
-   template<> struct cond_selector< cond_filesize > : std::true_type {};
-   template<> struct cond_selector< cond_relation > : std::true_type {};
-   template<> struct cond_selector< cond_relation_op > : std::true_type {};
-   template<> struct cond_selector< cond_range > : std::true_type {};
-   template<> struct cond_selector< cond_at_expression > : std::true_type {};
-   template<> struct cond_selector< cond_in_expression > : std::true_type {};
-   template<> struct cond_selector< cond_entrypoint > : std::true_type {};
-   //template<> struct cond_selector< cond_formula > : std::true_type {};
-   template<> struct cond_selector< cond_formula_start > : std::true_type {};
-   template<> struct cond_selector< cond_brackets > : std::true_type {};
-   template<> struct cond_selector< cond_number_brackets > : std::true_type {};
-   //template<> struct cond_selector< cond_after_and > : std::true_type {};
-   //template<> struct cond_selector< cond_after_or > : std::true_type {};
-   template<> struct cond_selector< cond_not > : std::true_type {};
-   template<> struct cond_selector< cond_and > : std::true_type {};
-   template<> struct cond_selector< cond_or > : std::true_type {};
-
-
-//   template<> struct cond_selector< value > : std::true_type {};
-//   template<> struct cond_selector< cond_arithmetic_expression > : std::true_type {};
-   template<> struct cond_selector< eT > : std::true_type {};
-   // template<> struct cond_selector< eV > : std::true_type {};
-   template<> struct cond_selector< eU > : std::true_type {};
-
-   template<> struct cond_selector< cond_bitwise_expression > : std::true_type {};
-   template<> struct cond_selector< bA > : std::true_type {};
-   template<> struct cond_selector< operator_negation > : std::true_type {};
-   template<> struct cond_selector< operator_shifts > : std::true_type {};
-   template<> struct cond_selector< operator_bitwise_and > : std::true_type {};
-   template<> struct cond_selector< operator_bitwise_or_exclusive > : std::true_type {};
-   template<> struct cond_selector< operator_bitwise_or_inclusive > : std::true_type {};
-   //template<> struct cond_selector< bB > : std::true_type {};
-   template<> struct cond_selector< bC > : std::true_type {};
-   //template<> struct cond_selector< bD > : std::true_type {};
-   template<> struct cond_selector< bE > : std::true_type {};
-   //template<> struct cond_selector< bF > : std::true_type {};
-
+	template< typename Rule >
+   using cond_selector = parse_tree::selector<
+      Rule,
+      parse_tree::store_content::on<
+         cond_string_identificator,
+         boolean,
+         cond_string_count,
+         cond_string_offset,
+         cond_string_identificator_offset,
+         cond_string_length,
+         cond_string_identificator_length,
+         _int,
+         _uint,
+         cond_int_multiplier_mega,
+         cond_int_multiplier_kilo,
+   //      cond_int_multiplier_none,
+         cond_int_with_opt_multiplier,
+         cond_filesize,
+         cond_relation,
+         cond_relation_op,
+         cond_range,
+         cond_at_expression,
+         cond_in_expression,
+         cond_entrypoint,
+         cond_formula_start,
+         cond_brackets,
+         cond_number_brackets,
+         cond_not,
+         cond_and,
+         cond_or,
+         cond_expression,
+         _operator_negation,
+         _operator_plus,
+         _operator_minus,
+         _operator_multiply,
+         _operator_divide,
+         _operator_modulo,
+         _operator_shift_left,
+         _operator_shift_right,
+         _operator_bitwise_and,
+         _operator_bitwise_xor,
+         _operator_bitwise_or
+         >,
+      rearrange::on<
+         e1, e2, e3, e4, e5, e6, e7, e8
+			>
+		>;
 
    template< typename Rule >
 	struct my_control : tao::pegtl::normal< Rule >
