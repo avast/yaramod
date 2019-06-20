@@ -354,164 +354,127 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_int_multiplier_none : sor< one<'b'>, one<'B'> > {};
    struct cond_int_with_opt_multiplier : seq< /*_float_number,*/ _int, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
-   struct cond_number : sor< cond_entrypoint, cond_filesize, cond_int_with_opt_multiplier, cond_number_brackets > {};
 
-	struct cond_comparable_atom :
+	struct cond_number :
    				sor<
-   					seq< cond_left_bracket, cond_comparable_atom, cond_righ_bracket >,
+   					cond_number_brackets,
+   					cond_filesize,
+   					cond_entrypoint,
    					cond_string_count,
    					cond_string_offset,
    					cond_string_length,
-   					cond_number,
-   					cond_filesize
+   					cond_int_with_opt_multiplier
 					> {};
 
-   struct e2;
-   struct e3;
-   struct e4;
-   struct e5;
-   struct e6;
-   struct e7;
-   struct e8;
+   struct e2_xor;
+   struct e3_and;
+   struct o4_shifts;
+   struct o5_add;
+   struct o6_mult;
+   struct o7_neg;
+   struct e8_brackets;
 
-   struct e1 : seq< e2, opt< opt_space_enter, _operator_bitwise_or, opt_space_enter, e1 > > {};
-   struct e2 : seq< e3, opt< opt_space_enter, _operator_bitwise_xor, opt_space_enter, e2 > > {};
-   struct e3 : seq< e4, opt< opt_space_enter, _operator_bitwise_and,          opt_space_enter, e3 > > {};
-   struct e4 : seq< e5, opt< opt_space_enter, operator_shifts,                opt_space_enter, e4 > > {};
-   struct e5 : seq< e6, opt< opt_space_enter, operator_additive,              opt_space_enter, e5 > > {};
-   struct e6 : seq< e7, opt< opt_space_enter, operator_multiplicative,        opt_space_enter, e6 > > {};
-   struct e7 : sor< e8, seq< opt_space_enter, _operator_negation,             opt_space_enter, e7 > > {};
-   struct e8 : sor< seq< one<'('>, opt_space_enter, e1, opt_space_enter, one<')'>, opt_space_enter >, cond_comparable_atom > {};
-   struct cond_expression : seq< opt_space_enter, e1, opt_space_enter > {};
+   struct e1_or :     list_must< e2_xor,    seq< opt_space_enter, _operator_bitwise_or,    opt_space_enter     > > {};
+   struct e2_xor :    list_must< e3_and,    seq< opt_space_enter, _operator_bitwise_xor,   opt_space_enter     > > {};
+   struct e3_and :    list_must< o4_shifts, seq< opt_space_enter, _operator_bitwise_and,   opt_space_enter     > > {};
+   struct o4_shifts : list_must< o5_add,    seq< opt_space_enter, operator_shifts,         opt_space_enter     > > {};
+   struct o5_add :    list_must< o6_mult,   seq< opt_space_enter, operator_additive,       opt_space_enter     > > {};
+   struct o6_mult :   list_must< o7_neg,    seq< opt_space_enter, operator_multiplicative, opt_space_enter     > > {};
+   struct o7_neg :      sor< e8_brackets,   seq< opt_space_enter, _operator_negation,      opt_space_enter, o7_neg > > {};
+   struct cond_expression_brackets : seq< one<'('>, opt_space_enter, e1_or, opt_space_enter, one<')'>, opt_space_enter > {};
+   struct e8_brackets : sor< cond_expression_brackets, cond_number > {};
+   struct cond_expression : seq< opt_space_enter, e1_or, opt_space_enter > {};
 
+   struct cond_comparable : cond_expression {};
 
-	struct cond_comparable : cond_expression {};
+   struct cond_relation_leq : seq< one<'<'>, one<'='> > {};
+   struct cond_relation_l : one<'<'> {};
+   struct cond_relation_geq : TAO_PEGTL_STRING(">=") {};
+   struct cond_relation_g : one<'>'> {};
+   struct cond_relation_e : TAO_PEGTL_STRING("==") {};
+   struct cond_relation_ne : TAO_PEGTL_STRING("!=") {};
+   struct cond_relation_op : sor< cond_relation_leq, cond_relation_l, cond_relation_geq, cond_relation_g, cond_relation_e, cond_relation_ne > {};
+   struct cond_relation : seq< cond_comparable, opt< opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > > {};
 
-   struct cond_relation_op : sor< TAO_PEGTL_STRING(">="), TAO_PEGTL_STRING("<="), TAO_PEGTL_STRING("=="), TAO_PEGTL_STRING("<"), TAO_PEGTL_STRING(">"), TAO_PEGTL_STRING("!=") > {};
-	struct cond_relation : seq< cond_comparable, opt_space_enter, cond_relation_op, opt_space_enter, cond_comparable > {};
+   struct cond_range : seq< cond_left_bracket, opt_space_enter, cond_number, opt_space_enter, one<'.'>, one<'.'>, opt_space_enter, cond_number, opt_space_enter, cond_righ_bracket > {};
+   struct cond_in_expression : seq< cond_string_identificator, opt_space_enter, TAO_PEGTL_STRING("in"), opt_space_enter, cond_range > {};
 
-	struct cond_range : seq< cond_left_bracket, opt_space_enter, cond_number, opt_space_enter, one<'.'>, one<'.'>, opt_space_enter, cond_number, opt_space_enter, cond_righ_bracket > {};
-	struct cond_in_expression : seq< cond_string_identificator, opt_space_enter, TAO_PEGTL_STRING("in"), opt_space_enter, cond_range > {};
+   struct cond_at_expression : seq< cond_string_identificator, opt_space_enter, TAO_PEGTL_STRING("at"), opt_space_enter, cond_number > {};
 
-	struct cond_at_expression : seq< cond_string_identificator, opt_space_enter, TAO_PEGTL_STRING("at"), opt_space_enter, cond_number > {};
+   struct cond_formula_not : TAO_PEGTL_STRING("not") {};
+   struct cond_formula_or;
+   struct cond_formula_brackets : seq< cond_left_bracket, cond_formula_or, opt_space_enter, cond_righ_bracket > {};
 
-   struct cond_formula;
-   struct cond_after_and;
-   struct cond_after_or;
-
-   struct cond_brackets : seq< cond_left_bracket, cond_formula, opt_space_enter, cond_righ_bracket > {};
-   struct cond_and : seq< opt_space, TAO_PEGTL_STRING("and"), cond_after_and > {};
-   struct cond_or : seq< opt_space, TAO_PEGTL_STRING("or"), cond_after_or > {};
-
-   struct cond_after_not :
+   struct cond_formula_item :
                seq<
+                  star< seq< opt_space_enter, cond_formula_not > >,
                   opt_space_enter,
                   sor<
-                     cond_brackets,
+                     cond_formula_brackets,
                      boolean,
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
-                     cond_comparable,
                      cond_string_identificator
-                  >,
-                  opt_space_enter
+                  >
                > {};
 
-   struct cond_negated;
-   struct cond_not : seq< TAO_PEGTL_STRING("not"), cond_negated > {};
-   struct cond_negated : sor< cond_not, cond_after_not > {};
+   struct cond_formula_and :
+               list_must <
+                  cond_formula_item,
+                  seq<
+                     opt_space_enter,
+                     TAO_PEGTL_STRING("and"),
+                     opt_space_enter
+                  >
+               > {};
 
-   struct cond_after_or : // toto pravidlo uz nevyrobi zadne OR (leda pres zavorky)
-            sor<
-               seq<
-                  opt_space_enter,
-                  sor<
-                     cond_not,
-                     cond_brackets,
-                     boolean,
-                     cond_at_expression,
-                     cond_in_expression,
-                     cond_relation,
-                     cond_comparable,
-                     cond_string_identificator
-                  >,
-                  star< cond_and >,
-                  opt_space_enter
-               >
-            > {};
+   struct cond_formula_or :
+	            list_must <
+	               cond_formula_and,
+	               seq<
+                     opt_space_enter,
+                     TAO_PEGTL_STRING("or"),
+                     opt_space_enter
+                  >
+               > {};
 
 
-   struct cond_after_and : // Toto pravidlo uz nevyrobi zadne AND ani OR (leda by slo pres zavorky)
-            sor<
-               seq<
-                  opt_space_enter,
-                  sor<
-                     cond_not,
-                     cond_brackets,
-                     boolean,
-                     cond_at_expression,
-                     cond_in_expression,
-                     cond_relation,
-                     cond_comparable,
-                     cond_string_identificator
-                  >,
-                  opt_space_enter
-               >
-            > {};
-
-   struct cond_formula :
-            sor<
-               seq<
-                  opt_space_enter,
-                  sor<
-                     cond_not,
-                     cond_brackets,
-                     boolean,
-                     cond_at_expression,
-                     cond_in_expression,
-                     cond_relation,
-                     cond_comparable,
-                     cond_string_identificator
-                  >,
-                  star< cond_and >,
-                  star< cond_or >,
-                  opt_space_enter
-               >
-            > {};
    // condition must read all lines until '}'.
    struct end_of_rule : seq< opt_space_enter, one<'}'> > {};
    struct end_of_file : opt< eolf > {};
-   struct cond_formula_start : seq< cond_formula, end_of_rule > {};
+   struct cond_formula_start : seq< cond_formula_or, end_of_rule > {};
 
    struct condition_block : seq< plus< not_at< one< '}' > >, pgl::any >, end_of_rule, opt_space_enter > {};
 
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, condition_block > {};
 
 
-   struct rule : seq<
-	   	opt_space_enter,
-	   	TAO_PEGTL_STRING("rule"), opt_space, must< rule_name >, opt_space,
-		   sor< line,
-		   	seq<
-		   		opt_space, one<':'>,
-		   		plus< seq< opt_space, tag > >,
-		   		opt_space, opt< line >
-	   		>,
-	   		opt_space
-   		>,
-   		one< '{' >, line,
-   		opt< meta >,
-   		opt< strings >,
-   		condition,
-   		opt_space_enter
-		> {};
+   struct rule :
+               seq<
+                  opt_space_enter,
+                  TAO_PEGTL_STRING("rule"), opt_space, must< rule_name >, opt_space,
+                  sor<
+                     line,
+                     seq<
+                        opt_space, one<':'>,
+                        plus< seq< opt_space, tag > >,
+                        opt_space, opt< line >
+                     >,
+                     opt_space
+                  >,
+                  one< '{' >, line,
+                  opt< meta >,
+                  opt< strings >,
+                  condition,
+                  opt_space_enter
+               > {};
 
    struct grammar :
-   must<
-	   star< rule >,
-	   end_of_file
-		> {};
+               must<
+                  star< rule >,
+                  end_of_file
+               > {};
 
 
 
@@ -544,15 +507,15 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
         : pgl::parse_tree::apply< rearrange >  // allows bulk selection, see selector<...>
      {
         template< typename... States >
-        static void transform( std::unique_ptr< pgl::parse_tree::node >& n, States&&... st )
+        static void transform( std::unique_ptr< pgl::parse_tree::node >& n, States&&.../* st*/ )
         {
            if( n->children.size() == 1 && !n->children.front()->is<_operator_negation>() ) {
               n = std::move( n->children.back() );
            }
-           else{
-            for( auto& child : n->children )
-               transform( child, st... );
-           }
+           // else{
+           //  for( auto& child : n->children )
+           //     transform( child, st... );
+           // }
         }
     };
 
@@ -563,29 +526,25 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          cond_string_identificator,
          boolean,
          cond_string_count,
-         cond_string_offset,
          cond_string_identificator_offset,
          cond_string_length,
          cond_string_identificator_length,
-         _int,
          _uint,
          cond_int_multiplier_mega,
          cond_int_multiplier_kilo,
-   //      cond_int_multiplier_none,
-         cond_int_with_opt_multiplier,
          cond_filesize,
-         cond_relation,
-         cond_relation_op,
+         cond_relation_leq,
+         cond_relation_l,
+         cond_relation_geq,
+         cond_relation_g,
+         cond_relation_e,
+         cond_relation_ne,
          cond_range,
          cond_at_expression,
          cond_in_expression,
          cond_entrypoint,
-         cond_formula_start,
-         cond_brackets,
          cond_number_brackets,
-         cond_not,
-         cond_and,
-         cond_or,
+         cond_formula_not,
          cond_expression,
          _operator_negation,
          _operator_plus,
@@ -595,14 +554,28 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          _operator_modulo,
          _operator_shift_left,
          _operator_shift_right,
-         _operator_bitwise_and,
-         _operator_bitwise_xor,
-         _operator_bitwise_or
+         cond_expression_brackets,
+         cond_formula_brackets,
+         cond_relation,
+         _int,
+         cond_string_offset,
+         cond_int_with_opt_multiplier
          >,
       rearrange::on<
-         e1, e2, e3, e4, e5, e6, e7, e8
-			>
-		>;
+         cond_formula_start,
+         cond_formula_and,
+         cond_formula_or,
+         e1_or,
+         e2_xor,
+         e3_and,
+         o4_shifts,
+         o5_add,
+         o6_mult,
+         o7_neg,
+         e8_brackets,
+         cond_formula_item
+      >
+   >;
 
    template< typename Rule >
 	struct my_control : tao::pegtl::normal< Rule >
