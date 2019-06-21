@@ -22,9 +22,8 @@ namespace yaramod {
 
 namespace gr {
 
-
-
-	void error_handle( const std::string& msg, std::size_t line, std::optional<std::size_t> byte = std::nullopt, std::optional<std::size_t> length = std::nullopt, bool except = true ) {
+	void error_handle( const std::string& msg, std::size_t line, std::optional<std::size_t> byte = std::nullopt, std::optional<std::size_t> length = std::nullopt, bool except = true )
+	{
 		std::stringstream ss;
 		ss << "Error at ";
 		if( byte ) {
@@ -162,7 +161,7 @@ namespace gr {
       	}
       	if( root )
       	{
-	      	pgl::parse_tree::print_dot( std::cerr, *root );
+//	      	pgl::parse_tree::print_dot( std::cerr, *root );
 	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
 	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
@@ -217,177 +216,6 @@ namespace gr {
       }
    };
 
-//    template<>
-//    struct action< hex_normal >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& in, ParserDriver& d)
-//    	{
-//    		std::cout << "Matched hex_normal with '" << in.string() << "'" << std::endl;
-//    		const auto hex_n = std::stoi(in.string(), nullptr, 16);
-//    		d.hex_builder.add(hex_n);
-// //   		std::cout << "Result " << hex_n << std::endl;
-//    	}
-//    };
-
-//    template<>
-//    struct action< hex_wildcard_high >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& in, ParserDriver& d)
-//    	{
-// //   		std::cout << "Matched hex_wildcard_high with '" << in.string() << "'" << std::endl;
-//    		assert(in.string().length() == 2);
-//    		const auto hex_high = std::stoi(in.string().substr(1,1), nullptr, 16);
-//    		assert(hex_high <= 16);
-//    		d.hex_builder.add(wildcardHigh(hex_high));
-// //   		std::cout << "Result " << hex_high << std::endl;
-//    	}
-//    };
-
-//    template<>
-//    struct action< hex_wildcard_low >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& in, ParserDriver& d)
-//    	{
-// //   		std::cout << "Matched hex_wildcard_low with '" << in.string() << "'" << std::endl;
-//    		assert(in.string().length() == 2);
-//    		const auto hex_low = std::stoi(in.string().substr(0,1), nullptr, 16);
-//    		assert(hex_low <= 16);
-//    		d.hex_builder.add(wildcardLow(hex_low));
-// //   		std::cout << "Result " << hex_low << std::endl;
-//    	}
-//    };
-
-//    template<>
-//    struct action< hex_wildcard_full >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& , ParserDriver& d)
-//    	{
-// //   		std::cout << "Matched hex_wildcard_full with '" << in.string() << "'" << std::endl;
-//    		d.hex_builder.add(wildcard());
-//      	}
-//    };
-
-//    template<>
-//    struct action< hex_jump_varying >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& , ParserDriver& d)
-//    	{
-// //   		std::cout << "Matched hex_jump_varying with '" << in.string() << "'" << std::endl;
-//    		d.hex_builder.add(jumpVarying());
-//    	}
-//    };
-
-//    template<>
-//    struct action< hex_jump_varying_range >
-//    {
-//    	template< typename Input >
-//    	static void apply(const Input& in, ParserDriver& d)
-//    	{
-//    		std::cout << "Matched hex_jump_varying_range with '" << in.string() << "'" << std::endl;
-//    		d.hex_builder.add(jumpVaryingRange(d.hex_jump_number1));
-//    		d.hex_jump_number1 = -1;
-//    	}
-//    };
-
-//    template<>
-//    struct action< hex_jump_range >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, ParserDriver& d)
-//       {
-//          std::cout << "Matched hex_jump_range with '" << in.string() << "'" << std::endl;
-//       	d.hex_builder.add(jumpRange(d.hex_jump_number1, d.hex_jump_number2));
-//       	d.hex_jump_number1 = d.hex_jump_number2 = -1;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_jump_fixed >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, ParserDriver& d)
-//       {
-//          std::cout << "Matched hex_jump_fixed with '" << in.string() << "'" << std::endl;
-//          d.hex_builder.add(jumpFixed(d.hex_jump_number1));
-//          d.hex_jump_number1 = -1;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_atom >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched hex_atom with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_brackets >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched hex_brackets with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_comp_alt_no_brackets >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched hex_comp_alt_no_brackets with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-//    template<>
-//    struct action< opt_space >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched opt_space with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_alt >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched hex_alt with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-//    template<>
-//    struct action< hex_comp >
-//    {
-//       template< typename Input >
-//       static void apply(const Input& in, const ParserDriver&)
-//       {
-//          std::cout << "Matched hex_comp with '" << in.string() << "'" << std::endl;
-//       }
-//    };
-
-
-//    template<>
-//    struct action< hex_strings_value >
-//    {
-//       template< typename Input >
-//       static void apply( const Input&, const ParserDriver&)
-//       {
-//       }
-//   };
-
    template<>
    struct action< hex_strings_entry >
    {
@@ -409,7 +237,6 @@ namespace gr {
       	catch( const std::exception& e ) {
       		error_handle("Parsing hex-string '" + in.string() + "' failed.", in.position().line);
       	}
-
 
       	assert(d.str_modifiers == 0u);
          const auto& hex_string = hex_builder.get();
@@ -558,51 +385,52 @@ namespace gr {
    	}
    	else if( n->is< cond_string_length >() )
    	{
+   		assert( n->children.size() == 1 || n->children.size() == 2 );
    		if( n->children.size() == 1 )
    			return matchLength( n->string() );
-   		else {
-   			assert( n->children.size() == 2 );
-   			return matchLength( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ));
-   		}
+   		else
+   			return matchLength( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ) );
    	}
-   	else if( n->is< cond_int_with_opt_multiplier >() )
+   	else if( n->is< cond_string_offset >() )
+   	{
+   		assert( n->children.size() == 1 || n->children.size() == 2 );
+			if( n->children.size() == 1 )
+   			return matchOffset( n->string() );
+   		else
+   			return matchOffset( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ) );
+   	}
+   	else if( n->is< cond_number_with_opt_multiplier >() )
 		{
-			const auto& child = n->children.front();
-			if( child->children.size() == 1) // there is no minus sign
+			assert( n->children.size() == 1 || n->children.size() == 2 );
+			auto mult = IntMultiplier::None;
+			if( n->children.size() == 2 )
 			{
-				auto x = std::stoi( child->children.front()->string(), nullptr);
-				if( n->children.size() == 1 || n->children.back()->is< cond_int_multiplier_none >() )
-					return intVal( x, IntMultiplier::None );
-				else if( n->children.back()->is< cond_int_multiplier_kilo >() )
-					return intVal( x, IntMultiplier::Kilobytes );
+				if( n->children.back()->is< cond_int_multiplier_kilo >() )
+					mult = IntMultiplier::Kilobytes;
 				else if( n->children.back()->is< cond_int_multiplier_mega >() )
-					return intVal( x, IntMultiplier::Megabytes );
-				else {
-					std::cerr << "Internal error: unknown int modifier '" << n->string() << "'" << std::endl;
-	   			assert(false && "Internal error: unknown int modifier.");
-				}
+					mult = IntMultiplier::Megabytes;
+				else
+					assert( n->children.back()->is< cond_int_multiplier_none >() );
 			}
+			const auto& num_child = n->children.front();
+			assert( num_child->is< _number >() );
+			assert( num_child->children.size() == 1 || num_child->children.size() == 2 );
+			if( num_child->children.size() == 1 )
+			{
+				auto x = std::stoi( num_child->children.front()->string() );
+				return intVal( x, mult );
+   		}
 			else
 			{
-				assert( child->children.size() == 2 );
-				assert( child->children.front()->is< _operator_minus >() );
-				auto x = std::stoi( child->children.back()->string(), nullptr);
-				if( n->children.size() == 1 || n->children.back()->is< cond_int_multiplier_none >() )
-					return -intVal( x, IntMultiplier::None );
-				else if( n->children.back()->is< cond_int_multiplier_kilo >() )
-					return -intVal( x, IntMultiplier::Kilobytes );
-				else if( n->children.back()->is< cond_int_multiplier_mega >() )
-					return -intVal( x, IntMultiplier::Megabytes );
-				else {
-					std::cerr << "Internal error: unknown int modifier '" << n->string() << "'" << std::endl;
-	   			assert(false && "Internal error: unknown int modifier.");
-				}
-			}
+				assert( ( mult == IntMultiplier::None) && "Double values with multipliers KB/MB are not supported." );
+				auto x = std::stod( num_child->string() );
+				return doubleVal( x );
+   		}
 		}
    	// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( n->children.empty() )
    	{
-   		if( n->is< boolean >() )
+   		if( n->is< _boolean >() )
    		{
    			if( n->string() == "true" )
 	   			return boolVal( true );
@@ -612,8 +440,6 @@ namespace gr {
    		}
    		else if( n->is< cond_string_identificator >() )
    			return stringRef( n->string() );
-   		else if( n->is< cond_string_identificator_offset >() )
-				return matchOffset( n->string() );
    		else if( n->is< cond_filesize >() )
    			return filesize();
    		else if( n->is< cond_string_count >() )
@@ -633,9 +459,7 @@ namespace gr {
    		if( n->is< cond_number_brackets >() || n->is< cond_formula_brackets >() || n->is< cond_expression_brackets >() )
    			return paren( parse_cond_tree( n->children[0].get(), tokens ) );
    		else if( n->is< cond_relation >() )
-			{
 				return parse_cond_tree(n->children[0].get(), tokens);
-			}
    		else {
    			std::cerr << "Internal error: unknown arity-1 node '" << n->string() << "' of type '" << n->name() << "'" << std::endl;
    			assert( false && "Internal error: unknown arity-1 node." );
@@ -758,213 +582,7 @@ namespace gr {
    		assert( false && "Internal error: unknown token." );
    	}
    }
-/*
-   YaraExpressionBuilder parse_cond_tree_old( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
-   {
-   	if( root->is_root() )
-   	{
-   		assert( root->children.size() <= 1 );
-   		return parse_cond_tree( root->children.front().get(), tokens );
-   	}
-   	else if( root->is< cond_string_offset >() )
-   	{
-   		if( root->children.size() == 1 )
-   			return matchOffset( root->string() );
-   		else {
-   			assert( root->children.size() == 2 );
-   			return matchOffset( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
-   		}
-   	}
-   	else if( root->is< cond_string_length >() )
-   	{
-   		if( root->children.size() == 1 )
-   			return matchLength( root->string() );
-   		else {
-   			assert( root->children.size() == 2 );
-   			return matchLength( root->children.front()->string(), parse_cond_tree( root->children.back().get(), tokens ));
-   		}
-   	}
-   	else if( root->is< cond_int_with_opt_multiplier >() )
-		{
-			const auto& child = root->children.front();
-			if( child->children.size() == 1) // there is no minus sign
-			{
-				auto x = std::stoi( child->children.front()->string(), nullptr);
-				if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
-					return intVal( x, IntMultiplier::None );
-				else if( root->children.back()->is< cond_int_multiplier_kilo >() )
-					return intVal( x, IntMultiplier::Kilobytes );
-				else if( root->children.back()->is< cond_int_multiplier_mega >() )
-					return intVal( x, IntMultiplier::Megabytes );
-				else {
-					std::cerr << "Internal error: unknown int modifier '" << root->string() << "'" << std::endl;
-	   			assert(false && "Internal error: unknown int modifier.");
-				}
-			}
-			else
-			{
-				assert( child->children.size() == 2 );
-				assert( child->children.front()->is< _operator_minus >() );
-				auto x = std::stoi( child->children.back()->string(), nullptr);
-				if( root->children.size() == 1 || root->children.back()->is< cond_int_multiplier_none >() )
-					return -intVal( x, IntMultiplier::None );
-				else if( root->children.back()->is< cond_int_multiplier_kilo >() )
-					return -intVal( x, IntMultiplier::Kilobytes );
-				else if( root->children.back()->is< cond_int_multiplier_mega >() )
-					return -intVal( x, IntMultiplier::Megabytes );
-				else {
-					std::cerr << "Internal error: unknown int modifier '" << root->string() << "'" << std::endl;
-	   			assert(false && "Internal error: unknown int modifier.");
-				}
-			}
-		}
-		// Nodes of rules that do not have 0 children AND are not discussed in section **
-   	else if( root->children.empty() )
-   	{
-   		std::cout << "0" << std::endl;
-   		if( root->is< boolean >() )
-   		{
-   			if( root->string() == "true" )
-	   			return boolVal( true );
-	   		else if( root->string() == "false" )
-	   			return boolVal( false );
-	   		else assert( false && "Internal error: expected 'true' or 'false'." );
-   		}
-   		else if( root->is< cond_string_identificator >() )
-   			return stringRef( root->string() );
-   		else if( root->is< cond_filesize >() )
-   			return filesize();
-   		else if( root->is< cond_string_count >() )
-   			return matchCount( root->string() );
-   		else if( root->is< cond_entrypoint >() )
-   			return entrypoint();
-   		else if( root->is< _uint >() )
-   			return intVal( std::stoi( root->string(), nullptr ) );
-   		else {
-   			std::cerr << "Internal error: unknown leaf '" << root->string() << "' of type '" << root->name() << "'" << std::endl;
-   			assert( false && "Internal error: unknown leaf." );
-	   	}
-   	}
-   	// Nodes of rules that do not have 1 child AND are not discussed in section **
-   	else if( root->children.size() == 1 )
-   	{
-   		std::cout << "1" << std::endl;
-   		if( root->is< cond_not >() )
-   		   return (! parse_cond_tree( root->children.front().get(), tokens ) );
-   		else if( root->is< cond_brackets >() || root->is< cond_number_brackets >() )
-   			return paren( parse_cond_tree( root->children[0].get(), tokens ) );
-   		else
-   			return parse_cond_tree( root->children.front().get(), tokens );
-   	}
-   	// Nodes of rules that have at least 2 children AND are not discussed in section **
-   	else
-   	{
-   		std::cout << "2<" << std::endl;
-   		if( root->is< cond_relation >() )
-			{
-				const auto& op = root->children[1]->string();
-				if( op == "==" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) == parse_cond_tree( root->children[2].get(), tokens ));
-				else if( op == ">=" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) >= parse_cond_tree( root->children[2].get(), tokens ));
-				else if( op == "<=" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) <= parse_cond_tree( root->children[2].get(), tokens ));
-				else if( op == ">" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) > parse_cond_tree( root->children[2].get(), tokens ));
-				else if( op == "<" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) < parse_cond_tree( root->children[2].get(), tokens ));
-				else if( op == "!=" )
-					return (parse_cond_tree( root->children[0].get(), tokens ) != parse_cond_tree( root->children[2].get(), tokens ));
-				else
-				{
-	   			std::cerr << "Internal error: unknown operator." << root->string() << std::endl;
-	   			assert( false && "Internal error: unknown operator." );
-	   		}
-   		}
-   		else if( root->is< cond_at_expression >() )
-   			return matchAt( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< cond_in_expression >() )
-   			return matchInRange( root->children[0]->string(), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if( root->is< cond_range >() )
-   			return range( parse_cond_tree( root->children[0].get(), tokens ), parse_cond_tree( root->children[1].get(), tokens ) );
-   		else if(    root->is< e1 >()
-   			      || root->is< e2 >()
-   			      || root->is< e3 >()
-   			      || root->is< e4 >()
-   			      || root->is< e5 >()
-   			      || root->is< e6 >()
-   			      || root->is< e8 >() )
-   		{
-		   	assert( root->children.size() == 3 );
-		   	auto&& l = parse_cond_tree(root->children[0].get(), tokens);
-		   	auto&& r = parse_cond_tree(root->children[2].get(), tokens);
 
-		   	if( root->children[1]->is< _operator_bitwise_or >())
-		   		return ( l | r );
-		   	else if( root->children[1]->is< _operator_bitwise_xor >() )
-		   		return ( l ^ r );
-		   	else if( root->children[1]->is< _operator_bitwise_and >())
-		   		return ( l & r );
-		   	else if( root->children[1]->is< _operator_shift_left >() )
-		   		return ( l << r );
-		   	else if( root->children[1]->is< _operator_shift_right >() )
-		   		return ( l >> r );
-		   	else if( root->children[1]->is< _operator_plus >())
-		   		return ( l + r );
-		   	else if( root->children[1]->is< _operator_minus >())
-		   		return ( l - r );
-		   	else if( root->children[1]->is< _operator_multiply >() )
-		   		return ( l * r );
-		   	else if( root->children[1]->is< _operator_divide >() )
-		   		return ( l / r );
-		   	else if( root->children[1]->is< _operator_modulo >() )
-		   		return ( l % r );
-		   	else
-		   	{
-		   		std::cout << "Internal error: unknown operator" << root->children[1]->string() << std::endl;
-	   			assert( false && "Internal error: unknown operator." );
-		   	}
-   		}
-   		else if( root->is< e7 >() )
-   		{
-   			assert( root->children.size() == 2 );
-				auto&& r = parse_cond_tree(root->children[1].get(), tokens);
-				if( root->children[0]->is< _operator_negation >())
-		   		return ( !r );
-		   	else{
-		   		std::cout << "Internal error: unknown operator" << root->children[1]->string() << std::endl;
-   				assert( false && "Internal error: unknown operator." );
-   			}
-   		}
-   		else
-   		{
-	   		std::vector< YaraExpressionBuilder > conjuncts;
-		   	std::vector< YaraExpressionBuilder > disjuncts;
-		   	for( auto it = root->children.begin(); it != root->children.end(); ++it ) {
-					if( (*it)->is< cond_or >() ) {
-		   			for(  ; it != root->children.end(); ++it ) {
-		   				disjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
-		   			}
-		   			break;
-		   		}
-					else
-					{
-						conjuncts.emplace_back( parse_cond_tree( it->get(), tokens ) );
-					}
-		   	}
-				std::vector< YaraExpressionBuilder > disjunctsPref;
-		   	const auto& first = ( conjuncts.size() >= 2 ) ? conjunction( conjuncts ) : conjuncts[0];
-		   	if( disjuncts.empty() )
-		   		return first;
-		   	else
-		   	{
-		   		disjunctsPref.emplace_back(std::move(first));
-					disjunctsPref.insert( disjunctsPref.end(), disjuncts.begin(), disjuncts.end() );
-					return disjunction( disjunctsPref );
-				}
-			}
-		}
-   }*/
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
   	{

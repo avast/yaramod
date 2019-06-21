@@ -253,7 +253,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct _uint : plus< pgl::digit > {};
    struct _int : seq< opt< _operator_minus >, _uint > {};
-   struct _float_number : seq< _uint, one<'.'>, _uint > {};
+   //struct _signed_float : seq< opt< _operator_minus >, plus< pgl::digit >, one<'.'>, plus< pgl::digit > > {};
+   struct _number : seq< _int, opt< one<'.'>, _uint > > {};
    struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
    struct ws : one< ' ', '\t' > {};
@@ -339,7 +340,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_left_bracket : one<'('> {};
    struct cond_righ_bracket : one<')'> {};
 
-   struct boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+   struct _boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
    struct cond_entrypoint : TAO_PEGTL_STRING("entrypoint") {};
    struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
@@ -352,7 +353,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_int_multiplier_mega : seq< sor< one<'M'>, one<'m'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_kilo : seq< sor< one<'K'>, one<'k'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_none : sor< one<'b'>, one<'B'> > {};
-   struct cond_int_with_opt_multiplier : seq< /*_float_number,*/ _int, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
+   struct cond_number_with_opt_multiplier : seq< _number, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
 
 	struct cond_number :
@@ -363,7 +364,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    					cond_string_count,
    					cond_string_offset,
    					cond_string_length,
-   					cond_int_with_opt_multiplier
+   					cond_number_with_opt_multiplier
 					> {};
 
    struct e2_xor;
@@ -374,13 +375,13 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct o7_neg;
    struct e8_brackets;
 
-   struct e1_or :     list_must< e2_xor,    seq< opt_space_enter, _operator_bitwise_or,    opt_space_enter     > > {};
-   struct e2_xor :    list_must< e3_and,    seq< opt_space_enter, _operator_bitwise_xor,   opt_space_enter     > > {};
-   struct e3_and :    list_must< o4_shifts, seq< opt_space_enter, _operator_bitwise_and,   opt_space_enter     > > {};
-   struct o4_shifts : list_must< o5_add,    seq< opt_space_enter, operator_shifts,         opt_space_enter     > > {};
-   struct o5_add :    list_must< o6_mult,   seq< opt_space_enter, operator_additive,       opt_space_enter     > > {};
-   struct o6_mult :   list_must< o7_neg,    seq< opt_space_enter, operator_multiplicative, opt_space_enter     > > {};
-   struct o7_neg :      sor< e8_brackets,   seq< opt_space_enter, _operator_negation,      opt_space_enter, o7_neg > > {};
+   struct e1_or :     list_must< e2_xor,      seq< opt_space_enter, _operator_bitwise_or,    opt_space_enter     > > {};
+   struct e2_xor :    list_must< e3_and,      seq< opt_space_enter, _operator_bitwise_xor,   opt_space_enter     > > {};
+   struct e3_and :    list_must< o4_shifts,   seq< opt_space_enter, _operator_bitwise_and,   opt_space_enter     > > {};
+   struct o4_shifts : list_must< o5_add,      seq< opt_space_enter, operator_shifts,         opt_space_enter     > > {};
+   struct o5_add :    list_must< o6_mult,     seq< opt_space_enter, operator_additive,       opt_space_enter     > > {};
+   struct o6_mult :   list_must< o7_neg,      seq< opt_space_enter, operator_multiplicative, opt_space_enter     > > {};
+   struct o7_neg :          sor< e8_brackets, seq< opt_space_enter, _operator_negation,      opt_space_enter, o7_neg > > {};
    struct cond_expression_brackets : seq< one<'('>, opt_space_enter, e1_or, opt_space_enter, one<')'>, opt_space_enter > {};
    struct e8_brackets : sor< cond_expression_brackets, cond_number > {};
    struct cond_expression : seq< opt_space_enter, e1_or, opt_space_enter > {};
@@ -411,7 +412,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
                   opt_space_enter,
                   sor<
                      cond_formula_brackets,
-                     boolean,
+                     _boolean,
                      cond_at_expression,
                      cond_in_expression,
                      cond_relation,
@@ -523,57 +524,59 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    using cond_selector = parse_tree::selector<
       Rule,
       parse_tree::store_content::on<
-         cond_string_identificator,
-         boolean,
-         cond_string_count,
-         cond_string_identificator_offset,
-         cond_string_length,
-         cond_string_identificator_length,
          _uint,
-         cond_int_multiplier_mega,
-         cond_int_multiplier_kilo,
-         cond_filesize,
-         cond_relation_leq,
-         cond_relation_l,
-         cond_relation_geq,
-         cond_relation_g,
-         cond_relation_e,
-         cond_relation_ne,
-         cond_range,
-         cond_at_expression,
-         cond_in_expression,
-         cond_entrypoint,
-         cond_number_brackets,
-         cond_formula_not,
-         cond_expression,
+         _int,
+        // _signed_float,
+         _number,
+         _boolean,
+         _operator_divide,
+         _operator_minus,
+         _operator_modulo,
+         _operator_multiply,
          _operator_negation,
          _operator_plus,
-         _operator_minus,
-         _operator_multiply,
-         _operator_divide,
-         _operator_modulo,
          _operator_shift_left,
          _operator_shift_right,
+         cond_entrypoint,
+         cond_filesize,
          cond_expression_brackets,
          cond_formula_brackets,
+         cond_number_brackets,
+         cond_formula_not,
+         cond_in_expression,
+         cond_int_multiplier_kilo,
+         cond_int_multiplier_mega,
+         cond_number_with_opt_multiplier,
          cond_relation,
-         _int,
+         cond_relation_e,
+         cond_relation_g,
+         cond_relation_geq,
+         cond_relation_l,
+         cond_relation_leq,
+         cond_relation_ne,
+         cond_at_expression,
+         cond_range,
+         cond_string_count,
+         cond_string_identificator_length,
+         cond_string_identificator_offset,
+         cond_string_length,
          cond_string_offset,
-         cond_int_with_opt_multiplier
+			cond_string_identificator,
+         cond_expression
          >,
       rearrange::on<
-         cond_formula_start,
          cond_formula_and,
+         cond_formula_item,
          cond_formula_or,
          e1_or,
          e2_xor,
          e3_and,
+         e8_brackets,
          o4_shifts,
          o5_add,
          o6_mult,
          o7_neg,
-         e8_brackets,
-         cond_formula_item
+			cond_formula_start
       >
    >;
 
