@@ -161,7 +161,7 @@ namespace gr {
       	}
       	if( root )
       	{
-//	      	pgl::parse_tree::print_dot( std::cerr, *root );
+	      	pgl::parse_tree::print_dot( std::cerr, *root );
 	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
 	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
@@ -427,6 +427,42 @@ namespace gr {
 				return doubleVal( x );
    		}
 		}
+		else if(n->is< cond_int_function >() )
+		{
+			assert( n->children.size() == 2 || n->children.size() == 3 );
+			auto base = stoi( n->children[0]->string() );
+			bool be_flag = n->children.size() == 3;
+			if( be_flag )
+				assert( n->children[1]->is< cond_int_be_flag >() );
+			auto endianness = be_flag ? IntFunctionEndianness::Big : IntFunctionEndianness::Little;
+			if( base == 8 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readInt8( endianness );
+			else if( base == 16 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readInt16( endianness );
+			else if( base == 32 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readInt32( endianness );
+			else
+         	error_handle("Condition syntax error: base " + n->children[0]->string() + " used in '" + n->string() + "'  not supported. Use 8, 16 or 32.", n->begin().line);
+         return boolVal(false);
+		}
+		else if(n->is< cond_uint_function >() )
+		{
+			assert( n->children.size() == 2 || n->children.size() == 3 );
+			auto base = stoi( n->children[0]->string() );
+			bool be_flag = n->children.size() == 3;
+			if( be_flag )
+				assert( n->children[1]->is< cond_int_be_flag >() );
+			auto endianness = be_flag ? IntFunctionEndianness::Big : IntFunctionEndianness::Little;
+			if( base == 8 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readUInt8( endianness );
+			else if( base == 16 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readUInt16( endianness );
+			else if( base == 32 )
+				return parse_cond_tree( n->children.back().get(), tokens ).readUInt32( endianness );
+			else
+         	error_handle("Condition syntax error: base " + n->children[0]->string() + " used in '" + n->string() + "'  not supported. Use 8, 16 or 32.", n->begin().line);
+         return boolVal(false);
+		}
    	// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( n->children.empty() )
    	{
@@ -446,6 +482,10 @@ namespace gr {
    			return matchCount( n->string() );
    		else if( n->is< cond_entrypoint >() )
    			return entrypoint();
+   		else if( n->is< cond_hex_number >() )
+	 		{
+				return YaraExpressionBuilder( std::make_shared< IntLiteralExpression >( n->string() ) );
+   		}
    		else if( n->is< _uint >() )
    			return intVal( std::stoi( n->string(), nullptr ) );
    		else
@@ -596,7 +636,8 @@ namespace gr {
   			}
   			else if( child->is< hex_normal >() )
   			{
-  				auto hex = stoi( child->string(), nullptr, 16 );
+  				assert( child->string().length() == 2 );
+   			auto hex = stoi( child->string(), nullptr, 16 );
   				alt_builders[0].add( hex );
   				tokens.emplace_back( Tokentype::HEX_NORMAL, hex, child->begin() );
   			}
