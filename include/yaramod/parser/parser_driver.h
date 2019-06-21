@@ -253,6 +253,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct _uint : plus< pgl::digit > {};
    struct _int : seq< opt< _operator_minus >, _uint > {};
+   struct _hex_uint_value : seq< one<'0'>, one<'x'>, plus< ranges< '0', '9', 'a', 'f', 'A', 'F' > > >{};
    //struct _signed_float : seq< opt< _operator_minus >, plus< pgl::digit >, one<'.'>, plus< pgl::digit > > {};
    struct _number : seq< _int, opt< one<'.'>, _uint > > {};
    struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
@@ -269,7 +270,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct meta_string_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
    struct meta_int_value : _int{};
    //struct meta_negate_int_value : _number{};
-   struct meta_hex_uint_value : seq< one<'0'>, one<'x'>, plus< ranges< '0', '9', 'a', 'f', 'A', 'F' > > >{};
+   struct meta_hex_uint_value : _hex_uint_value {};
    struct meta_number_value : sor< meta_hex_uint_value, meta_int_value > {};
    struct meta_bool_value : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
    struct meta_value : sor< seq< one<'"'>, meta_string_value, one<'"'> >, meta_number_value, meta_bool_value > {};
@@ -350,21 +351,43 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_string_offset : seq< cond_string_identificator_offset, opt< seq< one<'['>, cond_number, one<']'> > > > {};
    struct cond_string_identificator_length : seq< one<'!'>, _identificator > {};
    struct cond_string_length : seq< cond_string_identificator_length, opt< seq< one<'['>, cond_number, one<']'> > > > {};
+   struct cond_hex_number : _hex_uint_value {};
    struct cond_int_multiplier_mega : seq< sor< one<'M'>, one<'m'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_kilo : seq< sor< one<'K'>, one<'k'> >, sor< one<'B'>, one<'b'> > > {};
    struct cond_int_multiplier_none : sor< one<'b'>, one<'B'> > {};
    struct cond_number_with_opt_multiplier : seq< _number, opt< sor< cond_int_multiplier_kilo, cond_int_multiplier_mega, cond_int_multiplier_none > > > {};
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
 
+   struct cond_int_be_flag : TAO_PEGTL_STRING("be") {};
+   struct cond_int_base : sor< one<'8'>, TAO_PEGTL_STRING("16"), TAO_PEGTL_STRING("32") >{};
+   struct cond_int_function  : seq< TAO_PEGTL_STRING("int"),  cond_int_base, opt< cond_int_be_flag >, opt_space_enter, one<'('>, opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+	struct cond_uint_function : seq< TAO_PEGTL_STRING("uint"), cond_int_base, opt< cond_int_be_flag >, opt_space_enter, one<'('>, opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+/*
+   struct cond_int8  :    seq< TAO_PEGTL_STRING("int8("),     opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_int16 :    seq< TAO_PEGTL_STRING("int16("),    opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_int32 :    seq< TAO_PEGTL_STRING("int32("),    opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint8  :   seq< TAO_PEGTL_STRING("uint8("),    opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint16 :   seq< TAO_PEGTL_STRING("uint16("),   opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint32 :   seq< TAO_PEGTL_STRING("uint32("),   opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_int8be  :  seq< TAO_PEGTL_STRING("int8be("),   opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_int16be :  seq< TAO_PEGTL_STRING("int16be("),  opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_int32be :  seq< TAO_PEGTL_STRING("int32be("),  opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint8be  : seq< TAO_PEGTL_STRING("uint8be("),  opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint16be : seq< TAO_PEGTL_STRING("uint16be("), opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+   struct cond_uint32be : seq< TAO_PEGTL_STRING("uint32be("), opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
+*/
 	struct cond_number :
    				sor<
-   					cond_number_brackets,
-   					cond_filesize,
-   					cond_entrypoint,
-   					cond_string_count,
-   					cond_string_offset,
-   					cond_string_length,
-   					cond_number_with_opt_multiplier
+   					cond_number_brackets, // (
+   					cond_filesize, // f
+   					cond_entrypoint, // e
+   					cond_string_count, // #
+   					cond_string_offset, // @
+   					cond_string_length, // !
+   					cond_hex_number, // 0x
+   					cond_int_function, // int
+   					cond_uint_function, // uint
+   					cond_number_with_opt_multiplier // digit or -digit // impossible to distinguish between double and int here
 					> {};
 
    struct e2_xor;
@@ -527,6 +550,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          _uint,
          _int,
         // _signed_float,
+//         _hex_uint_value,
+         cond_hex_number,
          _number,
          _boolean,
          _operator_divide,
@@ -539,6 +564,10 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          _operator_shift_right,
          cond_entrypoint,
          cond_filesize,
+         cond_int_function,
+         cond_uint_function,
+         cond_int_be_flag,
+         cond_int_base,
          cond_expression_brackets,
          cond_formula_brackets,
          cond_number_brackets,
