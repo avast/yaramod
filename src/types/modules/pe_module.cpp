@@ -142,7 +142,6 @@ bool PeModule::initialize()
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("RESOURCE_TYPE_HTML", Type::Int));
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("RESOURCE_TYPE_MANIFEST", Type::Int));
 
-
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("is_pe", Type::Int));
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("machine", Type::Int));
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_sections", Type::Int));
