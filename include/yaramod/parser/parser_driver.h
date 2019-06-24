@@ -263,8 +263,14 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct opt_space : star< ws > {};
    struct opt_space_enter : star< ws_enter > {};
 
+
+   struct import_name : _identificator {};
+   struct imports : seq< star< opt_space_enter, TAO_PEGTL_STRING("import"), must< opt_space_enter, one<'"'>, import_name, one<'"'>, opt_space_enter > > > {};
+
    struct rule_name : _word {};
-   struct tag : _word {};
+   struct private_rule_modifier : TAO_PEGTL_STRING("private") {};
+   struct global_rule_modifier  : TAO_PEGTL_STRING("global") {};
+	struct tag : _word {};
    struct line : eol {};
 
    struct meta_string_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
@@ -473,9 +479,11 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct condition : seq< opt_space, TAO_PEGTL_STRING("condition:"), opt_space_enter, condition_block > {};
 
-
    struct rule :
                seq<
+               	imports,
+               	opt_space_enter,
+                  opt< sor< private_rule_modifier, global_rule_modifier > >,
                   opt_space_enter,
                   TAO_PEGTL_STRING("rule"), opt_space, must< rule_name >, opt_space,
                   sor<
