@@ -40,18 +40,50 @@ namespace gr {
 			std::cerr << ss.str() << std::endl;
 	}
 
-
 	template<>
    struct action< rule_name >
    {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-      	if(d._parsed_rule_names.count(in.string()) != 0)
-				error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position().line, in.position().byte_in_line, in.string().size() );
-         d.builder.withName(in.string());
-         d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
+	      	if(d._parsed_rule_names.count(in.string()) != 0)
+					error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position().line, in.position().byte_in_line, in.string().size() );
+	         d.builder.withName(in.string());
+	         d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
       }
+   };
+
+	template<>
+   struct action< private_rule_modifier >
+   {
+      template< typename Input >
+      static void apply(const Input&, ParserDriver& d)
+      {
+      	d.builder.withModifier(Rule::Modifier::Private);
+      }
+   };
+
+	template<>
+   struct action< global_rule_modifier >
+   {
+      template< typename Input >
+      static void apply(const Input&, ParserDriver& d)
+      {
+			d.builder.withModifier(Rule::Modifier::Global);
+      }
+   };
+
+   template<>
+   struct action< import_name >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& d)
+   	{
+   		if (!d._file.addImport(in.string()))
+			{
+				error_handle(std::string("Unrecognized module '") + in.string() + "' imported", in.position().line, in.position().byte_in_line, in.string().size());
+			}
+   	}
    };
 
    template<>
@@ -161,9 +193,9 @@ namespace gr {
       	}
       	if( root )
       	{
-	      	pgl::parse_tree::print_dot( std::cerr, *root );
+//	      	pgl::parse_tree::print_dot( std::cerr, *root );
 	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
-	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
+//	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
    		}
 	      else
