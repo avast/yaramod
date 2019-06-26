@@ -11,6 +11,7 @@
 
 #include "yaramod/types/expression.h"
 #include "yaramod/types/symbol.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -35,6 +36,18 @@ enum class IntFunctionEndianness
 };
 
 /**
+ * Represents error during parsing.
+ */
+class YaraExpressionBuilderError : public YaramodError{
+public:
+	YaraExpressionBuilderError(const std::string& errorMsg)
+		: YaramodError(std::string("YaraExpressionBuilder error: ") + errorMsg)
+	{
+	}
+	YaraExpressionBuilderError(const YaraExpressionBuilderError&) = default;
+};
+
+/**
  * Class representing builder of condition expression. You use this builder
  * to specify what you want in your condition expression and then you can obtain
  * your condition expression by calling method @c get. As soon as @c get is called,
@@ -50,6 +63,8 @@ public:
 	YaraExpressionBuilder();
 	YaraExpressionBuilder(const Expression::Ptr& expr);
 	YaraExpressionBuilder(Expression::Ptr&& expr);
+	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type);
+	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type);
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -58,6 +73,28 @@ public:
 	/// @{
 	YaraExpressionBuilder& operator=(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder& operator=(YaraExpressionBuilder&&) = default;
+	/// @}
+
+	/// @name Getter methods
+	/// @{
+	Expression::Type getType() const { return _expr->getType(); }
+	/// @}
+
+	/// @name Setter methods
+	/// @{
+	void setType(Expression::Type type) { _expr->setType(type); }
+	/// @}
+
+	/// @name Detection methods
+	/// @{
+	bool canBeBool() const
+	{
+		return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isUndefined();
+	}
+	bool canBeNumber() const
+	{
+		return _expr->isInt() || _expr->isFloat() || _expr->isUndefined();
+	}
 	/// @}
 
 	/// @name Builder method
@@ -137,6 +174,22 @@ protected:
 	}
 
 private:
+	enum class OpType {Left, Right, Single};
+	void error_handle(OpType operator_type, const std::string& op, const std::string& expected_type, const std::string& actual_value) const
+	{
+		if(operator_type == OpType::Single)
+			throw YaraExpressionBuilderError("Invalid operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
+		else if(operator_type == OpType::Right)
+			throw YaraExpressionBuilderError("Invalid right operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
+		else
+			throw YaraExpressionBuilderError("Invalid left operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
+	}
+
+	void error_handle(const std::string& msg) const
+	{
+		throw YaraExpressionBuilderError(msg);
+	}
+
 	Expression::Ptr _expr;
 };
 
