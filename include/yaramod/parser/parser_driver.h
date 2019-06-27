@@ -254,7 +254,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct _uint : plus< pgl::digit > {};
    struct _int : seq< opt< _operator_minus >, _uint > {};
    struct _hex_uint_value : seq< one<'0'>, one<'x'>, plus< ranges< '0', '9', 'a', 'f', 'A', 'F' > > >{};
-   //struct _signed_float : seq< opt< _operator_minus >, plus< pgl::digit >, one<'.'>, plus< pgl::digit > > {};
+   // struct _signed_float : seq< opt< _operator_minus >, plus< pgl::digit >, one<'.'>, plus< pgl::digit > > {};
    struct _number : seq< _int, opt< one<'.'>, _uint > > {};
    struct _identificator : plus< sor< pgl::digit, alnum, one<'_'> > > {};
    struct _word : plus< sor< alnum, one<'='>, string<'/','"'>, one<'_'> > > {};
@@ -266,6 +266,22 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct import_name : _identificator {};
    struct imports : seq< star< opt_space_enter, TAO_PEGTL_STRING("import"), must< opt_space_enter, one<'"'>, import_name, one<'"'>, opt_space_enter > > > {};
+/*
+   struct known_module : sor<
+   					TAO_PEGTL_STRING("androguard"),
+   					TAO_PEGTL_STRING("cuckoo"),
+   					TAO_PEGTL_STRING("dex"),
+   					TAO_PEGTL_STRING("dotnet"),
+   					TAO_PEGTL_STRING("elf"),
+   					TAO_PEGTL_STRING("hash"),
+   					TAO_PEGTL_STRING("macho"),
+   					TAO_PEGTL_STRING("magic"),
+   					TAO_PEGTL_STRING("math"),
+   					TAO_PEGTL_STRING("pe"),
+   					TAO_PEGTL_STRING("time") > {};
+
+   struct module : if_must< known_module, plus< seq< one<'.'>, module_token > > > {};
+*/
 
    struct rule_name : _word {};
    struct private_rule_modifier : TAO_PEGTL_STRING("private") {};
@@ -275,7 +291,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
    struct meta_string_value : star< ranges< 'a', 'z', 'A', 'Z', '0', '9', ' '> > {};
    struct meta_int_value : _int{};
-   //struct meta_negate_int_value : _number{};
+   // struct meta_negate_int_value : _number{};
    struct meta_hex_uint_value : _hex_uint_value {};
    struct meta_number_value : sor< meta_hex_uint_value, meta_int_value > {};
    struct meta_bool_value : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
@@ -347,12 +363,43 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_left_bracket : one<'('> {};
    struct cond_righ_bracket : one<')'> {};
 
+   struct cond_number;
    struct _boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+
+   struct array_access : sor< one<'['>, cond_number, one<']'> > {};
+   struct function_argument : sor< _boolean, _identificator > {}; //TODO: make function arguments more flexible (enable nested functions etc.)
+   struct function_call : seq<
+   						one<'('>,
+   						opt_space_enter,
+			   			opt<
+			   				list_must<
+			   					function_argument,
+			   					seq< opt_space_enter, one<','>, opt_space_enter >
+		   					>
+	   					>,
+		   				opt_space_enter,
+		   				one<')'> > {}; // (ident, ident, ... ident)
+
+   struct symbol_identificator : seq<
+   							_identificator,
+								star<
+									sor<
+										function_call,
+										array_access
+									>
+								> > {};
+//   struct first_symbol_identificator : symbol_identificator {};
+
+	struct external_sequence : list_must<
+							symbol_identificator,
+							one<'.'> //delimeter .
+						> {};
+
+
    struct cond_entrypoint : TAO_PEGTL_STRING("entrypoint") {};
    struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
    struct cond_string_count : seq< one<'#'>, _identificator > {};
-   struct cond_number;
    struct cond_string_identificator_offset : seq< one<'@'>, _identificator > {};
    struct cond_string_offset : seq< cond_string_identificator_offset, opt< seq< one<'['>, cond_number, one<']'> > > > {};
    struct cond_string_identificator_length : seq< one<'!'>, _identificator > {};
@@ -393,7 +440,8 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    					cond_hex_number, // 0x
    					cond_int_function, // int
    					cond_uint_function, // uint
-   					cond_number_with_opt_multiplier // digit or -digit // impossible to distinguish between double and int here
+   					cond_number_with_opt_multiplier, // digit or -digit // impossible to distinguish between double and int here
+   					external_sequence
 					> {};
 
    struct e2_xor;
@@ -404,12 +452,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct o7_neg;
    struct e8_brackets;
 
-   struct e1_or :     list_must< e2_xor,      seq< opt_space_enter, _operator_bitwise_or,    opt_space_enter     > > {};
-   struct e2_xor :    list_must< e3_and,      seq< opt_space_enter, _operator_bitwise_xor,   opt_space_enter     > > {};
-   struct e3_and :    list_must< o4_shifts,   seq< opt_space_enter, _operator_bitwise_and,   opt_space_enter     > > {};
-   struct o4_shifts : list_must< o5_add,      seq< opt_space_enter, operator_shifts,         opt_space_enter     > > {};
-   struct o5_add :    list_must< o6_mult,     seq< opt_space_enter, operator_additive,       opt_space_enter     > > {};
-   struct o6_mult :   list_must< o7_neg,      seq< opt_space_enter, operator_multiplicative, opt_space_enter     > > {};
+   struct e1_or :     list_must< e2_xor,      seq< opt_space_enter, _operator_bitwise_or,    opt_space_enter         > > {};
+   struct e2_xor :    list_must< e3_and,      seq< opt_space_enter, _operator_bitwise_xor,   opt_space_enter         > > {};
+   struct e3_and :    list_must< o4_shifts,   seq< opt_space_enter, _operator_bitwise_and,   opt_space_enter         > > {};
+   struct o4_shifts : list_must< o5_add,      seq< opt_space_enter, operator_shifts,         opt_space_enter         > > {};
+   struct o5_add :    list_must< o6_mult,     seq< opt_space_enter, operator_additive,       opt_space_enter         > > {};
+   struct o6_mult :   list_must< o7_neg,      seq< opt_space_enter, operator_multiplicative, opt_space_enter         > > {};
    struct o7_neg :          sor< e8_brackets, seq< opt_space_enter, _operator_negation,      opt_space_enter, o7_neg > > {};
    struct cond_expression_brackets : seq< one<'('>, opt_space_enter, e1_or, opt_space_enter, one<')'>, opt_space_enter > {};
    struct e8_brackets : sor< cond_expression_brackets, cond_number > {};
@@ -515,7 +563,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct action {};
 
   	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
-  	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
+  	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, ParserDriver& d );
 
 	template< typename Rule >
    using hex_selector = pgl::parse_tree::selector< Rule,
@@ -599,7 +647,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          cond_string_length,
          cond_string_offset,
 			cond_string_identificator,
-         cond_expression
+         cond_expression,
+         symbol_identificator,
+         external_sequence,
+         function_call,
+         array_access,
+			symbol_identificator
          >,
       rearrange::on<
          cond_formula_and,
@@ -689,6 +742,17 @@ public:
 	/// @{
 	void moveLineLocation();
 	void moveLocation(std::uint64_t moveLength);
+
+	/// @name Methods to handle the token stream
+	void addToken( const yaramod::Token& t );
+	void addToken( yaramod::Token&& t );
+	/// @}
+
+	/// @name Methods for handling symbols
+	/// @{
+	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
+	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
+	void removeLocalSymbol(const std::string& name);
 	/// @}
 
 protected:
@@ -723,13 +787,6 @@ protected:
 	void stringLoopLeave();
 	/// @}
 
-	/// @name Methods for handling symbols
-	/// @{
-	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
-	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
-	void removeLocalSymbol(const std::string& name);
-	/// @}
-
 	/// @name Method for handling anonymous strings
 	/// @{
 	bool isAnonymousStringId(const std::string& stringId) const;
@@ -753,6 +810,7 @@ private:
    int current_stream = -1;
    std::istream* initial_stream = nullptr;
 
+   std::string tmp_external_symbol;
 	std::string meta_key;
 	std::string str_key;
 	std::string plain_str_value;

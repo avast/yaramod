@@ -174,22 +174,6 @@ protected:
 	}
 
 private:
-	enum class OpType {Left, Right, Single};
-	void error_handle(OpType operator_type, const std::string& op, const std::string& expected_type, const std::string& actual_value) const
-	{
-		if(operator_type == OpType::Single)
-			throw YaraExpressionBuilderError("Invalid operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
-		else if(operator_type == OpType::Right)
-			throw YaraExpressionBuilderError("Invalid right operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
-		else
-			throw YaraExpressionBuilderError("Invalid left operand '" + actual_value + "'' for " + op + " operator. Expected " + expected_type + ".");
-	}
-
-	void error_handle(const std::string& msg) const
-	{
-		throw YaraExpressionBuilderError(msg);
-	}
-
 	Expression::Ptr _expr;
 };
 
