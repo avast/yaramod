@@ -40,6 +40,11 @@ namespace gr {
 			std::cerr << ss.str() << std::endl;
 	}
 
+	void error_handle( const std::string& msg )
+	{
+		throw ParserError(msg);
+	}
+
 	template<>
    struct action< rule_name >
    {
@@ -164,18 +169,80 @@ namespace gr {
          d.meta_key = "";
       }
    };
-/*
+
+   // template<>
+   // struct action< first_symbol_identificator >
+   // {
+   // 	template< typename Input >
+   // 	static void apply(const Input& in, ParserDriver& d)
+   // 	{
+   // 		std::cout << "symbol_identificator matched with '" << in.string() << "'" << std::endl;
+   // 		d.tmp_external_symbol = std::move(in.string());
+   // 	}
+   // };
+
+   // This action only checks the first symbol identificator. The proper check is performed in the parse_cond_tree method.
+//    template<>
+//    struct action< external_symbol >
+//    {
+//    	template< typename Input >
+//    	static void apply(const Input& in, ParserDriver& d)
+//    	{
+//    		std::shared_ptr<Symbol> first = d._file.findSymbol(d.tmp_external_symbol);
+//    	   if(!first)
+//    	   {
+//    			error_handle( "Unknown symbol '" + first->getName() + "'.", in.position().line );
+//    	   }
+// //   	   const auto type = first.getDataType();
+
+//    	   if( first->getDataType() == Expression::Type::Object )
+// 	   		std::cout << "external_symbol matched with object '" << in.string() << "'" << std::endl;
+//    	   if( first->getDataType() == Expression::Type::String )
+// 	   		std::cout << "external_symbol matched with string '" << in.string() << "'" << std::endl;
+//    	   if( first->getDataType() == Expression::Type::Int )
+// 	   		std::cout << "external_symbol matched with int '" << in.string() << "'" << std::endl;
+//    	   if( first->getDataType() == Expression::Type::Bool )
+// 	   		std::cout << "external_symbol matched with bool '" << in.string() << "'" << std::endl;
+//    	   if( first->getDataType() == Expression::Type::Float )
+// 	   		std::cout << "external_symbol matched with float '" << in.string() << "'" << std::endl;
+//    	   if( first->getDataType() == Expression::Type::Regexp )
+// 	   		std::cout << "external_symbol matched with regexp '" << in.string() << "'" << std::endl;
+//    	   /*
+//    	   for(size_t i = 1; i < d.tmp_external_symbols.size(); ++i){
+
+//    	   }*/
+//    	}
+//    };
+
    template<>
-   struct action< condition_true >
+   struct action< cond_number >
    {
    	template< typename Input >
-   	static void apply(const Input&, ParserDriver& )
+   	static void apply(const Input& in, ParserDriver& )
    	{
-//   		std::cout << "Condition true called" << std::endl;
-//   		d.builder.withCondition( std::make_unique< BoolLiteralExpression >(true) );
+   		std::cout << "cond_number matched with '" << in.string() << "'" << std::endl;
    	}
    };
-*/
+
+   template<>
+   struct action< cond_entrypoint >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& )
+   	{
+   		std::cout << "cond_entrypoint matched with '" << in.string() << "'" << std::endl;
+   	}
+   };
+
+   template<>
+   struct action< cond_formula_or >
+   {
+   	template< typename Input >
+   	static void apply(const Input& in, ParserDriver& )
+   	{
+   		std::cout << "cond_formula_or matched with '" << in.string() << "'" << std::endl;
+   	}
+   };
 
    template<>
    struct action< condition_block >
@@ -186,7 +253,7 @@ namespace gr {
    		string_input si( in.string(), "cond" );
          std::unique_ptr< pgl::parse_tree::node > root;
          try {
-         	root = pgl::parse_tree::parse< cond_formula_start, cond_selector/*, pgl::tracer*/ > (si, d);
+         	root = pgl::parse_tree::parse< cond_formula_start, cond_selector, action > (si, d);
          }
       	catch( const std::exception& e ) {
       		error_handle( "Parsing condition '" + in.string() + "' failed with " + e.what() + ".", in.position().line );
@@ -194,7 +261,7 @@ namespace gr {
       	if( root )
       	{
 //	      	pgl::parse_tree::print_dot( std::cerr, *root );
-	      	const auto& condition = ( parse_cond_tree( root.get(), d.tokens ) ).get();
+	      	const auto& condition = ( parse_cond_tree( root.get(), d ) ).get();
 //	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
    		}
@@ -211,16 +278,6 @@ namespace gr {
       {
          d.str_key = in.string();
          d.tokens.emplace_back(Tokentype::STRING_KEY, d.str_key, in.position());
-      }
-   };
-
-   template<>
-   struct action< condition >
-   {
-      template< typename Input >
-      static void apply(const Input& /*unused*/, const ParserDriver& /*unused*/)
-      {
-//        state.condition.push_back(in.string());
       }
    };
 
@@ -339,7 +396,28 @@ namespace gr {
          d.finishRule();
       }
    };*/
+/*
+   template<>
+   struct action< module_token >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+      	std::cout << "Module token '" << in.string() << "' matched." << std::endl;
+      }
+   };
 
+   template<>
+   struct action< module >
+   {
+      template< typename Input >
+      static void apply(const Input& in, ParserDriver& d)
+      {
+      	std::cout << "Module '" << in.string() << "' matched." << std::endl;
+      	//split the string to with delimeter . and then check if it is valid
+      }
+   };
+*/
    template<>
    struct action< rule >
    {
@@ -380,37 +458,38 @@ namespace gr {
    struct cond_expression : seq< opt_space_enter, e1_or, opt_space_enter > {};
 */
 
-   YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* n, std::vector< yaramod::Token >& tokens )
+   YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* n, ParserDriver& d/*, const std::set< Symbol::type >& allowed_types*/ )
    {
    	if( n->is_root() )
    	{
    		assert( n->children.size() <= 1 );
-   		return parse_cond_tree( n->children.front().get(), tokens );
+   		return parse_cond_tree( n->children.front().get(), d );
    	}
-   	else if( n->is< cond_formula_or >() )
+   	std::cout << "Called parse_cond_tree with '" << n->string() << "'" << std::endl;
+   	if( n->is< cond_formula_or >() )
    	{
    		std::vector< YaraExpressionBuilder > disjuncts;
 	   	for( const auto& child : n->children )
-	   		disjuncts.emplace_back( parse_cond_tree( child.get(), tokens ) );
+	   		disjuncts.emplace_back( parse_cond_tree( child.get(), d ) );
    		assert( disjuncts.size() >= 2 && "Internal error: wrong 'cond_formula_or' arity");
-   		return disjunction( disjuncts );
+   		return disjunction( disjuncts ); // Bool
    	}
    	else if( n->is< cond_formula_and >() )
    	{
    		std::vector< YaraExpressionBuilder > conjuncts;
 	   	for( const auto& child : n->children )
-	   		conjuncts.emplace_back( parse_cond_tree( child.get(), tokens ) );
+	   		conjuncts.emplace_back( parse_cond_tree( child.get(), d ) );
    		assert( conjuncts.size() >= 2 && "Internal error: wrong 'cond_formula_and' arity");
-   		return conjunction( conjuncts );
+   		return conjunction( conjuncts ); // Bool
    	}
    	else if( n->is< cond_formula_item >() )
    	{
    		assert( n->children.size() >= 2 );
    		for( size_t i = 0; i < n->children.size() - 1; i++ ) {
    			assert( n->children[i]->is< cond_formula_not >() );
-   			tokens.emplace_back( NOT, n->children[i]->string(), n->children[i]->begin() );
+   			d.addToken( std::move( Token( NOT, n->children[i]->string(), n->children[i]->begin() ) ) );
    		}
-   		auto bld = parse_cond_tree( n->children.back().get(), tokens );
+   		auto bld = parse_cond_tree( n->children.back().get(), d );
    		for( size_t i = 0; i < n->children.size() - 1; i++ )
    			bld = !bld;
    		return bld;
@@ -421,7 +500,7 @@ namespace gr {
    		if( n->children.size() == 1 )
    			return matchLength( n->string() );
    		else
-   			return matchLength( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ) );
+   			return matchLength( n->children.front()->string(), parse_cond_tree( n->children.back().get(), d ) );
    	}
    	else if( n->is< cond_string_offset >() )
    	{
@@ -429,7 +508,7 @@ namespace gr {
 			if( n->children.size() == 1 )
    			return matchOffset( n->string() );
    		else
-   			return matchOffset( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ) );
+   			return matchOffset( n->children.front()->string(), parse_cond_tree( n->children.back().get(), d ) );
    	}
    	else if( n->is< cond_number_with_opt_multiplier >() )
 		{
@@ -450,12 +529,14 @@ namespace gr {
 			if( num_child->children.size() == 1 )
 			{
 				auto x = std::stoi( num_child->children.front()->string() );
+				std::cout << "int " << x << std::endl;
 				return intVal( x, mult );
    		}
 			else
 			{
 				assert( ( mult == IntMultiplier::None) && "Double values with multipliers KB/MB are not supported." );
 				auto x = std::stod( num_child->string() );
+				std::cout << "double " << x << std::endl;
 				return doubleVal( x );
    		}
 		}
@@ -468,14 +549,14 @@ namespace gr {
 				assert( n->children[1]->is< cond_int_be_flag >() );
 			auto endianness = be_flag ? IntFunctionEndianness::Big : IntFunctionEndianness::Little;
 			if( base == 8 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readInt8( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readInt8( endianness );
 			else if( base == 16 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readInt16( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readInt16( endianness );
 			else if( base == 32 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readInt32( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readInt32( endianness );
 			else
          	error_handle("Condition syntax error: base " + n->children[0]->string() + " used in '" + n->string() + "'  not supported. Use 8, 16 or 32.", n->begin().line);
-         return boolVal(false);
+      	return boolVal(false);
 		}
 		else if(n->is< cond_uint_function >() )
 		{
@@ -486,15 +567,37 @@ namespace gr {
 				assert( n->children[1]->is< cond_int_be_flag >() );
 			auto endianness = be_flag ? IntFunctionEndianness::Big : IntFunctionEndianness::Little;
 			if( base == 8 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readUInt8( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readUInt8( endianness );
 			else if( base == 16 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readUInt16( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readUInt16( endianness );
 			else if( base == 32 )
-				return parse_cond_tree( n->children.back().get(), tokens ).readUInt32( endianness );
+				return parse_cond_tree( n->children.back().get(), d ).readUInt32( endianness );
 			else
          	error_handle("Condition syntax error: base " + n->children[0]->string() + " used in '" + n->string() + "'  not supported. Use 8, 16 or 32.", n->begin().line);
-         return boolVal(false);
+      	return boolVal(false);
 		}
+      else if( n->is< external_sequence >() )
+      {
+      	const auto& id = n->children[0]->string();
+      	auto symbol = d.findSymbol(id);
+			if (!symbol)
+				error_handle("Unrecognized identifier '" + id + "' referenced");
+
+			auto parent = YaraExpressionBuilder(std::make_shared<IdExpression>(symbol), symbol->getDataType());
+      	if( n->children.size() <= 1 )
+      		return parent;
+      	else
+      	{
+      		//TODO remove this if else
+//      		auto parent = id(n->children[0]->string());
+	   		for( size_t i = 1; i < n->children.size(); ++i )
+	       	{
+					parent = parent.access( n->children[i]->string() );
+	       	}
+	      	std::cout << "We found some rule or global variable or module: '" << n->string() << "'." << std::endl;
+	       	return parent;
+   	  	}
+      }
    	// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( n->children.empty() )
    	{
@@ -515,9 +618,7 @@ namespace gr {
    		else if( n->is< cond_entrypoint >() )
    			return entrypoint();
    		else if( n->is< cond_hex_number >() )
-	 		{
 				return YaraExpressionBuilder( std::make_shared< IntLiteralExpression >( n->string() ) );
-   		}
    		else if( n->is< _uint >() )
    			return intVal( std::stoi( n->string(), nullptr ) );
    		else
@@ -529,9 +630,9 @@ namespace gr {
    	else if( n->children.size() == 1 )
    	{
    		if( n->is< cond_number_brackets >() || n->is< cond_formula_brackets >() || n->is< cond_expression_brackets >() )
-   			return paren( parse_cond_tree( n->children[0].get(), tokens ) );
+   			return paren( parse_cond_tree( n->children[0].get(), d ) );
    		else if( n->is< cond_relation >() )
-				return parse_cond_tree(n->children[0].get(), tokens);
+				return parse_cond_tree(n->children[0].get(), d);
    		else {
    			std::cerr << "Internal error: unknown arity-1 node '" << n->string() << "' of type '" << n->name() << "'" << std::endl;
    			assert( false && "Internal error: unknown arity-1 node." );
@@ -541,34 +642,34 @@ namespace gr {
    	{
    		if( n->is< e1_or >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
-		   		bld = bld | parse_cond_tree( n->children[i].get(), tokens );
+		   		bld = bld | parse_cond_tree( n->children[i].get(), d );
 		   	return bld;
 			}
 			else if( n->is< e2_xor >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
-		   		bld = bld ^ parse_cond_tree( n->children[i].get(), tokens );
+		   		bld = bld ^ parse_cond_tree( n->children[i].get(), d );
 		   	return bld;
 			}
    		else if( n->is< e3_and >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children.front().get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
-		   		bld = bld & parse_cond_tree( n->children[i].get(), tokens );
+		   		bld = bld & parse_cond_tree( n->children[i].get(), d );
 		   	return bld;
 			}
    		else if( n->is< o4_shifts >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
 		   	{
 		   		if( n->children[i]->is< _operator_shift_left >() )
-			   		bld = bld << parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld << parse_cond_tree( n->children[++i].get(), d );
 			   	else if( n->children[i]->is< _operator_shift_right >() )
-			   		bld = bld >> parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld >> parse_cond_tree( n->children[++i].get(), d );
 			   	else
 			   		assert(false && "Internal error: Unknown shift operator.");
 		   	}
@@ -576,13 +677,13 @@ namespace gr {
 			}
    		else if( n->is< o5_add >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
 		   	{
 		   		if( n->children[i]->is< _operator_plus >() )
-			   		bld = bld + parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld + parse_cond_tree( n->children[++i].get(), d );
 			   	else if( n->children[i]->is< _operator_minus >() )
-			   		bld = bld - parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld - parse_cond_tree( n->children[++i].get(), d );
 			   	else
 			   		assert(false && "Internal error: Unknown additive operator.");
 		   	}
@@ -590,15 +691,15 @@ namespace gr {
 			}
    		else if( n->is< o6_mult >() )
 			{
-				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), tokens );
+				YaraExpressionBuilder bld = parse_cond_tree( n->children[0].get(), d );
 		   	for( size_t i = 1; i < n->children.size(); ++i )
 		   	{
 		   		if( n->children[i]->is< _operator_multiply >() )
-			   		bld = bld * parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld * parse_cond_tree( n->children[++i].get(), d );
 			   	else if( n->children[i]->is< _operator_divide >() )
-			   		bld = bld / parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld / parse_cond_tree( n->children[++i].get(), d );
 			   	else if( n->children[i]->is< _operator_modulo >() )
-			   		bld = bld % parse_cond_tree( n->children[++i].get(), tokens );
+			   		bld = bld % parse_cond_tree( n->children[++i].get(), d );
 			   	else
 			   		assert(false && "Internal error: Unknown multiplicative operator.");
 		   	}
@@ -606,32 +707,32 @@ namespace gr {
 			}
    		else if( n->is< o7_neg >() )
 			{
-				return ! parse_cond_tree( n->children.back().get(), tokens );
+				return ! parse_cond_tree( n->children.back().get(), d );
 			}
    		else if( n->is< e8_brackets >() )
 			{
-				return paren( parse_cond_tree( n->children.back().get(), tokens ) );
+				return paren( parse_cond_tree( n->children.back().get(), d ) );
 			}
    		else if( n->is< cond_string_offset >() )
    		{
    			assert( n->children.size() == 2 );
-	   		return matchOffset( n->children.front()->string(), parse_cond_tree( n->children.back().get(), tokens ));
+	   		return matchOffset( n->children.front()->string(), parse_cond_tree( n->children.back().get(), d ));
    		}
    		else if( n->is< cond_relation >() )
 			{
 				const auto& op = n->children[1];
 				if( op->is< cond_relation_leq >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) <= parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) <= parse_cond_tree( n->children[2].get(), d ) );
 				if( op->is< cond_relation_l >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) <  parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) <  parse_cond_tree( n->children[2].get(), d ) );
 				if( op->is< cond_relation_geq >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) >= parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) >= parse_cond_tree( n->children[2].get(), d ) );
 				if( op->is< cond_relation_g >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) >  parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) >  parse_cond_tree( n->children[2].get(), d ) );
 				if( op->is< cond_relation_e >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) == parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) == parse_cond_tree( n->children[2].get(), d ) );
 				if( op->is< cond_relation_ne >() )
-					return ( parse_cond_tree( n->children[0].get(), tokens ) != parse_cond_tree( n->children[2].get(), tokens ) );
+					return ( parse_cond_tree( n->children[0].get(), d ) != parse_cond_tree( n->children[2].get(), d ) );
 				else
 				{
 	   			std::cerr << "Internal error: unknown operator." << op->string() << std::endl;
@@ -639,11 +740,11 @@ namespace gr {
 	   		}
    		}
    		else if( n->is< cond_at_expression >() )
-   			return matchAt( n->children[0]->string(), parse_cond_tree( n->children[1].get(), tokens ) );
+   			return matchAt( n->children[0]->string(), parse_cond_tree( n->children[1].get(), d ) );
    		else if( n->is< cond_in_expression >() )
-   			return matchInRange( n->children[0]->string(), parse_cond_tree( n->children[1].get(), tokens ) );
+   			return matchInRange( n->children[0]->string(), parse_cond_tree( n->children[1].get(), d ) );
    		else if( n->is< cond_range >() )
-   			return range( parse_cond_tree( n->children[0].get(), tokens ), parse_cond_tree( n->children[1].get(), tokens ) );
+   			return range( parse_cond_tree( n->children[0].get(), d ), parse_cond_tree( n->children[1].get(), d ) );
    		else {
    			std::cerr << "Internal error: unknown token of arity " << n->children.size() << ": '" << n->string() << "' of type '" << n->name() << "'" << std::endl;
    			assert( false && "Internal error: unknown token." );
@@ -895,6 +996,16 @@ void ParserDriver::moveLocation(std::uint64_t moveLength)
 {
 	_loc.step();
 	_loc += moveLength;
+}
+
+void ParserDriver::addToken(const yaramod::Token& t)
+{
+	tokens.push_back(t);
+}
+
+void ParserDriver::addToken(yaramod::Token&& t)
+{
+	tokens.push_back(t);
 }
 
 /**
