@@ -54,6 +54,20 @@ public:
 	/// @name Getter methods
 	/// @{
 	Expression::Type getType() const { return _type; }
+	std::string getTypeString() const
+	{
+		switch(_type)
+		{
+			case Expression::Type::Bool:      return "bool";
+			case Expression::Type::Int:       return "int";
+			case Expression::Type::String:    return "string";
+			case Expression::Type::Regexp:    return "regexp";
+			case Expression::Type::Object:    return "object";
+			case Expression::Type::Float:     return "float";
+			case Expression::Type::Undefined: return "undefined";
+			default: return "Error - unknown type";
+		}
+	}
 	/// @}
 
 	/// @name Setter methods
@@ -69,6 +83,7 @@ public:
 	bool isRegexp() const { return _type == Expression::Type::Regexp; }
 	bool isObject() const { return _type == Expression::Type::Object; }
 	bool isFloat() const { return _type == Expression::Type::Float; }
+	bool isUndefined() const { return _type == Expression::Type::Undefined; }
 	/// @}
 
 	/// @name Caster method

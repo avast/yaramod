@@ -363,39 +363,44 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_left_bracket : one<'('> {};
    struct cond_righ_bracket : one<')'> {};
 
-   struct cond_number;
+ 	struct cond_comparable;
    struct _boolean : sor< TAO_PEGTL_STRING("true"), TAO_PEGTL_STRING("false") > {};
+   struct _regexp : TAO_PEGTL_STRING("TODO") {};
+   struct _string_body : until< at< one< '"' > >, sor< slash, pgl::any > > {};
+   struct _string : seq< one<'"'>, _string_body, one<'"'> > {};
 
-   struct array_access : sor< one<'['>, cond_number, one<']'> > {};
-   struct function_argument : sor< _boolean, _identificator > {}; //TODO: make function arguments more flexible (enable nested functions etc.)
+   struct array_access : seq< one<'['>, cond_comparable, one<']'> > {};
+   struct external_sequence;
+   struct function_argument : sor< _boolean/*, _string*/, _regexp, cond_comparable > {};
    struct function_call : seq<
-   						one<'('>,
-   						opt_space_enter,
-			   			opt<
-			   				list_must<
-			   					function_argument,
-			   					seq< opt_space_enter, one<','>, opt_space_enter >
-		   					>
-	   					>,
-		   				opt_space_enter,
-		   				one<')'> > {}; // (ident, ident, ... ident)
+              one<'('>,
+              opt_space_enter,
+              opt<
+                list_must<
+                  function_argument,
+                  seq< opt_space_enter, one<','>, opt_space_enter >
+                >
+              >,
+              opt_space_enter,
+              one<')'> > {}; // (ident, ident, ... ident)
 
-   struct symbol_identificator : seq<
-   							_identificator,
-								star<
-									sor<
-										function_call,
-										array_access
-									>
-								> > {};
+   struct symbol_name : _identificator {};
+   struct symbol : seq<
+                symbol_name,
+                star<
+                  sor<
+                    function_call,
+                    array_access
+                  >
+                > > {};
 //   struct first_symbol_identificator : symbol_identificator {};
 
-	struct external_sequence : list_must<
-							symbol_identificator,
-							one<'.'> //delimeter .
-						> {};
+   struct external_sequence : list_must<
+              symbol,
+              one<'.'> //delimeter .
+            > {};
 
-
+   struct cond_number;
    struct cond_entrypoint : TAO_PEGTL_STRING("entrypoint") {};
    struct cond_filesize : TAO_PEGTL_STRING("filesize") {};
    struct cond_string_identificator : seq< one<'$'>, _identificator > {};
@@ -412,7 +417,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    struct cond_number_brackets : seq< cond_left_bracket, cond_number, cond_righ_bracket > {};
 
    struct cond_int_be_flag : TAO_PEGTL_STRING("be") {};
-   struct cond_int_base : sor< one<'8'>, TAO_PEGTL_STRING("16"), TAO_PEGTL_STRING("32") >{};
+   struct cond_int_base :      sor< one<'8'>, TAO_PEGTL_STRING("16"), TAO_PEGTL_STRING("32") > {};
    struct cond_int_function  : seq< TAO_PEGTL_STRING("int"),  cond_int_base, opt< cond_int_be_flag >, opt_space_enter, one<'('>, opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
 	struct cond_uint_function : seq< TAO_PEGTL_STRING("uint"), cond_int_base, opt< cond_int_be_flag >, opt_space_enter, one<'('>, opt_space_enter, cond_number, opt_space_enter, one<')'> > {};
 /*
@@ -441,6 +446,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    					cond_int_function, // int
    					cond_uint_function, // uint
    					cond_number_with_opt_multiplier, // digit or -digit // impossible to distinguish between double and int here
+   					_string,
    					external_sequence
 					> {};
 
@@ -648,11 +654,12 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
          cond_string_offset,
 			cond_string_identificator,
          cond_expression,
-         symbol_identificator,
          external_sequence,
          function_call,
          array_access,
-			symbol_identificator
+			symbol_name,
+			_string_body,
+			_boolean
          >,
       rearrange::on<
          cond_formula_and,

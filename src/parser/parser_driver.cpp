@@ -260,7 +260,7 @@ namespace gr {
       	}
       	if( root )
       	{
-//	      	pgl::parse_tree::print_dot( std::cerr, *root );
+	      	pgl::parse_tree::print_dot( std::cerr, *root );
 	      	const auto& condition = ( parse_cond_tree( root.get(), d ) ).get();
 //	      	std::cout << "XXX Parsed condition: '" << condition->getText() << "'" << std::endl;
    		   d.builder.withCondition( condition );
@@ -584,19 +584,32 @@ namespace gr {
 				error_handle("Unrecognized identifier '" + id + "' referenced");
 
 			auto parent = YaraExpressionBuilder(std::make_shared<IdExpression>(symbol), symbol->getDataType());
-      	if( n->children.size() <= 1 )
-      		return parent;
-      	else
-      	{
-      		//TODO remove this if else
-//      		auto parent = id(n->children[0]->string());
-	   		for( size_t i = 1; i < n->children.size(); ++i )
-	       	{
+   		for( size_t i = 1; i < n->children.size(); ++i ) {
+   			const auto& current = n->children[i];
+   			if( current->is< symbol_name >() )
 					parent = parent.access( n->children[i]->string() );
-	       	}
-	      	std::cout << "We found some rule or global variable or module: '" << n->string() << "'." << std::endl;
-	       	return parent;
-   	  	}
+				else if( current->is< function_call >() )
+				{
+//					parent = parent.access( n->children[i]->string() );
+					// create vector of builders from arguments in current node
+					std::vector< YaraExpressionBuilder > args;
+					for( const auto& subchild : current->children )
+						args.push_back( parse_cond_tree( subchild.get(), d ) );
+					parent = parent.call(args); //TODO call function parent with arguments stored in current
+				}
+				else if( current->is< array_access >() )
+				{
+					assert(current->children.size() == 1);
+					parent = parent[ parse_cond_tree( current->children.back().get(), d ) ];
+				}
+				else {
+					std::cerr << "Unknown node " << current->string() << std::endl;
+					assert(false && "Unknown node");
+				}
+   		}
+
+      	std::cout << "We found some rule or global variable or module: '" << n->string() << "'." << std::endl;
+       	return parent;
       }
    	// Nodes of rules that do not have 0 children AND are not discussed in section **
    	else if( n->children.empty() )
@@ -619,6 +632,8 @@ namespace gr {
    			return entrypoint();
    		else if( n->is< cond_hex_number >() )
 				return YaraExpressionBuilder( std::make_shared< IntLiteralExpression >( n->string() ) );
+   		else if( n->is< _string_body >() )
+   			return stringVal( n->string() );
    		else if( n->is< _uint >() )
    			return intVal( std::stoi( n->string(), nullptr ) );
    		else
