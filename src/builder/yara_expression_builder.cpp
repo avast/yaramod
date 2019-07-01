@@ -636,6 +636,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness end
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
@@ -652,6 +653,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness en
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
@@ -668,6 +670,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness en
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
@@ -684,6 +687,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness en
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
@@ -700,6 +704,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness e
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
@@ -716,6 +721,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(IntFunctionEndianness e
 	if( !_expr->isInt() )
 		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
+	setType(Expression::Type::Int);
 	return *this;
 }
 
