@@ -610,7 +610,16 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBuilder& other)
 {
-	_expr = std::make_shared<ArrayAccessExpression>(std::make_shared<ValueSymbol>("dummy", Expression::Type::Object), std::move(_expr), other.get());
+	if( !_expr->isObject() )
+		error_handle("Identifier '" + _expr->getText() + "' is not an object");
+	auto parentSymbol = std::static_pointer_cast<const IdExpression>(_expr)->getSymbol();
+	if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
+		error_handle("Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+
+	auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
+
+	_expr = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(),                        std::move(_expr), std::move(other.get()));
+	_expr->setType(iterParentSymbol->getElementType());
 	return *this;
 }
 
