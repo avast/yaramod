@@ -64,7 +64,6 @@ branches:
     - master
     # Version tags.
     - /^v?\d+\.\d+.*$/
-    - xenial_test
 
 notifications:
   email:
