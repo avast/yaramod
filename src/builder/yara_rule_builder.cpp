@@ -40,7 +40,8 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 		return nullptr;
 	}
 
-	auto rule = std::make_unique<Rule>(std::move(_name), _mod, std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name), _mod, std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+	_tokenStream.clear();
 	_name = "unknown";
 	_mod = Rule::Modifier::None;
 	_tags.clear();
@@ -105,7 +106,12 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 {
 	if(key == "" || value == "")
 		throw RuleBuilderError("Error: String-Meta key and value must be non-empty.");
-	_metas.emplace_back(key, Literal(value, Literal::Type::String));
+
+	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+
+	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
 
@@ -121,7 +127,12 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
 {
 	if(key == "")
 		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
-	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
+
+	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+
+	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
 
@@ -137,7 +148,12 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
 {
 	if(key == "")
 		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
-	_metas.emplace_back(key, Literal(numToStr(value), Literal::Type::Int));
+
+	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+
+	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
 
@@ -153,7 +169,12 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
 {
 	if(key == "")
 		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
-	_metas.emplace_back(key, Literal(numToStr(value, std::hex, true), Literal::Type::Int));
+
+	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+
+	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
 
@@ -169,9 +190,15 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 {
 	if(key == "")
 		throw RuleBuilderError("Error: Bool-Meta key must be non-empty.");
-	_metas.emplace_back(key, Literal(value));
+
+	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+
+	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
+
 
 /**
  * Adds a plain string to a rule.
@@ -262,4 +289,4 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(const Expression::Ptr& condition
 	return *this;
 }
 
-}
+} //namespace yaramod

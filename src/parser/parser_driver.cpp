@@ -54,7 +54,7 @@ namespace gr {
 	      	if(d._parsed_rule_names.count(in.string()) != 0)
 					error_handle( std::string("Redefinition of rule '") + in.string() + "'", in.position().line, in.position().byte_in_line, in.string().size() );
 	         d.builder.withName(in.string());
-	         d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
+	         // d.tokens.emplace_back(Tokentype::RULE_NAME, in.string(), in.position());
       }
    };
 
@@ -98,7 +98,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.builder.withTag(in.string());
-         d.tokens.emplace_back(Tokentype::TAG, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::TAG, in.string(), in.position());
       }
    };
 
@@ -109,7 +109,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.meta_key = in.string();
-         d.tokens.emplace_back(Tokentype::META_KEY, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::META_KEY, in.string(), in.position());
       }
    };
 
@@ -120,7 +120,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.builder.withStringMeta(d.meta_key, in.string());
-         d.tokens.emplace_back(Tokentype::META_VALUE, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::META_VALUE, in.string(), in.position());
       }
    };
 
@@ -132,7 +132,7 @@ namespace gr {
       {
          int64_t meta_value = std::stoi(in.string());
          d.builder.withUIntMeta(d.meta_key, meta_value);
-         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
+         // d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
 
@@ -145,7 +145,7 @@ namespace gr {
 //         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = std::stoi(in.string(), nullptr, 16);
          d.builder.withHexIntMeta(d.meta_key, meta_value);
-         d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
+         // d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
 
@@ -158,11 +158,11 @@ namespace gr {
 //         std::cout << "'Matched meta_bool_value action with '" << in.string() << "'" << std::endl;
          if(in.string() == "true") {
             d.builder.withBoolMeta(d.meta_key, true);
-	         d.tokens.emplace_back(Tokentype::META_VALUE, true, in.position());
+	         // d.tokens.emplace_back(Tokentype::META_VALUE, true, in.position());
 	      }
          else if(in.string() == "false") {
             d.builder.withBoolMeta(d.meta_key, false);
-	         d.tokens.emplace_back(Tokentype::META_VALUE, false, in.position());
+	         // d.tokens.emplace_back(Tokentype::META_VALUE, false, in.position());
 	      }
          else
          	assert(false && "Internal error: meta_bool_value value must match 'true' or 'false' only");
@@ -277,7 +277,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.str_key = in.string();
-         d.tokens.emplace_back(Tokentype::STRING_KEY, d.str_key, in.position());
+         // d.tokens.emplace_back(Tokentype::STRING_KEY, d.str_key, in.position());
       }
    };
 
@@ -288,7 +288,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          d.plain_str_value = in.string();
-         d.tokens.emplace_back(Tokentype::PLAIN_STRING_VALUE, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::PLAIN_STRING_VALUE, in.string(), in.position());
       }
    };
 
@@ -343,10 +343,10 @@ namespace gr {
    struct action< strings_modifier_ascii >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*in*/, ParserDriver& d)
       {
          d.str_modifiers |= String::Modifiers::Ascii;
-         d.tokens.emplace_back(Tokentype::ASCII, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::ASCII, in.string(), in.position());
       }
    };
 
@@ -354,10 +354,10 @@ namespace gr {
    struct action< strings_modifier_nocase >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*in*/, ParserDriver& d)
       {
          d.str_modifiers |= String::Modifiers::Nocase;
-         d.tokens.emplace_back(Tokentype::NOCASE, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::NOCASE, in.string(), in.position());
       }
    };
 
@@ -365,10 +365,10 @@ namespace gr {
    struct action< strings_modifier_wide >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*in*/, ParserDriver& d)
       {
          d.str_modifiers |= String::Modifiers::Wide;
-         d.tokens.emplace_back(Tokentype::WIDE, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::WIDE, in.string(), in.position());
       }
    };
 
@@ -376,10 +376,10 @@ namespace gr {
    struct action< strings_modifier_fullword >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input& /*in*/, ParserDriver& d)
       {
          d.str_modifiers |= String::Modifiers::Fullword;
-         d.tokens.emplace_back(Tokentype::FULLWORD, in.string(), in.position());
+         // d.tokens.emplace_back(Tokentype::FULLWORD, in.string(), in.position());
       }
    };
 /*
@@ -433,9 +433,9 @@ namespace gr {
    struct action< end_of_file >
    {
       template< typename Input >
-      static void apply(const Input& in, ParserDriver& d)
+      static void apply(const Input&/* in*/, ParserDriver& /*d*/)
       {
-   	   d.tokens.emplace_back(Tokentype::FILE_END, in.string(), in.position());
+   	   // d.tokens.emplace_back(Tokentype::FILE_END, in.string(), in.position());
       }
    };
 
@@ -487,7 +487,7 @@ namespace gr {
    		assert( n->children.size() >= 2 );
    		for( size_t i = 0; i < n->children.size() - 1; i++ ) {
    			assert( n->children[i]->is< cond_formula_not >() );
-   			d.addToken( std::move( Token( NOT, n->children[i]->string(), n->children[i]->begin() ) ) );
+   			// d.addToken( std::move( Token( NOT, n->children[i]->string(), n->children[i]->begin() ) ) );
    		}
    		auto bld = parse_cond_tree( n->children.back().get(), d );
    		for( size_t i = 0; i < n->children.size() - 1; i++ )
@@ -722,7 +722,7 @@ namespace gr {
 			}
    		else if( n->is< o7_neg >() )
 			{
-				return ! parse_cond_tree( n->children.back().get(), d );
+				return ~parse_cond_tree( n->children.back().get(), d );
 			}
    		else if( n->is< e8_brackets >() )
 			{
@@ -787,12 +787,12 @@ namespace gr {
   				assert( child->string().length() == 2 );
    			auto hex = stoi( child->string(), nullptr, 16 );
   				alt_builders[0].add( hex );
-  				tokens.emplace_back( Tokentype::HEX_NORMAL, hex, child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_NORMAL, hex, child->begin() );
   			}
   			else if( child->is< hex_wildcard_full >() )
   			{
   				alt_builders[0].add(wildcard());
-  				tokens.emplace_back( Tokentype::HEX_WILDCARD_FULL, child->string(), child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_WILDCARD_FULL, child->string(), child->begin() );
   			}
   			else if( child->is< hex_wildcard_high >() )
   			{
@@ -800,7 +800,7 @@ namespace gr {
    			const auto hex_high = std::stoi( child->string().substr(1,1), nullptr, 16 );
    			assert(hex_high <= 16);
    			alt_builders[0].add( wildcardHigh( hex_high ) );
-  				tokens.emplace_back( Tokentype::HEX_WILDCARD_HIGH, hex_high, child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_WILDCARD_HIGH, hex_high, child->begin() );
   			}
   			else if( child->is< hex_wildcard_low >() )
   			{
@@ -808,12 +808,12 @@ namespace gr {
 	   		const auto hex_low = std::stoi( child->string().substr(0,1), nullptr, 16 );
    			assert( hex_low <= 16 );
    			alt_builders[0].add( wildcardLow( hex_low ) );
-  				tokens.emplace_back( Tokentype::HEX_WILDCARD_LOW, hex_low, child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_WILDCARD_LOW, hex_low, child->begin() );
   			}
   			else if( child->is< hex_jump_varying >() )
   			{
   				alt_builders[0].add( jumpVarying() );
-  				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING, child->string(), child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_JUMP_VARYING, child->string(), child->begin() );
   			}
   			else if( child->is< hex_jump_varying_range >() ) //toto neni leaf, ale ma pod sebou jeste potomka _number :-)
   			{
@@ -821,7 +821,7 @@ namespace gr {
   				assert( child->children[0]->is< _uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpVaryingRange( arg ) );
-  				tokens.emplace_back( Tokentype::HEX_JUMP_VARYING_RANGE, arg, child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_JUMP_VARYING_RANGE, arg, child->begin() );
   			}
   			else if( child->is< hex_jump_range >() )
   			{
@@ -831,7 +831,7 @@ namespace gr {
   				int left = std::stoi( child->children[0]->string() );
   				int right = std::stoi( child->children[1]->string() );
   				alt_builders[0].add( jumpRange( left, right ) );
-  				tokens.emplace_back( Tokentype::HEX_JUMP_RANGE, child->string(), child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_JUMP_RANGE, child->string(), child->begin() );
   			}
   			else if( child->is< hex_jump_fixed >() )
   			{
@@ -839,7 +839,7 @@ namespace gr {
   				assert( child->children[0]->is< _uint >() );
   				int arg = std::stoi( child->children[0]->string() );
   				alt_builders[0].add( jumpFixed( arg ) );
-  				tokens.emplace_back( Tokentype::HEX_JUMP_FIXED, arg, child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_JUMP_FIXED, arg, child->begin() );
   			}
   			else if( child->is< hex_brackets >() )
   			{
@@ -849,10 +849,10 @@ namespace gr {
   				alt_builders.emplace_back( parse_hex_tree( child.get(), tokens ) );
   			}
   			else if(child->is< hex_left_bracket >() ) {
-  				tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
   			}
   			else if(child->is< hex_righ_bracket >() ) {
-  				tokens.emplace_back( Tokentype::HEX_RIGHT_BRACKET, child->string(), child->begin() );
+  				// tokens.emplace_back( Tokentype::HEX_RIGHT_BRACKET, child->string(), child->begin() );
   			}
   			else {
   				assert(false && "Unknown node type.");
@@ -1013,15 +1013,15 @@ void ParserDriver::moveLocation(std::uint64_t moveLength)
 	_loc += moveLength;
 }
 
-void ParserDriver::addToken(const yaramod::Token& t)
-{
-	tokens.push_back(t);
-}
+// void ParserDriver::addToken(const yaramod::Token& t)
+// {
+// 	tokens.push_back(t);
+// }
 
-void ParserDriver::addToken(yaramod::Token&& t)
-{
-	tokens.push_back(t);
-}
+// void ParserDriver::addToken(yaramod::Token&& t)
+// {
+// 	tokens.push_back(t);
+// }
 
 /**
  * Includes file into input stream as it would be in place of @c include directive.

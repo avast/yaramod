@@ -25,7 +25,7 @@ std::string Meta::getText() const
  */
 const std::string& Meta::getKey() const
 {
-	return _key;
+	return _key->getString();
 }
 
 /**
@@ -35,7 +35,8 @@ const std::string& Meta::getKey() const
  */
 const Literal& Meta::getValue() const
 {
-	return _value;
+   std::cout << "0" << std::endl;
+	return _value->getValue();
 }
 
 /**
@@ -45,7 +46,7 @@ const Literal& Meta::getValue() const
  */
 void Meta::setKey(const std::string& key)
 {
-	_key = key;
+	_key->setValue( key );
 }
 
 /**
@@ -55,7 +56,7 @@ void Meta::setKey(const std::string& key)
  */
 void Meta::setValue(const Literal& value)
 {
-	_value = value;
+	_value->setValue( value );
 }
 
 }
