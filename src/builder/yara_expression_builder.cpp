@@ -124,7 +124,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!()
 	if( !canBeBool() )
 		error_handle(ArgType::Single, "!", "bool", _expr);
 	_expr = std::make_shared<NotExpression>(std::move(_expr));
-	setType(Expression::Type::Bool);
+	setType(Expression::Type::Int);
 	return *this;
 }
 

@@ -43,189 +43,7 @@ public:
 	ParserError(const ParserError&) = default;
 };
 
-/**
- * Represents type of parsed tokens.
- */
-enum Tokentype
-   {
-   	RULE_NAME = 1,
-   	TAG = 2,
-   	RULE_END = 3,
-   	FILE_END = 4,
-      HEX_ALT = 6,
-      HEX_NORMAL = 7,
-      HEX_WILDCARD_FULL = 8,
-      HEX_WILDCARD_LOW = 9,
-      HEX_WILDCARD_HIGH = 10,
-      HEX_JUMP_VARYING = 11,
-      HEX_JUMP_VARYING_RANGE = 12,
-      HEX_JUMP_RANGE = 13,
-      HEX_JUMP_FIXED = 14,
-      HEX_LEFT_BRACKET = 15,
-      HEX_RIGHT_BRACKET = 16,
 
-
-      END = 258,
-      RANGE = 259,
-      DOT = 260,
-      LT = 261,
-      GT = 262,
-      LE = 263,
-      GE = 264,
-      EQ = 265,
-      NEQ = 266,
-      SHIFT_LEFT = 267,
-      SHIFT_RIGHT = 268,
-      MINUS = 269,
-      PLUS = 270,
-      MULTIPLY = 271,
-      DIVIDE = 272,
-      MODULO = 273,
-      BITWISE_XOR = 274,
-      BITWISE_AND = 275,
-      BITWISE_OR = 276,
-      BITWISE_NOT = 277,
-      LP = 278,
-      RP = 279,
-      LCB = 280,
-      RCB = 281,
-      ASSIGN = 282,
-      COLON = 283,
-      COMMA = 284,
-      PRIVATE = 285,
-      GLOBAL = 286,
-      RULE = 287,
-      STRINGS = 289,
-      CONDITION = 290,
-      ASCII = 291,
-      NOCASE = 292,
-      WIDE = 293,
-      FULLWORD = 294,
-      XOR = 295,
-      BOOL_TRUE = 296,
-      BOOL_FALSE = 297,
-      IMPORT_MODULE = 298,
-      NOT = 299,
-      AND = 300,
-      OR = 301,
-      ALL = 302,
-      ANY = 303,
-      OF = 304,
-      THEM = 305,
-      FOR = 306,
-      ENTRYPOINT = 307,
-      OP_AT = 308,
-      OP_IN = 309,
-      FILESIZE = 310,
-      CONTAINS = 311,
-      MATCHES = 312,
-      SLASH = 313,
-      STRING_LITERAL = 314,
-      INTEGER = 315,
-      DOUBLE = 316,
-      STRING_ID = 317,
-      STRING_ID_WILDCARD = 318,
-      STRING_LENGTH = 319,
-      STRING_OFFSET = 320,
-      STRING_COUNT = 321,
-      ID = 322,
-      INTEGER_FUNCTION = 323,
-      LSQB = 325,
-      RSQB = 326,
-      DASH = 328,
-      REGEXP_OR = 331,
-      REGEXP_ITER = 332,
-      REGEXP_PITER = 333,
-      REGEXP_OPTIONAL = 334,
-      REGEXP_START_OF_LINE = 335,
-      REGEXP_END_OF_LINE = 336,
-      REGEXP_ANY_CHAR = 337,
-      REGEXP_WORD_CHAR = 338,
-      REGEXP_NON_WORD_CHAR = 339,
-      REGEXP_SPACE = 340,
-      REGEXP_NON_SPACE = 341,
-      REGEXP_DIGIT = 342,
-      REGEXP_NON_DIGIT = 343,
-      REGEXP_WORD_BOUNDARY = 344,
-      REGEXP_NON_WORD_BOUNDARY = 345,
-      REGEXP_CHAR = 346,
-      REGEXP_RANGE = 347,
-      REGEXP_CLASS = 348,
-      UNARY_MINUS = 349,
-      META_KEY = 288,
-      META_VALUE = 289,
-      STRING_KEY = 290,
-      PLAIN_STRING_VALUE = 291,
-
-
-
-      INVALID = 16384
-   };
-
-/**
- * Class representing tokens that YARA rules consist of.
- */
-struct Token
-{
-
-   Token(Tokentype type, int value, pgl::position position)
-   	: type(type)
-   	, value(value)
-   	, position(position)
-   {
-   }
-
-   Token(Tokentype type, uint value, pgl::position position)
-   	: type(type)
-   	, value(value)
-   	, position(position)
-   {
-   }
-
-   Token(Tokentype type, bool value, pgl::position position)
-   	: type(type)
-   	, value(value)
-   	, position(position)
-   {
-   }
-
-   Token(Tokentype type, int64_t value, pgl::position position)
-   	: type(type)
-   	, value(value)
-   	, position(position)
-   {
-   }
-
-   Token(Tokentype type, const std::string& value, pgl::position position)
-   	: type(type)
-   	, value(value)
-   	, position(position)
-   {
-   }
-
-   Token(const Token& other) = default;
-
-   Token(Token&& other) = default;
-
-   friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-   	os << "[" << token.type << ":";
-   	std::visit(
-      [&os](auto&& v)
-      	{
-	         if constexpr(std::is_same_v< decltype(v), std::string& >)
-	            os << "'"<< v <<"'";
-	         else
-	            os << v;
-         },
-         token.value
- 		);
-   	return os << "; " << token.position << "]";
- 	}
-
-	Tokentype type;
-	std::variant<int, uint, int64_t,  bool, std::string> value;
-	pgl::position position;
-};
 
 namespace gr { //this namespace is to minimize 'using namespace pgl' scope
 
@@ -568,7 +386,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template< typename Rule >
    struct action {};
 
-  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< Token >& tokens );
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, TokenStream&& tokens );
   	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, ParserDriver& d );
 
 	template< typename Rule >
@@ -751,8 +569,10 @@ public:
 	void moveLocation(std::uint64_t moveLength);
 
 	/// @name Methods to handle the token stream
-	void addToken( const yaramod::Token& t );
-	void addToken( yaramod::Token&& t );
+	// void addToken( const yaramod::Token& t );
+	// void addToken( yaramod::Token&& t );
+	// void emplaceToken(Tokentype type, TokenValueBase* value, const pgl::position& position);
+
 	/// @}
 
 	/// @name Methods for handling symbols
@@ -764,7 +584,7 @@ public:
 
 protected:
 	std::istream* currentStream();
-	std::vector< yaramod::Token > tokens;
+	TokenStream tokens;
 
 	/// @name Methods for handling includes
 	/// @{

@@ -69,6 +69,9 @@ public:
 	/// @name Symbol methods
 	/// @{
 	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
+	// std::shared_ptr<Symbol> YaraFile::findImport(const std::string& name) const;
+	// std::shared_ptr<Symbol> YaraFile::findRule(const std::string& name) const;
+	// std::shared_ptr<Symbol> YaraFile::findGlobalVariable(const std::string& name) const;
 	/// @}
 
 	/// @name Detection methods

@@ -14,7 +14,9 @@
 
 #include <optional_lite/optional.hpp>
 
+#include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
+
 
 namespace yaramod {
 
@@ -117,27 +119,29 @@ class HexStringNibble : public HexStringUnit
 public:
 	/// @name Constructors
 	/// @{
-	explicit HexStringNibble(std::uint8_t value) : HexStringUnit(Type::Nibble), _value(value) {}
+	explicit HexStringNibble(TokenIt value) : HexStringUnit(Type::Nibble), _value(value) {}
 	/// @}
 
 	/// @name Virtual methods
 	/// @{
 	virtual std::string getText() const override
 	{
-		assert(_value <= 0xf);
+		auto value = getValue();
+		assert(value <= 0xf);
 
-		if (_value <= 9)
-			return std::string(1, _value + '0');
+		if (value <= 9)
+			return std::string(1, value + '0');
 		else
-			return std::string(1, _value - 10 + 'A');
+			return std::string(1, value - 10 + 'A');
 	}
 
 	/// @name Getters
 	/// @{
 	std::uint8_t getValue() const
 	{
-		assert(_value <= 0xf);
-		return _value;
+		std::uint8_t output = _value->getUInt8_t();
+		assert(output <= 0xf);
+		return output;
 	}
 	/// @}
 
@@ -145,7 +149,7 @@ public:
 	/// @}
 
 private:
-	std::uint8_t _value; ///< Value of the nibble
+	TokenIt _value; ///< Value of the nibble, uint8_t
 };
 
 /**
@@ -180,8 +184,8 @@ public:
 	/// @name Constructors
 	/// @{
 	HexStringJump() : HexStringUnit(Type::Jump) {}
-	HexStringJump(std::uint64_t low) : HexStringUnit(Type::Jump), _low(low), _high() {}
-	HexStringJump(std::uint64_t low, std::uint64_t high) : HexStringUnit(Type::Jump), _low(low), _high(high) {}
+	HexStringJump(TokenIt low) : HexStringUnit(Type::Jump), _low(low), _high() {}
+	HexStringJump(TokenIt low, TokenIt high) : HexStringUnit(Type::Jump), _low(low), _high(high) {}
 	/// @}
 
 	/// @name Virtual methods
@@ -193,15 +197,15 @@ public:
 		// If both low and high bound is defined and they are the same, it is the fixed jump.
 		if (_low.has_value() && _high.has_value() && _low.value() == _high.value())
 		{
-			ss << _low.value();
+			ss << _low.value()->getUInt64_t();
 		}
 		else
 		{
 			if (_low.has_value())
-				ss << _low.value();
+				ss << _low.value()->getUInt64_t();
 			ss << '-';
 			if (_high.has_value())
-				ss << _high.value();
+				ss << _high.value()->getUInt64_t();
 		}
 		ss << ']';
 		return ss.str();
@@ -212,12 +216,21 @@ public:
 
 	/// @name Getters
 	/// @{
-	nonstd::optional<std::uint64_t> getLow() const { return _low; }
-	nonstd::optional<std::uint64_t> getHigh() const { return _low; }
+	nonstd::optional<std::uint64_t> getLow() const
+	{
+		if(_low.has_value())
+			return nonstd::optional<std::uint64_t>( _low.value()->getUInt64_t() );
+		return nonstd::optional<std::uint64_t>();
+	}
+	nonstd::optional<std::uint64_t> getHigh() const {
+		if(_high.has_value())
+			return nonstd::optional<std::uint64_t>( _high.value()->getUInt64_t() );
+		return nonstd::optional<std::uint64_t>();
+   }
 	/// @}
 
 private:
-	nonstd::optional<std::uint64_t> _low, _high; ///< Low and high bounds of the jump.
+	nonstd::optional<TokenIt> _low, _high; ///< Low and high bounds of the jump.
 };
 
 /**

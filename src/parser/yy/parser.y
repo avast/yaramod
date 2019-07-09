@@ -246,7 +246,7 @@ rule
 		}
 		tags LCB metas strings condition RCB
 		{
-			driver.addRule(Rule(std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver.addRule(Rule(TokenStream(), std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
 		}
 	;
 
@@ -279,7 +279,8 @@ metas_body
 	: metas_body[body] ID ASSIGN literal
 		{
 			$$ = std::move($body);
-			$$.emplace_back(std::move($2), std::move($4));
+			// instead of the following we would need to insert Tokens into a TokenStream and then
+//			$$.emplace_back(TokenIt(std::move($2)), TokenIt(std::move($4)));
 		}
 	| %empty { $$.clear(); }
 	;
@@ -500,7 +501,7 @@ expression
 		{
 			$$ = std::move($primary_expression);
 		}
-	| LP expression[expr] RP
+	| LP expression[expr] RP //expr je neco jako $2, tj. druha vec na prave strane pravidla
 		{
 			auto type = $expr->getType();
 			$$ = std::make_shared<ParenthesesExpression>(std::move($expr));
@@ -508,7 +509,7 @@ expression
 		}
 	;
 
-primary_expression
+primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 	: LP primary_expression[expr] RP
 		{
 			auto type = $expr->getType();
@@ -832,7 +833,7 @@ primary_expression
 			$$ = std::make_shared<RegexpExpression>(std::move($regexp));
 			$$->setType(Expression::Type::Regexp);
 		}
-	;
+	; // konec primary_expression
 
 range
 	: LP primary_expression[low] RANGE primary_expression[high] RP
@@ -1053,8 +1054,8 @@ string_mods
 	;
 
 literal
-	: STRING_LITERAL { $$ = Literal(std::move($1), Literal::Type::String); }
-	| INTEGER { $$ = Literal(std::move($1), Literal::Type::Int); }
+	: STRING_LITERAL { $$ = Literal(std::move($1)); }
+	| INTEGER { $$ = Literal(std::move($1)); }
 	| boolean { $$ = Literal($1); }
 	;
 
@@ -1150,10 +1151,13 @@ hex_or_body
 	;
 
 hex_jump
-	: LSQB HEX_INTEGER[value] RSQB { $$ = std::make_shared<HexStringJump>($value, $value); }
-	| LSQB HEX_INTEGER[low] DASH HEX_INTEGER[high] RSQB { $$ = std::make_shared<HexStringJump>($low, $high); }
-	| LSQB HEX_INTEGER[low] DASH RSQB { $$ = std::make_shared<HexStringJump>($low); }
-	| LSQB DASH RSQB { $$ = std::make_shared<HexStringJump>(); }
+	: LSQB HEX_INTEGER[value] RSQB
+	{
+//		$$ = std::make_shared<HexStringJump>($value, $value);
+	}
+	| LSQB HEX_INTEGER[low] DASH HEX_INTEGER[high] RSQB { /*$$ = std::make_shared<HexStringJump>($low, $high);*/ }
+	| LSQB HEX_INTEGER[low] DASH RSQB { /*$$ = std::make_shared<HexStringJump>($low);*/ }
+	| LSQB DASH RSQB { /*$$ = std::make_shared<HexStringJump>();*/ }
 	;
 
 regexp
