@@ -302,7 +302,9 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
  */
 void Lexer::includeFile(std::istream* input)
 {
-	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
+	/*vlastni rozhrani kterym loadnu treba jiny file s jinym pravidlem*/
+	//tady mas istream, ted parsuj z neho
+//	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
 }
 
 /**

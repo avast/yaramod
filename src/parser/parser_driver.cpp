@@ -772,7 +772,7 @@ namespace gr {
    }
 
 
-  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, std::vector< yaramod::Token >& tokens )
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, TokenStream& tokens )
   	{
   		std::vector<YaraHexStringBuilder> alt_builders;
   		alt_builders.emplace_back();
