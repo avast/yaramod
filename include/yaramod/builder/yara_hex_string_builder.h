@@ -29,7 +29,7 @@ class YaraHexStringBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraHexStringBuilder() = default;
+	YaraHexStringBuilder();
 	YaraHexStringBuilder(std::uint8_t byte);
 	YaraHexStringBuilder(const std::vector<std::uint8_t>& bytes);
 	YaraHexStringBuilder(const std::shared_ptr<HexStringUnit>& unit);
@@ -64,6 +64,8 @@ public:
 	 */
 	YaraHexStringBuilder& add(const YaraHexStringBuilder& unit)
 	{
+		auto tmp = unit._tokenStream.get();
+		_tokenStream->move_append(tmp);
 		std::copy(unit.getUnits().begin(), unit.getUnits().end(), std::back_inserter(_units));
 		return *this;
 	}
@@ -79,6 +81,7 @@ public:
 	template <typename... Args>
 	YaraHexStringBuilder& add(const YaraHexStringBuilder& unit, const Args&... args)
 	{
+		_tokenStream->move_append(unit._tokenStream.get());
 		std::copy(unit.getUnits().begin(), unit.getUnits().end(), std::back_inserter(_units));
 		return add(args...);
 	}
