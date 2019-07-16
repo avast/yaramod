@@ -7,12 +7,12 @@ namespace yaramod {
  *
  * @param byte Byte.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::uint8_t byte)
-	: _tokenStream(std::move(ts))
-	, _units()
+YaraHexStringBuilder::YaraHexStringBuilder(std::uint8_t byte) : _units()
 {
-	_units.push_back(std::make_shared<HexStringNibble>((byte & 0xF0) >> 4));
-	_units.push_back(std::make_shared<HexStringNibble>(byte & 0x0F));
+	TokenIt t1 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0xF0) >> 4);
+	TokenIt t2 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0x0F));
+	_units.push_back(std::make_shared<HexStringNibble>(t1));
+	_units.push_back(std::make_shared<HexStringNibble>(t2));
 }
 
 /**
@@ -20,15 +20,15 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::uint8_t byte)
  *
  * @param bytes Bytes.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::vector<std::uint8_t>& bytes)
-	: _tokenStream(std::move(ts))
-	, _units()
+YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::uint8_t>& bytes) : _units()
 {
 	_units.reserve(2 * bytes.size());
 	for (auto byte : bytes)
 	{
-		_units.push_back(std::make_shared<HexStringNibble>((byte & 0xF0) >> 4));
-		_units.push_back(std::make_shared<HexStringNibble>(byte & 0x0F));
+		TokenIt t1 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0xF0) >> 4);
+		TokenIt t2 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0x0F));
+		_units.push_back(std::make_shared<HexStringNibble>(t1));
+		_units.push_back(std::make_shared<HexStringNibble>(t2));
 	}
 }
 
@@ -37,8 +37,80 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::vector<s
  *
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::shared_ptr<HexStringUnit>& unit)
-	: _tokenStream(std::move(ts))
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<HexStringUnit>& unit) : _units()
+{
+	_units.push_back(unit);
+}
+
+/**
+ * Constructor for creating custom unit.
+ *
+ * @param unit Hex string unit.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit) : _units()
+{
+	_units.push_back(std::move(unit));
+}
+
+/**
+ * Constructor for creating custom units.
+ *
+ * @param units Hex string units.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::shared_ptr<HexStringUnit>>& units) : _units(units)
+{
+}
+
+/**
+ * Constructor for creating custom units.
+ *
+ * @param units Hex string units.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::vector<std::shared_ptr<HexStringUnit>>&& units) : _units(std::move(units))
+{
+}
+
+/**
+ * Constructor for creating byte without any wildcard.
+ *
+ * @param byte Byte.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::uint8_t byte)
+	: _tokenStream(ts)
+	, _units()
+{
+		TokenIt t1 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0xF0) >> 4);
+		TokenIt t2 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0x0F));
+		_units.push_back(std::make_shared<HexStringNibble>(t1));
+		_units.push_back(std::make_shared<HexStringNibble>(t2));
+}
+
+/**
+ * Constructor for creating sequence of bytes without any wildcard.
+ *
+ * @param bytes Bytes.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes)
+	: _tokenStream(ts)
+	, _units()
+{
+	_units.reserve(2 * bytes.size());
+	for (auto byte : bytes)
+	{
+		TokenIt t1 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0xF0) >> 4);
+		TokenIt t2 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0x0F));
+		_units.push_back(std::make_shared<HexStringNibble>(t1));
+		_units.push_back(std::make_shared<HexStringNibble>(t2));
+	}
+}
+
+/**
+ * Constructor for creating custom unit.
+ *
+ * @param unit Hex string unit.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit)
+	: _tokenStream(ts)
 	, _units()
 {
 	_units.push_back(unit);
@@ -49,8 +121,8 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::shared_p
  *
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::shared_ptr<HexStringUnit>&& unit)
-	: _tokenStream(std::move(ts))
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::shared_ptr<HexStringUnit>&& unit)
+	: _tokenStream(ts)
 	, _units()
 {
 	_units.push_back(std::move(unit));
@@ -61,9 +133,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::shared_ptr<Hex
  *
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
-	: _tokenStream(std::move(ts))
-	, _units()
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
+	: _tokenStream(ts)
+	, _units(units)
 {
 }
 
@@ -72,10 +144,20 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, const std::vector<s
  *
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
-	: _tokenStream(std::move(ts))
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
+	: _tokenStream(ts)
 	, _units(std::move(units))
 {
+}
+
+/**
+ * Returns the built hex string and resets the builder back to default state.
+ *
+ * @return Built hex string (storing shared_ptr<TokenStream>).
+ */
+std::shared_ptr<HexString> YaraHexStringBuilder::get() const
+{
+	return std::make_shared<HexString>(_units, _tokenStream);
 }
 
 /**
@@ -84,10 +166,11 @@ YaraHexStringBuilder::YaraHexStringBuilder(TokenStream&& ts, std::vector<std::sh
  * @param acceptor TokenStream to move-append all our tokens
  * @return Built hex string.
  */
-std::shared_ptr<HexString> YaraHexStringBuilder::get(TokenStream& acceptor)
+std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor) const
 {
-	acceptor.move_append(_tokenStream);
-	return std::make_shared<HexString>(_units);
+	if( acceptor)
+		acceptor->move_append(_tokenStream.get());
+	return std::make_shared<HexString>(_units, acceptor);
 }
 
 /**
@@ -112,12 +195,12 @@ const std::vector<std::shared_ptr<HexStringUnit>>& YaraHexStringBuilder::getUnit
  */
 YaraHexStringBuilder wildcard()
 {
-	TokenStream ts;
+	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	ts.emplace_back(TokenType::HEX_WILDCARD_FULL, Literal( "??" ));
+	ts->emplace_back(TokenType::HEX_WILDCARD_FULL, Literal( "??" ));
 	units.push_back(std::make_shared<HexStringWildcard>());
 	units.push_back(std::make_shared<HexStringWildcard>());
-	return YaraHexStringBuilder(std::move(ts), std::move(units));
+	return YaraHexStringBuilder(ts, std::move(units));
 }
 
 /**
@@ -134,10 +217,13 @@ YaraHexStringBuilder wildcard()
  */
 YaraHexStringBuilder wildcardLow(std::uint8_t high)
 {
+	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	units.push_back(std::make_shared<HexStringNibble>(high));
+	auto t = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(high));
+	units.push_back(std::make_shared<HexStringNibble>(t));
+	ts->emplace_back(TokenType::HEX_WILDCARD_LOW, Literal("?"));
 	units.push_back(std::make_shared<HexStringWildcard>());
-	return YaraHexStringBuilder(std::move(units));
+	return YaraHexStringBuilder(ts, std::move(units));
 }
 
 /**
@@ -154,10 +240,13 @@ YaraHexStringBuilder wildcardLow(std::uint8_t high)
  */
 YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 {
+	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
+	ts->emplace_back(TokenType::HEX_WILDCARD_HIGH, Literal("?"));
 	units.push_back(std::make_shared<HexStringWildcard>());
-	units.push_back(std::make_shared<HexStringNibble>(low));
-	return YaraHexStringBuilder(std::move(units));
+	auto t = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(low));
+	units.push_back(std::make_shared<HexStringNibble>(t));
+	return YaraHexStringBuilder(ts, std::move(units));
 }
 
 /**
@@ -172,7 +261,11 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
  */
 YaraHexStringBuilder jumpVarying()
 {
-	return YaraHexStringBuilder(std::make_shared<HexStringJump>());
+	auto ts = std::make_shared<TokenStream>();
+	ts->emplace_back(TokenType::LP, Literal("("));
+	ts->emplace_back(TokenType::DASH, Literal("-"));
+	ts->emplace_back(TokenType::RP, Literal(")"));
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>());
 }
 
 /**
@@ -187,7 +280,12 @@ YaraHexStringBuilder jumpVarying()
  */
 YaraHexStringBuilder jumpFixed(std::uint64_t value)
 {
-	return YaraHexStringBuilder(std::make_shared<HexStringJump>(value, value));
+	auto ts = std::make_shared<TokenStream>();
+	ts->emplace_back(TokenType::LP, Literal("("));
+	TokenIt t = ts->emplace_back(TokenType::HEX_NIBBLE, value);
+	ts->emplace_back(TokenType::RP, Literal(")"));
+
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t, t));
 }
 
 /**
@@ -202,7 +300,12 @@ YaraHexStringBuilder jumpFixed(std::uint64_t value)
  */
 YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
 {
-	return YaraHexStringBuilder(std::make_shared<HexStringJump>(low));
+	auto ts = std::make_shared<TokenStream>();
+	ts->emplace_back(TokenType::LP, Literal("("));
+	TokenIt t = ts->emplace_back(TokenType::HEX_NIBBLE, low);
+	ts->emplace_back(TokenType::RP, Literal(")"));
+
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t));
 }
 
 /**
@@ -217,7 +320,14 @@ YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
  */
 YaraHexStringBuilder jumpRange(std::uint64_t low, std::uint64_t high)
 {
-	return YaraHexStringBuilder(std::make_shared<HexStringJump>(low, high));
+	auto ts = std::make_shared<TokenStream>();
+	ts->emplace_back(TokenType::LP, Literal("("));
+	TokenIt t1 = ts->emplace_back(TokenType::HEX_NIBBLE, low);
+	ts->emplace_back(TokenType::DASH, Literal("-"));
+	TokenIt t2 = ts->emplace_back(TokenType::HEX_NIBBLE, high);
+	ts->emplace_back(TokenType::RP, Literal(")"));
+
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t1, t2));
 }
 
 /**
@@ -238,20 +348,20 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	std::vector<std::shared_ptr<HexString>> hexStrings;
 	hexStrings.reserve(units.size());
 
-	TokenStream ts;
+	auto ts = std::make_shared<TokenStream>();
 	for( size_t i = 0; i < units.size(); ++i )
 	{
-		hexStrings.push_back( unit.get(ts) );
-		if(i + 1 < units.size)
-			ts.emplace_back(HEX_ALT, "|");
+		hexStrings.push_back( units[i].get(ts) ); //filling up ts while getting the hexStrings
+		if(i + 1 < units.size())
+			ts->emplace_back( HEX_ALT, "|" ); // add '|' in between the hexStrings
 	}
-	return YaraHexStringBuilder(std::make_shared<HexStringOr>(hexStrings));
+	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
 }
 
-YaraHexStringBuilder _alt(TokenStream& ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
+YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
 {
 	hexStrings.push_back(unit.get(ts));
-	return YaraHexStringBuilder(std::make_shared<HexStringOr>(hexStrings));
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringOr>(hexStrings));
 }
 
 }

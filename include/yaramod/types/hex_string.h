@@ -78,6 +78,8 @@ public:
 	/// @{
 	explicit HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units);
 	explicit HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units);
+	explicit HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units, const std::shared_ptr<TokenStream>& ts);
+	explicit HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units, const std::shared_ptr<TokenStream>& ts);
 	/// @}
 
 	/// @name String representation.
@@ -106,6 +108,7 @@ public:
 
 private:
 	std::vector<std::shared_ptr<HexStringUnit>> _units; ///< Units in the hex string
+	std::shared_ptr<TokenStream> _ts; ///< Pointer to the TokenStream in which the data is stored
 };
 
 /**

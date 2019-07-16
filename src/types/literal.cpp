@@ -282,13 +282,13 @@ bool Literal::isUInt8_t() const
 bool Literal::isUInt64_t() const
 {
 	std::cout << "isUInt64_t(" << *this << ")? index: " << _value.index() << std::endl;
-	return _value.index() == 4;
+	return _value.index() == 5;
 }
 
 bool Literal::isFloat() const
 {
 	std::cout << "isFloat(" << *this << ")? index: " << _value.index() << std::endl;
-	return _value.index() == 5;
+	return _value.index() == 6;
 }
 
 bool Literal::isIntegral() const
@@ -493,9 +493,9 @@ TokenIt TokenStream::insert( TokenIt before, TokenType type, Literal&& literal)
 	return _tokens.insert(before, std::move(Token(type, std::move(literal))));
 }
 
-void TokenStream::move_append( TokenStream& donor )
+void TokenStream::move_append( TokenStream* donor )
 {
-	_tokens.splice(_tokens.end(), donor._tokens);
+	_tokens.splice(_tokens.end(), donor->_tokens);
 }
 
 TokenIt TokenStream::begin()

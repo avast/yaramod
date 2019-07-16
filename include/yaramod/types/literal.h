@@ -28,20 +28,21 @@ enum TokenType
    RULE_END = 3,
    FILE_END = 4,
    HEX_ALT = 6,
-   HEX_NORMAL = 7,
+   HEX_NIBBLE = 7,
    HEX_WILDCARD_FULL = 8,
    HEX_WILDCARD_LOW = 9,
    HEX_WILDCARD_HIGH = 10,
    HEX_JUMP_VARYING = 11,
    HEX_JUMP_VARYING_RANGE = 12,
-   HEX_JUMP_RANGE = 13,
-   HEX_JUMP_FIXED = 14,
-   HEX_LEFT_BRACKET = 15,
-   HEX_RIGHT_BRACKET = 16,
-   NEW_LINE = 17,
-   COMMENT = 18,
-   META = 19,       //carries 'meta:'
-   META_END = 20,   //only marker which does not carry any value
+   HEX_JUMP_RANGE_LEFT_BRACKET = 13,
+   HEX_JUMP_RANGE_RIGHT_BRACKET,
+   HEX_JUMP_FIXED ,
+   HEX_LEFT_BRACKET,
+   HEX_RIGHT_BRACKET,
+   NEW_LINE,
+   COMMENT,
+   META,       //carries 'meta:'
+   META_END,   //only marker which does not carry any value
 
    END = 258,
    RANGE = 259,
@@ -323,7 +324,7 @@ public:
 	TokenIt push_back( Token&& t );
 	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
 	TokenIt insert( TokenIt before, TokenType type, Literal&& literal);
-	void move_append( TokenStream& donor );
+	void move_append( TokenStream* donor );
 	/// @}
 
 	/// @name Iterators

@@ -311,14 +311,14 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-			YaraHexStringBuilder hex_builder;
+			YaraHexStringBuilder hex_builder(d.tokens); //TokenStream vlastnictvi -> builder
 			string_input si( in.string(), "hex" );
          try {
          	auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
          	if(root)
          	{
 	      		//pgl::parse_tree::print_dot( std::cout, *root );
-	      		hex_builder.add(parse_hex_tree(root.get(), d.tokens));
+	      		hex_builder.add(parse_hex_tree(root.get(), d));
 	      	}
 		      else
       	   	error_handle("Parsing hex-string '" + in.string() + "' failed.", in.position().line);
@@ -328,7 +328,8 @@ namespace gr {
       	}
 
       	assert(d.str_modifiers == 0u);
-         const auto& hex_string = hex_builder.get();
+      	d.tokens = std::make_unique<TokenStream>();
+         const auto& hex_string = hex_builder.get(d.tokens); //TokenStream vlastnictvi -> driver
          const auto& units = hex_string->getUnits();
          if( units.front()->isJump() )
          	error_handle("hex-string syntax error: Unexpected jump '" + units.front()->getText() + "' at the beginning of hex-string, expecting ( or ? or nibble.", in.position().line);
@@ -772,7 +773,7 @@ namespace gr {
    }
 
 
-  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, TokenStream& tokens )
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, ParserDriver& d )
   	{
   		std::vector<YaraHexStringBuilder> alt_builders;
   		alt_builders.emplace_back();
@@ -780,7 +781,7 @@ namespace gr {
   		{
   			if( child->is< hex_atom_group >() )
   			{
-  				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
+  				alt_builders[0].add( parse_hex_tree( child.get(), d ) );
   			}
   			else if( child->is< hex_normal >() )
   			{
@@ -843,10 +844,10 @@ namespace gr {
   			}
   			else if( child->is< hex_brackets >() )
   			{
-  				alt_builders[0].add( parse_hex_tree( child.get(), tokens ) );
+  				alt_builders[0].add( parse_hex_tree( child.get(), d ) );
   			}
   			else if(child->is< hex_alt >() ) {
-  				alt_builders.emplace_back( parse_hex_tree( child.get(), tokens ) );
+  				alt_builders.emplace_back( parse_hex_tree( child.get(), d ) );
   			}
   			else if(child->is< hex_left_bracket >() ) {
   				// tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
@@ -859,7 +860,7 @@ namespace gr {
   			}
   		}
   		if( alt_builders.size() == 1 )
-  			return alt_builders[0];
+  			return std::move(alt_builders[0]);
   		else
 	  		return YaraHexStringBuilder(alt(alt_builders));
   	}
@@ -872,7 +873,7 @@ namespace gr {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), tokens(std::make_shared<TokenStream>()),
    current_stream(0), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
 	_startOfRule(0), _anonStringCounter(0)
 {
@@ -889,7 +890,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr),
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), tokens(std::make_shared<TokenStream>()),
 	initial_stream(&input), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 /*

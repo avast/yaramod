@@ -1082,27 +1082,27 @@ hex_string_edge
 hex_byte
 	: HEX_NIBBLE HEX_NIBBLE
 		{
-			auto first = std::make_shared<HexStringNibble>($1);
-			auto second = std::make_shared<HexStringNibble>($2);
-			$$.reserve(2);
-			$$.push_back(std::move(first));
-			$$.push_back(std::move(second));
+//			auto first = std::make_shared<HexStringNibble>($1);
+//			auto second = std::make_shared<HexStringNibble>($2);
+//			$$.reserve(2);
+//			$$.push_back(std::move(first));
+//			$$.push_back(std::move(second));
 		}
 	| HEX_NIBBLE HEX_WILDCARD
 		{
-			auto first = std::make_shared<HexStringNibble>($1);
+//			auto first = std::make_shared<HexStringNibble>($1);
 			auto second = std::make_shared<HexStringWildcard>();
 			$$.reserve(2);
-			$$.push_back(std::move(first));
+//			$$.push_back(std::move(first));
 			$$.push_back(std::move(second));
 		}
 	| HEX_WILDCARD HEX_NIBBLE
 		{
 			auto first = std::make_shared<HexStringWildcard>();
-			auto second = std::make_shared<HexStringNibble>($2);
+//			auto second = std::make_shared<HexStringNibble>($2);
 			$$.reserve(2);
 			$$.push_back(std::move(first));
-			$$.push_back(std::move(second));
+//			$$.push_back(std::move(second));
 		}
 	| HEX_WILDCARD HEX_WILDCARD
 		{

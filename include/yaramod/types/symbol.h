@@ -28,12 +28,12 @@ public:
 	/// Type of the symbol.
 	enum class Type
 	{
-		Value,
-		Array,
-		Dictionary,
-		Function,
-		Structure,
-	};
+		Value      = 1 << 0,
+		Array      = 1 << 1,
+		Dictionary = 1 << 2,
+		Function   = 1 << 3,
+		Structure  = 1 << 4
+	}; // if(type & (Value|Structure))
 
 	/// @name Destructor
 	/// @{

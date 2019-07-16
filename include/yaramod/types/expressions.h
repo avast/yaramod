@@ -313,7 +313,7 @@ private:
  * !(@str > 10)
  * @endcode
  */
-class NotExpression : public UnaryOpExpression
+class NotExpression : public UnaryOpExpression //odpovida not v condition
 {
 public:
 	NotExpression(const Expression::Ptr& expr) : UnaryOpExpression("not ", expr) {}

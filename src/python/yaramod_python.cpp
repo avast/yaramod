@@ -68,10 +68,10 @@ void addEnums(py::module& module)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
-	py::enum_<Literal::Type>(module, "LiteralType")
-		.value("String", Literal::Type::String)
-		.value("Int", Literal::Type::Int)
-		.value("Bool", Literal::Type::Bool);
+	// py::enum_<Literal::Type>(module, "LiteralType")
+	// 	.value("String", Literal::Type::String)
+	// 	.value("Int", Literal::Type::Int)
+	// 	.value("Bool", Literal::Type::Bool);
 
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
@@ -545,7 +545,10 @@ void addBuilderClasses(py::module& module)
 		.def(py::init<const std::vector<std::uint8_t>&>())
 		.def(py::init<const std::shared_ptr<HexStringUnit>&>())
 		.def(py::init<const std::vector<std::shared_ptr<HexStringUnit>>&>())
-		.def("get", &YaraHexStringBuilder::get)
+		//.def("get", &YaraHexStringBuilder::get)
+		.def("get", [](YaraHexStringBuilder& self, std::shared_ptr<TokenStream> acceptor) {
+				return self.get(acceptor);
+			})
 		.def("add", [](YaraHexStringBuilder& self, const YaraHexStringBuilder& unit) {
 				return self.add(unit);
 			});
