@@ -7,7 +7,19 @@ namespace yaramod {
  *
  * @param byte Byte.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::uint8_t byte) : _units()
+YaraHexStringBuilder::YaraHexStringBuilder()
+	: _tokenStream(std::make_shared<TokenStream>())
+{
+}
+
+/**
+ * Constructor for creating byte without any wildcard.
+ *
+ * @param byte Byte.
+ */
+YaraHexStringBuilder::YaraHexStringBuilder(std::uint8_t byte)
+	: _tokenStream(std::make_shared<TokenStream>())
+	, _units()
 {
 	TokenIt t1 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0xF0) >> 4);
 	TokenIt t2 = _tokenStream->emplace_back(TokenType::HEX_NIBBLE, (byte & 0x0F));
@@ -20,7 +32,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::uint8_t byte) : _units()
  *
  * @param bytes Bytes.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::uint8_t>& bytes) : _units()
+YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::uint8_t>& bytes)
+	: _tokenStream(std::make_shared<TokenStream>())
+	, _units()
 {
 	_units.reserve(2 * bytes.size());
 	for (auto byte : bytes)
@@ -37,7 +51,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::uint8_t>& byte
  *
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<HexStringUnit>& unit) : _units()
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<HexStringUnit>& unit)
+	: _tokenStream(std::make_shared<TokenStream>())
+	, _units()
 {
 	_units.push_back(unit);
 }
@@ -47,7 +63,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<HexStringUnit>&
  *
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit) : _units()
+YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit) : _tokenStream(std::make_shared<TokenStream>()), _units()
 {
 	_units.push_back(std::move(unit));
 }
@@ -57,7 +73,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit
  *
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::shared_ptr<HexStringUnit>>& units) : _units(units)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::shared_ptr<HexStringUnit>>& units)
+ 	: _tokenStream(std::make_shared<TokenStream>())
+ 	, _units(units)
 {
 }
 
@@ -66,7 +84,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::shared_ptr<Hex
  *
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::vector<std::shared_ptr<HexStringUnit>>&& units) : _units(std::move(units))
+YaraHexStringBuilder::YaraHexStringBuilder(std::vector<std::shared_ptr<HexStringUnit>>&& units)
+	: _tokenStream(std::make_shared<TokenStream>())
+	, _units(std::move(units))
 {
 }
 
