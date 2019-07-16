@@ -159,7 +159,6 @@ public:
 	explicit Literal(bool boolValue);
 	explicit Literal(int value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(uint8_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(float value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 
@@ -181,7 +180,6 @@ public:
    void setValue(bool b);
    void setValue(int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-   void setValue(uint8_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(float f, const std::optional<std::string>& integral_formated_value = std::nullopt);
    /// @}
@@ -192,7 +190,6 @@ public:
    bool getBool() const;
    int getInt() const;
    int64_t getInt64_t() const;
-   uint64_t getUInt8_t() const;
    uint64_t getUInt64_t() const;
    float getFloat() const;
    /// @}
@@ -203,7 +200,6 @@ public:
 	bool isBool() const;
 	bool isInt() const;
 	bool isInt64_t() const;
-	bool isUInt8_t() const;
 	bool isUInt64_t() const;
 	bool isFloat() const;
 
@@ -228,7 +224,7 @@ private:
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted, thus _int_formated_value is empty and _value contains x
 	/// ii. x it is formatted,     so _int_formated_value contains x's string representation and _value contains pure x
-	std::variant< std::string, bool, int, int64_t, uint8_t, uint64_t, float > _value; ///< Value used for all literals:
+	std::variant< std::string, bool, int, int64_t, uint64_t, float > _value; ///< Value used for all literals:
 	std::optional< std::string > _integral_formated_value; ///< Value used for integral literals with particular formatting
 };
 
@@ -269,7 +265,6 @@ public:
    void setValue(bool value) { _value->setValue(value); }
    void setValue(int value) { _value->setValue(value); }
    void setValue(int64_t value) { _value->setValue(value); }
-   void setValue(uint8_t value) { _value->setValue(value); }
    void setValue(uint64_t value) { _value->setValue(value); }
    void setValue(float value) { _value->setValue(value); }
    /// @}
@@ -278,7 +273,9 @@ public:
 	/// @{
 	bool isString() const { return _value->isString(); }
 	bool isBool() const { return _value->isBool(); }
-	bool isInt() const { return _value->isInt(); }
+	bool isInt() const { return _value->isInt64_t(); }
+	bool isInt64_t() const { return _value->isInt64_t(); }
+	bool isUInt64_t() const { return _value->isUInt64_t(); }
 	bool isFloat() const { return _value->isFloat(); }
 
 	bool isIntegral() const { return _value->isIntegral(); }
@@ -293,7 +290,6 @@ public:
    bool getBool() const;
    int getInt() const;
    int64_t getInt64_t() const;
-   uint8_t getUInt8_t() const;
    uint64_t getUInt64_t() const;
    float getFloat() const;
    /// @}

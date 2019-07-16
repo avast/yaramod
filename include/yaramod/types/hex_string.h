@@ -142,7 +142,7 @@ public:
 	/// @{
 	std::uint8_t getValue() const
 	{
-		std::uint8_t output = _value->getUInt8_t();
+		int output = _value->getInt();
 		assert(output <= 0xf);
 		return output;
 	}
@@ -152,7 +152,7 @@ public:
 	/// @}
 
 private:
-	TokenIt _value; ///< Value of the nibble, uint8_t
+	TokenIt _value; ///< Value of the nibble, int
 };
 
 /**

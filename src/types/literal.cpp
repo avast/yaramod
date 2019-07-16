@@ -105,18 +105,6 @@ Literal::Literal( uint64_t value, const std::optional<std::string>& integral_for
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( uint8_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-   : _value( value )
-   , _integral_formated_value( integral_formated_value )
-{
-}
-
-/**
- * Constructor.
- *
- * @param value integral value of the literal.
- * @param integral_formated_value formatted value of the integral literal.
- */
 Literal::Literal( float value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
    : _value( value )
    , _integral_formated_value( integral_formated_value )
@@ -151,12 +139,6 @@ void Literal::setValue( uint64_t i, const std::optional<std::string>& integral_f
 	_integral_formated_value = integral_formated_value;
 }
 
-void Literal::setValue( uint8_t i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
-{
-	_value = i;
-	_integral_formated_value = integral_formated_value;
-}
-
 void Literal::setValue( float f, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = f;
@@ -168,15 +150,6 @@ void Literal::setValue( float f, const std::optional<std::string>& integral_form
  *
  * @return String representation.
  */
-
-
-/*
-	bool isString() const;
-	bool isBool() const;
-	bool isInt() const;
-	bool isInt64_t() const;
-	bool isUInt64_t() const;
-	bool isFloat() const;*/
 std::string Literal::getText( bool pure /*= false*/ ) const
 {
 	if (isString())
@@ -209,13 +182,6 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		else
 			return numToStr<int64_t>( getInt64_t() );
 	}
-	else if (isUInt8_t())
-	{
-		if(_integral_formated_value.has_value())
-			return _integral_formated_value.value();
-		else
-			return numToStr<uint8_t>( getUInt8_t() );
-	}
 	else if (isUInt64_t())
 	{
 		if(_integral_formated_value.has_value())
@@ -230,7 +196,7 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		else
 			return numToStr<float>( getFloat() );
 	}
-	std::cerr << "Unexpected value '" << *this << "'" << std::endl;
+	std::cerr << "Unexpected value '" << *this << "', index: " << _value.index()<< std::endl;
 	assert(false);
 }
 
@@ -273,28 +239,22 @@ bool Literal::isInt64_t() const
 	return _value.index() == 3;
 }
 
-bool Literal::isUInt8_t() const
-{
-	std::cout << "isUInt8_t(" << *this << ")? index: " << _value.index() << std::endl;
-	return _value.index() == 4;
-}
-
 bool Literal::isUInt64_t() const
 {
 	std::cout << "isUInt64_t(" << *this << ")? index: " << _value.index() << std::endl;
-	return _value.index() == 5;
+	return _value.index() == 4;
 }
 
 bool Literal::isFloat() const
 {
 	std::cout << "isFloat(" << *this << ")? index: " << _value.index() << std::endl;
-	return _value.index() == 6;
+	return _value.index() == 5;
 }
 
 bool Literal::isIntegral() const
 {
 	std::cout << "isIntegral(" << *this << ")? index: " << _value.index() << std::endl;
-	return isInt() || isInt64_t() || isUInt64_t() || isFloat() ;
+	return isInt() ||  isInt64_t() || isUInt64_t() || isFloat() ;
 }
 
 const std::string& Literal::getString() const
@@ -349,19 +309,6 @@ int64_t Literal::getInt64_t() const
    }
 }
 
-uint64_t Literal::getUInt8_t() const
-{
-   try
-   {
-      return std::get<uint8_t>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getUInt8_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getUInt8_t() of non-integer TokenValue");
-   }
-}
-
 uint64_t Literal::getUInt64_t() const
 {
    try
@@ -406,11 +353,6 @@ int Token::getInt() const
 int64_t Token::getInt64_t() const
 {
 	return _value->getInt64_t();
-}
-
-uint8_t Token::getUInt8_t() const
-{
-	return _value->getUInt8_t();
 }
 
 uint64_t Token::getUInt64_t() const
