@@ -386,7 +386,7 @@ namespace gr { //this namespace is to minimize 'using namespace pgl' scope
    template< typename Rule >
    struct action {};
 
-  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, TokenStream&& tokens );
+  	YaraHexStringBuilder parse_hex_tree( pgl::parse_tree::node* root, ParserDriver& d );
   	YaraExpressionBuilder parse_cond_tree( pgl::parse_tree::node* root, ParserDriver& d );
 
 	template< typename Rule >
@@ -533,6 +533,8 @@ class ParserDriver
    friend struct gr::action;
 
 public:
+	friend YaraHexStringBuilder gr::parse_hex_tree( pgl::parse_tree::node* root, ParserDriver& d );
+  	friend YaraExpressionBuilder gr::parse_cond_tree( pgl::parse_tree::node* root, ParserDriver& d );
 	/// @name Constructors
 	/// @{
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
@@ -584,7 +586,6 @@ public:
 
 protected:
 	std::istream* currentStream();
-	TokenStream tokens;
 
 	/// @name Methods for handling includes
 	/// @{
@@ -631,6 +632,7 @@ private:
 	//yy::Parser _parser; ///< Bison parser //TODO:delete
 	yy::location _loc; ///< Location
 
+	std::shared_ptr<TokenStream> tokens;
 	YaraRuleBuilder builder;
 	YaraExpressionBuilder expression_builder;
    size_t max_size = UINT_MAX; //-1

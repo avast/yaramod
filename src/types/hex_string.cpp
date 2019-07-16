@@ -30,6 +30,26 @@ HexString::HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units)
 }
 
 /**
+ * Constructor.
+ *
+ * @param units Units of the hex string.
+ */
+HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units, const std::shared_ptr<TokenStream>& ts)
+	: String(String::Type::Hex), _units(units), _ts(ts)
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param units Units of the hex string.
+ */
+HexString::HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units, const std::shared_ptr<TokenStream>& ts)
+	: String(String::Type::Hex), _units(std::move(units)), _ts(ts)
+{
+}
+
+/**
  * Return the string representation of the hex string.
  *
  * @return String representation.
