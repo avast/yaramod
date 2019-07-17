@@ -22,7 +22,7 @@ namespace yaramod {
  * @param condition Condition expression.
  * @param tags Tags.
  */
-Rule::Rule(TokenStream&& tokenStream, std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+Rule::Rule(std::shared_ptr<TokenStream> tokenStream, std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, std::vector<std::string>&& tags)
 	:  _tokenStream(std::move(tokenStream)), _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
 		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
@@ -300,16 +300,16 @@ bool Rule::isPrivate() const
 void Rule::addMeta(const std::string& name, const Literal& value)
 {
 	// first we need to find a proper placing for the meta within the tokenstream:
-	auto metaIt = _tokenStream.find(TokenType::META_END); // 'meta'
-	if( metaIt == _tokenStream.end() )
+	auto metaIt = _tokenStream->find(TokenType::META_END); // 'meta'
+	if( metaIt == _tokenStream->end() )
 	{
-		metaIt = _tokenStream.find(TokenType::LCB); // '{'
-		assert(metaIt != _tokenStream.end() && "Called addMeta on rule that does not contain '{' tor the meta to be placed in");
+		metaIt = _tokenStream->find(TokenType::LCB); // '{'
+		assert(metaIt != _tokenStream->end() && "Called addMeta on rule that does not contain '{' tor the meta to be placed in");
 		++metaIt;
 	}
-	auto itKey = _tokenStream.insert(metaIt, TokenType::META_KEY, Literal(name) );
-	_tokenStream.insert( metaIt, TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.insert( metaIt, TokenType::META_VALUE, value );
+	auto itKey = _tokenStream->insert(metaIt, TokenType::META_KEY, Literal(name) );
+	_tokenStream->insert( metaIt, TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->insert( metaIt, TokenType::META_VALUE, value );
 
 	_metas.emplace_back(itKey, itValue);
 }

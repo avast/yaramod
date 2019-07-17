@@ -39,6 +39,7 @@ public:
 	/// @name Constructor
 	/// @{
 	YaraRuleBuilder();
+	YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream);
 	/// @}
 
 	/// @name Build method
@@ -55,9 +56,9 @@ public:
 	//TODO: add methods with<...> accepting string r-values (std::string&&)
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
-	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value);
-	YaraRuleBuilder& withUIntMeta(const std::string& key, std::uint64_t value);
-	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value);
+	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value, const std::optional<std::string>& formated_value = std::nullopt);
+	YaraRuleBuilder& withUIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value = std::nullopt);
+	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value = std::nullopt);
 	YaraRuleBuilder& withBoolMeta(const std::string& key, bool value);
 
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value, std::uint32_t mods = String::Modifiers::Ascii);
@@ -70,13 +71,13 @@ public:
 	/// @}
 
 private:
+	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
 	std::string _name; ///< Name
 	Rule::Modifier _mod; ///< Modifier
 	std::vector<std::string> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
-	TokenStream _tokenStream;
 };
 
 

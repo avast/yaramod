@@ -281,6 +281,10 @@ public:
 	bool isIntegral() const { return _value->isIntegral(); }
 	/// @}
 
+	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
+      return os << *(token._value);
+   }
+
    /// @name Getter methods
    /// @{
    TokenType getType() const { return _type; }
@@ -332,6 +336,12 @@ public:
 	TokenIt find( TokenType type );
 	TokenIt find( TokenType type, TokenIt from );
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
+
+	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
+      for(const auto& it : ts._tokens)
+      	os << it << ", ";
+      return os;
+   }
 
 	/// @name Reseting methods
 	void clear();

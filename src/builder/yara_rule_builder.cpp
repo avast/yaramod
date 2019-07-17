@@ -13,12 +13,28 @@
 namespace yaramod {
 
 /**
- * Constructor.
+ * Default constructor creates new TokenStream.
  */
-YaraRuleBuilder::YaraRuleBuilder() : _name("unknown"), _mod(Rule::Modifier::None), _tags(), _metas(),
-	_strings(std::make_shared<Rule::StringsTrie>()), _condition(std::make_shared<BoolLiteralExpression>(true))
+YaraRuleBuilder::YaraRuleBuilder()
+	: YaraRuleBuilder(std::make_shared<TokenStream>())
 {
 }
+
+/**
+ * Constructor.
+ * @param tokenStream: Already existing TokenStream
+ */
+YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
+	: _tokenStream(tokenStream)
+	, _name("unknown")
+	, _mod(Rule::Modifier::None)
+	, _tags()
+	, _metas()
+	, _strings(std::make_shared<Rule::StringsTrie>())
+	, _condition(std::make_shared<BoolLiteralExpression>(true))
+{
+}
+
 
 /**
  * Returns the built YARA rule and resets the builder back to default state.
@@ -41,7 +57,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	}
 
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name), _mod, std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
-	_tokenStream.clear();
+	_tokenStream = std::make_shared<TokenStream>();
 	_name = "unknown";
 	_mod = Rule::Modifier::None;
 	_tags.clear();
@@ -107,9 +123,9 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 	if(key == "" || value == "")
 		throw RuleBuilderError("Error: String-Meta key and value must be non-empty.");
 
-	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
-	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
+	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value );
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -123,14 +139,14 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value)
+YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 {
 	if(key == "")
 		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
 
-	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
-	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
+	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -144,14 +160,14 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value)
+YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 {
 	if(key == "")
 		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
 
-	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
-	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
+	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -165,14 +181,14 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value)
+YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 {
 	if(key == "")
 		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
 
-	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
-	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
+	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -191,9 +207,9 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 	if(key == "")
 		throw RuleBuilderError("Error: Bool-Meta key must be non-empty.");
 
-	auto itKey = _tokenStream.emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
-	_tokenStream.emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream.emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
+	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, std::move(Literal(key)) );
+	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, std::move(Literal(value)) );
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
