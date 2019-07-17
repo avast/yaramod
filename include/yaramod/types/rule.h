@@ -51,7 +51,7 @@ public:
 	/// @name Constructors
 	/// @{
 	Rule() = default;
-	explicit Rule(TokenStream&& tokenStream, std::string&& name, Rule::Modifier mod, std::vector<Meta>&& metas,
+	explicit Rule(std::shared_ptr<TokenStream> tokenStream, std::string&& name, Rule::Modifier mod, std::vector<Meta>&& metas,
 			std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition,
 			std::vector<std::string>&& tags);
 	Rule(Rule&& rule) = default;
@@ -105,7 +105,7 @@ public:
 	/// @}
 
 private:
-	TokenStream _tokenStream; ///< tokenStream containing all the data in this Rule
+	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	std::string _name; ///< Name
 	Rule::Modifier _mod; ///< Modifier
 	std::vector<Meta> _metas; ///< Meta information
