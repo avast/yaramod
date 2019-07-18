@@ -223,7 +223,8 @@ rules
 import
 	: IMPORT_MODULE STRING_LITERAL[module]
 		{
-			if (!driver._file.addImport($module))
+			TokenIt import;// = d._tokenStream->emplace_back(TokenType::IMPORT_MODULE, module);
+			if (!driver._file.addImport(import))
 			{
 				error(driver.getLocation(), "Unrecognized module '" + $module + "' imported");
 				YYABORT;
@@ -246,7 +247,8 @@ rule
 		}
 		tags LCB metas strings condition RCB
 		{
-			driver.addRule(Rule(TokenStream(), std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			// The following construction of Rule is ill, since the TokenStream does not contain the data. This is only to make it compile.
+			driver.addRule(Rule(std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
 		}
 	;
 

@@ -33,12 +33,12 @@ public:
 
 	/// @name Addition methods
 	/// @{
-	bool addImport(const std::string& import);
+	bool addImport(TokenIt import);
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
 	void addRule(const std::shared_ptr<Rule>& rule);
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
-	bool addImports(const std::vector<std::string>& imports);
+	bool addImports(const std::vector<TokenIt>& imports);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}

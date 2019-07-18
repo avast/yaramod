@@ -84,7 +84,8 @@ namespace gr {
    	template< typename Input >
    	static void apply(const Input& in, ParserDriver& d)
    	{
-   		if (!d._file.addImport(in.string()))
+   		TokenIt import = d._tokenStream->emplace_back(TokenType::IMPORT_MODULE, in.string());
+   		if (!d._file.addImport(import))
 			{
 				error_handle(std::string("Unrecognized module '") + in.string() + "' imported", in.position().line, in.position().byte_in_line, in.string().size());
 			}
@@ -131,7 +132,7 @@ namespace gr {
       static void apply(const Input& in, ParserDriver& d)
       {
          int64_t meta_value = std::stoi(in.string());
-         d.builder.withUIntMeta(d.meta_key, meta_value);
+         d.builder.withUIntMeta( d.meta_key, meta_value );
          // d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
@@ -144,7 +145,7 @@ namespace gr {
       {
 //         std::cout << "'Matched meta_hex_uint_value action with '" << in.string() << "'" << std::endl;
          int64_t meta_value = std::stoi(in.string(), nullptr, 16);
-         d.builder.withHexIntMeta(d.meta_key, meta_value);
+         d.builder.withHexIntMeta(d.meta_key, meta_value, std::make_optional<std::string>(in.string()) );
          // d.tokens.emplace_back(Tokentype::META_VALUE, meta_value, in.position());
       }
    };
@@ -311,7 +312,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-			YaraHexStringBuilder hex_builder(d.tokens); //TokenStream vlastnictvi -> builder
+			YaraHexStringBuilder hex_builder(d._tokenStream); //TokenStream vlastnictvi -> builder
 			string_input si( in.string(), "hex" );
          try {
          	auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
@@ -328,8 +329,8 @@ namespace gr {
       	}
 
       	assert(d.str_modifiers == 0u);
-      	d.tokens = std::make_unique<TokenStream>();
-         const auto& hex_string = hex_builder.get(d.tokens); //TokenStream vlastnictvi -> driver
+      	d._tokenStream = std::make_unique<TokenStream>();
+         const auto& hex_string = hex_builder.get(d._tokenStream); //TokenStream vlastnictvi -> driver
          const auto& units = hex_string->getUnits();
          if( units.front()->isJump() )
          	error_handle("hex-string syntax error: Unexpected jump '" + units.front()->getText() + "' at the beginning of hex-string, expecting ( or ? or nibble.", in.position().line);
@@ -844,16 +845,18 @@ namespace gr {
   			}
   			else if( child->is< hex_brackets >() )
   			{
+  				d._tokenStream->emplace_back(TokenType::LP, "(");
   				alt_builders[0].add( parse_hex_tree( child.get(), d ) );
+  				d._tokenStream->emplace_back(TokenType::RP, ")");
   			}
   			else if(child->is< hex_alt >() ) {
   				alt_builders.emplace_back( parse_hex_tree( child.get(), d ) );
   			}
   			else if(child->is< hex_left_bracket >() ) {
-  				// tokens.emplace_back( Tokentype::HEX_LEFT_BRACKET, child->string(), child->begin() );
+  				d._tokenStream->emplace_back(TokenType::LP, "<");
   			}
   			else if(child->is< hex_righ_bracket >() ) {
-  				// tokens.emplace_back( Tokentype::HEX_RIGHT_BRACKET, child->string(), child->begin() );
+  				d._tokenStream->emplace_back(TokenType::RP, ">");
   			}
   			else {
   				assert(false && "Unknown node type.");
@@ -873,7 +876,7 @@ namespace gr {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), tokens(std::make_shared<TokenStream>()),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),
    current_stream(0), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
 	_startOfRule(0), _anonStringCounter(0)
 {
@@ -890,7 +893,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), tokens(std::make_shared<TokenStream>()),
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),
 	initial_stream(&input), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 /*
@@ -1192,6 +1195,63 @@ void ParserDriver::stringLoopLeave()
 {
 	_stringLoop = false;
 }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, const char* value )
+// {
+// 	return _tokenStream->emplace_back(type, value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, const std::string& value )
+// {
+// 	return _tokenStream->emplace_back(type, value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, bool b )
+// {
+// 	return _tokenStream->emplace_back(type, b);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+// {
+// 	return _tokenStream->emplace_back(type, i, integral_formated_value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+// {
+// 	return _tokenStream->emplace_back(type, i, integral_formated_value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+// {
+// 	return _tokenStream->emplace_back(type, i, integral_formated_value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+// {
+// 	return _tokenStream->emplace_back(type, i, integral_formated_value);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, const Literal& literal )
+// {
+// 	return _tokenStream->emplace_back(type, literal);
+// }
+
+// TokenIt ParserDriver::emplace_token( TokenType type, Literal&& literal )
+// {
+// 	return _tokenStream->emplace_back(type, std::move(literal));
+// }
+
+// TokenIt ParserDriver::push_token( const Token& t )
+// {
+// 	return _tokenStream->push_back(t);
+// }
+
+// TokenIt ParserDriver::push_token( Token&& t )
+// {
+// 	return _tokenStream->push_back(std::move(t));
+// }
+
+
 
 /**
  * Finds the symbol with the given name. It first searches in local symbols and then in global symbols.

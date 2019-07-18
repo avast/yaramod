@@ -26,10 +26,7 @@ YaraRuleBuilder::YaraRuleBuilder()
  */
 YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
 	: _tokenStream(tokenStream)
-	, _name("unknown")
-	, _mod(Rule::Modifier::None)
-	, _tags()
-	, _metas()
+	, _mod(std::nullopt)
 	, _strings(std::make_shared<Rule::StringsTrie>())
 	, _condition(std::make_shared<BoolLiteralExpression>(true))
 {
@@ -44,7 +41,7 @@ YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
 std::unique_ptr<Rule> YaraRuleBuilder::get()
 {
 	// If rule has invalid name
-	if (!isValidIdentifier(_name))
+	if (!isValidIdentifier(_name->getText()))
 		return nullptr;
 
 	// If any of the meta information has invalid key identifier
@@ -55,11 +52,12 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	{
 		return nullptr;
 	}
+	std::cout << "get() called. TokenStream:" << std::endl << *_tokenStream << std::endl;
 
-	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name), _mod, std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
 	_tokenStream = std::make_shared<TokenStream>();
-	_name = "unknown";
-	_mod = Rule::Modifier::None;
+	_name = TokenIt();
+	_mod = std::nullopt;
 	_tags.clear();
 	_metas.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
@@ -78,7 +76,7 @@ YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
 {
 	if(name == "")
 		throw RuleBuilderError("Error: name must be non-empty.");
-	_name = name;
+	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, name);
 	return *this;
 }
 
@@ -91,7 +89,14 @@ YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
  */
 YaraRuleBuilder& YaraRuleBuilder::withModifier(Rule::Modifier mod)
 {
-	_mod = mod;
+	if(mod == Rule::Modifier::Global)
+		_mod = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
+	else if(mod == Rule::Modifier::Private)
+		_mod = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
+	else{
+		assert(mod == Rule::Modifier::None);
+		_mod = std::nullopt;
+	}
 	return *this;
 }
 
@@ -106,7 +111,8 @@ YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
 {
 	if(tag == "")
 		throw RuleBuilderError("Error: tag must be non-empty.");
-	_tags.push_back(tag);
+	TokenIt it = _tokenStream->emplace_back(TokenType::TAG, tag);
+	_tags.push_back(it);
 	return *this;
 }
 

@@ -49,8 +49,7 @@ public:
 
 	/// @name Build method
 	/// @{
-	std::shared_ptr<HexString> get() const;
-	std::shared_ptr<HexString> get(std::shared_ptr<TokenStream> acceptor) const;
+	std::shared_ptr<HexString> get(std::shared_ptr<TokenStream> acceptor = nullptr) const;
 	/// @}
 
 	/// @name Building methods
@@ -125,7 +124,7 @@ YaraHexStringBuilder jumpRange(std::uint64_t low, std::uint64_t high);
 template <typename... Args>
 YaraHexStringBuilder alt(const Args&... args)
 {
-	auto ts = std::make_shared<TokenStream>();
+	auto ts = std::make_shared<TokenStream>(); // A large tokenStream consisting of all TokenStreams of arguments
 	std::vector<std::shared_ptr<HexString>> hexStrings;
 	return _alt(ts, hexStrings, args...);
 }
@@ -138,8 +137,10 @@ YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shar
 template <typename... Args>
 YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit, const Args&... args)
 {
-	hexStrings.push_back(unit.get(ts));
-	ts->emplace_back(HEX_ALT, "|");
+	const auto& hexString = unit.get(ts);
+	hexStrings.push_back(hexString);
+	ts->emplace_back(HEX_ALT, "ALT");
+	std::cout << *ts;
 	return _alt(ts, hexStrings, args...);
 }
 /// @}

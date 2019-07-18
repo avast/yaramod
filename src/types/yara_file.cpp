@@ -148,16 +148,16 @@ std::string YaraFile::getText() const
  *
  * @return @c true if module was found, @c false otherwise.
  */
-bool YaraFile::addImport(const std::string& import)
+bool YaraFile::addImport(TokenIt import)
 {
-	auto module = Module::load(import);
+	auto module = Module::load(import->getText());
 	if (!module)
 		return false;
 
 	// We don't want duplicates.
 	auto itr = std::find_if(_imports.begin(), _imports.end(),
 			[&import](const auto& loadedModule) {
-				return loadedModule->getName() == import;
+				return loadedModule->getName() == import->getText();
 			});
 	if (itr != _imports.end())
 		return true;
@@ -214,7 +214,7 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
  *
  * @return @c true if modules were found, @c false otherwise.
  */
-bool YaraFile::addImports(const std::vector<std::string>& imports)
+bool YaraFile::addImports(const std::vector<TokenIt>& imports)
 {
 	for (const auto& module : imports)
 	{
@@ -299,6 +299,30 @@ std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 
 	return nullptr;
 }
+
+// std::shared_ptr<Symbol> YaraFile::findImport(const std::string& name) const
+// {
+// 	for (const auto& import : _imports)
+// 		if (import->getName() == name)
+// 			return import->getStructure();
+// 	return nullptr;
+// }
+
+// std::shared_ptr<Symbol> YaraFile::findRule(const std::string& name) const
+// {
+// 	for (const auto& rule : _rules)
+// 		if (rule->getName() == name)
+// 			return rule->getSymbol();
+// 	return nullptr;
+// }
+
+// std::shared_ptr<Symbol> YaraFile::findGlobalVariable(const std::string& name) const
+// {
+// 	for (const auto& globalVar : YaraFile::globalVariables)
+// 		if (globalVar->getName() == name)
+// 			return globalVar;
+// 	return nullptr;
+// }
 
 /**
  * Returns whether the YARA file contains any imported modules.

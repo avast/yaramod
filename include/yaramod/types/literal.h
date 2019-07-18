@@ -43,6 +43,8 @@ enum TokenType
    COMMENT,
    META,       //carries 'meta:'
    META_END,   //only marker which does not carry any value
+   MODULE_NAME,
+   MODIFIER,
 
    END = 258,
    RANGE = 259,
@@ -154,6 +156,7 @@ public:
 	/// @name Costructors
 	/// @{
 	Literal() = default;
+	explicit Literal(const char* value);
 	explicit Literal(const std::string& value);
 	explicit Literal(std::string&& value);
 	explicit Literal(bool boolValue);
@@ -208,7 +211,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
       if( literal._integral_formated_value.has_value() )
-      	os << literal._integral_formated_value.value();
+      	os << "'" << literal._integral_formated_value.value() << "'";
       else
 	      std::visit(
 	      [&os](auto&& v)
@@ -312,7 +315,9 @@ public:
 	TokenStream() = default;
 	/// @name Insertion methods
 	/// @{
+	TokenIt emplace_back( TokenType type, const char* value );
 	TokenIt emplace_back( TokenType type, const std::string& value );
+	TokenIt emplace_back( TokenType type, std::string&& value );
 	TokenIt emplace_back( TokenType type, bool b );
 	TokenIt emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
@@ -324,6 +329,9 @@ public:
 	TokenIt push_back( Token&& t );
 	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
 	TokenIt insert( TokenIt before, TokenType type, Literal&& literal);
+	// returns iterator behind the last erased element
+	TokenIt erase( TokenIt element );
+	TokenIt erase( TokenIt first, TokenIt last );
 	void move_append( TokenStream* donor );
 	/// @}
 

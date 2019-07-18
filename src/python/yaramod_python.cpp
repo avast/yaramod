@@ -126,8 +126,8 @@ void addBasicClasses(py::module& module)
 		.def_property("name", &Rule::getName, &Rule::setName)
 		.def_property("metas", py::overload_cast<>(&Rule::getMetas), &Rule::setMetas, py::return_value_policy::reference)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
-		.def_property("tags", py::overload_cast<>(&Rule::getTags), &Rule::setTags, py::return_value_policy::reference)
-		.def_property_readonly("modifier", &Rule::getModifier)
+		.def_property("tags", &Rule::getTags, &Rule::setTags)
+		.def_property_readonly("modifier", &Rule::getModifier) //staci getter
 		.def_property_readonly("is_private", &Rule::isPrivate)
 		.def_property_readonly("is_global", &Rule::isGlobal)
 		.def_property_readonly("location", &Rule::getLocation)
@@ -138,7 +138,7 @@ void addBasicClasses(py::module& module)
 		.def("remove_string", &Rule::removeString)
 		.def("get_meta_with_name", &Rule::getMetaWithName, py::return_value_policy::reference)
 		.def("add_tag", &Rule::addTag)
-		.def("remove_tags", &Rule::removeTags);
+		.def("remove_tags", py::overload_cast<const std::string&>(&Rule::removeTags));
 
 	py::class_<Rule::Location>(module, "RuleLocation")
 		.def_readonly("file_path", &Rule::Location::filePath)

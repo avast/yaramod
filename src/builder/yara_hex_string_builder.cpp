@@ -173,24 +173,21 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std
 /**
  * Returns the built hex string and resets the builder back to default state.
  *
- * @return Built hex string (storing shared_ptr<TokenStream>).
- */
-std::shared_ptr<HexString> YaraHexStringBuilder::get() const
-{
-	return std::make_shared<HexString>(_units, _tokenStream);
-}
-
-/**
- * Returns the built hex string and resets the builder back to default state.
- *
  * @param acceptor TokenStream to move-append all our tokens
  * @return Built hex string.
  */
-std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor) const
+std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor /*= nullptr*/) const
 {
 	if( acceptor)
+	{
 		acceptor->move_append(_tokenStream.get());
-	return std::make_shared<HexString>(_units, acceptor);
+		std::cout << "TokenStream when YaraHexStringBuilder::get: " << std::endl << *acceptor << std::endl;
+		return std::make_shared<HexString>(_units, acceptor);
+	}
+	else{
+		std::cout << "TokenStream when YaraHexStringBuilder::get: " << std::endl << *_tokenStream << std::endl;
+		return std::make_shared<HexString>(_units, _tokenStream);
+	}
 }
 
 /**
@@ -282,9 +279,9 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 YaraHexStringBuilder jumpVarying()
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(TokenType::LP, Literal("("));
+	ts->emplace_back(TokenType::LP, Literal("["));
 	ts->emplace_back(TokenType::DASH, Literal("-"));
-	ts->emplace_back(TokenType::RP, Literal(")"));
+	ts->emplace_back(TokenType::RP, Literal("]"));
 	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>());
 }
 
@@ -301,9 +298,9 @@ YaraHexStringBuilder jumpVarying()
 YaraHexStringBuilder jumpFixed(std::uint64_t value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(TokenType::LP, Literal("("));
+	ts->emplace_back(TokenType::LP, Literal("["));
 	TokenIt t = ts->emplace_back(TokenType::HEX_NIBBLE, value);
-	ts->emplace_back(TokenType::RP, Literal(")"));
+	ts->emplace_back(TokenType::RP, Literal("]"));
 
 	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t, t));
 }
@@ -321,9 +318,9 @@ YaraHexStringBuilder jumpFixed(std::uint64_t value)
 YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(TokenType::LP, Literal("("));
+	ts->emplace_back(TokenType::LP, Literal("["));
 	TokenIt t = ts->emplace_back(TokenType::HEX_NIBBLE, low);
-	ts->emplace_back(TokenType::RP, Literal(")"));
+	ts->emplace_back(TokenType::RP, Literal("]"));
 
 	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t));
 }
@@ -341,11 +338,11 @@ YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
 YaraHexStringBuilder jumpRange(std::uint64_t low, std::uint64_t high)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(TokenType::LP, Literal("("));
+	ts->emplace_back(TokenType::LP, Literal("["));
 	TokenIt t1 = ts->emplace_back(TokenType::HEX_NIBBLE, low);
 	ts->emplace_back(TokenType::DASH, Literal("-"));
 	TokenIt t2 = ts->emplace_back(TokenType::HEX_NIBBLE, high);
-	ts->emplace_back(TokenType::RP, Literal(")"));
+	ts->emplace_back(TokenType::RP, Literal("]"));
 
 	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t1, t2));
 }
@@ -372,16 +369,18 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	for( size_t i = 0; i < units.size(); ++i )
 	{
 		hexStrings.push_back( units[i].get(ts) ); //filling up ts while getting the hexStrings
-		if(i + 1 < units.size())
+		if(i + 1 < units.size()) {
 			ts->emplace_back( HEX_ALT, "|" ); // add '|' in between the hexStrings
+		}
 	}
+	std::cout << "Made alt from " << units.size() << " units. The TokenStream: " << std::endl << *ts << std::endl;
 	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
 }
 
 YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
 {
 	hexStrings.push_back(unit.get(ts));
-	return YaraHexStringBuilder(ts, std::make_shared<HexStringOr>(hexStrings));
+	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
 }
 
 }

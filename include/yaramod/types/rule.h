@@ -50,10 +50,12 @@ public:
 
 	/// @name Constructors
 	/// @{
-	Rule() = default;
-	explicit Rule(std::shared_ptr<TokenStream> tokenStream, std::string&& name, Rule::Modifier mod, std::vector<Meta>&& metas,
-			std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition,
-			std::vector<std::string>&& tags);
+	Rule();
+	explicit Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+		Expression::Ptr&& condition, const std::vector<std::string>& tags);
+	explicit Rule(std::shared_ptr<TokenStream> tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+		Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
+
 	Rule(Rule&& rule) = default;
 	Rule(const Rule& rule) = default;
 	Rule& operator=(Rule&& rule) = default;
@@ -66,15 +68,16 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	const std::string& getName() const;
+	std::string getName() const;
 	Rule::Modifier getModifier() const;
 	std::vector<Meta>& getMetas();
 	const std::vector<Meta>& getMetas() const;
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
 	const Expression::Ptr& getCondition() const;
-	std::vector<std::string>& getTags();
-	const std::vector<std::string>& getTags() const;
+	std::vector<std::string> getTags() const;
+	// std::vector<std::string>& getTags();
+	// const std::vector<std::string>& getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
 	const Location& getLocation() const;
@@ -105,13 +108,14 @@ public:
 	/// @}
 
 private:
+	void removeTags(TokenType type);
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
-	std::string _name; ///< Name
-	Rule::Modifier _mod; ///< Modifier
+	TokenIt _name; ///< Name
+	std::optional<TokenIt> _mod; ///< Modifier
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
-	std::vector<std::string> _tags; ///< Tags
+	std::vector<TokenIt> _tags; ///< Tags
 	std::shared_ptr<Symbol> _symbol; ///< Symbol representing rule
 	Location _location; ///< Which file was this rule included from
 };
