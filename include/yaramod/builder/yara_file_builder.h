@@ -23,6 +23,14 @@ namespace yaramod {
 class YaraFileBuilder
 {
 public:
+	/// @name Constructors
+	/// @{
+	YaraFileBuilder()
+		: _tokenStream(std::make_shared<TokenStream>())
+	{
+	}
+	/// @}
+
 	/// @name Build method
 	/// @{
 	std::unique_ptr<YaraFile> get(bool recheck = true);
@@ -37,7 +45,8 @@ public:
 	/// @}
 
 private:
-	std::vector<std::string> _modules; ///< Modules
+	std::shared_ptr<TokenStream> _tokenStream;
+	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 };
 

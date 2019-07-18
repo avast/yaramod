@@ -22,11 +22,49 @@ namespace yaramod {
  * @param condition Condition expression.
  * @param tags Tags.
  */
-Rule::Rule(std::shared_ptr<TokenStream> tokenStream, std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		Expression::Ptr&& condition, std::vector<std::string>&& tags)
-	:  _tokenStream(std::move(tokenStream)), _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
-		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
-		_location({"[stream]", 0})
+Rule::Rule()
+	: _tokenStream(std::make_shared<TokenStream>())
+{
+}
+
+Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+		Expression::Ptr&& condition, const std::vector<std::string>& tags)
+	:  _tokenStream(std::make_shared<TokenStream>())
+	, _metas(std::move(metas))
+	, _strings(std::move(strings))
+	, _condition(std::move(condition))
+	, _location({"[stream]", 0})
+{
+	// TODO: add fuzz like rule, {, }, etc. into tokenstream
+	// TODO: connect tokenstreams from condition, Tries and Metas
+	// name:
+	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, std::move(name));
+	//symbol:
+	_symbol = std::make_shared<ValueSymbol>(_name->getText(), Expression::Type::Bool);
+	// tags:
+	for( const std::string& tag : tags )
+	{
+		TokenIt tagIt = _tokenStream->emplace_back( TokenType::TAG, tag );
+		_tags.push_back(tagIt);
+	}
+	// mod:
+	if(mod == Modifier::Global)
+		_mod = _tokenStream->emplace_back( TokenType::GLOBAL, "global");
+	else if(mod == Modifier::Private)
+		_mod = _tokenStream->emplace_back( TokenType::PRIVATE, "private");
+}
+
+Rule::Rule(std::shared_ptr<TokenStream> tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
+	: _tokenStream(std::move(tokenStream))
+	, _name(name)
+	, _mod(mod)
+	, _metas(std::move(metas))
+	, _strings(std::move(strings))
+	, _condition(std::move(condition))
+	, _tags(tags)
+	, _symbol(std::make_shared<ValueSymbol>(name->getText(), Expression::Type::Bool))
+	, _location({"[stream]", 0})
 {
 }
 
@@ -89,9 +127,9 @@ std::string Rule::getText() const
  *
  * @return Name.
  */
-const std::string& Rule::getName() const
+std::string Rule::getName() const
 {
-	return _name;
+	return _name->getText();
 }
 
 /**
@@ -101,7 +139,14 @@ const std::string& Rule::getName() const
  */
 Rule::Modifier Rule::getModifier() const
 {
-	return _mod;
+	if( !_mod.has_value())
+		return Rule::Modifier::None;
+	else if( (*_mod)->getType() == TokenType::GLOBAL)
+		return Rule::Modifier::Global;
+	else if( (*_mod)->getType() == TokenType::PRIVATE)
+		return Rule::Modifier::Private;
+	else
+		assert(false && "Unexpected modifier");
 }
 
 /**
@@ -165,9 +210,12 @@ const Expression::Ptr& Rule::getCondition() const
  *
  * @return Tags.
  */
-std::vector<std::string>& Rule::getTags()
+std::vector<std::string> Rule::getTags() const
 {
-	return _tags;
+	std::vector<std::string> output;
+	for( const TokenIt& item : _tags)
+		output.push_back(item->getText());
+	return output;
 }
 
 /**
@@ -175,10 +223,20 @@ std::vector<std::string>& Rule::getTags()
  *
  * @return Tags.
  */
-const std::vector<std::string>& Rule::getTags() const
-{
-	return _tags;
-}
+// std::vector<std::string>& Rule::getTags()
+// {
+// 	return _tags;
+// }
+
+/**
+ * Returns the tags of the YARA rule.
+ *
+ * @return Tags.
+ */
+// const std::vector<std::string>& Rule::getTags() const
+// {
+// 	return _tags;
+// }
 
 /**
  * Returns the symbols of the YARA rule.
@@ -228,7 +286,7 @@ const Rule::Location& Rule::getLocation() const
  */
 void Rule::setName(const std::string& name)
 {
-	_name = name;
+	_name->setValue(name);
 }
 
 /**
@@ -248,7 +306,18 @@ void Rule::setMetas(const std::vector<Meta>& metas)
  */
 void Rule::setTags(const std::vector<std::string>& tags)
 {
-	_tags = tags;
+	TokenIt last;
+	//delete all tags from tokenStream
+	for( const TokenIt& it : _tags )
+		last = _tokenStream->erase(it);
+	//delete iterators in _tags
+	_tags = std::vector<TokenIt>();
+	// Insert new tags into TokenStream
+	for( const std::string& tag : tags )
+	{
+		TokenIt tagIt = _tokenStream->insert( last, TokenType::TAG, Literal(tag) );
+		_tags.push_back(tagIt);
+	}
 }
 
 /**
@@ -278,7 +347,9 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
  */
 bool Rule::isGlobal() const
 {
-	return _mod == Rule::Modifier::Global;
+	if(_mod.has_value())
+		return (*_mod)->getType() == TokenType::GLOBAL;
+	return false;
 }
 
 /**
@@ -288,7 +359,9 @@ bool Rule::isGlobal() const
  */
 bool Rule::isPrivate() const
 {
-	return _mod == Rule::Modifier::Private;
+	if(_mod.has_value())
+		return (*_mod)->getType() == TokenType::PRIVATE;
+	return false;
 }
 
 /**
@@ -344,18 +417,42 @@ void Rule::removeString(const std::string& id)
  */
 void Rule::addTag(const std::string& tag)
 {
-	_tags.push_back(tag);
+	//find iterator behind tags in TokenStream
+	TokenIt end = ++_tags.back();
+	TokenIt newTagIt = _tokenStream->insert( end, TokenType::TAG, Literal(tag) );
+	_tags.push_back(newTagIt);
 }
 
 /**
  * Removes tag from the rule.
  *
  * @param tag Tag to remove.
+ * @return true iff there was corresponding tag and it was removed
  */
 void Rule::removeTags(const std::string& tag)
 {
-	auto new_end = std::remove(_tags.begin(), _tags.end(), tag);
-	_tags.erase(new_end, _tags.end());
+	for(auto it = _tags.begin(); it != _tags.end(); ++it)
+		if((*it)->getText() == tag)
+		{
+			_tokenStream->erase(*it);
+			_tags.erase(it);
+			// return true;
+			return;
+		}
+	// return false;
+}
+
+void Rule::removeTags(TokenType type)
+{
+	for(auto it = _tags.begin(); it != _tags.end(); ++it)
+		if((*it)->getType() == type)
+		{
+			_tokenStream->erase(*it);
+			_tags.erase(it);
+			// return true;
+			return;
+		}
+	// return false;
 }
 
 }

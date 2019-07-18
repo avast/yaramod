@@ -571,10 +571,17 @@ public:
 	void moveLocation(std::uint64_t moveLength);
 
 	/// @name Methods to handle the token stream
-	// void addToken( const yaramod::Token& t );
-	// void addToken( yaramod::Token&& t );
-	// void emplaceToken(Tokentype type, TokenValueBase* value, const pgl::position& position);
-
+	// TokenIt emplace_token( TokenType type, const char* value );
+	// TokenIt emplace_token( TokenType type, const std::string& value );
+	// TokenIt emplace_token( TokenType type, bool b );
+	// TokenIt emplace_token( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	// TokenIt emplace_token( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	// TokenIt emplace_token( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	// TokenIt emplace_token( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	// TokenIt emplace_token( TokenType type, const Literal& literal );
+	// TokenIt emplace_token( TokenType type, Literal&& literal );
+	// TokenIt push_token( const Token& t );
+	// TokenIt push_token( Token&& t );
 	/// @}
 
 	/// @name Methods for handling symbols
@@ -582,7 +589,7 @@ public:
 	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
 	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
 	void removeLocalSymbol(const std::string& name);
-	/// @}
+	/// @}7
 
 protected:
 	std::istream* currentStream();
@@ -632,7 +639,7 @@ private:
 	//yy::Parser _parser; ///< Bison parser //TODO:delete
 	yy::location _loc; ///< Location
 
-	std::shared_ptr<TokenStream> tokens;
+	std::shared_ptr<TokenStream> _tokenStream;
 	YaraRuleBuilder builder;
 	YaraExpressionBuilder expression_builder;
    size_t max_size = UINT_MAX; //-1

@@ -47,6 +47,17 @@ Literal::Literal(const std::string& value)
  * Constructor.
  *
  * @param value String value of the literal.
+ * @param type Type of the literal.
+ */
+Literal::Literal(const char* value)
+	: _value(std::string(value))
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param value String value of the literal.
  */
 Literal::Literal(std::string&& value)
    : _value(std::move(value))
@@ -212,48 +223,44 @@ std::string Literal::getPureText() const
 
 bool Literal::isString() const
 {
-	// std::cout << *this << " is string? " << std::is_same_v< decltype(_value), const std::string& > << std::endl;
-	// std::cout << *this << " is string? " << std::is_same_v< decltype(_value), std::string& > << std::endl;
-	// std::cout << *this << " is string? " << std::is_same_v< decltype(_value), std::string > << std::endl;
-	// std::cout << *this << " is string? " << std::is_same_v< decltype(_value), const char* > << std::endl;
-	std::cout << "isString(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isString(" << *this << ")? exp 0, actual index: " << _value.index() << std::endl;
 	// return std::is_same_v< decltype(_value), std::string& >;
 	return _value.index() == 0;
 }
 
 bool Literal::isBool() const
 {
-	std::cout << "isBool(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isBool(" << *this << ")? exp 1, actual index: " << _value.index() << std::endl;
 	return _value.index() == 1;
 }
 
 bool Literal::isInt() const
 {
-	std::cout << "isInt(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isInt(" << *this << ")? exp 2, actual index: " << _value.index() << std::endl;
 	return _value.index() == 2;
 }
 
 bool Literal::isInt64_t() const
 {
-	std::cout << "isInt64_t(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isInt64_t(" << *this << ")? exp 3, actual index: " << _value.index() << std::endl;
 	return _value.index() == 3;
 }
 
 bool Literal::isUInt64_t() const
 {
-	std::cout << "isUInt64_t(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isUInt64_t(" << *this << ")? exp 4, actual index: " << _value.index() << std::endl;
 	return _value.index() == 4;
 }
 
 bool Literal::isFloat() const
 {
-	std::cout << "isFloat(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isFloat(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
 	return _value.index() == 5;
 }
 
 bool Literal::isIntegral() const
 {
-	std::cout << "isIntegral(" << *this << ")? index: " << _value.index() << std::endl;
+	// std::cout << "isIntegral(" << *this << ")? index: " << _value.index() << std::endl;
 	return isInt() ||  isInt64_t() || isUInt64_t() || isFloat() ;
 }
 
@@ -365,14 +372,30 @@ float Token::getFloat() const
 	return _value->getFloat();
 }
 
+TokenIt TokenStream::emplace_back( TokenType type, const char* value )
+{
+	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
+	_tokens.emplace_back(type, std::move(Literal(value)));
+	return --_tokens.end();
+}
+
 TokenIt TokenStream::emplace_back( TokenType type, const std::string& value )
 {
+	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
 	_tokens.emplace_back(type, std::move(Literal(value)));
+	return --_tokens.end();
+}
+
+TokenIt TokenStream::emplace_back( TokenType type, std::string&& value )
+{
+	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
+	_tokens.emplace_back(type, std::move(Literal(std::move(value))));
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, bool b )
 {
+	std::cout << "Emplace with bool value '" << b << "' called " << std::endl;
 	_tokens.emplace_back(type, std::move(Literal(b)));
 	return --_tokens.end();
 }
@@ -403,6 +426,7 @@ TokenIt TokenStream::emplace_back( TokenType type, float i, const std::optional<
 
 TokenIt TokenStream::emplace_back( TokenType type, const Literal& literal )
 {
+	std::cout << "Emplace with Literal '" << literal << "' called" << std::endl;
 	_tokens.emplace_back(type, literal);
 	return --_tokens.end();
 }
@@ -433,6 +457,16 @@ TokenIt TokenStream::insert( TokenIt before, TokenType type, const Literal& lite
 TokenIt TokenStream::insert( TokenIt before, TokenType type, Literal&& literal)
 {
 	return _tokens.insert(before, std::move(Token(type, std::move(literal))));
+}
+
+TokenIt TokenStream::erase( TokenIt element )
+{
+	return _tokens.erase(element);
+}
+
+TokenIt TokenStream::erase( TokenIt first, TokenIt last )
+{
+	return _tokens.erase(first, last);
 }
 
 void TokenStream::move_append( TokenStream* donor )

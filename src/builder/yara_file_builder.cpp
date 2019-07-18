@@ -58,7 +58,9 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
  */
 YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 {
-	_modules.push_back(moduleName);
+	_tokenStream->emplace_back(TokenType::IMPORT_MODULE, "import");
+	TokenIt moduleToken = _tokenStream->emplace_back(TokenType::MODULE_NAME, moduleName);
+	_modules.push_back(moduleToken);
 	return *this;
 }
 
