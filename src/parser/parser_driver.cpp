@@ -312,7 +312,7 @@ namespace gr {
       template< typename Input >
       static void apply(const Input& in, ParserDriver& d)
       {
-			YaraHexStringBuilder hex_builder(d._tokenStream); //TokenStream vlastnictvi -> builder
+			YaraHexStringBuilder hex_builder(d._tokenStream);
 			string_input si( in.string(), "hex" );
          try {
          	auto root = pgl::parse_tree::parse< hex_comp_start, hex_selector > (si, d);
@@ -329,8 +329,7 @@ namespace gr {
       	}
 
       	assert(d.str_modifiers == 0u);
-      	d._tokenStream = std::make_unique<TokenStream>();
-         const auto& hex_string = hex_builder.get(d._tokenStream); //TokenStream vlastnictvi -> driver
+         const auto& hex_string = hex_builder.get(); //TokenStream vlastnictvi -> driver
          const auto& units = hex_string->getUnits();
          if( units.front()->isJump() )
          	error_handle("hex-string syntax error: Unexpected jump '" + units.front()->getText() + "' at the beginning of hex-string, expecting ( or ? or nibble.", in.position().line);
@@ -845,7 +844,9 @@ namespace gr {
   			}
   			else if( child->is< hex_brackets >() )
   			{
-  				d._tokenStream->emplace_back(TokenType::LP, "(");
+  				if(!d._tokenStream)
+  					std::cerr << "d._tokenStream is nullptr" << std::endl;
+  				d._tokenStream->emplace_back(TokenType::LP, std::move(std::string("(")));
   				alt_builders[0].add( parse_hex_tree( child.get(), d ) );
   				d._tokenStream->emplace_back(TokenType::RP, ")");
   			}
@@ -853,10 +854,10 @@ namespace gr {
   				alt_builders.emplace_back( parse_hex_tree( child.get(), d ) );
   			}
   			else if(child->is< hex_left_bracket >() ) {
-  				d._tokenStream->emplace_back(TokenType::LP, "<");
+  				// d._tokenStream->emplace_back(TokenType::LP, "<");
   			}
   			else if(child->is< hex_righ_bracket >() ) {
-  				d._tokenStream->emplace_back(TokenType::RP, ">");
+  				// d._tokenStream->emplace_back(TokenType::RP, ">");
   			}
   			else {
   				assert(false && "Unknown node type.");

@@ -25,6 +25,7 @@ namespace yaramod {
 Rule::Rule()
 	: _tokenStream(std::make_shared<TokenStream>())
 {
+	_name = _tokenStream->emplace_back( TokenType::RULE_NAME, "unknown");
 }
 
 Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
@@ -52,6 +53,8 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 		_mod = _tokenStream->emplace_back( TokenType::GLOBAL, "global");
 	else if(mod == Modifier::Private)
 		_mod = _tokenStream->emplace_back( TokenType::PRIVATE, "private");
+	else
+		_mod = _tokenStream->emplace_back( TokenType::NONE, "");
 }
 
 Rule::Rule(std::shared_ptr<TokenStream> tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
@@ -85,10 +88,11 @@ std::string Rule::getText() const
 
 	ss << "rule " << getName() << ' ';
 
-	if (!getTags().empty())
+	if (!_tags.empty())
 	{
+		const auto& tags = getTags();
 		ss << ": ";
-		std::for_each(getTags().begin(), getTags().end(),
+		std::for_each(tags.begin(), tags.end(),
 				[&ss](const std::string& tag)
 				{
 					ss << tag << ' ';
@@ -117,7 +121,6 @@ std::string Rule::getText() const
 					ss << indent << string->getIdentifier() << " = " << string->getText() << '\n';
 				});
 	}
-
 	ss << "\tcondition:\n" << indent << getCondition()->getText(indent) << "\n}";
 	return ss.str();
 }
@@ -129,7 +132,7 @@ std::string Rule::getText() const
  */
 std::string Rule::getName() const
 {
-	return _name->getText();
+	return _name->getPureText();
 }
 
 /**
@@ -139,14 +142,12 @@ std::string Rule::getName() const
  */
 Rule::Modifier Rule::getModifier() const
 {
-	if( !_mod.has_value())
-		return Rule::Modifier::None;
-	else if( (*_mod)->getType() == TokenType::GLOBAL)
+	if( isGlobal() )
 		return Rule::Modifier::Global;
-	else if( (*_mod)->getType() == TokenType::PRIVATE)
+	else if( isPrivate() )
 		return Rule::Modifier::Private;
 	else
-		assert(false && "Unexpected modifier");
+		return Rule::Modifier::None;
 }
 
 /**
@@ -214,7 +215,7 @@ std::vector<std::string> Rule::getTags() const
 {
 	std::vector<std::string> output;
 	for( const TokenIt& item : _tags)
-		output.push_back(item->getText());
+		output.push_back(item->getPureText());
 	return output;
 }
 
@@ -347,9 +348,7 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
  */
 bool Rule::isGlobal() const
 {
-	if(_mod.has_value())
-		return (*_mod)->getType() == TokenType::GLOBAL;
-	return false;
+	return _mod.has_value() && (*_mod)->getType() == TokenType::GLOBAL;
 }
 
 /**
@@ -359,9 +358,7 @@ bool Rule::isGlobal() const
  */
 bool Rule::isPrivate() const
 {
-	if(_mod.has_value())
-		return (*_mod)->getType() == TokenType::PRIVATE;
-	return false;
+	return _mod.has_value() && (*_mod)->getType() == TokenType::PRIVATE;
 }
 
 /**

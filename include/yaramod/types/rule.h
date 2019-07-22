@@ -19,11 +19,13 @@
 
 namespace yaramod {
 
+class YaraFileBuilder;
 /**
  * Class representing YARA rule.
  */
 class Rule
 {
+	friend YaraFileBuilder;
 public:
 	struct Location
 	{

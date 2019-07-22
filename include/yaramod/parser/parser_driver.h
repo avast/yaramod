@@ -537,6 +537,7 @@ public:
   	friend YaraExpressionBuilder gr::parse_cond_tree( pgl::parse_tree::node* root, ParserDriver& d );
 	/// @name Constructors
 	/// @{
+  	ParserDriver() = delete;
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	/// @}

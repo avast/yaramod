@@ -61,6 +61,8 @@ protected:
 	Type _type; ///< Type of the unit
 };
 
+class YaraRuleBuilder;
+
 /**
  * Class representing hex strings in the strings section
  * of the YARA rules.
@@ -73,6 +75,7 @@ protected:
  */
 class HexString : public String
 {
+	friend YaraRuleBuilder;
 public:
 	/// @name Constructors
 	/// @{

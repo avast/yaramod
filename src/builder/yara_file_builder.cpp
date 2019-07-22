@@ -18,12 +18,13 @@ namespace yaramod {
  */
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
 {
-	auto yaraFile = std::make_unique<YaraFile>();
+	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
 	yaraFile->addImports(_modules);
 	yaraFile->addRules(_rules);
 
 	_modules.clear();
 	_rules.clear();
+	_tokenStream = std::make_shared<TokenStream>();
 
 	std::stringstream ss;
 	ss << yaraFile->getText();
@@ -73,6 +74,7 @@ YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
 {
+	_tokenStream->move_append(rule._tokenStream.get());
 	withRule(std::make_unique<Rule>(std::move(rule)));
 	return *this;
 }
@@ -86,6 +88,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
+	_tokenStream->move_append(rule->_tokenStream.get());
 	_rules.emplace_back(std::move(rule));
 	return *this;
 }
@@ -99,6 +102,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
+	_tokenStream->move_append(rule->_tokenStream.get());
 	_rules.emplace_back(rule);
 	return *this;
 }
