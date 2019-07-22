@@ -108,7 +108,15 @@ const std::vector<std::shared_ptr<Symbol>> YaraFile::globalVariables =
 /**
  * Constructor.
  */
-YaraFile::YaraFile() : _imports(), _rules()
+YaraFile::YaraFile()
+	: YaraFile(std::move(std::make_shared<TokenStream>()))
+{
+}
+
+YaraFile::YaraFile(std::shared_ptr<TokenStream>&& tokenStream)
+	: _tokenStream(std::move(tokenStream))
+	, _imports()
+	, _rules()
 {
 }
 
@@ -150,14 +158,14 @@ std::string YaraFile::getText() const
  */
 bool YaraFile::addImport(TokenIt import)
 {
-	auto module = Module::load(import->getText());
+	auto module = Module::load(import->getPureText());
 	if (!module)
 		return false;
 
 	// We don't want duplicates.
 	auto itr = std::find_if(_imports.begin(), _imports.end(),
 			[&import](const auto& loadedModule) {
-				return loadedModule->getName() == import->getText();
+				return loadedModule->getName() == import->getPureText();
 			});
 	if (itr != _imports.end())
 		return true;
@@ -216,7 +224,7 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
  */
 bool YaraFile::addImports(const std::vector<TokenIt>& imports)
 {
-	for (const auto& module : imports)
+	for (const TokenIt& module : imports)
 	{
 		if (!addImport(module))
 			return false;

@@ -75,6 +75,7 @@ enum TokenType
    COMMA = 284,
    PRIVATE = 285,
    GLOBAL = 286,
+   NONE,
    RULE = 287,
    STRINGS = 289,
    CONDITION = 290,

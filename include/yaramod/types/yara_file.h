@@ -23,6 +23,7 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraFile();
+	YaraFile(std::shared_ptr<TokenStream>&& tokenStream);
 	YaraFile(YaraFile&&) noexcept = default;
 	/// @}
 
@@ -81,6 +82,7 @@ public:
 	/// @}
 
 private:
+	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 

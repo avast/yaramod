@@ -72,7 +72,7 @@ public:
 
 private:
 	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
-	TokenIt _name; ///< Name
+	std::optional<TokenIt> _name; ///< Name
 	std::optional<TokenIt> _mod; ///< Modifier
 	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information

@@ -26,10 +26,12 @@ YaraRuleBuilder::YaraRuleBuilder()
  */
 YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
 	: _tokenStream(tokenStream)
+	, _name(std::nullopt)
 	, _mod(std::nullopt)
 	, _strings(std::make_shared<Rule::StringsTrie>())
 	, _condition(std::make_shared<BoolLiteralExpression>(true))
 {
+	withName("unknown");
 }
 
 
@@ -40,23 +42,31 @@ YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
  */
 std::unique_ptr<Rule> YaraRuleBuilder::get()
 {
+	std::cout << "get() called" << std::endl;
 	// If rule has invalid name
-	if (!isValidIdentifier(_name->getText()))
+	if(!_name.has_value()){
+		std::cerr << "Unspecified name" << std::endl;
 		return nullptr;
+	}
+	if (!isValidIdentifier((*_name)->getPureText())) {
+		std::cerr << "Invalid name identifier '" << (*_name)->getPureText() << "'" << std::endl;
+		return nullptr;
+	}
 
 	// If any of the meta information has invalid key identifier
 	if (std::any_of(_metas.begin(), _metas.end(),
 				[](const auto& meta) {
+					std::cout << meta.getKey() << std::endl;
 					return !isValidIdentifier(meta.getKey());
 				}))
 	{
+		std::cerr << "Invalid key identifier" << std::endl;
 		return nullptr;
 	}
-	std::cout << "get() called. TokenStream:" << std::endl << *_tokenStream << std::endl;
 
-	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(*_name), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
 	_tokenStream = std::make_shared<TokenStream>();
-	_name = TokenIt();
+	_name = std::nullopt;
 	_mod = std::nullopt;
 	_tags.clear();
 	_metas.clear();
@@ -76,7 +86,10 @@ YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
 {
 	if(name == "")
 		throw RuleBuilderError("Error: name must be non-empty.");
-	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, name);
+	if(_name != std::nullopt)
+		(*_name)->setValue(name);
+	else
+		_name = _tokenStream->emplace_back(TokenType::RULE_NAME, name);
 	return *this;
 }
 
@@ -89,6 +102,8 @@ YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
  */
 YaraRuleBuilder& YaraRuleBuilder::withModifier(Rule::Modifier mod)
 {
+	if(_mod != std::nullopt)
+		throw RuleBuilderError("Error: Rule already has modifier.");
 	if(mod == Rule::Modifier::Global)
 		_mod = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
 	else if(mod == Rule::Modifier::Private)
@@ -194,8 +209,11 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
 
 	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
 	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
-
+	TokenIt itValue;
+	if(!formated_value.has_value())
+		itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, std::make_optional<std::string>(numToStr(value, std::hex, true)) );
+	else
+		itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
 	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
@@ -254,6 +272,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 {
 	if(id == "" || hexString->getText() == "")
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
+	_tokenStream->move_append(std::move(hexString->_ts.get()));
 	hexString->setIdentifier(id);
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));
 	return *this;
