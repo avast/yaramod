@@ -319,7 +319,7 @@ strings_body
 string
 	: STRING_LITERAL[literal] string_mods
 		{
-			$$ = std::make_shared<PlainString>(std::move($literal));
+			$$ = std::make_shared<PlainString>(driver._tokenStream, std::move($literal));
 			$$->setModifiers($string_mods);
 		}
 	| LCB
@@ -328,7 +328,7 @@ string
 		}
 		hex_string RCB
 		{
-			$$ = std::make_shared<HexString>(std::move($hex_string));
+			$$ = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string));
 			driver.getLexer().switchToYaraLexer();
 		}
 	| regexp string_mods
@@ -1141,13 +1141,13 @@ hex_or
 hex_or_body
 	: hex_string_body
 		{
-			auto hexStr = std::make_shared<HexString>(std::move($hex_string_body));
+			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
 			$$.push_back(std::move(hexStr));
 		}
 	| hex_or_body[body] HEX_OR hex_string_body
 		{
 			$$ = std::move($body);
-			auto hexStr = std::make_shared<HexString>(std::move($hex_string_body));
+			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
 			$$.push_back(std::move(hexStr));
 		}
 	;

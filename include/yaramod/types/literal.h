@@ -181,6 +181,7 @@ public:
    /// @name Setter methods
    /// @{
    void setValue(const std::string& s);
+   void setValue(std::string&& s);
    void setValue(bool b);
    void setValue(int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
@@ -266,6 +267,7 @@ public:
    void setValue(const Literal& new_value) { _value = std::make_shared< Literal >(new_value); }
 
    void setValue(const std::string& value) { _value->setValue(value); }
+   void setValue(std::string&& value) { _value->setValue(std::move(value)); }
    void setValue(bool value) { _value->setValue(value); }
    void setValue(int value) { _value->setValue(value); }
    void setValue(int64_t value) { _value->setValue(value); }
@@ -326,12 +328,23 @@ public:
 	TokenIt emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, const Literal& literal );
 	TokenIt emplace_back( TokenType type, Literal&& literal );
+	TokenIt emplace( TokenIt before, TokenType type, const char* value );
+	TokenIt emplace( TokenIt before, TokenType type, const std::string& value );
+	TokenIt emplace( TokenIt before, TokenType type, std::string&& value );
+	TokenIt emplace( TokenIt before, TokenType type, bool b );
+	TokenIt emplace( TokenIt before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( TokenIt before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( TokenIt before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( TokenIt before, TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( TokenIt before, TokenType type, const Literal& literal );
+	TokenIt emplace( TokenIt before, TokenType type, Literal&& literal );
 	TokenIt push_back( const Token& t );
 	TokenIt push_back( Token&& t );
 	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
 	TokenIt insert( TokenIt before, TokenType type, Literal&& literal);
 	// returns iterator behind the last erased element
 	TokenIt erase( TokenIt element );
+	// Removes the elements in the range [first, last).
 	TokenIt erase( TokenIt first, TokenIt last );
 	void move_append( TokenStream* donor );
 	/// @}
