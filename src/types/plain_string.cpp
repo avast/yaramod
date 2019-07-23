@@ -14,8 +14,10 @@ namespace yaramod {
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(const std::string& text) : String(String::Type::Plain), _text(text)
+PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& text)
+   : String(ts, String::Type::Plain)
 {
+   _text = ts->emplace_back(TokenType::STRING_ID, std::move(text));
 }
 
 /**
@@ -23,8 +25,24 @@ PlainString::PlainString(const std::string& text) : String(String::Type::Plain),
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(std::string&& text) : String(String::Type::Plain), _text(std::move(text))
+PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
+   : String(ts, String::Type::Plain)
 {
+   _text = ts->emplace_back(TokenType::STRING_ID, std::move(text));
+}
+
+/**
+ * Constructor.
+ *
+ * @param text Text of the plain string.
+ */
+PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt text)
+   : String(ts, String::Type::Plain)
+   , _text(text)
+{
+   if(!text->isString())
+      throw YaramodError("String class identifier must be string.");
+   assert(text->getType() == TokenType::STRING_ID);
 }
 
 /**
@@ -44,7 +62,7 @@ std::string PlainString::getText() const
  */
 std::string PlainString::getPureText() const
 {
-	return _text;
+	return _text->getString();
 }
 
 }

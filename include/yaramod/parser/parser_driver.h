@@ -34,7 +34,8 @@ namespace yaramod {
 /**
  * Represents error during parsing.
  */
-class ParserError : public YaramodError{
+class ParserError : public YaramodError
+{
 public:
 	ParserError(const std::string& errorMsg)
 		: YaramodError(errorMsg)

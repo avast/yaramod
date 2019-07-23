@@ -251,10 +251,13 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
  */
 YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const std::string& value, std::uint32_t mods)
 {
+	//Must insert into tokenstream: id, =, value, mods
 	if(id == "" || value == "")
 		throw RuleBuilderError("Error: Plain string id and value must be non-empty.");
-	auto plainString = std::make_shared<PlainString>(value);
-	plainString->setIdentifier(id);
+	TokenIt id_token = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
+	_tokenStream->emplace_back(TokenType::EQ, "=");
+	auto plainString = std::make_shared<PlainString>(_tokenStream, value);
+	plainString->setIdentifier(id_token);
 	plainString->setModifiers(mods);
 	_strings->insert(id, std::static_pointer_cast<String>(plainString));
 	return *this;
@@ -272,7 +275,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 {
 	if(id == "" || hexString->getText() == "")
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
-	_tokenStream->move_append(std::move(hexString->_ts.get()));
+	_tokenStream->move_append(std::move(hexString->_tokenStream.get()));
 	hexString->setIdentifier(id);
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));
 	return *this;

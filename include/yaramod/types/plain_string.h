@@ -25,8 +25,9 @@ class PlainString : public String
 public:
 	/// @name Constructors
 	/// @{
-	explicit PlainString(const std::string& text);
-	explicit PlainString(std::string&& text);
+	explicit PlainString(std::shared_ptr<TokenStream> ts, const std::string& text);
+	explicit PlainString(std::shared_ptr<TokenStream> ts, std::string&& text);
+	explicit PlainString(std::shared_ptr<TokenStream> ts, TokenIt text);
 	~PlainString() = default;
 	/// @}
 
@@ -37,7 +38,8 @@ public:
 	/// @}
 
 private:
-	std::string _text; ///< Text of the plain string
+	TokenIt _text; ///< Text of the plain string
+	std::shared_ptr<TokenStream> ts;
 };
 
 }

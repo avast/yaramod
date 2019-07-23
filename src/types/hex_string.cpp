@@ -14,8 +14,8 @@ namespace yaramod {
  *
  * @param units Units of the hex string.
  */
-HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units)
-	: String(String::Type::Hex), _units(units)
+HexString::HexString(std::shared_ptr<TokenStream> ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
+	: String(ts, String::Type::Hex), _units(units)
 {
 }
 
@@ -24,28 +24,8 @@ HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units)
  *
  * @param units Units of the hex string.
  */
-HexString::HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units)
-	: String(String::Type::Hex), _units(std::move(units))
-{
-}
-
-/**
- * Constructor.
- *
- * @param units Units of the hex string.
- */
-HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units, const std::shared_ptr<TokenStream>& ts)
-	: String(String::Type::Hex), _units(units), _ts(ts)
-{
-}
-
-/**
- * Constructor.
- *
- * @param units Units of the hex string.
- */
-HexString::HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units, const std::shared_ptr<TokenStream>& ts)
-	: String(String::Type::Hex), _units(std::move(units)), _ts(ts)
+HexString::HexString(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
+	: String(ts, String::Type::Hex), _units(std::move(units))
 {
 }
 

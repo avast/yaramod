@@ -139,7 +139,7 @@ YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shar
 {
 	const auto& hexString = unit.get(ts);
 	hexStrings.push_back(hexString);
-	ts->emplace_back(HEX_ALT, "ALT");
+	ts->emplace_back(HEX_ALT, "|");
 	std::cout << *ts;
 	return _alt(ts, hexStrings, args...);
 }
