@@ -375,6 +375,12 @@ float Token::getFloat() const
 	return _value->getFloat();
 }
 
+TokenIt TokenStream::emplace_back( TokenType type, char value )
+{
+	_tokens.emplace_back(type, std::move(Literal(std::string() + value)));
+	return --_tokens.end();
+}
+
 TokenIt TokenStream::emplace_back( TokenType type, const char* value )
 {
 	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
@@ -438,6 +444,13 @@ TokenIt TokenStream::emplace_back( TokenType type, Literal&& literal )
 {
 	_tokens.emplace_back(type, std::move(literal));
 	return --_tokens.end();
+}
+
+TokenIt TokenStream::emplace( TokenIt before, TokenType type, char value )
+{
+	std::cout << "Emplace between with char value '" << value << "' called " << std::endl;
+	_tokens.emplace(before, type, std::move(Literal(std::string() + value)));
+	return before;
 }
 
 TokenIt TokenStream::emplace( TokenIt before, TokenType type, const char* value )

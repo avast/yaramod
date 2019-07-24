@@ -1175,7 +1175,7 @@ regexp
 		}
 
 regexp_body
-	: regexp_or { $$ = std::make_shared<Regexp>(std::move($regexp_or)); }
+	: regexp_or { $$ = std::make_shared<Regexp>(driver._tokenStream, std::move($regexp_or)); }
 	;
 
 regexp_or

@@ -45,6 +45,8 @@ enum TokenType
    META_END,   //only marker which does not carry any value
    MODULE_NAME,
    MODIFIER,
+   LQUOTE,
+   RQUOTE,
 
    END = 258,
    RANGE = 259,
@@ -68,8 +70,10 @@ enum TokenType
    BITWISE_NOT = 277,
    LP = 278,
    RP = 279,
-   LCB = 280,
-   RCB = 281,
+   LCB = 280, // '{'
+   RCB = 281, // '}'
+   LRB, // '['
+   RRB, // ']'
    ASSIGN = 282,
    COLON = 283,
    COMMA = 284,
@@ -133,6 +137,9 @@ enum TokenType
    REGEXP_CHAR = 346,
    REGEXP_RANGE = 347,
    REGEXP_CLASS = 348,
+   REGEXP_CLASS_NEGATIVE,
+   REGEXP_MODIFIERS,
+   REGEXP_GREEDY,
    UNARY_MINUS = 349,
    META_KEY = 288,
    META_VALUE = 289,
@@ -318,6 +325,7 @@ public:
 	TokenStream() = default;
 	/// @name Insertion methods
 	/// @{
+	TokenIt emplace_back( TokenType type, char value );
 	TokenIt emplace_back( TokenType type, const char* value );
 	TokenIt emplace_back( TokenType type, const std::string& value );
 	TokenIt emplace_back( TokenType type, std::string&& value );
@@ -328,6 +336,7 @@ public:
 	TokenIt emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, const Literal& literal );
 	TokenIt emplace_back( TokenType type, Literal&& literal );
+	TokenIt emplace( TokenIt before, TokenType type, char value );
 	TokenIt emplace( TokenIt before, TokenType type, const char* value );
 	TokenIt emplace( TokenIt before, TokenType type, const std::string& value );
 	TokenIt emplace( TokenIt before, TokenType type, std::string&& value );
@@ -360,8 +369,10 @@ public:
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
 
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
-      for(const auto& it : ts._tokens)
-      	os << it << ", ";
+      for(const auto& token : ts._tokens)
+      {
+   		os << token << " ";
+      }
       return os;
    }
 
