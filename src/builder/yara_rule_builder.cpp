@@ -64,6 +64,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 		return nullptr;
 	}
 
+	std::cout << "TokenStream when rule_builder.get() called: '" << *_tokenStream << "'" << std::endl;
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(*_name), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
 	_tokenStream = std::make_shared<TokenStream>();
 	_name = std::nullopt;
@@ -251,13 +252,15 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
  */
 YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const std::string& value, std::uint32_t mods)
 {
-	//Must insert into tokenstream: id, =, value, mods
+	//Must insert into tokenstream: id, =, ", value, ", mods
 	if(id == "" || value == "")
 		throw RuleBuilderError("Error: Plain string id and value must be non-empty.");
 	TokenIt id_token = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
 	_tokenStream->emplace_back(TokenType::EQ, "=");
+	_tokenStream->emplace_back(TokenType::LQUOTE, "\"");
 	auto plainString = std::make_shared<PlainString>(_tokenStream, value);
 	plainString->setIdentifier(id_token);
+	_tokenStream->emplace_back(TokenType::RQUOTE, "\"");
 	plainString->setModifiers(mods);
 	_strings->insert(id, std::static_pointer_cast<String>(plainString));
 	return *this;
@@ -299,7 +302,7 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
 {
 	if(id == "" || value == "")
 		throw RuleBuilderError("Error: Regexp id and value must be non-empty.");
-	auto regexp = std::make_shared<Regexp>(std::make_shared<RegexpText>(value));
+	auto regexp = std::make_shared<Regexp>(_tokenStream, std::make_shared<RegexpText>(value));
 	regexp->setIdentifier(id);
 	regexp->setModifiers(mods);
 	regexp->setSuffixModifiers(suffixMods);

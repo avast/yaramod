@@ -59,10 +59,14 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 
 }
 
+
+
 /**
  * Constructor.
  */
-YaraExpressionBuilder::YaraExpressionBuilder() : _expr()
+YaraExpressionBuilder::YaraExpressionBuilder()
+	: _tokenStream( std::make_shared<TokenStream>() )
+	, _expr()
 {
 }
 
@@ -71,7 +75,9 @@ YaraExpressionBuilder::YaraExpressionBuilder() : _expr()
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr) : _expr(expr)
+YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr)
+	: _tokenStream( std::make_shared<TokenStream>() )
+	, _expr(expr)
 {
 }
 
@@ -80,7 +86,9 @@ YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr) : _exp
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr) : _expr(std::move(expr))
+YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr)
+	: _tokenStream( std::make_shared<TokenStream>() )
+	, _expr(std::move(expr))
 {
 }
 
@@ -89,7 +97,9 @@ YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr) : _expr(std
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type) : _expr(expr)
+YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
+	: _tokenStream( std::make_shared<TokenStream>() )
+	, _expr(expr)
 {
 	setType(type);
 }
@@ -99,7 +109,64 @@ YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr, const 
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type) : _expr(std::move(expr))
+YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
+	: _tokenStream( std::make_shared<TokenStream>() )
+	, _expr(std::move(expr))
+{
+	setType(type);
+}
+
+/**
+ * Constructor.
+ */
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts)
+	: _tokenStream(ts)
+	, _expr()
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param expr Expression to use.
+ */
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr)
+	: _tokenStream( ts )
+	, _expr(expr)
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param expr Expression to use.
+ */
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr)
+	: _tokenStream( ts )
+	, _expr(std::move(expr))
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param expr Expression to use.
+ */
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr, const Expression::Type& type)
+	: _tokenStream( ts )
+	, _expr(expr)
+{
+	setType(type);
+}
+
+/**
+ * Constructor.
+ *
+ * @param expr Expression to use.
+ */
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr, const Expression::Type& type)
+	: _tokenStream( ts )
+	, _expr(std::move(expr))
 {
 	setType(type);
 }
@@ -1184,9 +1251,10 @@ YaraExpressionBuilder them()
  */
 YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods)
 {
-	auto regexp = std::make_shared<Regexp>(std::make_shared<RegexpText>(text));
+	std::shared_ptr<TokenStream> ts;
+	auto regexp = std::make_shared<Regexp>(ts, std::make_shared<RegexpText>(text));
 	regexp->setSuffixModifiers(suffixMods);
-	return YaraExpressionBuilder(std::make_shared<RegexpExpression>(std::move(regexp)), Expression::Type::Regexp);
+	return YaraExpressionBuilder(ts, std::make_shared<RegexpExpression>(std::move(regexp)), Expression::Type::Regexp);
 }
 
 }

@@ -10,6 +10,7 @@
 #include <string>
 
 #include "yaramod/types/expression.h"
+#include "yaramod/types/literal.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/yaramod_error.h"
 
@@ -65,6 +66,11 @@ public:
 	YaraExpressionBuilder(Expression::Ptr&& expr);
 	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type);
 	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr, const Expression::Type& type);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr, const Expression::Type& type);
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -174,6 +180,7 @@ protected:
 	}
 
 private:
+	std::shared_ptr<TokenStream> _tokenStream;
 	Expression::Ptr _expr;
 };
 

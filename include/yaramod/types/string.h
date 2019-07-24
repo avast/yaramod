@@ -46,9 +46,10 @@ public:
 	explicit String(std::shared_ptr<TokenStream> ts, Type type)
 		: _tokenStream(ts)
 		, _type(type)
-		, _id(std::nullopt)
 		, _mods(Modifiers::None)
 	{
+		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, "unknown");
+		_equal_sign = _tokenStream->emplace_back(TokenType::EQ, "=");
 	}
 	explicit String(Type type)
 		: String(std::make_shared<TokenStream>(), type)
@@ -68,10 +69,7 @@ public:
 	Type getType() const { return _type; }
 	std::string getIdentifier() const
 	{
-		if(!_id.has_value())
-			return "";
-		else
-			return (*_id)->getPureText();
+		return _id->getPureText();
 	}
 	std::string getModifiersText() const
 	{
@@ -103,10 +101,7 @@ public:
 	/// @{
 	void setIdentifier(std::string&& id)
 	{
-		if(_id.has_value())
-			(*_id)->setValue(std::move(id)); //if already existing
-		else
-			_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
 	}
 
 	void setIdentifier(const std::string& id)
@@ -119,8 +114,7 @@ public:
 	{
 		if(!id->isString())
 			throw YaramodError("String class identifier type must be string");
-		if(_id.has_value())
-			_tokenStream->erase(*_id);
+		_tokenStream->erase(_id);
 		_id = id;
 	}
 
@@ -205,7 +199,8 @@ public:
 protected:
 	std::shared_ptr<TokenStream> _tokenStream; ///< shared_pointer to the TokenStream in which the data is stored
 	Type _type; ///< Type of string //no need to store type of string in tokenstream - we just store the '"' or '/' characters
-	std::optional<TokenIt> _id; ///< Identifier //string
+	TokenIt _id; ///< Identifier //string
+	TokenIt _equal_sign;
 	std::uint32_t _mods; ///< String modifiers //std::uint32_t
 	std::vector<TokenIt> _mods_strings; //This is ambiguous with _mods, but for performance. This class alone is responsible for coherent representation of _mods.
 };
