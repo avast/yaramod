@@ -1,0 +1,222 @@
+/**
+* @file tests/representation_tests.cpp
+* @brief Tests for the YARA representation.
+* @copyright (c) 2019 Avast Software, licensed under the MIT license
+*/
+
+#include <gtest/gtest.h>
+#include <iostream>
+
+// #include "yaramod/builder/yara_expression_builder.h"
+// #include "yaramod/builder/yara_file_builder.h"
+// #include "yaramod/builder/yara_hex_string_builder.h"
+// #include "yaramod/builder/yara_rule_builder.h"
+// #include "yaramod/types/expressions.h"
+#include "yaramod/types/literal.h"
+#include "yaramod/types/regexp.h"
+#include "yaramod/types/meta.h"
+
+using namespace ::testing;
+
+namespace yaramod {
+namespace tests {
+
+class RepresentationTests : public Test {};
+
+TEST_F(RepresentationTests,
+MetaConstruction) {
+   TokenStream ts;
+   TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
+   TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
+   auto meta = Meta( key, value );
+
+   ASSERT_EQ(meta.getKey(), "author");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "Mr. Avastian");
+
+   EXPECT_EQ(meta.getText(), "author = \"Mr. Avastian\"");
+}
+
+TEST_F(RepresentationTests,
+MetaSetters) {
+   TokenStream ts;
+   TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
+   TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
+   auto meta = Meta( key, value );
+   meta.setKey("strain");
+   meta.setValue(Literal("cryptic"));
+
+   ASSERT_EQ(meta.getKey(), "strain");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "cryptic");
+
+   EXPECT_EQ(meta.getText(), "strain = \"cryptic\"");
+}
+
+TEST_F(RepresentationTests,
+MetaCopyIsJustReference) {
+   TokenStream ts;
+   TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
+   TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
+   auto meta = Meta(key, value);
+
+   auto copy = meta;
+
+   ASSERT_EQ(copy.getKey(), "author");
+   ASSERT_TRUE(copy.getValue().isString());
+   ASSERT_EQ(copy.getValue().getString(), "Mr. Avastian");
+
+   EXPECT_EQ(copy.getText(), "author = \"Mr. Avastian\"");
+
+   copy.setKey("strain");
+   copy.setValue(Literal("cryptic"));
+
+   ASSERT_EQ(meta.getKey(), "strain");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "cryptic");
+
+   EXPECT_EQ(meta.getText(), "strain = \"cryptic\"");
+}
+
+TEST_F(RepresentationTests,
+RegexpConstruction) {
+   auto ts = std::make_shared<TokenStream>();
+   auto unit1 = std::make_shared<RegexpText>("abc");
+   auto regexp1 = Regexp(ts, std::move(unit1));
+   EXPECT_EQ(regexp1.getText(), "/abc/");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"unknown", "=", "/", "a", "b", "c", "/"}));
+   regexp1.setIdentifier("$s1");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/"}));
+
+   auto unit2 = std::make_shared<RegexpAnyChar>();
+   auto regexp2 = Regexp(ts, std::move(unit2));
+   EXPECT_EQ(regexp2.getText(), "/./");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "unknown", "=", "/", ".", "/" }));
+   regexp2.setIdentifier("$s2");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" }));
+
+   auto unit3 = std::make_shared<RegexpEndOfLine>();
+   auto regexp3 = Regexp(ts, std::move(unit3), "$s3");
+   EXPECT_EQ(regexp3.getText(), "/$/");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" , "$s3", "=", "/", "$", "/" }));
+
+   std::cout << *ts << std::endl;
+}
+
+TEST_F(RepresentationTests,
+RegexpSetters) {
+   auto ts = std::make_shared<TokenStream>();
+
+   auto unit2 = std::make_shared<RegexpAnyChar>();
+   auto regexp2 = Regexp(ts, std::move(unit2));
+   EXPECT_EQ(regexp2.getText(), "/./");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "unknown", "=", "/", ".", "/" }));
+   regexp2.setIdentifier("$s2");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/" }));
+
+   auto unit3 = std::make_shared<RegexpEndOfLine>();
+   auto regexp3 = Regexp(ts, std::move(unit3), "$s3");
+   EXPECT_EQ(regexp3.getText(), "/$/");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/", "$s3", "=", "/", "$", "/" }));
+
+   regexp2.setSuffixModifiers("modifiers 2");
+   regexp3.setSuffixModifiers("modifiers 3");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/", "modifiers 2", "$s3", "=", "/", "$", "/", "modifiers 3" }));
+
+
+}
+
+TEST_F(RepresentationTests,
+RegexpConcat) {
+   std::vector<std::shared_ptr<RegexpUnit>> v;
+
+   v.push_back(std::make_shared<RegexpWordChar>());
+   v.push_back(std::make_shared<RegexpNonWordChar>());
+   v.push_back(std::make_shared<RegexpSpace>());
+   v.push_back(std::make_shared<RegexpNonSpace>());
+   v.push_back(std::make_shared<RegexpDigit>());
+   v.push_back(std::make_shared<RegexpNonDigit>());
+   v.push_back(std::make_shared<RegexpWordBoundary>());
+   v.push_back(std::make_shared<RegexpNonWordBoundary>());
+   v.push_back(std::make_shared<RegexpStartOfLine>());
+
+   RegexpConcat concat(std::move(v));
+   EXPECT_EQ(concat.getText(), "\\w\\W\\s\\S\\d\\D\\b\\B^");
+
+   auto ts = concat.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "\\w", "\\W", "\\s", "\\S", "\\d", "\\D", "\\b", "\\B", "^" }));
+}
+
+TEST_F(RepresentationTests,
+RegexpGroup) {
+   auto unit = std::make_shared<RegexpStartOfLine>();
+   RegexpGroup group(std::move(unit));
+   EXPECT_EQ(group.getText(), "(^)");
+
+   auto ts = group.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "(", "^", ")" }));
+
+   //TODO: implement interface to add comments in between '(' and '.'. Then test the interface.
+}
+
+TEST_F(RepresentationTests,
+RegexpOr) {
+   auto unit1 = std::make_shared<RegexpText>("abc");
+   auto unit2 = std::make_shared<RegexpAnyChar>();
+   RegexpOr regexp_or(std::move(unit1), std::move(unit2));
+   EXPECT_EQ(regexp_or.getText(), "abc|.");
+
+   auto ts = regexp_or.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "a", "b", "c", "|", "." }));
+}
+
+TEST_F(RepresentationTests,
+RegexpRange) {
+   auto unit = std::make_shared<RegexpText>("abc");
+   std::optional<std::uint64_t> left(100);
+   std::optional<std::uint64_t> right(200);
+   auto pair = std::make_pair(left, right);
+   bool greedy = false;
+
+   RegexpRange range(std::move(unit), std::move(pair) , greedy);
+   EXPECT_EQ(range.getText(), "abc{100,200}?");
+
+   auto ts = range.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"a", "b", "c", "{", "100", ",", "200", "}", "?"}));
+}
+
+TEST_F(RepresentationTests,
+RegexpOptional) {
+   auto unit = std::make_shared<RegexpText>("abc");
+   bool greedy = true;
+   auto regexp_optional = RegexpOptional(std::move(unit), greedy);
+   EXPECT_EQ(regexp_optional.getText(), "abc?");
+
+   auto ts = regexp_optional.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"a", "b", "c", "?", ""}));
+}
+
+TEST_F(RepresentationTests,
+RegexpPositiveIteration) {
+   auto unit = std::make_shared<RegexpText>("abc");
+   bool greedy = false;
+   auto regexp_iter = RegexpPositiveIteration(std::move(unit), greedy);
+   EXPECT_EQ(regexp_iter.getText(), "abc+?");
+
+   auto ts = regexp_iter.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"a", "b", "c", "+", "?"}));
+}
+
+TEST_F(RepresentationTests,
+RegexpIteration) {
+   auto unit = std::make_shared<RegexpText>("abc");
+   bool greedy = false;
+   auto regexp_iter = RegexpIteration(std::move(unit), greedy);
+   EXPECT_EQ(regexp_iter.getText(), "abc*?");
+
+   auto ts = regexp_iter.getTokenStream();
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"a", "b", "c", "*", "?"}));
+}
+
+}
+}
