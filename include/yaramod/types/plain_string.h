@@ -39,7 +39,6 @@ public:
 
 private:
 	TokenIt _text; ///< Text of the plain string
-	std::shared_ptr<TokenStream> ts;
 };
 
 }

@@ -43,17 +43,21 @@ public:
 
 	/// @name Constructors
 	/// @{
+	explicit String(Type type)
+		: String(std::make_shared<TokenStream>(), type)
+	{
+	}
 	explicit String(std::shared_ptr<TokenStream> ts, Type type)
+		: String(ts, type, "unknown")
+	{
+	}
+	explicit String(std::shared_ptr<TokenStream> ts, Type type, const std::string& id)
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods(Modifiers::None)
 	{
-		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, "unknown");
+		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
 		_equal_sign = _tokenStream->emplace_back(TokenType::EQ, "=");
-	}
-	explicit String(Type type)
-		: String(std::make_shared<TokenStream>(), type)
-	{
 	}
 	virtual ~String() = default;
 	/// @}
@@ -101,7 +105,8 @@ public:
 	/// @{
 	void setIdentifier(std::string&& id)
 	{
-		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
+		_id->setValue(id);
+	//	_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
 	}
 
 	void setIdentifier(const std::string& id)
