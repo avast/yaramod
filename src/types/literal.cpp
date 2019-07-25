@@ -383,28 +383,25 @@ TokenIt TokenStream::emplace_back( TokenType type, char value )
 
 TokenIt TokenStream::emplace_back( TokenType type, const char* value )
 {
-	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
-	_tokens.emplace_back(type, std::move(Literal(value)));
+	auto l = Literal(value);
+	_tokens.emplace_back(type, std::move(l));
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, const std::string& value )
 {
-	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
 	_tokens.emplace_back(type, std::move(Literal(value)));
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, std::string&& value )
 {
-	std::cout << "Emplace with string value '" << value << "' called " << std::endl;
 	_tokens.emplace_back(type, std::move(Literal(std::move(value))));
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, bool b )
 {
-	std::cout << "Emplace with bool value '" << b << "' called " << std::endl;
 	_tokens.emplace_back(type, std::move(Literal(b)));
 	return --_tokens.end();
 }
@@ -435,7 +432,6 @@ TokenIt TokenStream::emplace_back( TokenType type, float i, const std::optional<
 
 TokenIt TokenStream::emplace_back( TokenType type, const Literal& literal )
 {
-	std::cout << "Emplace with Literal '" << literal << "' called" << std::endl;
 	_tokens.emplace_back(type, literal);
 	return --_tokens.end();
 }
@@ -446,75 +442,81 @@ TokenIt TokenStream::emplace_back( TokenType type, Literal&& literal )
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, char value )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, char value )
 {
-	std::cout << "Emplace between with char value '" << value << "' called " << std::endl;
 	_tokens.emplace(before, type, std::move(Literal(std::string() + value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, const char* value )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const char* value )
 {
-	std::cout << "Emplace between with string value '" << value << "' called " << std::endl;
 	_tokens.emplace(before, type, std::move(Literal(value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, const std::string& value )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const std::string& value )
 {
-	std::cout << "Emplace between with string value '" << value << "' called " << std::endl;
 	_tokens.emplace(before, type, std::move(Literal(value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, std::string&& value )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, std::string&& value )
 {
-	std::cout << "Emplace between with string value '" << value << "' called " << std::endl;
 	_tokens.emplace(before, type, std::move(Literal(std::move(value))));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, bool b )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, bool b )
 {
-	std::cout << "Emplace with bool value '" << b << "' called " << std::endl;
 	_tokens.emplace(before, type, std::move(Literal(b)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, const Literal& literal )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const Literal& literal )
 {
 	_tokens.emplace(before, type, literal);
-	return before;
+	auto output = before;
+	return --output;
 }
 
-TokenIt TokenStream::emplace( TokenIt before, TokenType type, Literal&& literal )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, Literal&& literal )
 {
 	_tokens.emplace(before, type, std::move(literal));
-	return before;
+	auto output = before;
+	return --output;
 }
 
 TokenIt TokenStream::push_back( const Token& t )
@@ -564,6 +566,16 @@ TokenIt TokenStream::end()
 	return _tokens.end();
 }
 
+size_t TokenStream::size() const
+{
+	return _tokens.size();
+}
+
+bool TokenStream::empty() const
+{
+	return _tokens.empty();
+}
+
 TokenIt TokenStream::find( TokenType type )
 {
 	return find(type, begin(), end());
@@ -581,6 +593,16 @@ TokenIt TokenStream::find( TokenType type, TokenIt from, TokenIt to )
 		to,
 		[&type](const Token& t){ return t.getType() == type; }
 	);
+}
+
+std::vector<std::string> TokenStream::getTokensAsText() const
+{
+	std::vector<std::string> output;
+	for(auto t : _tokens)
+	{
+		output.push_back(t.getPureText());
+	}
+	return output;
 }
 
 void TokenStream::clear()

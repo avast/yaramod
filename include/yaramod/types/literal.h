@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <vector>
 #include <list>
 #include <memory>
 #include <optional>
@@ -135,6 +136,7 @@ enum TokenType
    REGEXP_WORD_BOUNDARY = 344,
    REGEXP_NON_WORD_BOUNDARY = 345,
    REGEXP_CHAR = 346,
+   REGEXP_TEXT,
    REGEXP_RANGE = 347,
    REGEXP_CLASS = 348,
    REGEXP_CLASS_NEGATIVE,
@@ -336,17 +338,17 @@ public:
 	TokenIt emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, const Literal& literal );
 	TokenIt emplace_back( TokenType type, Literal&& literal );
-	TokenIt emplace( TokenIt before, TokenType type, char value );
-	TokenIt emplace( TokenIt before, TokenType type, const char* value );
-	TokenIt emplace( TokenIt before, TokenType type, const std::string& value );
-	TokenIt emplace( TokenIt before, TokenType type, std::string&& value );
-	TokenIt emplace( TokenIt before, TokenType type, bool b );
-	TokenIt emplace( TokenIt before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( TokenIt before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( TokenIt before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( TokenIt before, TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( TokenIt before, TokenType type, const Literal& literal );
-	TokenIt emplace( TokenIt before, TokenType type, Literal&& literal );
+	TokenIt emplace( const TokenIt& before, TokenType type, char value );
+	TokenIt emplace( const TokenIt& before, TokenType type, const char* value );
+	TokenIt emplace( const TokenIt& before, TokenType type, const std::string& value );
+	TokenIt emplace( const TokenIt& before, TokenType type, std::string&& value );
+	TokenIt emplace( const TokenIt& before, TokenType type, bool b );
+	TokenIt emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, const Literal& literal );
+	TokenIt emplace( const TokenIt& before, TokenType type, Literal&& literal );
 	TokenIt push_back( const Token& t );
 	TokenIt push_back( Token&& t );
 	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
@@ -364,6 +366,12 @@ public:
 	TokenIt end();
 	/// @}
 
+	/// @name Capacity
+	/// @{
+	size_t size() const;
+	bool empty() const;
+	/// @}
+
 	TokenIt find( TokenType type );
 	TokenIt find( TokenType type, TokenIt from );
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
@@ -376,6 +384,8 @@ public:
       return os;
    }
 
+	std::vector<std::string> getTokensAsText() const;
+
 	/// @name Reseting methods
 	void clear();
 	/// @}
@@ -385,183 +395,3 @@ private:
 
 
 } //namespace yaramod
-
-
-// /**
-//  * Class representing token values that YARA rules consist of. The values are stored in our inner representation, not the tokenstream.
-//  */
-// class TokenValue// : public TokenValueBase
-// {
-// public:
-//    /// @name Constructors
-//    /// @{
-//    TokenValue() = default;
-//    TokenValue(int value) : value(value) {}
-//    TokenValue(uint value) : value(value) {}
-//    TokenValue(bool value) : value(value) {}
-//    TokenValue(int64_t value) : value(value) {}
-//    TokenValue(long unsigned int value) : value(value) {}
-//    TokenValue(const std::string& value) : value(value) {}
-
-//    TokenValue(TokenValue&& other) = default;
-//    TokenValue(const TokenValue& other) = default;
-//    /// @}
-
-//    /// @name Assignment
-//    /// @{
-//    TokenValue& operator=(TokenValue&& other) = default;
-//    TokenValue& operator=(const TokenValue& other) = default;
-//    /// @}
-
-//    /// @name Detection methods
-//    /// @{
-//    bool isBool() const
-//    {
-//       return std::is_same_v< decltype(value), bool& >;
-//    }
-//    bool isInt() const
-//    {
-//       return std::is_same_v< decltype(value), int& >;
-//    }
-//    bool isUint() const
-//    {
-//       return std::is_same_v< decltype(value), uint& >;
-//    }
-//    bool isUint64_t() const
-//    {
-//       return std::is_same_v< decltype(value), uint64_t& >;
-//    }
-//    bool isLongUnsignedInt() const
-//    {
-//       return std::is_same_v< decltype(value), long unsigned int& >;
-//    }
-//    bool isIntegral() const
-//    {
-//       return isInt() || isUint() || isUint64_t() || isLongUnsignedInt();
-//    }
-//    bool isString() const
-//    {
-//       return std::is_same_v< decltype(value), std::string& >;
-//    }
-
-//    friend std::ostream& operator<<(std::ostream& os, const TokenValue& token_value) {
-//       std::visit(
-//       [&os](auto&& v)
-//          {
-//             os << v;
-//          },
-//          token_value.value
-//       );
-//       return os;
-//    }
-//    /// @}
-
-//    /// @name String representation
-//    /// @{
-//    std::string getText() const
-//    {
-//       std::stringstream ss;
-//       if( isString() )
-//          ss << "\"" << *this << "\"";
-//       else
-//          ss << *this;
-//       return ss.str();
-//    }
-
-//    std::string getPureText() const
-//    {
-//       std::stringstream ss;
-//       ss << *this;
-//       return ss.str();
-//    }
-//    /// @}
-
-//    /// @name Setter methods
-//    /// @{
-//    void setValue(int i) { value = i; }
-//    void setValue(uint i) { value = i; }
-//    void setValue(int64_t i) { value = i; }
-//    void setValue(float i) { value = i; }
-//    void setValue(long unsigned int i) { value = i; }
-//    void setValue(bool b) { value = b; }
-//    void setValue(const std::string& s) { value = s; }
-//    /// @}
-
-//    /// @name Getter methods
-//    /// @{
-//    int getIntegral() const
-//    {
-//       if(isInt())
-//          return std::get<int>(value);
-//       else if(isUint())
-//          return std::get<uint>(value);
-//       else if(isUint64_t())
-//          return std::get<int64_t>(value);
-//       else
-//       {
-//          std::cerr << "Called getIntegral() of a TokenValue which holds " << *this << ". Index = " << value.index() << std::endl;
-//          assert(false && "Called getIntegral() of non-integral TokenValue");
-//       }
-//    }
-
-//    float getFloat() const
-//    {
-//       try{
-//          return std::get<float>(value);
-//       }
-//       catch (std::bad_variant_access& exp)
-//       {
-//          std::cerr << "Called getFloat() of a TokenValue which holds " << *this << ". Index = " << value.index() << std::endl << exp.what() << std::endl;
-//          assert(false && "Called getFloat() of non-float TokenValue");
-//       }
-//    }
-
-//    bool getBool() const
-//    {
-//       try{
-//          return std::get<bool>(value);
-//       }
-//       catch (std::bad_variant_access& exp)
-//       {
-//          std::cerr << "Called getBool() of a TokenValue which holds " << *this << ". Index = " << value.index() << std::endl << exp.what() << std::endl;
-//          assert(false && "Called getBool() of non-bool TokenValue");
-//       }
-//    }
-
-//    const std::string& getString() const
-//    {
-//       try{
-//          return std::get<std::string>(value);
-//       }
-//       catch (std::bad_variant_access& exp)
-//       {
-//          std::cerr << "Called getString() of a TokenValue which holds " << *this << ". Index = " << value.index() << std::endl << exp.what() << std::endl;
-//          assert(false && "Called getString() of non-string TokenValue");
-//       }
-//    }
-//    /// @}
-
-// private:
-//    std::variant<int, uint, int64_t, long unsigned int, float,  bool, std::string> value;
-// };
-
-
-/**
- * Abstract class representing token values that YARA rules consist of. The values are stored in our inner representation, not the tokenstream.
- */
-
-// class TokenValueBase
-// {
-// public:
-// 	/// This constructor is used for only tokens that we do not want in our inner representation (comments, operator =, etc.)
-//    TokenValueBase( TokenStream& token_stream, const std::string& value )
-//    	: _value( value )
-//    	, _token(  )
-//    {
-
-//    }
-
-//    virtual std::string getPureText() const;
-//    virtual std::string getText() const;
-//    Token* _token;
-// };
