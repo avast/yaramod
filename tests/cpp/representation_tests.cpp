@@ -218,5 +218,6 @@ RegexpIteration) {
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"a", "b", "c", "*", "?"}));
 }
 
+
 }
 }

@@ -20,6 +20,7 @@
 
 namespace yaramod {
 
+
 /**
  * Abstract class representing single unit in the hex string.
  * Hex string unit can be either nibble, wildcard, jump
@@ -165,7 +166,7 @@ class HexStringWildcard : public HexStringUnit
 public:
 	/// @name Constructors
 	/// @{
-	HexStringWildcard() : HexStringUnit(Type::Wildcard) {}
+	HexStringWildcard(TokenIt value) : HexStringUnit(Type::Wildcard), _value(value) {}
 	/// @}
 
 	/// @name Virtual methods
@@ -173,6 +174,8 @@ public:
 	virtual std::string getText() const override { return "?"; }
 	virtual std::size_t getLength() const override { return 1; }
 	/// @}
+private:
+	TokenIt _value; ///< Value of the nibble, int
 };
 
 /**

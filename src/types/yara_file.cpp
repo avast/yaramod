@@ -109,11 +109,11 @@ const std::vector<std::shared_ptr<Symbol>> YaraFile::globalVariables =
  * Constructor.
  */
 YaraFile::YaraFile()
-	: YaraFile(std::move(std::make_shared<TokenStream>()))
+	: YaraFile(std::make_shared<TokenStream>())
 {
 }
 
-YaraFile::YaraFile(std::shared_ptr<TokenStream>&& tokenStream)
+YaraFile::YaraFile(std::shared_ptr<TokenStream> tokenStream)
 	: _tokenStream(std::move(tokenStream))
 	, _imports()
 	, _rules()
@@ -265,6 +265,16 @@ void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rul
 const std::vector<std::shared_ptr<Module>>& YaraFile::getImports() const
 {
 	return _imports;
+}
+
+/**
+ * Returns the whole tokenStream of this file.
+ *
+ * @return _tokenStream.
+ */
+TokenStream* YaraFile::getTokenStream() const
+{
+	return _tokenStream.get();
 }
 
 /**

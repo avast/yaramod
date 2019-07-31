@@ -17,6 +17,8 @@
 #include <sstream>
 #include <variant>
 
+#include "yaramod/types/symbol.h"
+
 namespace yaramod {
 
 /**
@@ -26,28 +28,36 @@ enum TokenType
 {
    RULE_NAME = 1,
    TAG = 2,
-   RULE_END = 3,
+
    FILE_END = 4,
-   HEX_ALT = 6,
+   HEX_ALT = 6, // '|'
    HEX_NIBBLE = 7,
+   HEX_WILDCARD_SINGLE,
    HEX_WILDCARD_FULL = 8,
    HEX_WILDCARD_LOW = 9,
    HEX_WILDCARD_HIGH = 10,
    HEX_JUMP_VARYING = 11,
    HEX_JUMP_VARYING_RANGE = 12,
-   HEX_JUMP_RANGE_LEFT_BRACKET = 13,
-   HEX_JUMP_RANGE_RIGHT_BRACKET,
-   HEX_JUMP_FIXED ,
-   HEX_LEFT_BRACKET,
-   HEX_RIGHT_BRACKET,
-   NEW_LINE,
-   COMMENT,
-   META,       //carries 'meta:'
-   META_END,   //only marker which does not carry any value
-   MODULE_NAME,
-   MODIFIER,
-   LQUOTE,
-   RQUOTE,
+   HEX_JUMP_LEFT_BRACKET = 13,
+   HEX_JUMP_RIGHT_BRACKET = 14,
+   HEX_ALT_LEFT_BRACKET = 15,
+   HEX_ALT_RIGHT_BRACKET = 16,
+   HEX_JUMP_FIXED = 17,
+   HEX_LEFT_BRACKET = 18,
+   HEX_RIGHT_BRACKET = 19,
+   HEX_START_BRACKET = 20,
+   HEX_END_BRACKET = 21,
+   NEW_LINE = 22,
+   COMMENT = 23,
+   META = 24,       //carries 'meta:'
+   META_END = 25,   //only marker which does not carry any value
+   MODULE_NAME = 26,
+   MODIFIER = 27,
+   LQUOTE = 28,
+   RQUOTE = 29,
+   GLOBAL_VARIABLE_NAME = 30,
+   RULE_END = 256,
+   RULE_BEGIN = 257,
 
    END = 258,
    RANGE = 259,
@@ -73,15 +83,13 @@ enum TokenType
    RP = 279,
    LCB = 280, // '{'
    RCB = 281, // '}'
-   LRB, // '['
-   RRB, // ']'
    ASSIGN = 282,
    COLON = 283,
    COMMA = 284,
    PRIVATE = 285,
    GLOBAL = 286,
-   NONE,
-   RULE = 287,
+   NONE = 287,
+   RULE = 288,
    STRINGS = 289,
    CONDITION = 290,
    ASCII = 291,
@@ -117,15 +125,17 @@ enum TokenType
    STRING_COUNT = 321,
    ID = 322,
    INTEGER_FUNCTION = 323,
-   LSQB = 325,
-   RSQB = 326,
-   DASH = 328,
+   LSQB = 325, // '['
+   RSQB = 326, // ']'
+   DASH = 328, // '-'
    REGEXP_OR = 331,
    REGEXP_ITER = 332,
    REGEXP_PITER = 333,
    REGEXP_OPTIONAL = 334,
    REGEXP_START_OF_LINE = 335,
    REGEXP_END_OF_LINE = 336,
+   REGEXP_START_SLASH,
+   REGEXP_END_SLASH,
    REGEXP_ANY_CHAR = 337,
    REGEXP_WORD_CHAR = 338,
    REGEXP_NON_WORD_CHAR = 339,
@@ -136,17 +146,16 @@ enum TokenType
    REGEXP_WORD_BOUNDARY = 344,
    REGEXP_NON_WORD_BOUNDARY = 345,
    REGEXP_CHAR = 346,
-   REGEXP_TEXT,
    REGEXP_RANGE = 347,
    REGEXP_CLASS = 348,
-   REGEXP_CLASS_NEGATIVE,
-   REGEXP_MODIFIERS,
-   REGEXP_GREEDY,
-   UNARY_MINUS = 349,
-   META_KEY = 288,
-   META_VALUE = 289,
-   STRING_KEY = 290,
-   PLAIN_STRING_VALUE = 291,
+   REGEXP_TEXT = 349,
+   REGEXP_CLASS_NEGATIVE = 350,
+   REGEXP_MODIFIERS = 351,
+   REGEXP_GREEDY = 352,
+   UNARY_MINUS = 353,
+   META_KEY = 354,
+   META_VALUE = 355,
+   STRING_KEY = 356,
 
    INVALID = 16384
 };
@@ -165,7 +174,7 @@ class Literal
 public:
 	/// @name Costructors
 	/// @{
-	Literal() = default;
+	Literal() {assert(isString());};
 	explicit Literal(const char* value);
 	explicit Literal(const std::string& value);
 	explicit Literal(std::string&& value);
@@ -174,6 +183,7 @@ public:
 	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(float value, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	explicit Literal(Symbol* value);
 
 	Literal(Literal&& literal) = default;
 	Literal(const Literal& literal) = default;
@@ -206,6 +216,7 @@ public:
    int64_t getInt64_t() const;
    uint64_t getUInt64_t() const;
    float getFloat() const;
+   Symbol* getSymbol() const;
    /// @}
 
 	/// @name Detection methods
@@ -216,13 +227,14 @@ public:
 	bool isInt64_t() const;
 	bool isUInt64_t() const;
 	bool isFloat() const;
+	bool isSymbol() const;
 
 	bool isIntegral() const;
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
       if( literal._integral_formated_value.has_value() )
-      	os << "'" << literal._integral_formated_value.value() << "'";
+      	os << literal._integral_formated_value.value();
       else
 	      std::visit(
 	      [&os](auto&& v)
@@ -238,7 +250,7 @@ private:
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted, thus _int_formated_value is empty and _value contains x
 	/// ii. x it is formatted,     so _int_formated_value contains x's string representation and _value contains pure x
-	std::variant< std::string, bool, int, int64_t, uint64_t, float > _value; ///< Value used for all literals:
+	std::variant< std::string, bool, int, int64_t, uint64_t, float, Symbol* > _value; ///< Value used for all literals:
 	std::optional< std::string > _integral_formated_value; ///< Value used for integral literals with particular formatting
 };
 
@@ -292,6 +304,7 @@ public:
 	bool isInt64_t() const { return _value->isInt64_t(); }
 	bool isUInt64_t() const { return _value->isUInt64_t(); }
 	bool isFloat() const { return _value->isFloat(); }
+	bool isSymbol() const { return _value->isSymbol(); }
 
 	bool isIntegral() const { return _value->isIntegral(); }
 	/// @}
@@ -303,7 +316,10 @@ public:
    /// @name Getter methods
    /// @{
    TokenType getType() const { return _type; }
-	const Literal& getValue() { return *_value; }
+	const Literal& getValue() {
+		assert(_value);
+		return *_value;
+	}
 
    const std::string& getString() const;
    bool getBool() const;
@@ -311,6 +327,7 @@ public:
    int64_t getInt64_t() const;
    uint64_t getUInt64_t() const;
    float getFloat() const;
+   Symbol* getSymbol() const;
    /// @}
 
 private:
@@ -320,6 +337,7 @@ private:
 
 
 using TokenIt = std::list< Token >::iterator;
+using TokenConstIt = std::list< Token >::const_iterator;
 
 class TokenStream
 {
@@ -336,6 +354,7 @@ public:
 	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace_back( TokenType type, Symbol* s );
 	TokenIt emplace_back( TokenType type, const Literal& literal );
 	TokenIt emplace_back( TokenType type, Literal&& literal );
 	TokenIt emplace( const TokenIt& before, TokenType type, char value );
@@ -346,6 +365,7 @@ public:
 	TokenIt emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, Symbol *s );
 	TokenIt emplace( const TokenIt& before, TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, const Literal& literal );
 	TokenIt emplace( const TokenIt& before, TokenType type, Literal&& literal );
@@ -364,6 +384,9 @@ public:
 	/// @{
 	TokenIt begin();
 	TokenIt end();
+	TokenConstIt begin() const;
+	TokenConstIt end() const;
+
 	/// @}
 
 	/// @name Capacity
@@ -377,9 +400,56 @@ public:
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
 
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
-      for(const auto& token : ts._tokens)
+		bool inside_rule = false;
+		bool inside_hex_string = false;
+		bool inside_regexp_string = false;
+      for(auto it = ts.begin(); it != ts.end(); ++it)
       {
-   		os << token << " ";
+   		os << *it;
+   		auto current_type = it->getType();
+   		auto nextIt = std::next(it);
+   		std::optional<TokenType> next_type;
+   		if(nextIt != ts.end())
+   			next_type = nextIt->getType();
+
+   		if(current_type == TokenType::RULE_BEGIN)
+   			inside_rule = true;
+   		else if(current_type == TokenType::RULE_END)
+   			inside_rule = false;
+   		else if(current_type == TokenType::HEX_START_BRACKET)
+   			inside_hex_string = true;
+   		else if(current_type == TokenType::HEX_END_BRACKET)
+   			inside_hex_string = false;
+   		else if(current_type == TokenType::REGEXP_START_SLASH)
+   			inside_regexp_string = true;
+   		else if(current_type == TokenType::REGEXP_END_SLASH)
+   			inside_regexp_string = false;
+   		if(current_type == TokenType::NEW_LINE)
+      	{
+      		if(inside_rule)
+	      	{
+	      		// we will add 1 or 2 tabs:
+	      		auto next = std::next(it);
+	      		if(next == ts.end())
+	      			break;
+	      		if(next->getType() == TokenType::META
+	      			|| next->getType() == TokenType::STRINGS
+	      			|| next->getType() == TokenType::CONDITION)
+	      			os << "\t";
+	      		else if(next->getType() != TokenType::RULE_END)
+	      			os << "\t\t";
+	      	}
+      	}
+      	else if(current_type != TokenType::META
+      			&& current_type != TokenType::STRINGS
+      			&& current_type != TokenType::CONDITION
+      			&& next_type && next_type.value() != NEW_LINE
+      			&& it->getText() != ""
+      			&& nextIt->getText() != "")
+      	{
+      		if(!inside_hex_string && !inside_regexp_string)
+      			os << " ";
+      	}
       }
       return os;
    }

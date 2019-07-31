@@ -35,7 +35,6 @@ const std::string& Meta::getKey() const
  */
 const Literal& Meta::getValue() const
 {
-   std::cout << "0" << std::endl;
 	return _value->getValue();
 }
 

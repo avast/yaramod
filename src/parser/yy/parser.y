@@ -20,6 +20,15 @@ namespace yaramod {
 
 class ParserDriver;
 
+
+/**
+ * Helper function to transfer char ('0' -- 'F') to uint8_t
+ */
+//uint8_t charToInt (char c)
+//{
+//	return ('A' <= std::toupper(c) && std::toupper(c) <= 'F') ? std::toupper(c) - 'A' + 10 : c - '0';
+//}
+
 // We need to provide alias to this type because since bison 3.2
 // types are enclosed in YY_RVREF() macro. The comma in template
 // parameter list is however parsed by preprocessor first and
@@ -35,7 +44,7 @@ using RegexpRangePair = std::pair<nonstd::optional<std::uint64_t>, nonstd::optio
 
 // Uncomment for debugging
 // See also other occurrences of 'debugging' in this file and constructor of ParserDriver to enable it
-#define YYDEBUG 1
+// #define YYDEBUG 1
 }
 
 %code top {
@@ -123,24 +132,26 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token FILESIZE         "filesize"
 %token CONTAINS         "contains"
 %token MATCHES          "matches"
-%token <std::string> SLASH              "/"
-%token <std::string> STRING_LITERAL     "string literal"
-%token <std::string> INTEGER            "integer"
-%token <std::string> DOUBLE             "float"
-%token <std::string> STRING_ID          "string identifier"
-%token <std::string> STRING_ID_WILDCARD "string wildcard"
-%token <std::string> STRING_LENGTH      "string length"
-%token <std::string> STRING_OFFSET      "string offset"
-%token <std::string> STRING_COUNT       "string count"
-%token <std::string> ID                 "identifier"
-%token <std::string> INTEGER_FUNCTION   "fixed-width integer function"
+%token <std::string> SLASH              		"/"
+%token <std::string> STRING_LITERAL				"string literal"
+%token <std::string> INTEGER           		"integer"
+%token <std::string> DOUBLE             		"float"
+%token <std::string> STRING_ID          		"string identifier"
+%token <std::string> STRING_ID_WILDCARD 		"string wildcard"
+%token <std::string> STRING_LENGTH      		"string length"
+%token <std::string> STRING_OFFSET      		"string offset"
+%token <std::string> STRING_COUNT       		"string count"
+%token <std::string> ID                 		"identifier"
+%token <std::string> INTEGER_FUNCTION   		"fixed-width integer function"
+//%token <std::string> STRING_META        	::
 
 %token HEX_OR                      "hex string |"
 %token LSQB                        "hex string ["
 %token RSQB                        "hex string ]"
 %token HEX_WILDCARD                "hex string ?"
 %token DASH                        "hex string -"
-%token <std::uint8_t> HEX_NIBBLE   "hex string nibble"
+%token <std::string> HEX_NIBBLE   "hex string nibble"
+//%token <std::uint8_t> HEX_NIBBLE   "hex string nibble"
 %token <std::uint64_t> HEX_INTEGER "hex string integer"
 
 %token REGEXP_OR                                "regexp |"
@@ -162,17 +173,18 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <yaramod::RegexpRangePair> REGEXP_RANGE  "regexp range"
 %token <std::string> REGEXP_CLASS               "regexp class"
 
-%type <yaramod::Rule::Modifier> rule_mod
+%type <std::optional<yaramod::TokenIt>> rule_mod
+%type <yaramod::TokenIt> strings_id assign strings_value hex_integer hex_alt_left_bracket hex_alt_right_bracket hex_alt_operator hex_jump_left_bracket hex_jump_right_bracket
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
 %type <std::shared_ptr<yaramod::String>> string
-%type <std::uint32_t> string_mods
+%type <std::pair<std::uint32_t, std::vector<TokenIt>>> string_mods
 %type <yaramod::Literal> literal
 %type <bool> boolean
 %type <Expression::Ptr> condition expression primary_expression for_expression integer_set string_set range identifier
 %type <std::vector<Expression::Ptr>> integer_enumeration string_enumeration arguments
-%type <std::vector<std::string>> tags tag_list
+%type <std::vector<TokenIt>> tags tag_list
 
 %type <std::vector<std::shared_ptr<yaramod::HexStringUnit>>> hex_string hex_string_edge hex_string_body hex_byte
 %type <std::shared_ptr<yaramod::HexStringUnit>> hex_or hex_jump
@@ -223,7 +235,7 @@ rules
 import
 	: IMPORT_MODULE STRING_LITERAL[module]
 		{
-			TokenIt import;// = d._tokenStream->emplace_back(TokenType::IMPORT_MODULE, module);
+			TokenIt import = driver._tokenStream->emplace_back(TokenType::IMPORT_MODULE, $module);
 			if (!driver._file.addImport(import))
 			{
 				error(driver.getLocation(), "Unrecognized module '" + $module + "' imported");
@@ -244,18 +256,20 @@ rule
 				error(driver.getLocation(), "Redefinition of rule '" + $id + "'");
 				YYABORT;
 			}
+			driver.tmp_token = driver._tokenStream->emplace_back(TokenType::RULE_NAME, $id);
 		}
-		tags LCB metas strings condition RCB
+		tags rule_begin
+		metas strings condition rule_end
 		{
-			// The following construction of Rule is ill, since the TokenStream does not contain the data. This is only to make it compile.
-			driver.addRule(Rule(std::move($id), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver.addRule(Rule(driver._tokenStream, driver.tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver.tmp_token.reset();
 		}
 	;
 
 rule_mod
-	: GLOBAL { $$ = Rule::Modifier::Global; }
-	| PRIVATE { $$ = Rule::Modifier::Private; }
-	| %empty { $$ = Rule::Modifier::None; }
+	: GLOBAL { $$ = driver._tokenStream->emplace_back(TokenType::GLOBAL, "global"); }
+	| PRIVATE { $$ = driver._tokenStream->emplace_back(TokenType::PRIVATE, "private"); }
+	| %empty { $$ = std::nullopt; }
 	;
 
 tags
@@ -263,26 +277,45 @@ tags
 	| %empty { $$.clear(); }
 	;
 
+rule_begin
+	: LCB {driver._tokenStream->emplace_back(TokenType::RULE_BEGIN, "{");}
+	;
+
+rule_end
+	: RCB {driver._tokenStream->emplace_back(TokenType::RULE_END, "}");}
+	;
+
 tag_list
 	: tag_list ID
 		{
 			$$ = std::move($1);
-			$$.push_back(std::move($2));
+			$$.push_back(driver._tokenStream->emplace_back(TokenType::TAG, std::move($2)));
 		}
-	| ID { $$.push_back(std::move($1)); }
+	| ID
+	{
+		$$.push_back(driver._tokenStream->emplace_back(TokenType::TAG, std::move($1)));
+	}
 	;
 
 metas
-	: META COLON metas_body { $$ = std::move($metas_body); }
+	: metas_header metas_body
+	{
+		$$ = std::move($metas_body);
+	}
 	| %empty { $$.clear(); }
 	;
+
+metas_header
+	: META COLON
 
 metas_body
 	: metas_body[body] ID ASSIGN literal
 		{
 			$$ = std::move($body);
-			// instead of the following we would need to insert Tokens into a TokenStream and then
-//			$$.emplace_back(TokenIt(std::move($2)), TokenIt(std::move($4)));
+			TokenIt key = driver._tokenStream->emplace_back(TokenType::META_KEY, std::move($2));
+			driver._tokenStream->emplace_back(TokenType::EQ, "=");
+			TokenIt val = driver._tokenStream->emplace_back(TokenType::META_KEY, std::move($4));
+			$$.emplace_back(key, val);
 		}
 	| %empty { $$.clear(); }
 	;
@@ -297,12 +330,13 @@ strings
 	;
 
 strings_body
-	: strings_body[body] STRING_ID[id] ASSIGN string
+	: strings_body[body] strings_id[id] assign[assign_symbol]	string
 		{
 			$$ = std::move($body);
 
-			auto trieId = driver.isAnonymousStringId($id) ? driver.generateAnonymousStringPseudoId() : $id;
-			$string->setIdentifier(std::move($id));
+			auto trieId = driver.isAnonymousStringId($id->getPureText()) ? driver.generateAnonymousStringPseudoId() : $id->getPureText();
+			$string->setIdentifier($id, $assign_symbol);
+
 			if (!$$->insert(trieId, std::move($string)))
 			{
 				error(driver.getLocation(), "Redefinition of string '" + trieId + "'");
@@ -316,25 +350,46 @@ strings_body
 		}
 	;
 
+strings_id
+	: STRING_ID
+	{
+		$$ = driver._tokenStream->emplace_back(TokenType::STRING_ID, $1);
+	}
+
+assign
+	: ASSIGN
+	{
+		$$ = driver._tokenStream->emplace_back(TokenType::ASSIGN, "=");
+	}
+
 string
-	: STRING_LITERAL[literal] string_mods
+	: strings_value[literal] string_mods
 		{
 			$$ = std::make_shared<PlainString>(driver._tokenStream, std::move($literal));
-			$$->setModifiers($string_mods);
+			$$->setModifiers($string_mods.first, std::move($string_mods.second));
 		}
 	| LCB
 		{
+			driver._tokenStream->emplace_back(TokenType::HEX_START_BRACKET, "{ ");
 			driver.getLexer().switchToHexLexer();
 		}
 		hex_string RCB
 		{
 			$$ = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string));
 			driver.getLexer().switchToYaraLexer();
+			driver._tokenStream->emplace_back(TokenType::HEX_END_BRACKET, "}");
 		}
 	| regexp string_mods
 		{
 			$$ = std::move($regexp);
-			$$->setModifiers($string_mods);
+			$$->setModifiers($string_mods.first, std::move($string_mods.second));
+		}
+	;
+
+strings_value
+	: STRING_LITERAL
+		{
+			$$ = driver._tokenStream->emplace_back(TokenType::STRING_LITERAL, $1);
 		}
 	;
 
@@ -390,6 +445,7 @@ expression
 	| FOR for_expression ID[id]
 		{
 			auto symbol = std::make_shared<ValueSymbol>($id, Expression::Type::Int);
+			driver._tokenStream->emplace_back(TokenType::FOR, symbol.get());
 			if (!driver.addLocalSymbol(symbol))
 			{
 				error(driver.getLocation(), "Redefinition of identifier '" + $id + "'");
@@ -1047,17 +1103,51 @@ arguments
 	;
 
 string_mods
-	: string_mods ASCII { $$ = $1 | String::Modifiers::Ascii; }
-	| string_mods WIDE { $$ = $1 | String::Modifiers::Wide; }
-	| string_mods NOCASE { $$ = $1 | String::Modifiers::Nocase; }
-	| string_mods FULLWORD { $$ = $1 | String::Modifiers::Fullword; }
-	| string_mods XOR { $$ = $1 | String::Modifiers::Xor; }
-	| %empty { $$ = String::Modifiers::None; }
+	: string_mods ASCII
+		{
+			uint32_t m1 = $1.first | String::Modifiers::Ascii;
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::ASCII, "ascii");
+			$1.second.push_back(t);
+			$$ = std::make_pair(m1, std::move($1.second));
+		}
+	| string_mods WIDE
+		{
+			uint32_t m1 = $1.first | String::Modifiers::Wide;
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::WIDE, "wide");
+			$1.second.push_back(t);
+			$$ = std::make_pair(m1, std::move($1.second));
+		}
+	| string_mods NOCASE
+		{
+			uint32_t m1 = $1.first | String::Modifiers::Nocase;
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::NOCASE, "nocase");
+			$1.second.push_back(t);
+			$$ = std::make_pair(m1, std::move($1.second));
+		}
+	| string_mods FULLWORD
+		{
+			uint32_t m1 = $1.first | String::Modifiers::Fullword;
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::FULLWORD, "fullword");
+			$1.second.push_back(t);
+			$$ = std::make_pair(m1, std::move($1.second));
+		}
+	| string_mods XOR
+		{
+			uint32_t m1 = $1.first | String::Modifiers::Xor;
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::XOR, "xor");
+			$1.second.push_back(t);
+			$$ = std::make_pair(m1, std::move($1.second));
+		}
+	| %empty { $$ = std::make_pair(String::Modifiers::None, std::move(std::vector<TokenIt>())); }
 	;
 
 literal
 	: STRING_LITERAL { $$ = Literal(std::move($1)); }
-	| INTEGER { $$ = Literal(std::move($1)); }
+	| INTEGER
+	{
+		int64_t value = std::stoll($1);
+		$$ = Literal(value, std::move($1));
+	}
 	| boolean { $$ = Literal($1); }
 	;
 
@@ -1084,35 +1174,47 @@ hex_string_edge
 hex_byte
 	: HEX_NIBBLE HEX_NIBBLE
 		{
-//			auto first = std::make_shared<HexStringNibble>($1);
-//			auto second = std::make_shared<HexStringNibble>($2);
-//			$$.reserve(2);
-//			$$.push_back(std::move(first));
-//			$$.push_back(std::move(second));
+			uint8_t u1 = ('A' <= std::toupper($1[0]) && std::toupper($1[0]) <= 'F') ? std::toupper($1[0]) - 'A' + 10 : $1[0] - '0';
+			auto unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
+			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
+			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
+			auto unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2 + " ");
+			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
+			$$.reserve(2);
+			$$.push_back(std::move(first));
+			$$.push_back(std::move(second));
 		}
 	| HEX_NIBBLE HEX_WILDCARD
 		{
-//			auto first = std::make_shared<HexStringNibble>($1);
-			auto second = std::make_shared<HexStringWildcard>();
+			uint8_t u1 = ('A' <= std::toupper($1[0]) && std::toupper($1[0]) <= 'F') ? std::toupper($1[0]) - 'A' + 10 : $1[0] - '0';
+			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
+			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "? ");
+			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
 			$$.reserve(2);
-//			$$.push_back(std::move(first));
+			$$.push_back(std::move(first));
 			$$.push_back(std::move(second));
 		}
 	| HEX_WILDCARD HEX_NIBBLE
 		{
-			auto first = std::make_shared<HexStringWildcard>();
-//			auto second = std::make_shared<HexStringNibble>($2);
-			$$.reserve(2);
-			$$.push_back(std::move(first));
-//			$$.push_back(std::move(second));
-		}
-	| HEX_WILDCARD HEX_WILDCARD
-		{
-			auto first = std::make_shared<HexStringWildcard>();
-			auto second = std::make_shared<HexStringWildcard>();
+			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
+			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
+			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2 + " ");
+			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
 			$$.push_back(std::move(second));
+		}
+	| HEX_WILDCARD HEX_WILDCARD
+		{
+			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "?? ");
+			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
+			// TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "??");
+			// auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
+			$$.reserve(1);
+			$$.push_back(std::move(first));
+			// $$.push_back(std::move(second));
 		}
 	;
 
@@ -1136,31 +1238,59 @@ hex_string_body
 	;
 
 hex_or
-	: LP hex_or_body RP { $$ = std::make_shared<HexStringOr>(std::move($hex_or_body)); }
+	: hex_alt_left_bracket hex_or_body hex_alt_right_bracket { $$ = std::make_shared<HexStringOr>(std::move($hex_or_body)); }
 
-hex_or_body
+hex_or_body //vektor<shared_ptr<HexString>>
 	: hex_string_body
 		{
 			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
 			$$.push_back(std::move(hexStr));
 		}
-	| hex_or_body[body] HEX_OR hex_string_body
+	| hex_or_body[body] hex_alt_operator hex_string_body
 		{
 			$$ = std::move($body);
-			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
+			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body)); //vektor<shared_ptr<HexStringUnit>>
 			$$.push_back(std::move(hexStr));
 		}
 	;
 
+hex_alt_operator
+	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "| "); }
+
+hex_alt_left_bracket
+	: LP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_LEFT_BRACKET, "( "); }
+
+hex_alt_right_bracket
+	: RP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_RIGHT_BRACKET, ") "); }
+
 hex_jump
-	: LSQB HEX_INTEGER[value] RSQB
-	{
-//		$$ = std::make_shared<HexStringJump>($value, $value);
-	}
-	| LSQB HEX_INTEGER[low] DASH HEX_INTEGER[high] RSQB { /*$$ = std::make_shared<HexStringJump>($low, $high);*/ }
-	| LSQB HEX_INTEGER[low] DASH RSQB { /*$$ = std::make_shared<HexStringJump>($low);*/ }
-	| LSQB DASH RSQB { /*$$ = std::make_shared<HexStringJump>();*/ }
+	: hex_jump_left_bracket hex_integer[value] hex_jump_right_bracket
+		{
+			$$ = std::make_shared<HexStringJump>($value, $value);
+		}
+	| hex_jump_left_bracket hex_integer[low] DASH hex_integer[high] hex_jump_right_bracket
+		{
+			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
+			$$ = std::make_shared<HexStringJump>($low, $high);
+		}
+	| hex_jump_left_bracket hex_integer[low] DASH hex_jump_right_bracket
+		{
+			$$ = std::make_shared<HexStringJump>($low);
+		}
+	| hex_jump_left_bracket DASH hex_jump_right_bracket
+		{
+			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
+			$$ = std::make_shared<HexStringJump>();
+		}
 	;
+hex_integer
+	: HEX_INTEGER {$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, $1);}
+
+hex_jump_left_bracket
+	: LSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_LEFT_BRACKET, "["); }
+
+hex_jump_right_bracket
+	: RSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "] "); }
 
 regexp
 	: SLASH

@@ -75,18 +75,18 @@ whitespace  [ \v\r\t]
 ")"          { return Parser::make_RP(CURRENT_LOC); }
 "{"          { return Parser::make_LCB(CURRENT_LOC); }
 "}"          { return Parser::make_RCB(CURRENT_LOC); }
-"["          { return Parser::make_LSQB(CURRENT_LOC); }
-"]"          { return Parser::make_RSQB(CURRENT_LOC); }
+"["          { _driver._tokenStream->emplace_back(TokenType::LSQB, "["); return Parser::make_LSQB(CURRENT_LOC); }
+"]"          { _driver._tokenStream->emplace_back(TokenType::RSQB, "]"); return Parser::make_RSQB(CURRENT_LOC); }
 "="          { return Parser::make_ASSIGN(CURRENT_LOC); }
-":"          { return Parser::make_COLON(CURRENT_LOC); }
-","          { return Parser::make_COMMA(CURRENT_LOC); }
+":"          { _driver._tokenStream->emplace_back(TokenType::COLON, ":"); return Parser::make_COLON(CURRENT_LOC); }
+","          { _driver._tokenStream->emplace_back(TokenType::COMMA, ","); return Parser::make_COMMA(CURRENT_LOC); }
 "/"          { return Parser::make_SLASH(std::string(), CURRENT_LOC); }
 "global"     { return Parser::make_GLOBAL(CURRENT_LOC); }
 "private"    { return Parser::make_PRIVATE(CURRENT_LOC); }
-"rule"       { return Parser::make_RULE(CURRENT_LOC); }
-"meta"       { return Parser::make_META(CURRENT_LOC); }
-"strings"    { return Parser::make_STRINGS(CURRENT_LOC); }
-"condition"  { return Parser::make_CONDITION(CURRENT_LOC); }
+"rule"       { _driver._tokenStream->emplace_back(TokenType::RULE, "rule"); return Parser::make_RULE(CURRENT_LOC); }
+"meta"       { _driver._tokenStream->emplace_back(TokenType::META, "meta"); return Parser::make_META(CURRENT_LOC); }
+"strings"    { _driver._tokenStream->emplace_back(TokenType::STRINGS, "strings"); return Parser::make_STRINGS(CURRENT_LOC); }
+"condition"  { _driver._tokenStream->emplace_back(TokenType::CONDITION, "condition"); return Parser::make_CONDITION(CURRENT_LOC); }
 "ascii"      { return Parser::make_ASCII(CURRENT_LOC); }
 "nocase"     { return Parser::make_NOCASE(CURRENT_LOC); }
 "wide"       { return Parser::make_WIDE(CURRENT_LOC); }
@@ -111,7 +111,7 @@ whitespace  [ \v\r\t]
 "matches"    { return Parser::make_MATCHES(CURRENT_LOC); }
 "include"    { BEGIN(INCLUDE); }
 
-<INCLUDE>{newline}           { }
+<INCLUDE>{newline}           { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); std::cout << "WOW" << std::endl; }
 <INCLUDE>{whitespace}*       { }
 <INCLUDE>"\""                { BEGIN(INCLUDE_FILE); }
 <INCLUDE>.                   { return yyterminate(); }
@@ -128,7 +128,7 @@ whitespace  [ \v\r\t]
 
 "/*"                         { BEGIN(MULTILINE_COMMENT); }
 <MULTILINE_COMMENT>"*/"      { BEGIN(INITIAL); }
-<MULTILINE_COMMENT>{newline} { _driver.moveLineLocation(); }
+<MULTILINE_COMMENT>{newline} { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); }
 <MULTILINE_COMMENT>.         { }
 
 "//"[^\n]*                { }
@@ -171,12 +171,8 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR>"?"                        { return Parser::make_HEX_WILDCARD(CURRENT_LOC); }
 <HEXSTR>"}"                        { BEGIN(INITIAL); return Parser::make_RCB(CURRENT_LOC); }
 <HEXSTR>{hexdigit}                 {
-	char firstChar = yytext[0];
-	std::uint8_t nibble =
-		'A' <= std::toupper(firstChar) && std::toupper(firstChar) <= 'F'
-		? std::toupper(firstChar) - 'A' + 10
-		: firstChar - '0';
-	return Parser::make_HEX_NIBBLE(nibble, CURRENT_LOC);
+	std::string nibble = yytext;
+	return Parser::make_HEX_NIBBLE(yytext, CURRENT_LOC);
 }
 <HEXSTR>"["                        { BEGIN(HEXSTR_JUMP); return Parser::make_LSQB(CURRENT_LOC); }
 <HEXSTR_JUMP>{digit}*              {
@@ -185,14 +181,14 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 	strToNum(numStr, num, std::dec);
 	return Parser::make_HEX_INTEGER(num, CURRENT_LOC);
 }
-<HEXSTR_JUMP>"-"                   { return Parser::make_DASH(CURRENT_LOC); }
+<HEXSTR_JUMP>"-"                   { _driver._tokenStream->emplace_back(TokenType::DASH, "-"); return Parser::make_DASH(CURRENT_LOC); }
 <HEXSTR_JUMP>"]"                   { BEGIN(HEXSTR); return Parser::make_RSQB(CURRENT_LOC); }
 <HEXSTR,HEXSTR_JUMP>"//"[^\n]*     { }
 <HEXSTR,HEXSTR_JUMP>"/*"           { BEGIN(HEXSTR_MULTILINE_COMMENT); }
 <HEXSTR_MULTILINE_COMMENT>"*/"     { BEGIN(HEXSTR); }
 <HEXSTR_MULTILINE_COMMENT>.        { }
 <HEXSTR,HEXSTR_JUMP>{whitespace}*  { }
-<HEXSTR,HEXSTR_JUMP>{newline}*     { }
+<HEXSTR,HEXSTR_JUMP>{newline}*     { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n");}
 <HEXSTR,HEXSTR_JUMP>.              { return yyterminate(); }
 <HEXSTR,HEXSTR_JUMP><<EOF>>        { return yyterminate(); }
 
@@ -282,7 +278,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <REGEXP_CLASS>"\\B"                { _regexpClass += "\\B"; }
 <REGEXP_CLASS>.                    { _regexpClass += yytext[0]; }
 
-{newline}                          { _driver.moveLineLocation(); }
+{newline}                          { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); }
 {whitespace}*                      { }
 <<EOF>>                            {
 	if (!_driver.includeEnd())

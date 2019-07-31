@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include "yaramod/types/expression.h"
+//#include "yaramod/types/literal.h"
 
 namespace yaramod {
 
@@ -54,12 +55,17 @@ public:
 	bool isFunction() const { return _type == Symbol::Type::Function; }
 	bool isStructure() const { return _type == Symbol::Type::Structure; }
 	/// @}
-
+	// friend std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
+ //   	os << symbol._name;
+ //      return os;
+ //   }
 protected:
 	/// @name Constructors
 	/// @{
 	Symbol(Symbol::Type type, const std::string& name, Expression::Type dataType)
 		: _type(type), _name(name), _dataType(dataType) {}
+	// Symbol(Symbol::Type type, TokenIt name, Expression::Type dataType)
+	// 	: _type(type), _name(name), _dataType(dataType) {}
 	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol

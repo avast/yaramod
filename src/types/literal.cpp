@@ -122,6 +122,17 @@ Literal::Literal( float value, const std::optional< std::string >& integral_form
 {
 }
 
+/**
+ * Constructor.
+ *
+ * @param value integral value of the literal.
+ * @param integral_formated_value formatted value of the integral literal.
+ */
+Literal::Literal( Symbol* value )
+   : _value( value )
+{
+}
+
 void Literal::setValue( const std::string& s )
 {
 	_value = s;
@@ -210,7 +221,12 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		else
 			return numToStr<float>( getFloat() );
 	}
-	std::cerr << "Unexpected value '" << *this << "', index: " << _value.index()<< std::endl;
+	else if (isSymbol())
+	{
+		return getSymbol()->getName();
+	}
+	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
+	std::cerr << "Value:" << *this << std::endl;
 	assert(false);
 }
 
@@ -259,6 +275,12 @@ bool Literal::isFloat() const
 {
 	// std::cout << "isFloat(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
 	return _value.index() == 5;
+}
+
+bool Literal::isSymbol() const
+{
+	// std::cout << "isFloat(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
+	return _value.index() == 6;
 }
 
 bool Literal::isIntegral() const
@@ -345,6 +367,19 @@ float Literal::getFloat() const
    }
 }
 
+Symbol* Literal::getSymbol() const
+{
+   try
+   {
+      return std::get<Symbol*>(_value);
+   }
+   catch (std::bad_variant_access& exp)
+   {
+      std::cerr << "Called getSymbol() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+      assert(false && "Called getSymbol() of non-float TokenValue");
+   }
+}
+
 const std::string& Token::getString() const
 {
 	return _value->getString();
@@ -373,6 +408,11 @@ uint64_t Token::getUInt64_t() const
 float Token::getFloat() const
 {
 	return _value->getFloat();
+}
+
+Symbol* Token::getSymbol() const
+{
+	return _value->getSymbol();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, char value )
@@ -427,6 +467,12 @@ TokenIt TokenStream::emplace_back( TokenType type, uint64_t i, const std::option
 TokenIt TokenStream::emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
+	return --_tokens.end();
+}
+
+TokenIt TokenStream::emplace_back( TokenType type, Symbol* s )
+{
+	_tokens.emplace_back(type, std::move(Literal(s)));
 	return --_tokens.end();
 }
 
@@ -505,6 +551,13 @@ TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, float i, co
 	return --output;
 }
 
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, Symbol* s )
+{
+	_tokens.emplace(before, type, std::move(Literal(s)));
+	auto output = before;
+	return --output;
+}
+
 TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const Literal& literal )
 {
 	_tokens.emplace(before, type, literal);
@@ -562,6 +615,16 @@ TokenIt TokenStream::begin()
 }
 
 TokenIt TokenStream::end()
+{
+	return _tokens.end();
+}
+
+TokenConstIt TokenStream::begin() const
+{
+	return _tokens.begin();
+}
+
+TokenConstIt TokenStream::end() const
 {
 	return _tokens.end();
 }

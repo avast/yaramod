@@ -17,7 +17,7 @@ namespace yaramod {
 PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& text)
    : String(ts, String::Type::Plain)
 {
-   _text = ts->emplace_back(TokenType::STRING_ID, std::move(text));
+   _text = ts->emplace_back(TokenType::STRING_LITERAL, text);
 }
 
 /**
@@ -28,7 +28,7 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& tex
 PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
    : String(ts, String::Type::Plain)
 {
-   _text = ts->emplace_back(TokenType::STRING_ID, std::move(text));
+   _text = ts->emplace_back(TokenType::STRING_LITERAL, std::move(text));
 }
 
 /**
@@ -42,7 +42,13 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt text)
 {
    if(!text->isString())
       throw YaramodError("String class identifier must be string.");
-   assert(text->getType() == TokenType::STRING_ID);
+   assert(text->getType() == TokenType::STRING_LITERAL);
+}
+
+PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
+      : String(ts, String::Type::Plain, id, equal_sign, mods, mods_strings)
+      , _text(text)
+{
 }
 
 /**

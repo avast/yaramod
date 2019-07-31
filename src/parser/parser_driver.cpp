@@ -425,7 +425,6 @@ namespace gr {
       template< typename Input >
       static void apply(const Input&, ParserDriver& d)
       {
-//   	   d.tokens.emplace_back(Tokentype::RULE_END, in.string(), in.position());
          d.finishRule();
       }
    };
@@ -877,10 +876,13 @@ namespace gr {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),
-   current_stream(0), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
-	_startOfRule(0), _anonStringCounter(0)
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
+	_loc(nullptr), _tokenStream(std::make_shared<TokenStream>()), _valid(true), _filePath(), _inputFile(), _file(_tokenStream), _currentStrings(),
+	_stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
+	// Uncomment for debugging
+	// See also occurrences of 'debugging' in parser.y to enable it
+	// _parser.set_debug_level(1);
 
 	// When creating ParserDriver from real file (not from some stringstream) we need to somehow tell lexer which file to process
 	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
@@ -894,13 +896,13 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),
-	initial_stream(&input), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
+	_loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),  _valid(true), _filePath(), _inputFile(), _file(_tokenStream), _currentStrings(),
+	_stringLoop(false), _localSymbols()
 {
-/*
-	auto is = pgl::istream_input(input, max_size, "from_content");
-   auto result = pgl::parse< gr::grammar, gr::action >(is, *this);
-*/
+	// Uncomment for debugging
+	// See also occurrences of 'debugging' in parser.y to enable it
+	// _parser.set_debug_level(1);
 }
 
 /**
@@ -908,20 +910,20 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(p
  *
  * @return Lexer.
  */
-//yy::Lexer& ParserDriver::getLexer()
-//{
-//	return _lexer;
-//}
+yy::Lexer& ParserDriver::getLexer()
+{
+	return _lexer;
+}
 
 /**
  * Returns the parser.
  *
  * @return parser.
  */
-//yy::Parser& ParserDriver::getParser()
-//{
-//	return _parser;
-//}
+yy::Parser& ParserDriver::getParser()
+{
+	return _parser;
+}
 
 /**
  * Returns the location in the file.
@@ -972,6 +974,12 @@ bool ParserDriver::parse()
 	if (!_valid)
 		return false;
 
+	bool output = _parser.parse() == 0;
+	std::cout << "TokenStream when getParsedFile(): " << std::endl;
+	std::cout << " - of the file: '" << *_file.getTokenStream() << "'" << std::endl;
+	std::cout << " - of the driver: '" << *_tokenStream << "'" << std::endl;
+	return output;
+/*
 	std::cerr << "ParserDriver::parse called" << std::endl;
    auto stream = currentStream();
    auto input = pgl::istream_input(*stream, max_size, "src");
@@ -986,7 +994,7 @@ bool ParserDriver::parse()
    else
       std::cerr << "parsing failed" << std::endl;
 
-	return result == 1;
+	return result == 1;*/
 }
 
 /**
@@ -1294,6 +1302,13 @@ bool ParserDriver::addLocalSymbol(const std::shared_ptr<Symbol>& symbol)
 void ParserDriver::removeLocalSymbol(const std::string& name)
 {
 	_localSymbols.erase(name);
+}
+
+
+void ParserDriver::addComment(TokenIt comment)
+{
+	assert(comment->getType() == TokenType::COMMENT);
+	_comments.push_back(comment);
 }
 
 /**

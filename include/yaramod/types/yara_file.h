@@ -23,7 +23,7 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraFile();
-	YaraFile(std::shared_ptr<TokenStream>&& tokenStream);
+	YaraFile(std::shared_ptr<TokenStream> tokenStream);
 	YaraFile(YaraFile&&) noexcept = default;
 	/// @}
 
@@ -48,6 +48,7 @@ public:
 	/// @{
 	const std::vector<std::shared_ptr<Module>>& getImports() const;
 	const std::vector<std::shared_ptr<Rule>>& getRules() const;
+	TokenStream* getTokenStream() const;
 	/// @}
 
 	/// @name Removing methods
