@@ -215,9 +215,10 @@ YaraHexStringBuilder wildcard()
 {
 	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	ts->emplace_back(TokenType::HEX_WILDCARD_FULL, Literal( "??" ));
-	units.push_back(std::make_shared<HexStringWildcard>());
-	units.push_back(std::make_shared<HexStringWildcard>());
+	auto token1 = ts->emplace_back(TokenType::HEX_WILDCARD_LOW, Literal( "?" ));
+	auto token2 = ts->emplace_back(TokenType::HEX_WILDCARD_HIGH, Literal( "?" ));
+	units.push_back(std::make_shared<HexStringWildcard>(token1));
+	units.push_back(std::make_shared<HexStringWildcard>(token2));
 	return YaraHexStringBuilder(ts, std::move(units));
 }
 
@@ -237,10 +238,10 @@ YaraHexStringBuilder wildcardLow(std::uint8_t high)
 {
 	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	auto t = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(high));
-	units.push_back(std::make_shared<HexStringNibble>(t));
-	ts->emplace_back(TokenType::HEX_WILDCARD_LOW, Literal("?"));
-	units.push_back(std::make_shared<HexStringWildcard>());
+	TokenIt token1 = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(high));
+	units.push_back(std::make_shared<HexStringNibble>(token1));
+	TokenIt token2 = ts->emplace_back(TokenType::HEX_WILDCARD_LOW, Literal("?"));
+	units.push_back(std::make_shared<HexStringWildcard>(token2));
 	return YaraHexStringBuilder(ts, std::move(units));
 }
 
@@ -260,10 +261,10 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 {
 	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	ts->emplace_back(TokenType::HEX_WILDCARD_HIGH, Literal("?"));
-	units.push_back(std::make_shared<HexStringWildcard>());
-	auto t = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(low));
-	units.push_back(std::make_shared<HexStringNibble>(t));
+	TokenIt token1 = ts->emplace_back(TokenType::HEX_WILDCARD_HIGH, Literal("?"));
+	units.push_back(std::make_shared<HexStringWildcard>(token1));
+	TokenIt token2 = ts->emplace_back(TokenType::HEX_NIBBLE, Literal(low));
+	units.push_back(std::make_shared<HexStringNibble>(token2));
 	return YaraHexStringBuilder(ts, std::move(units));
 }
 

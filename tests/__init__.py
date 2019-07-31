@@ -1,1 +1,1 @@
-from .python import BuilderTests, ParserTests
+from .python import BuilderTests, ParserTests, RepresentationTests

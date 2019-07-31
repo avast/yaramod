@@ -49,10 +49,10 @@ public:
 //	RegexpClass(std::string&& characters, bool negative = false) : _characters(characters), _negative(negative) {}
 	RegexpClass(const std::string& characters, bool negative = false)
 	{
-		_leftRectBracket = _tokenStream->emplace_back(TokenType::LRB, "[");
+		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
 		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative? "^" : "");
 		addCharacters(std::move(characters));
-		_rightRectBracket = _tokenStream->emplace_back(TokenType::RRB, "]");
+		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
 
 	virtual std::string getText() const
@@ -386,15 +386,22 @@ public:
 		///     {   left   ','   right   }
 		_tokenStream = std::move(_operand->getTokenStream());
 		_leftBracket = _tokenStream->emplace_back(TokenType::LCB, '{');
-		if(range.first)
+
+		// If both start and end are defined and they are equal, it is fixed range.
+		if (range.first && range.second && range.first.value() == range.second.value())
+		{
 			_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
-		bool add_comma = range.first && range.second;
-		if(add_comma)
-			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
-		else
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, std::string());
-		if(range.second)
-			_second = _tokenStream->emplace_back(TokenType::DOUBLE, *range.second);
+		}
+		else
+		{
+			if (range.first)
+			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
+			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
+			if(range.second)
+				_second = _tokenStream->emplace_back(TokenType::DOUBLE, *range.second);
+		}
+
 		_rightBracket = _tokenStream->emplace_back(TokenType::RCB, '}');
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy ? std::string() : "?");
 	}
@@ -565,9 +572,9 @@ public:
 		: String(ts, String::Type::Regexp, id)
 		, _unit(std::move(unit))
 	{
-		_leftSlash = _tokenStream->emplace_back(TokenType::SLASH, "/");
+		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
 		_tokenStream->move_append(_unit->getTokenStream().get());
-		_rightSlash = _tokenStream->emplace_back(TokenType::SLASH, "/");
+		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
 
 	virtual std::string getText() const override

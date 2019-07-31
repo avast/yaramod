@@ -539,6 +539,8 @@ public:
 	/// @name Constructors
 	/// @{
   	ParserDriver() = delete;
+	// explicit ParserDriver(bool& oldConstructor, const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
+	// explicit ParserDriver(bool& oldConstructor, std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	/// @}
@@ -591,7 +593,9 @@ public:
 	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
 	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
 	void removeLocalSymbol(const std::string& name);
-	/// @}7
+	/// @}
+
+	void addComment(TokenIt comment);
 
 protected:
 	std::istream* currentStream();
@@ -637,11 +641,13 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	//yy::Lexer _lexer; ///< Flex lexer //TODO:delete
-	//yy::Parser _parser; ///< Bison parser //TODO:delete
+	yy::Lexer _lexer; ///< Flex lexer //TODO:delete
+	yy::Parser _parser; ///< Bison parser //TODO:delete
 	yy::location _loc; ///< Location
 
 	std::shared_ptr<TokenStream> _tokenStream;
+	std::vector<TokenIt> _comments;
+	std::optional<TokenIt> tmp_token;
 	YaraRuleBuilder builder;
 	YaraExpressionBuilder expression_builder;
    size_t max_size = UINT_MAX; //-1

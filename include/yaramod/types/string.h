@@ -48,17 +48,34 @@ public:
 	{
 	}
 	explicit String(std::shared_ptr<TokenStream> ts, Type type)
-		: String(ts, type, "unknown")
+		: _tokenStream(ts)
+		, _type(type)
 	{
+		assert(_tokenStream);
 	}
 	explicit String(std::shared_ptr<TokenStream> ts, Type type, const std::string& id)
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods(Modifiers::None)
 	{
+		// std::cout << "String Constructor" << std::endl;
+		assert(_tokenStream);
 		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
+		// std::cout << "String Constructor" << std::endl;
 		_equal_sign = _tokenStream->emplace_back(TokenType::EQ, "=");
+		// std::cout << "String Constructor" << std::endl;
 	}
+	explicit String(std::shared_ptr<TokenStream> ts, Type type, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings)
+		: _tokenStream(ts)
+		, _type(type)
+		, _id(id)
+		, _equal_sign(equal_sign)
+		, _mods(mods)
+		, _mods_strings(mods_strings)
+	{
+		assert(_tokenStream);
+	}
+
 	virtual ~String() = default;
 	/// @}
 
@@ -73,7 +90,10 @@ public:
 	Type getType() const { return _type; }
 	std::string getIdentifier() const
 	{
-		return _id->getPureText();
+		if(_id)
+			return _id.value()->getPureText();
+		else
+			return std::string();
 	}
 	std::string getModifiersText() const
 	{
@@ -105,8 +125,16 @@ public:
 	/// @{
 	void setIdentifier(std::string&& id)
 	{
-		_id->setValue(id);
-	//	_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
+		if(_id)
+			_id.value()->setValue(id);
+		else
+			_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
+	}
+
+	void setIdentifier(TokenIt id, TokenIt equal_sign)
+	{
+		setIdentifier(id);
+		_equal_sign = equal_sign;
 	}
 
 	void setIdentifier(const std::string& id)
@@ -119,7 +147,11 @@ public:
 	{
 		if(!id->isString())
 			throw YaramodError("String class identifier type must be string");
-		_tokenStream->erase(_id);
+		if(_id && _id.value() != id)
+		{
+			_tokenStream->erase(_id.value());
+			_tokenStream->erase(_equal_sign.value());
+		}
 		_id = id;
 	}
 
@@ -163,6 +195,19 @@ public:
 			}
 		}
 	}
+
+	void setModifiers(std::uint32_t mods, std::vector<TokenIt>&& mods_strings)
+	{
+		if(_mods != mods)
+		{
+			_mods = mods;
+
+			for(const TokenIt& it : _mods_strings)
+				_tokenStream->erase(it);
+
+			_mods_strings = std::move(mods_strings);
+		}
+	}
 	// Adds modifier only when not present. Otherwise false is returned.
 	// !!! The mod's token is emplaced at the end of the tokenStream (that is needed if we want to put a comment in between modifiers)
 	bool addModifier(String::Modifiers mod)
@@ -204,8 +249,8 @@ public:
 protected:
 	std::shared_ptr<TokenStream> _tokenStream; ///< shared_pointer to the TokenStream in which the data is stored
 	Type _type; ///< Type of string //no need to store type of string in tokenstream - we just store the '"' or '/' characters
-	TokenIt _id; ///< Identifier //string
-	TokenIt _equal_sign;
+	std::optional<TokenIt> _id; ///< Identifier //string
+	std::optional<TokenIt> _equal_sign;
 	std::uint32_t _mods; ///< String modifiers //std::uint32_t
 	std::vector<TokenIt> _mods_strings; //This is ambiguous with _mods, but for performance. This class alone is responsible for coherent representation of _mods.
 };

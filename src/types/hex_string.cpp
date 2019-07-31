@@ -50,6 +50,7 @@ std::string HexString::getPureText() const
 	for (auto itr = _units.begin(), end = _units.end(); itr != end; )
 	{
 		const auto& unit = *itr;
+		assert(unit);
 		// Nibbles and wildcards are always in pairs.
 		if (unit->isNibble() || unit->isWildcard())
 		{
@@ -65,7 +66,6 @@ std::string HexString::getPureText() const
 			++itr;
 		}
 	}
-
 	// Remove last space from the result.
 	return trim(ss.str());
 }
