@@ -933,3 +933,331 @@ rule rule_with_invalid_utf8_sequence {
 
     def test_parser_error(self):
         self.assertRaises(yaramod.ParserError, yaramod.parse_string, 'rule {')
+
+    def test_simple_regular_expression_in_strings(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp {
+    strings:
+        $1 = /asd/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        regexp_string = rule.strings[0]
+        self.assertEqual(regexp_string.identifier, '$1')
+        self.assertTrue(regexp_string.is_regexp)
+        self.assertTrue(isinstance(regexp_string.unit, yaramod.RegexpConcat))
+        self.assertEqual(regexp_string.text, '/asd/')
+        self.assertEqual(regexp_string.pure_text, b'asd')
+        self.assertEqual(regexp_string.suffix_modifiers, '')
+        self.assertEqual(regexp_string.modifiers_text, '')
+        self.assertEqual(len(regexp_string.unit.units), 3)
+        self.assertEqual(regexp_string.unit.units[0].text, 'a')
+        self.assertEqual(regexp_string.unit.units[1].text, 's')
+        self.assertEqual(regexp_string.unit.units[2].text, 'd')
+
+    def test_complex_regular_expression_in_strings(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_complex_regexp {
+    strings:
+        $1 = /asd|1234/ nocase ascii wide fullword
+        $2 = /md5: [0-9a-zA-Z]{32}/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_complex_regexp')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 2)
+        self.assertEqual(len(rule.tags), 0)
+
+        regexp_string = rule.strings[0]
+        self.assertEqual(regexp_string.identifier, '$1')
+        self.assertTrue(regexp_string.is_regexp)
+        self.assertEqual(regexp_string.text, '/asd|1234/ ascii wide nocase fullword')
+        self.assertEqual(regexp_string.pure_text, b'asd|1234')
+        # Looks like the suffix modifiers are stored in multiple places
+        # and the only ones that are used are from String class.
+        # self.assertEqual(regexp_string.suffix_modifiers, '')
+        self.assertEqual(regexp_string.modifiers_text, ' ascii wide nocase fullword')
+        self.assertTrue(isinstance(regexp_string.unit, yaramod.RegexpOr))
+        self.assertEqual(regexp_string.unit.text, 'asd|1234')
+        self.assertEqual(len(regexp_string.unit.left.units), 3)
+        self.assertTrue(isinstance(regexp_string.unit.left.units[0], yaramod.RegexpText))
+        self.assertEqual(regexp_string.unit.left.units[0].text, 'a')
+        self.assertEqual(regexp_string.unit.left.units[1].text, 's')
+        self.assertEqual(regexp_string.unit.left.units[2].text, 'd')
+        self.assertEqual(len(regexp_string.unit.right.units), 4)
+        self.assertTrue(isinstance(regexp_string.unit.right.units[0], yaramod.RegexpText))
+        self.assertEqual(regexp_string.unit.right.units[0].text, '1')
+        self.assertEqual(regexp_string.unit.right.units[1].text, '2')
+        self.assertEqual(regexp_string.unit.right.units[2].text, '3')
+        self.assertEqual(regexp_string.unit.right.units[3].text, '4')
+
+        regexp_string = rule.strings[1]
+        self.assertEqual(regexp_string.identifier, '$2')
+        self.assertTrue(regexp_string.is_regexp)
+        self.assertEqual(regexp_string.text, '/md5: [0-9a-zA-Z]{32}/')
+        self.assertEqual(regexp_string.pure_text, b'md5: [0-9a-zA-Z]{32}')
+        self.assertEqual(regexp_string.modifiers_text, '')
+        self.assertEqual(len(regexp_string.unit.units), 6)
+        self.assertEqual(regexp_string.unit.units[0].text, 'm')
+        self.assertEqual(regexp_string.unit.units[1].text, 'd')
+        self.assertEqual(regexp_string.unit.units[2].text, '5')
+        self.assertEqual(regexp_string.unit.units[3].text, ':')
+        self.assertEqual(regexp_string.unit.units[4].text, ' ')
+        self.assertTrue(isinstance(regexp_string.unit.units[5], yaramod.RegexpRange))
+        self.assertTrue(regexp_string.unit.units[5].is_greedy)
+        self.assertEqual(regexp_string.unit.units[5].range[0], 32)
+        self.assertEqual(regexp_string.unit.units[5].range[1], 32)
+        self.assertEqual(regexp_string.unit.units[5].operation, ' ')
+        self.assertTrue(isinstance(regexp_string.unit.units[5].operand, yaramod.RegexpClass))
+        self.assertEqual(regexp_string.unit.units[5].operand.is_negative, False)
+        self.assertEqual(regexp_string.unit.units[5].operand.characters, '0-9a-zA-Z')
+
+    def test_regular_expression_meta_characters(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_metachars {
+    strings:
+        $1 = /^\\\/\|\(\)\[\]$/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_metachars')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(isinstance(rule.strings[0], yaramod.Regexp))
+        regexp = rule.strings[0]
+        self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(regexp.unit.units), 9)
+        self.assertTrue(all(isinstance(u, yaramod.RegexpText) for u in regexp.unit.units))
+        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpStartOfLine))
+        self.assertEqual(regexp.unit.units[0].text, '^')
+        self.assertEqual(regexp.unit.units[1].text, '\\\\')
+        self.assertEqual(regexp.unit.units[2].text, '\/')
+        self.assertEqual(regexp.unit.units[3].text, '\|')
+        self.assertEqual(regexp.unit.units[4].text, '\(')
+        self.assertEqual(regexp.unit.units[5].text, '\)')
+        self.assertEqual(regexp.unit.units[6].text, '\[')
+        self.assertEqual(regexp.unit.units[7].text, '\]')
+        self.assertTrue(isinstance(regexp.unit.units[8], yaramod.RegexpEndOfLine))
+        self.assertEqual(regexp.unit.units[8].text, '$')
+
+    def test_regular_expression_quantifiers(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_quantifiers {
+    strings:
+        $1 = /a*b+c?d{100}e{200,}f{,300}g{400,500}/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_quantifiers')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(isinstance(rule.strings[0], yaramod.Regexp))
+        regexp = rule.strings[0]
+        self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(regexp.unit.units), 7)
+        self.assertTrue(all(isinstance(u, yaramod.RegexpOperation) for u in regexp.unit.units))
+        self.assertTrue(all(u.is_greedy for u in regexp.unit.units))
+
+        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpIteration))
+        self.assertEqual(regexp.unit.units[0].text, 'a*')
+        self.assertTrue(isinstance(regexp.unit.units[0].operand, yaramod.RegexpText))
+        self.assertEqual(regexp.unit.units[0].operand.text, 'a')
+        self.assertTrue(isinstance(regexp.unit.units[1], yaramod.RegexpPositiveIteration))
+        self.assertEqual(regexp.unit.units[1].text, 'b+')
+        self.assertTrue(isinstance(regexp.unit.units[2], yaramod.RegexpOptional))
+        self.assertEqual(regexp.unit.units[2].text, 'c?')
+        self.assertTrue(isinstance(regexp.unit.units[3], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[3].text, 'd{100}')
+        self.assertEqual(regexp.unit.units[3].range[0], 100)
+        self.assertEqual(regexp.unit.units[3].range[1], 100)
+        self.assertTrue(isinstance(regexp.unit.units[4], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[4].text, 'e{200,}')
+        self.assertEqual(regexp.unit.units[4].range[0], 200)
+        self.assertEqual(regexp.unit.units[4].range[1], None)
+        self.assertTrue(isinstance(regexp.unit.units[5], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[5].text, 'f{,300}')
+        self.assertEqual(regexp.unit.units[5].range[0], None)
+        self.assertEqual(regexp.unit.units[5].range[1], 300)
+        self.assertTrue(isinstance(regexp.unit.units[6], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[6].text, 'g{400,500}')
+        self.assertEqual(regexp.unit.units[6].range[0], 400)
+        self.assertEqual(regexp.unit.units[6].range[1], 500)
+
+    def test_regular_expression_quantifiers_nongreedy(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_quantifiers_nongreedy {
+    strings:
+        $1 = /a*?b+?c??d{100}?e{200,}?f{,300}?g{400,500}?/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_quantifiers_nongreedy')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(isinstance(rule.strings[0], yaramod.Regexp))
+        regexp = rule.strings[0]
+        self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(regexp.unit.units), 7)
+        self.assertTrue(all(isinstance(u, yaramod.RegexpOperation) for u in regexp.unit.units))
+        self.assertTrue(all(not u.is_greedy for u in regexp.unit.units))
+
+        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpIteration))
+        self.assertEqual(regexp.unit.units[0].text, 'a*?')
+        self.assertTrue(isinstance(regexp.unit.units[0].operand, yaramod.RegexpText))
+        self.assertEqual(regexp.unit.units[0].operand.text, 'a')
+        self.assertTrue(isinstance(regexp.unit.units[1], yaramod.RegexpPositiveIteration))
+        self.assertEqual(regexp.unit.units[1].text, 'b+?')
+        self.assertTrue(isinstance(regexp.unit.units[2], yaramod.RegexpOptional))
+        self.assertEqual(regexp.unit.units[2].text, 'c??')
+        self.assertTrue(isinstance(regexp.unit.units[3], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[3].text, 'd{100}?')
+        self.assertEqual(regexp.unit.units[3].range[0], 100)
+        self.assertEqual(regexp.unit.units[3].range[1], 100)
+        self.assertTrue(isinstance(regexp.unit.units[4], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[4].text, 'e{200,}?')
+        self.assertEqual(regexp.unit.units[4].range[0], 200)
+        self.assertEqual(regexp.unit.units[4].range[1], None)
+        self.assertTrue(isinstance(regexp.unit.units[5], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[5].text, 'f{,300}?')
+        self.assertEqual(regexp.unit.units[5].range[0], None)
+        self.assertEqual(regexp.unit.units[5].range[1], 300)
+        self.assertTrue(isinstance(regexp.unit.units[6], yaramod.RegexpRange))
+        self.assertEqual(regexp.unit.units[6].text, 'g{400,500}?')
+        self.assertEqual(regexp.unit.units[6].range[0], 400)
+        self.assertEqual(regexp.unit.units[6].range[1], 500)
+
+    def test_regular_expression_escape_sequences(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_escape_sequences {
+    strings:
+        $1 = /\t\n\r\f\a/
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_escape_sequences')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(isinstance(rule.strings[0], yaramod.Regexp))
+        regexp = rule.strings[0]
+        self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(regexp.unit.units), 5)
+        self.assertTrue(all(isinstance(u, yaramod.RegexpText) for u in regexp.unit.units))
+        self.assertEqual(regexp.unit.units[0].text, '\\t')
+        self.assertEqual(regexp.unit.units[1].text, '\\n')
+        self.assertEqual(regexp.unit.units[2].text, '\\r')
+        self.assertEqual(regexp.unit.units[3].text, '\\f')
+        self.assertEqual(regexp.unit.units[4].text, '\\a')
+
+    def test_regular_expression_character_classes(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_character_classes {
+    strings:
+        $1 = /\w\W\s\S\d\D\b\B./
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_character_classes')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(isinstance(rule.strings[0], yaramod.Regexp))
+        regexp = rule.strings[0]
+        self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(regexp.unit.units), 9)
+        self.assertTrue(all(isinstance(u, yaramod.RegexpText) for u in regexp.unit.units))
+        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpWordChar))
+        self.assertEqual(regexp.unit.units[0].text, '\\w')
+        self.assertTrue(isinstance(regexp.unit.units[1], yaramod.RegexpNonWordChar))
+        self.assertEqual(regexp.unit.units[1].text, '\\W')
+        self.assertTrue(isinstance(regexp.unit.units[2], yaramod.RegexpSpace))
+        self.assertEqual(regexp.unit.units[2].text, '\\s')
+        self.assertTrue(isinstance(regexp.unit.units[3], yaramod.RegexpNonSpace))
+        self.assertEqual(regexp.unit.units[3].text, '\\S')
+        self.assertTrue(isinstance(regexp.unit.units[4], yaramod.RegexpDigit))
+        self.assertEqual(regexp.unit.units[4].text, '\\d')
+        self.assertTrue(isinstance(regexp.unit.units[5], yaramod.RegexpNonDigit))
+        self.assertEqual(regexp.unit.units[5].text, '\\D')
+        self.assertTrue(isinstance(regexp.unit.units[6], yaramod.RegexpWordBoundary))
+        self.assertEqual(regexp.unit.units[6].text, '\\b')
+        self.assertTrue(isinstance(regexp.unit.units[7], yaramod.RegexpNonWordBoundary))
+        self.assertEqual(regexp.unit.units[7].text, '\\B')
+        self.assertTrue(isinstance(regexp.unit.units[8], yaramod.RegexpAnyChar))
+        self.assertEqual(regexp.unit.units[8].text, '.')
+
+    def test_complex_regular_expression_in_fnc_call(self):
+        yara_file = yaramod.parse_string(r'''
+import "cuckoo"
+
+rule rule_with_regexp_in_fnc_call {
+    condition:
+        cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/)
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_in_fnc_call')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 0)
+        self.assertEqual(len(rule.tags), 0)
+
+        cond = rule.condition
+        self.assertTrue(isinstance(cond, yaramod.FunctionCallExpression))
+        self.assertEqual(len(cond.arguments), 1)
+        self.assertTrue(isinstance(cond.arguments[0], yaramod.RegexpExpression))
+        self.assertTrue(isinstance(cond.arguments[0].regexp_string, yaramod.Regexp))
+        self.assertEqual(cond.arguments[0].regexp_string.text, '/http:\/\/someone\.doingevil\.com/')
+        self.assertEqual(cond.arguments[0].regexp_string.pure_text, b'http:\/\/someone\.doingevil\.com')
+        self.assertTrue(isinstance(cond.arguments[0].regexp_string.unit, yaramod.RegexpConcat))
+        self.assertEqual(len(cond.arguments[0].regexp_string.unit.units), 28)
