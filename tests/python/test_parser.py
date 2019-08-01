@@ -989,9 +989,7 @@ rule rule_with_complex_regexp {
         self.assertTrue(regexp_string.is_regexp)
         self.assertEqual(regexp_string.text, '/asd|1234/ ascii wide nocase fullword')
         self.assertEqual(regexp_string.pure_text, b'asd|1234')
-        # Looks like the suffix modifiers are stored in multiple places
-        # and the only ones that are used are from String class.
-        # self.assertEqual(regexp_string.suffix_modifiers, '')
+        self.assertEqual(regexp_string.suffix_modifiers, '')
         self.assertEqual(regexp_string.modifiers_text, ' ascii wide nocase fullword')
         self.assertTrue(isinstance(regexp_string.unit, yaramod.RegexpOr))
         self.assertEqual(regexp_string.unit.text, 'asd|1234')
@@ -1261,3 +1259,41 @@ rule rule_with_regexp_in_fnc_call {
         self.assertEqual(cond.arguments[0].regexp_string.pure_text, rb'http:\/\/someone\.doingevil\.com')
         self.assertTrue(isinstance(cond.arguments[0].regexp_string.unit, yaramod.RegexpConcat))
         self.assertEqual(len(cond.arguments[0].regexp_string.unit.units), 28)
+
+    def test_regular_expression_suffix_modifiers(self):
+        yara_file = yaramod.parse_string(r'''
+rule rule_with_regexp_suffix_modifiers {
+    strings:
+        $1 = /none/
+        $2 = /just_i/i
+        $3 = /just_s/s
+        $4 = /all/s nocase ascii wide fullword
+        $5 = /all/i nocase ascii wide fullword
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_regexp_suffix_modifiers')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 5)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertTrue(all(rstring.is_regexp for rstring in rule.strings))
+        self.assertEqual(rule.strings[0].suffix_modifiers, '')
+        self.assertEqual(rule.strings[0].modifiers_text, '')
+        self.assertEqual(rule.strings[0].text, '/none/')
+        self.assertEqual(rule.strings[1].suffix_modifiers, 'i')
+        self.assertEqual(rule.strings[1].modifiers_text, '')
+        self.assertEqual(rule.strings[1].text, '/just_i/i')
+        self.assertEqual(rule.strings[2].suffix_modifiers, 's')
+        self.assertEqual(rule.strings[2].modifiers_text, '')
+        self.assertEqual(rule.strings[2].text, '/just_s/s')
+        self.assertEqual(rule.strings[3].suffix_modifiers, 's')
+        self.assertEqual(rule.strings[3].modifiers_text, ' ascii wide nocase fullword')
+        self.assertEqual(rule.strings[3].text, '/all/s ascii wide nocase fullword')
+        self.assertEqual(rule.strings[4].suffix_modifiers, 'i')
+        self.assertEqual(rule.strings[4].modifiers_text, ' ascii wide nocase fullword')
+        self.assertEqual(rule.strings[4].text, '/all/i ascii wide nocase fullword')
