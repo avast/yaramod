@@ -391,6 +391,18 @@ public:
 		return _unit->getText();
 	}
 
+	/**
+	* Return regular expression suffix modifiers.
+	*
+	* For further information see https://perldoc.perl.org/perlre.html#Modifiers.
+	* Allowed modifiers are 'i' and 's'.
+	*
+	* For example:
+	* @code
+	* $1 = /suffix_mod_i/i
+	*                    ^
+	* @endcode
+	*/
 	const std::string& getSuffixModifiers() const
 	{
 		return _suffixMods;
