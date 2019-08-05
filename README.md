@@ -73,6 +73,12 @@ If you want to clone and build the repository yourselves you can do so by follow
   * `--with-unit-tests` - Build also C++ unit tests.
   * `--debug` - Build debug configuration.
 
+To run python tests execute the following command:
+
+```
+pytest -v tests/python
+```
+
 ## API Documentation
 
 You can generate the API documentation by yourself. Pass `-DYARAMOD_DOC=ON` to `cmake` and run `make doc`.
