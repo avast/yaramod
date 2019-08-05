@@ -312,4 +312,137 @@ protected:
 	ObservingVisitor() = default;
 };
 
-}
+/**
+ * Abstract class representing observing regexpVisitor of regular expression in YARA files.
+ * Its main purpose is just to traverse units and collect information from them.
+ */
+class ObservingRegexpVisitor : public RegexpVisitor
+{
+public:
+	/**
+	 * Observes the specified expression.
+	 */
+	void observe(const std::shared_ptr<RegexpUnit>& unit)
+	{
+		unit->accept(this);
+	}
+
+	/// @name Visit methods
+	/// @{
+	virtual RegexpVisitResult visit(RegexpUnit* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpClass* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpText* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpAnyChar* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpWordChar* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpNonWordChar* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpSpace* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpNonSpace* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpDigit* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpNonDigit* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpWordBoundary* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpNonWordBoundary* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpStartOfLine* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpEndOfLine* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpOperation* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpIteration* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpPositiveIteration* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpOptional* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpRange* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpOr* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpGroup* expr)
+	{
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpConcat* expr)
+	{
+		return {};
+	}
+
+	/// @}
+
+protected:
+	ObservingRegexpVisitor() = default;
+};
+
+} // namespace yaramod

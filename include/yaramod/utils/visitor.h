@@ -128,4 +128,62 @@ public:
 	/// @}
 };
 
+class RegexpUnit;
+class RegexpClass;
+class RegexpText;
+class RegexpAnyChar;
+class RegexpWordChar;
+class RegexpNonWordChar;
+class RegexpSpace;
+class RegexpNonSpace;
+class RegexpDigit;
+class RegexpNonDigit;
+class RegexpWordBoundary;
+class RegexpNonWordBoundary;
+class RegexpStartOfLine;
+class RegexpEndOfLine;
+class RegexpOperation;
+class RegexpIteration;
+class RegexpPositiveIteration;
+class RegexpOptional;
+class RegexpRange;
+class RegexpOr;
+class RegexpGroup;
+class RegexpConcat;
+
+/**
+ * Abstract class representing visitor design pattern for visiting regular expressions
+ * in YARA file. Subclass this class whenever you want to somehow process units
+ * in regular expression.
+ */
+class RegexpVisitor
+{
+public:
+	/// @name Visit methods
+	/// @{
+	virtual RegexpVisitResult visit(RegexpUnit* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpClass* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpText* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpAnyChar* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpWordChar* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpNonWordChar* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpSpace* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpNonSpace* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpDigit* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpNonDigit* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpWordBoundary* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpNonWordBoundary* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpStartOfLine* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpEndOfLine* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpOperation* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpIteration* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpPositiveIteration* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpOptional* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpRange* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpOr* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpGroup* expr) = 0;
+	virtual RegexpVisitResult visit(RegexpConcat* expr) = 0;
+	/// @}
+};
+
 }

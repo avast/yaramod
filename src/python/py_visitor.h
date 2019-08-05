@@ -209,3 +209,85 @@ public:
 };
 
 void addVisitorClasses(pybind11::module& module);
+
+#define PURE_REGEXP_VISIT(type) \
+	virtual yaramod::RegexpVisitResult visit(yaramod::type* expr) override { \
+		PYBIND11_OVERLOAD_PURE_NAME( \
+				yaramod::RegexpVisitResult, \
+				yaramod::RegexpVisitor, \
+				"visit_"#type, \
+				visit, \
+				expr \
+			); \
+	}
+
+class PyRegexpVisitor : public yaramod::RegexpVisitor
+{
+public:
+	using yaramod::RegexpVisitor::RegexpVisitor;
+
+	PURE_REGEXP_VISIT(RegexpUnit)
+	PURE_REGEXP_VISIT(RegexpClass)
+	PURE_REGEXP_VISIT(RegexpText)
+	PURE_REGEXP_VISIT(RegexpAnyChar)
+	PURE_REGEXP_VISIT(RegexpWordChar)
+	PURE_REGEXP_VISIT(RegexpNonWordChar)
+	PURE_REGEXP_VISIT(RegexpSpace)
+	PURE_REGEXP_VISIT(RegexpNonSpace)
+	PURE_REGEXP_VISIT(RegexpDigit)
+	PURE_REGEXP_VISIT(RegexpNonDigit)
+	PURE_REGEXP_VISIT(RegexpWordBoundary)
+	PURE_REGEXP_VISIT(RegexpNonWordBoundary)
+	PURE_REGEXP_VISIT(RegexpStartOfLine)
+	PURE_REGEXP_VISIT(RegexpEndOfLine)
+	PURE_REGEXP_VISIT(RegexpOperation)
+	PURE_REGEXP_VISIT(RegexpIteration)
+	PURE_REGEXP_VISIT(RegexpPositiveIteration)
+	PURE_REGEXP_VISIT(RegexpOptional)
+	PURE_REGEXP_VISIT(RegexpRange)
+	PURE_REGEXP_VISIT(RegexpOr)
+	PURE_REGEXP_VISIT(RegexpGroup)
+	PURE_REGEXP_VISIT(RegexpConcat)
+};
+
+#define REGEXP_VISIT(parent, type) \
+	virtual yaramod::RegexpVisitResult visit(yaramod::type* expr) override { \
+		PYBIND11_OVERLOAD_NAME( \
+				yaramod::RegexpVisitResult, \
+				yaramod::parent, \
+				"visit_"#type, \
+				visit, \
+				expr \
+			); \
+	}
+
+class PyObservingRegexpVisitor : public yaramod::ObservingRegexpVisitor
+{
+public:
+	using yaramod::ObservingRegexpVisitor::ObservingRegexpVisitor;
+
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpUnit)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpClass)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpText)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpAnyChar)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpWordChar)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpNonWordChar)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpSpace)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpNonSpace)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpDigit)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpNonDigit)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpWordBoundary)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpNonWordBoundary)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpStartOfLine)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpEndOfLine)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpOperation)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpIteration)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpPositiveIteration)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpOptional)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpRange)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpOr)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpGroup)
+	REGEXP_VISIT(ObservingRegexpVisitor, RegexpConcat)
+};
+
+void addRegexpVisitorClasses(pybind11::module& module);

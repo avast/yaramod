@@ -186,6 +186,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("suffix_modifiers", &Regexp::getSuffixModifiers);
 
 	py::class_<RegexpUnit, std::shared_ptr<RegexpUnit>>(module, "RegexpUnit")
+		.def("accept", &RegexpUnit::accept)
 		.def_property_readonly("text", &RegexpUnit::getText);
 
 	py::class_<RegexpClass, RegexpUnit, std::shared_ptr<RegexpClass>>(module, "RegexpClass")
@@ -591,5 +592,6 @@ PYBIND11_MODULE(yaramod, module)
 	addExpressionClasses(module);
 	addMainFunctions(module);
 	addVisitorClasses(module);
+	addRegexpVisitorClasses(module);
 	addBuilderClasses(module);
 }
