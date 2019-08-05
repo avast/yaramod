@@ -180,7 +180,55 @@ void addBasicClasses(py::module& module)
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
 	py::class_<HexString, String, std::shared_ptr<HexString>>(module, "HexString");
 	py::class_<Regexp, String, std::shared_ptr<Regexp>>(module, "Regexp")
+		.def_property("unit",
+				&Regexp::getUnit,
+				py::overload_cast<const std::shared_ptr<RegexpUnit>&>(&Regexp::setUnit))
 		.def_property_readonly("suffix_modifiers", &Regexp::getSuffixModifiers);
+
+	py::class_<RegexpUnit, std::shared_ptr<RegexpUnit>>(module, "RegexpUnit")
+		.def_property_readonly("text", &RegexpUnit::getText);
+
+	py::class_<RegexpClass, RegexpUnit, std::shared_ptr<RegexpClass>>(module, "RegexpClass")
+		.def_property("characters", &RegexpClass::getCharacters, &RegexpClass::setCharacters)
+		.def_property_readonly("is_negative", &RegexpClass::isNegative);
+
+	py::class_<RegexpText, RegexpUnit, std::shared_ptr<RegexpText>>(module, "RegexpText")
+		.def_property_readonly("text", &RegexpText::getText);
+
+	py::class_<RegexpAnyChar, RegexpText, std::shared_ptr<RegexpAnyChar>>(module, "RegexpAnyChar");
+	py::class_<RegexpWordChar, RegexpText, std::shared_ptr<RegexpWordChar>>(module, "RegexpWordChar");
+	py::class_<RegexpNonWordChar, RegexpText, std::shared_ptr<RegexpNonWordChar>>(module, "RegexpNonWordChar");
+	py::class_<RegexpSpace, RegexpText, std::shared_ptr<RegexpSpace>>(module, "RegexpSpace");
+	py::class_<RegexpNonSpace, RegexpText, std::shared_ptr<RegexpNonSpace>>(module, "RegexpNonSpace");
+	py::class_<RegexpDigit, RegexpText, std::shared_ptr<RegexpDigit>>(module, "RegexpDigit");
+	py::class_<RegexpNonDigit, RegexpText, std::shared_ptr<RegexpNonDigit>>(module, "RegexpNonDigit");
+	py::class_<RegexpWordBoundary, RegexpText, std::shared_ptr<RegexpWordBoundary>>(module, "RegexpWordBoundary");
+	py::class_<RegexpNonWordBoundary, RegexpText, std::shared_ptr<RegexpNonWordBoundary>>(module, "RegexpNonWordBoundary");
+	py::class_<RegexpStartOfLine, RegexpText, std::shared_ptr<RegexpStartOfLine>>(module, "RegexpStartOfLine");
+	py::class_<RegexpEndOfLine, RegexpText, std::shared_ptr<RegexpEndOfLine>>(module, "RegexpEndOfLine");
+
+	py::class_<RegexpOperation, RegexpUnit, std::shared_ptr<RegexpOperation>>(module, "RegexpOperation")
+		.def_property_readonly("operand", &RegexpOperation::getOperand)
+		.def_property_readonly("operation", &RegexpOperation::getOperation)
+		.def_property_readonly("is_greedy", &RegexpOperation::isGreedy);
+
+	py::class_<RegexpIteration, RegexpOperation, std::shared_ptr<RegexpIteration>>(module, "RegexpIteration");
+	py::class_<RegexpPositiveIteration, RegexpOperation, std::shared_ptr<RegexpPositiveIteration>>(module, "RegexpPositiveIteration");
+	py::class_<RegexpOptional, RegexpOperation, std::shared_ptr<RegexpOptional>>(module, "RegexpOptional");
+	py::class_<RegexpRange, RegexpOperation, std::shared_ptr<RegexpRange>>(module, "RegexpRange")
+		.def_property_readonly("range", &RegexpRange::getRange);
+
+	py::class_<RegexpConcat, RegexpUnit, std::shared_ptr<RegexpConcat>>(module, "RegexpConcat")
+		.def_property("units",
+				&RegexpConcat::getUnits,
+				py::overload_cast<const std::vector<std::shared_ptr<RegexpUnit>>&>(&RegexpConcat::setUnits));
+
+	py::class_<RegexpGroup, RegexpUnit, std::shared_ptr<RegexpGroup>>(module, "RegexpGroup")
+		.def_property_readonly("unit", &RegexpGroup::getUnit);
+
+	py::class_<RegexpOr, RegexpUnit, std::shared_ptr<RegexpOr>>(module, "RegexpOr")
+		.def_property_readonly("left", &RegexpOr::getLeft)
+		.def_property_readonly("right", &RegexpOr::getRight);
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)

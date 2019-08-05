@@ -43,6 +43,11 @@ public:
 		return '[' + (_negative ? "^" : std::string()) + _characters + ']';
 	}
 
+	const std::string& getCharacters() const { return _characters; }
+	void setCharacters(const std::string& characters) { _characters = characters; }
+
+	bool isNegative() const { return _negative; }
+
 private:
 	std::string _characters; ///< Characters in the class
 	bool _negative; ///< Negative class
@@ -188,6 +193,15 @@ public:
 		return _operand->getText() + _operation + (_greedy ? std::string() : "?");
 	}
 
+	char getOperation() const { return _operation; }
+
+	bool isGreedy() const { return _greedy; }
+
+	const std::shared_ptr<RegexpUnit>& getOperand() const { return _operand; }
+
+	void setOperand(const std::shared_ptr<RegexpUnit>& operand) { _operand = operand; }
+	void setOperand(std::shared_ptr<RegexpUnit>&& operand) { _operand = std::move(operand); }
+
 protected:
 	RegexpOperation(char operation, std::shared_ptr<RegexpUnit>&& operand, bool greedy) : _operation(operation), _operand(std::move(operand)), _greedy(greedy) {}
 
@@ -267,6 +281,11 @@ public:
 		return ss.str();
 	}
 
+	const std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>& getRange() const
+	{
+		return _range;
+	}
+
 private:
 	std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>> _range; ///< Lower and higher bound of the range
 };
@@ -286,6 +305,9 @@ public:
 		return _left->getText() + '|' + _right->getText();
 	}
 
+	const std::shared_ptr<RegexpUnit>& getLeft() const { return _left; }
+	const std::shared_ptr<RegexpUnit>& getRight() const { return _right; }
+
 private:
 	std::shared_ptr<RegexpUnit> _left, _right; ///< Operands
 };
@@ -303,6 +325,8 @@ public:
 	{
 		return '(' + _unit->getText() + ')';
 	}
+
+	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
 
 private:
 	std::shared_ptr<RegexpUnit> _unit; ///< Grouped units
@@ -324,6 +348,18 @@ public:
 		for (const auto& unit : _units)
 			result += unit->getText();
 		return result;
+	}
+
+	const std::vector<std::shared_ptr<RegexpUnit>>& getUnits() const { return _units; }
+
+	void setUnits(const std::vector<std::shared_ptr<RegexpUnit>>& units)
+	{
+		_units = units;
+	}
+
+	void setUnits(std::vector<std::shared_ptr<RegexpUnit>>&& units)
+	{
+		_units = std::move(units);
 	}
 
 private:
@@ -355,6 +391,18 @@ public:
 		return _unit->getText();
 	}
 
+	/**
+	* Return regular expression suffix modifiers.
+	*
+	* For further information see https://perldoc.perl.org/perlre.html#Modifiers.
+	* Allowed modifiers are 'i' and 's'.
+	*
+	* For example:
+	* @code
+	* $1 = /suffix_mod_i/i
+	*                    ^
+	* @endcode
+	*/
 	const std::string& getSuffixModifiers() const
 	{
 		return _suffixMods;
@@ -364,6 +412,11 @@ public:
 	{
 		_suffixMods = suffixMods;
 	}
+
+	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
+
+	void setUnit(const std::shared_ptr<RegexpUnit>& unit) { _unit = unit; }
+	void setUnit(std::shared_ptr<RegexpUnit>&& unit) { _unit = std::move(unit); }
 
 private:
 	std::shared_ptr<RegexpUnit> _unit; ///< Unit defining other units in regular expression
