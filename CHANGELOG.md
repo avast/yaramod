@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Interface for obtaining internal representation of regular expressions ([#29](https://github.com/avast/yaramod/issues/29)).
+
 # v2.8.0 (2019-05-16)
 
 * New: Added support for `pe.iconhash()` function.
