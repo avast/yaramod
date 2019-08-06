@@ -7,6 +7,7 @@
 #pragma once
 
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/regexp.h"
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {

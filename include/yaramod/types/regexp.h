@@ -14,7 +14,7 @@
 #include <optional_lite/optional.hpp>
 
 #include "yaramod/types/string.h"
-#include "yaramod/utils/visitor_result.h"
+#include "yaramod/utils/visitor.h"
 
 namespace yaramod {
 
