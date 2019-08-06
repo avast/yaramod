@@ -322,9 +322,9 @@ public:
 	/**
 	 * Observes the specified expression.
 	 */
-	void observe(const std::shared_ptr<RegexpUnit>& unit)
+	RegexpVisitResult observe(const std::shared_ptr<RegexpUnit>& unit)
 	{
-		unit->accept(this);
+		return unit->accept(this);
 	}
 
 	/// @name Visit methods
