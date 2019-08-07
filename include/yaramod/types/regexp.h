@@ -18,8 +18,6 @@
 
 namespace yaramod {
 
-class Visitor;
-
 /**
  * Abstract class representing single unit in the regular expression.
  */
