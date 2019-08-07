@@ -8,10 +8,15 @@
 
 #include "yaramod/utils/observing_visitor.h"
 
-class Dumper : public yaramod::ObservingVisitor
+class Dumper : public yaramod::ObservingVisitor, public yaramod::ObservingRegexpVisitor
 {
 public:
 	Dumper() : _indent(0) {}
+
+	void observe(const yaramod::Expression::Ptr& expr)
+	{
+		expr->accept(this);
+	}
 
 	virtual yaramod::VisitResult visit(yaramod::StringExpression* expr) override
 	{
@@ -483,6 +488,159 @@ public:
 	virtual yaramod::VisitResult visit(yaramod::RegexpExpression* expr) override
 	{
 		dump("Regexp", expr, " text=", expr->getRegexpString()->getPureText());
+		indentUp();
+		observe(std::static_pointer_cast<yaramod::Regexp>(expr->getRegexpString())->getUnit());
+		indentDown();
+		return {};
+	}
+
+	// ==================== ObservingRegexVisitor ====================
+	yaramod::RegexpVisitResult observe(const std::shared_ptr<yaramod::RegexpUnit>& unit)
+	{
+		unit->accept(this);
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpClass* expr) override
+	{
+		dump("RegexpClass", expr, " text=", expr->getText(), " characters=", expr->getCharacters());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpText* expr) override
+	{
+		dump("RegexpClass", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpAnyChar* expr) override
+	{
+		dump("RegexpAnyChar", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpWordChar* expr) override
+	{
+		dump("RegexpWordChar", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpNonWordChar* expr) override
+	{
+		dump("RegexpNonWordChar", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpSpace* expr) override
+	{
+		dump("RegexpSpace", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpNonSpace* expr) override
+	{
+		dump("RegexpNonSpace", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpDigit* expr) override
+	{
+		dump("RegexpDigit", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpNonDigit* expr) override
+	{
+		dump("RegexpNonDigit", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpWordBoundary* expr) override
+	{
+		dump("RegexpWordBoundary", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpNonWordBoundary* expr) override
+	{
+		dump("RegexpNonWordBoundary", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpStartOfLine* expr) override
+	{
+		dump("RegexpStartOfLine", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpEndOfLine* expr) override
+	{
+		dump("RegexpEndOfLine", expr, " text=", expr->getText());
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpIteration* expr) override
+	{
+		dump("RegexpIteration", expr, " text=", expr->getText());
+		indentUp();
+		expr->getOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpPositiveIteration* expr) override
+	{
+		dump("RegexpPositiveIteration", expr, " text=", expr->getText());
+		indentUp();
+		expr->getOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpOptional* expr) override
+	{
+		dump("RegexpOptional", expr, " text=", expr->getText());
+		indentUp();
+		expr->getOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpRange* expr) override
+	{
+		dump("RegexpRange", expr, " text=", expr->getText());
+		indentUp();
+		expr->getOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpOr* expr) override
+	{
+		dump("RegexpOr", expr, " text=", expr->getText());
+		indentUp();
+		expr->getLeft()->accept(this);
+		expr->getRight()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpGroup* expr) override
+	{
+		dump("RegexpGroup", expr, " text=", expr->getText());
+		indentUp();
+		expr->getUnit()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpConcat* expr) override
+	{
+		dump("RegexpConcat", expr, " text=", expr->getText());
+		indentUp();
+		for (auto& unit : expr->getUnits())
+			unit->accept(this);
+		indentDown();
 		return {};
 	}
 
