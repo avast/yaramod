@@ -330,103 +330,61 @@ public:
 
 	/// @name Visit methods
 	/// @{
-	virtual RegexpVisitResult visit(RegexpClass* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpText* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpAnyChar* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpWordChar* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpNonWordChar* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpSpace* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpNonSpace* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpDigit* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpNonDigit* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpWordBoundary* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpNonWordBoundary* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpStartOfLine* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpEndOfLine* expr)
-	{
-		return {};
-	}
+	virtual RegexpVisitResult visit(RegexpClass*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpText*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpAnyChar*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpWordChar*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonWordChar*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpSpace*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonSpace*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpDigit*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonDigit*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpWordBoundary*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonWordBoundary*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpStartOfLine*) { return {}; }
+	virtual RegexpVisitResult visit(RegexpEndOfLine*) { return {}; }
 
 	virtual RegexpVisitResult visit(RegexpIteration* expr)
 	{
+		expr->getOperand()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpPositiveIteration* expr)
 	{
+		expr->getOperand()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpOptional* expr)
 	{
+		expr->getOperand()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpRange* expr)
 	{
+		expr->getOperand()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpOr* expr)
 	{
+		expr->getLeft()->accept(this);
+		expr->getRight()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpGroup* expr)
 	{
+		expr->getUnit()->accept(this);
 		return {};
 	}
 
 	virtual RegexpVisitResult visit(RegexpConcat* expr)
 	{
+		for (auto& element : expr->getUnits())
+			element->accept(this);
 		return {};
 	}
 
