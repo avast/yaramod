@@ -7,6 +7,7 @@
 #pragma once
 
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/regexp.h"
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {
@@ -312,4 +313,84 @@ protected:
 	ObservingVisitor() = default;
 };
 
-}
+/**
+ * Abstract class representing observing regexpVisitor of regular expression in YARA files.
+ * Its main purpose is just to traverse units and collect information from them.
+ */
+class ObservingRegexpVisitor : public RegexpVisitor
+{
+public:
+	/**
+	 * Observes the specified expression.
+	 */
+	RegexpVisitResult observe(const std::shared_ptr<RegexpUnit>& unit)
+	{
+		return unit->accept(this);
+	}
+
+	/// @name Visit methods
+	/// @{
+	virtual RegexpVisitResult visit(RegexpClass*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpText*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpAnyChar*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpWordChar*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonWordChar*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpSpace*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonSpace*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpDigit*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonDigit*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpWordBoundary*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpNonWordBoundary*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpStartOfLine*) override { return {}; }
+	virtual RegexpVisitResult visit(RegexpEndOfLine*) override { return {}; }
+
+	virtual RegexpVisitResult visit(RegexpIteration* expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpPositiveIteration* expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpOptional* expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpRange* expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpOr* expr) override
+	{
+		expr->getLeft()->accept(this);
+		expr->getRight()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpGroup* expr) override
+	{
+		expr->getUnit()->accept(this);
+		return {};
+	}
+
+	virtual RegexpVisitResult visit(RegexpConcat* expr) override
+	{
+		for (auto& element : expr->getUnits())
+			element->accept(this);
+		return {};
+	}
+	/// @}
+
+protected:
+	ObservingRegexpVisitor() = default;
+};
+
+} // namespace yaramod

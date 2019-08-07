@@ -13,6 +13,7 @@
 namespace yaramod {
 
 class Expression;
+class RegexpUnit;
 
 /**
  * Represents the action that visitor should preform with the visited expression.
@@ -23,5 +24,6 @@ enum class VisitAction
 };
 
 using VisitResult = mpark::variant<std::shared_ptr<Expression>, VisitAction>;
+using RegexpVisitResult = mpark::variant<std::shared_ptr<RegexpUnit>, double>;
 
 }

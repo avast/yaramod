@@ -14,6 +14,7 @@
 #include <optional_lite/optional.hpp>
 
 #include "yaramod/types/string.h"
+#include "yaramod/utils/visitor.h"
 
 namespace yaramod {
 
@@ -27,6 +28,8 @@ public:
 	virtual ~RegexpUnit() {}
 
 	virtual std::string getText() const = 0;
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) = 0;
 };
 
 /**
@@ -41,6 +44,11 @@ public:
 	virtual std::string getText() const
 	{
 		return '[' + (_negative ? "^" : std::string()) + _characters + ']';
+	}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
 	}
 
 	const std::string& getCharacters() const { return _characters; }
@@ -65,6 +73,11 @@ public:
 
 	virtual std::string getText() const override { return _text; }
 
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
+
 private:
 	std::string _text; ///< Text
 };
@@ -77,6 +90,11 @@ class RegexpAnyChar : public RegexpText
 {
 public:
 	RegexpAnyChar() : RegexpText(".") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -87,6 +105,11 @@ class RegexpWordChar : public RegexpText
 {
 public:
 	RegexpWordChar() : RegexpText("\\w") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -97,6 +120,11 @@ class RegexpNonWordChar : public RegexpText
 {
 public:
 	RegexpNonWordChar() : RegexpText("\\W") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -107,6 +135,11 @@ class RegexpSpace : public RegexpText
 {
 public:
 	RegexpSpace() : RegexpText("\\s") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -117,6 +150,11 @@ class RegexpNonSpace : public RegexpText
 {
 public:
 	RegexpNonSpace() : RegexpText("\\S") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -127,6 +165,11 @@ class RegexpDigit : public RegexpText
 {
 public:
 	RegexpDigit() : RegexpText("\\d") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -137,6 +180,11 @@ class RegexpNonDigit : public RegexpText
 {
 public:
 	RegexpNonDigit() : RegexpText("\\D") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -147,6 +195,11 @@ class RegexpWordBoundary : public RegexpText
 {
 public:
 	RegexpWordBoundary() : RegexpText("\\b") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -157,6 +210,11 @@ class RegexpNonWordBoundary : public RegexpText
 {
 public:
 	RegexpNonWordBoundary() : RegexpText("\\B") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -167,6 +225,11 @@ class RegexpStartOfLine : public RegexpText
 {
 public:
 	RegexpStartOfLine() : RegexpText("^") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -177,6 +240,11 @@ class RegexpEndOfLine : public RegexpText
 {
 public:
 	RegexpEndOfLine() : RegexpText("$") {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -219,6 +287,11 @@ class RegexpIteration : public RegexpOperation
 {
 public:
 	RegexpIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('*', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -229,6 +302,11 @@ class RegexpPositiveIteration : public RegexpOperation
 {
 public:
 	RegexpPositiveIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('+', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -239,6 +317,11 @@ class RegexpOptional : public RegexpOperation
 {
 public:
 	RegexpOptional(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('?', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -281,6 +364,11 @@ public:
 		return ss.str();
 	}
 
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
+
 	const std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>& getRange() const
 	{
 		return _range;
@@ -305,6 +393,11 @@ public:
 		return _left->getText() + '|' + _right->getText();
 	}
 
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
+
 	const std::shared_ptr<RegexpUnit>& getLeft() const { return _left; }
 	const std::shared_ptr<RegexpUnit>& getRight() const { return _right; }
 
@@ -324,6 +417,11 @@ public:
 	virtual std::string getText() const override
 	{
 		return '(' + _unit->getText() + ')';
+	}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
 	}
 
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
@@ -348,6 +446,11 @@ public:
 		for (const auto& unit : _units)
 			result += unit->getText();
 		return result;
+	}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
 	}
 
 	const std::vector<std::shared_ptr<RegexpUnit>>& getUnits() const { return _units; }
