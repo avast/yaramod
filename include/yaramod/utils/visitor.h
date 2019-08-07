@@ -128,7 +128,6 @@ public:
 	/// @}
 };
 
-class RegexpUnit;
 class RegexpClass;
 class RegexpText;
 class RegexpAnyChar;
@@ -142,7 +141,6 @@ class RegexpWordBoundary;
 class RegexpNonWordBoundary;
 class RegexpStartOfLine;
 class RegexpEndOfLine;
-class RegexpOperation;
 class RegexpIteration;
 class RegexpPositiveIteration;
 class RegexpOptional;
@@ -161,7 +159,6 @@ class RegexpVisitor
 public:
 	/// @name Visit methods
 	/// @{
-	virtual RegexpVisitResult visit(RegexpUnit* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpClass* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpText* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpAnyChar* expr) = 0;
@@ -175,7 +172,6 @@ public:
 	virtual RegexpVisitResult visit(RegexpNonWordBoundary* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpStartOfLine* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpEndOfLine* expr) = 0;
-	virtual RegexpVisitResult visit(RegexpOperation* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpIteration* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpPositiveIteration* expr) = 0;
 	virtual RegexpVisitResult visit(RegexpOptional* expr) = 0;

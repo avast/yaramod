@@ -263,11 +263,6 @@ public:
 		return _operand->getText() + _operation + (_greedy ? std::string() : "?");
 	}
 
-	virtual RegexpVisitResult accept(RegexpVisitor* v) override
-	{
-		return v->visit(this);
-	}
-
 	char getOperation() const { return _operation; }
 
 	bool isGreedy() const { return _greedy; }

@@ -330,11 +330,6 @@ public:
 
 	/// @name Visit methods
 	/// @{
-	virtual RegexpVisitResult visit(RegexpUnit* expr)
-	{
-		return {};
-	}
-
 	virtual RegexpVisitResult visit(RegexpClass* expr)
 	{
 		return {};
@@ -396,11 +391,6 @@ public:
 	}
 
 	virtual RegexpVisitResult visit(RegexpEndOfLine* expr)
-	{
-		return {};
-	}
-
-	virtual RegexpVisitResult visit(RegexpOperation* expr)
 	{
 		return {};
 	}

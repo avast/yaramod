@@ -226,7 +226,6 @@ class PyRegexpVisitor : public yaramod::RegexpVisitor
 public:
 	using yaramod::RegexpVisitor::RegexpVisitor;
 
-	PURE_REGEXP_VISIT(RegexpUnit)
 	PURE_REGEXP_VISIT(RegexpClass)
 	PURE_REGEXP_VISIT(RegexpText)
 	PURE_REGEXP_VISIT(RegexpAnyChar)
@@ -240,7 +239,6 @@ public:
 	PURE_REGEXP_VISIT(RegexpNonWordBoundary)
 	PURE_REGEXP_VISIT(RegexpStartOfLine)
 	PURE_REGEXP_VISIT(RegexpEndOfLine)
-	PURE_REGEXP_VISIT(RegexpOperation)
 	PURE_REGEXP_VISIT(RegexpIteration)
 	PURE_REGEXP_VISIT(RegexpPositiveIteration)
 	PURE_REGEXP_VISIT(RegexpOptional)
@@ -266,7 +264,6 @@ class PyObservingRegexpVisitor : public yaramod::ObservingRegexpVisitor
 public:
 	using yaramod::ObservingRegexpVisitor::ObservingRegexpVisitor;
 
-	REGEXP_VISIT(ObservingRegexpVisitor, RegexpUnit)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpClass)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpText)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpAnyChar)
@@ -280,7 +277,6 @@ public:
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpNonWordBoundary)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpStartOfLine)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpEndOfLine)
-	REGEXP_VISIT(ObservingRegexpVisitor, RegexpOperation)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpIteration)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpPositiveIteration)
 	REGEXP_VISIT(ObservingRegexpVisitor, RegexpOptional)
