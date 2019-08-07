@@ -387,7 +387,6 @@ public:
 			element->accept(this);
 		return {};
 	}
-
 	/// @}
 
 protected:
