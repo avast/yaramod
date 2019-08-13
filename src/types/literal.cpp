@@ -116,7 +116,7 @@ Literal::Literal( uint64_t value, const std::optional<std::string>& integral_for
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( float value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
+Literal::Literal( double value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
    : _value( value )
    , _integral_formated_value( integral_formated_value )
 {
@@ -126,10 +126,17 @@ Literal::Literal( float value, const std::optional< std::string >& integral_form
  * Constructor.
  *
  * @param value integral value of the literal.
- * @param integral_formated_value formatted value of the integral literal.
+ * @param name formatted value of the integral literal.
  */
-Literal::Literal( Symbol* value )
+Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name )
    : _value( value )
+   , _integral_formated_value(name)
+{
+}
+
+Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
+   : _value( std::move(value) )
+   , _integral_formated_value(name)
 {
 }
 
@@ -166,10 +173,22 @@ void Literal::setValue( uint64_t i, const std::optional<std::string>& integral_f
 	_integral_formated_value = integral_formated_value;
 }
 
-void Literal::setValue( float f, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
+void Literal::setValue( double f, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = f;
 	_integral_formated_value = integral_formated_value;
+}
+
+
+void Literal::setValue( const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
+{
+	_value = s;
+	_integral_formated_value = symbol_name;
+}
+void Literal::setValue( std::shared_ptr<Symbol>&& s, std::string&& symbol_name )
+{
+	_value = std::move(s);
+	_integral_formated_value = std::move(symbol_name);
 }
 
 /**
@@ -185,7 +204,7 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		if(pure || output == "")
 			return output;
 		else
-			return '"' + output + '"';
+			return '"' + escapeString(output) + '"';
 	}
 	else if (isBool())
 	{
@@ -214,16 +233,17 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		else
 			return numToStr<uint64_t>( getUInt64_t() );
 	}
-	else if (isFloat())
+	else if (isDouble())
 	{
 		if(_integral_formated_value.has_value())
 			return _integral_formated_value.value();
 		else
-			return numToStr<float>( getFloat() );
+			return numToStr<double>( getDouble() );
 	}
 	else if (isSymbol())
 	{
-		return getSymbol()->getName();
+		assert(_integral_formated_value);
+		return _integral_formated_value.value();
 	}
 	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
 	std::cerr << "Value:" << *this << std::endl;
@@ -271,22 +291,22 @@ bool Literal::isUInt64_t() const
 	return _value.index() == 4;
 }
 
-bool Literal::isFloat() const
+bool Literal::isDouble() const
 {
-	// std::cout << "isFloat(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
+	// std::cout << "isDouble(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
 	return _value.index() == 5;
 }
 
 bool Literal::isSymbol() const
 {
-	// std::cout << "isFloat(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
+	// std::cout << "isDouble(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
 	return _value.index() == 6;
 }
 
 bool Literal::isIntegral() const
 {
 	// std::cout << "isIntegral(" << *this << ")? index: " << _value.index() << std::endl;
-	return isInt() ||  isInt64_t() || isUInt64_t() || isFloat() ;
+	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
 }
 
 const std::string& Literal::getString() const
@@ -354,29 +374,42 @@ uint64_t Literal::getUInt64_t() const
    }
 }
 
-float Literal::getFloat() const
+double Literal::getDouble() const
 {
    try
    {
-      return std::get<float>(_value);
+      return std::get<double>(_value);
    }
    catch (std::bad_variant_access& exp)
    {
-      std::cerr << "Called getFloat() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getFloat() of non-float TokenValue");
+      std::cerr << "Called getDouble() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+      assert(false && "Called getDouble() of non-double TokenValue");
    }
 }
 
-Symbol* Literal::getSymbol() const
+const std::shared_ptr<Symbol>& Literal::getSymbol() const
 {
    try
    {
-      return std::get<Symbol*>(_value);
+      return std::get<std::shared_ptr<Symbol>>(_value);
    }
    catch (std::bad_variant_access& exp)
    {
       std::cerr << "Called getSymbol() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getSymbol() of non-float TokenValue");
+      assert(false && "Called getSymbol() of non-double TokenValue");
+   }
+}
+
+template<typename T> T Literal::getValue() const
+{
+	try
+   {
+      return std::get<T>(_value);
+   }
+   catch (std::bad_variant_access& exp)
+   {
+      std::cerr << "Called getValue<T>() with incompatible type T. TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+      assert(false && "Called getValue<T>() with incompatible type T.");
    }
 }
 
@@ -405,14 +438,19 @@ uint64_t Token::getUInt64_t() const
 	return _value->getUInt64_t();
 }
 
-float Token::getFloat() const
+double Token::getDouble() const
 {
-	return _value->getFloat();
+	return _value->getDouble();
 }
 
-Symbol* Token::getSymbol() const
+const std::shared_ptr<Symbol>& Token::getSymbol() const
 {
 	return _value->getSymbol();
+}
+
+template<typename T> T Token::getValue() const
+{
+	return _value->getValue<T>();
 }
 
 TokenIt TokenStream::emplace_back( TokenType type, char value )
@@ -464,15 +502,21 @@ TokenIt TokenStream::emplace_back( TokenType type, uint64_t i, const std::option
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace_back( TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, Symbol* s )
+TokenIt TokenStream::emplace_back( TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
 {
-	_tokens.emplace_back(type, std::move(Literal(s)));
+	_tokens.emplace_back(type, std::move(Literal(s, symbol_name)));
+	return --_tokens.end();
+}
+
+TokenIt TokenStream::emplace_back( TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name )
+{
+	_tokens.emplace_back(type, std::move(Literal(std::move(s), symbol_name)));
 	return --_tokens.end();
 }
 
@@ -544,16 +588,23 @@ TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, uint64_t i,
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, float i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, Symbol* s )
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
 {
-	_tokens.emplace(before, type, std::move(Literal(s)));
+	_tokens.emplace(before, type, std::move(Literal(s, symbol_name)));
+	auto output = before;
+	return --output;
+}
+
+TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name )
+{
+	_tokens.emplace(before, type, std::move(Literal(std::move(s), symbol_name)));
 	auto output = before;
 	return --output;
 }

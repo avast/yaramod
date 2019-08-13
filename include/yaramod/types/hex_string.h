@@ -171,8 +171,8 @@ public:
 
 	/// @name Virtual methods
 	/// @{
-	virtual std::string getText() const override { return "?"; }
-	virtual std::size_t getLength() const override { return 1; }
+	virtual std::string getText() const override { return "?"; } // (_value->getType() == HEX_WILDCARD_FULL) ? "??" : "?"; }
+	virtual std::size_t getLength() const override { return 1; } // (_value->getType() == HEX_WILDCARD_FULL) ? 2 : 1; }
 	/// @}
 private:
 	TokenIt _value; ///< Value of the nibble, int

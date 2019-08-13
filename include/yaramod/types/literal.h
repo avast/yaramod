@@ -17,7 +17,7 @@
 #include <sstream>
 #include <variant>
 
-#include "yaramod/types/symbol.h"
+//#include "yaramod/types/symbol.h"
 
 namespace yaramod {
 
@@ -32,8 +32,8 @@ enum TokenType
    FILE_END = 4,
    HEX_ALT = 6, // '|'
    HEX_NIBBLE = 7,
-   HEX_WILDCARD_SINGLE,
-   HEX_WILDCARD_FULL = 8,
+   // HEX_WILDCARD_SINGLE,
+  	// HEX_WILDCARD_FULL = 8,
    HEX_WILDCARD_LOW = 9,
    HEX_WILDCARD_HIGH = 10,
    HEX_JUMP_VARYING = 11,
@@ -62,6 +62,7 @@ enum TokenType
    END = 258,
    RANGE = 259,
    DOT = 260,
+   DOUBLE_DOT,
    LT = 261,
    GT = 262,
    LE = 263,
@@ -106,6 +107,7 @@ enum TokenType
    ALL = 302,
    ANY = 303,
    OF = 304,
+   IN,
    THEM = 305,
    FOR = 306,
    ENTRYPOINT = 307,
@@ -116,6 +118,7 @@ enum TokenType
    MATCHES = 312,
    SLASH = 313,
    STRING_LITERAL = 314,
+   INTEGER_LITERAL = 359,
    INTEGER = 315,
    DOUBLE = 316,
    STRING_ID = 317,
@@ -134,8 +137,8 @@ enum TokenType
    REGEXP_OPTIONAL = 334,
    REGEXP_START_OF_LINE = 335,
    REGEXP_END_OF_LINE = 336,
-   REGEXP_START_SLASH,
-   REGEXP_END_SLASH,
+   REGEXP_START_SLASH = 357,
+   REGEXP_END_SLASH = 358,
    REGEXP_ANY_CHAR = 337,
    REGEXP_WORD_CHAR = 338,
    REGEXP_NON_WORD_CHAR = 339,
@@ -156,9 +159,12 @@ enum TokenType
    META_KEY = 354,
    META_VALUE = 355,
    STRING_KEY = 356,
+   SYMBOL = 360,
 
    INVALID = 16384
 };
+
+class Symbol;
 
 /**
  * Class representing literal. Literal can be either
@@ -182,8 +188,9 @@ public:
 	explicit Literal(int value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(float value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(Symbol* value);
+	explicit Literal(double value, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	explicit Literal(const std::shared_ptr<Symbol>& value, const std::string& name);
+	explicit Literal(std::shared_ptr<Symbol>&& value, const std::string& name);
 
 	Literal(Literal&& literal) = default;
 	Literal(const Literal& literal) = default;
@@ -205,7 +212,9 @@ public:
    void setValue(int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
    void setValue(uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-   void setValue(float f, const std::optional<std::string>& integral_formated_value = std::nullopt);
+   void setValue(double f, const std::optional<std::string>& integral_formated_value = std::nullopt);
+   void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
+   void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
    /// @}
 
    /// @name Getter methods
@@ -215,8 +224,9 @@ public:
    int getInt() const;
    int64_t getInt64_t() const;
    uint64_t getUInt64_t() const;
-   float getFloat() const;
-   Symbol* getSymbol() const;
+   double getDouble() const;
+   const std::shared_ptr<Symbol>& getSymbol() const;
+   template<typename T> T getValue() const;
    /// @}
 
 	/// @name Detection methods
@@ -226,7 +236,7 @@ public:
 	bool isInt() const;
 	bool isInt64_t() const;
 	bool isUInt64_t() const;
-	bool isFloat() const;
+	bool isDouble() const;
 	bool isSymbol() const;
 
 	bool isIntegral() const;
@@ -235,6 +245,9 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
       if( literal._integral_formated_value.has_value() )
       	os << literal._integral_formated_value.value();
+      else if(literal.isBool()){
+      	os << (literal.getBool() ? "true" : "false");
+      }
       else
 	      std::visit(
 	      [&os](auto&& v)
@@ -250,7 +263,7 @@ private:
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted, thus _int_formated_value is empty and _value contains x
 	/// ii. x it is formatted,     so _int_formated_value contains x's string representation and _value contains pure x
-	std::variant< std::string, bool, int, int64_t, uint64_t, float, Symbol* > _value; ///< Value used for all literals:
+	std::variant< std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol> > _value; ///< Value used for all literals:
 	std::optional< std::string > _integral_formated_value; ///< Value used for integral literals with particular formatting
 };
 
@@ -290,10 +303,12 @@ public:
    void setValue(const std::string& value) { _value->setValue(value); }
    void setValue(std::string&& value) { _value->setValue(std::move(value)); }
    void setValue(bool value) { _value->setValue(value); }
-   void setValue(int value) { _value->setValue(value); }
-   void setValue(int64_t value) { _value->setValue(value); }
-   void setValue(uint64_t value) { _value->setValue(value); }
-   void setValue(float value) { _value->setValue(value); }
+   void setValue(int value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+   void setValue(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+   void setValue(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+   void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+   void setValue(const std::shared_ptr<Symbol>& value, const std::string& symbol_name) { _value->setValue(value, symbol_name); }
+   void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
    /// @}
 
    /// @name Detection methods
@@ -303,7 +318,7 @@ public:
 	bool isInt() const { return _value->isInt64_t(); }
 	bool isInt64_t() const { return _value->isInt64_t(); }
 	bool isUInt64_t() const { return _value->isUInt64_t(); }
-	bool isFloat() const { return _value->isFloat(); }
+	bool isDouble() const { return _value->isDouble(); }
 	bool isSymbol() const { return _value->isSymbol(); }
 
 	bool isIntegral() const { return _value->isIntegral(); }
@@ -326,8 +341,9 @@ public:
    int getInt() const;
    int64_t getInt64_t() const;
    uint64_t getUInt64_t() const;
-   float getFloat() const;
-   Symbol* getSymbol() const;
+   double getDouble() const;
+   const std::shared_ptr<Symbol>& getSymbol() const;
+   template<typename T> T getValue() const;
    /// @}
 
 private:
@@ -353,8 +369,9 @@ public:
 	TokenIt emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, Symbol* s );
+	TokenIt emplace_back( TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace_back( TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name );
+	TokenIt emplace_back( TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name );
 	TokenIt emplace_back( TokenType type, const Literal& literal );
 	TokenIt emplace_back( TokenType type, Literal&& literal );
 	TokenIt emplace( const TokenIt& before, TokenType type, char value );
@@ -365,8 +382,9 @@ public:
 	TokenIt emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( const TokenIt& before, TokenType type, Symbol *s );
-	TokenIt emplace( const TokenIt& before, TokenType type, float i, const std::optional<std::string>& integral_formated_value = std::nullopt );
+	TokenIt emplace( const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name );
+	TokenIt emplace( const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name );
+	TokenIt emplace( const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace( const TokenIt& before, TokenType type, const Literal& literal );
 	TokenIt emplace( const TokenIt& before, TokenType type, Literal&& literal );
 	TokenIt push_back( const Token& t );
