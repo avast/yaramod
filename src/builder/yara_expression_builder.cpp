@@ -19,7 +19,6 @@ namespace {
 enum class ArgType {Left, Right, Single};
 void error_handle(ArgType operator_type, const std::string& op, const std::string& expected_type, const Expression::Ptr& expr)
 {
-	//TODO: make the errors nicer
 	if(operator_type == ArgType::Single)
 		throw YaraExpressionBuilderError("Operator " + op + " type mismatch: Expecting " + expected_type + ", argument '" + expr->getText() + "' has type " + expr->getTypeString() + ".");
 	else if(operator_type == ArgType::Right)
@@ -188,8 +187,6 @@ Expression::Ptr YaraExpressionBuilder::get() const
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator!()
 {
-	if( !canBeBool() )
-		error_handle(ArgType::Single, "!", "bool", _expr);
 	_expr = std::make_shared<NotExpression>(std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -202,8 +199,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator~()
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Single, "~", "integer", _expr);
 	_expr = std::make_shared<BitwiseNotExpression>(std::move(_expr));
 	setType(Expression::Type::Bool);
 	return *this;
@@ -216,11 +211,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator~()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator-()
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Single, "-", "number", _expr);
-	auto type = getType();
 	_expr = std::make_shared<UnaryMinusExpression>(std::move(_expr));
-	setType(type);
 	return *this;
 }
 
@@ -233,10 +224,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-()
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBuilder& other)
 {
-	if( !canBeBool() )
-		error_handle(ArgType::Left, "&&", "bool", _expr);
-	else if( !other.canBeBool() )
-		error_handle(ArgType::Right, "&&", "bool", other._expr);
 	_expr = std::make_shared<AndExpression>(std::move(_expr), other.get());
 	setType(Expression::Type::Bool);
 	return *this;
@@ -251,10 +238,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBuilder& other)
 {
-	if( !canBeBool() )
-		error_handle(ArgType::Left, "||", "bool", _expr);
-	else if( !other.canBeBool() )
-		error_handle(ArgType::Right, "||", "bool", other._expr);
 	_expr = std::make_shared<OrExpression>(std::move(_expr), other.get());
 	setType(Expression::Type::Bool);
 	return *this;
@@ -269,14 +252,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<LtExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator <. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " + other._expr->getTypeString() );
+	_expr = std::make_shared<LtExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -289,14 +266,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<LeExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator <=. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " + other._expr->getTypeString() );
+	_expr = std::make_shared<LeExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -309,14 +280,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<GtExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator >. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " +other._expr->getTypeString() );
+	_expr = std::make_shared<GtExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -329,14 +294,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<GeExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator >=. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " +other._expr->getTypeString() );
+	_expr = std::make_shared<GeExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -349,14 +308,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<EqExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator ==. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " +other._expr->getTypeString() );
+	_expr = std::make_shared<EqExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -369,14 +322,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBuilder& other)
 {
-	if((_expr->isString() && other._expr->isString()) ||
-		(canBeNumber() && other.canBeNumber()) )
-	{
-		_expr = std::make_shared<NeqExpression>(std::move(_expr), other.get());
-		setType(Expression::Type::Bool);
-	}
-	else
-		error_handle("Type mismatch for operator !=. The expression '" +_expr->getText() + "' of type " + _expr->getTypeString() + " not comparable with the expression '" + other._expr->getText() + "' of type " +other._expr->getTypeString() );
+	_expr = std::make_shared<NeqExpression>(std::move(_expr), other.get());
+	setType(Expression::Type::Bool);
 	return *this;
 }
 
@@ -389,10 +336,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuilder& other)
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Left, "+", "number", _expr);
-	else if( !other.canBeNumber() )
-		error_handle(ArgType::Right, "+", "number", other._expr);
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	_expr = std::make_shared<PlusExpression>(std::move(_expr), other.get());
@@ -410,10 +353,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuilder& other)
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Left, "-", "number", _expr);
-	else if( !other.canBeNumber() )
-		error_handle(ArgType::Right, "-", "number", other._expr);
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	_expr = std::make_shared<MinusExpression>(std::move(_expr), other.get());
@@ -431,10 +370,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuilder& other)
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Left, "*", "number", _expr);
-	else if( !other.canBeNumber() )
-		error_handle(ArgType::Right, "*", "number", other._expr);
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	_expr = std::make_shared<MultiplyExpression>(std::move(_expr), other.get());
@@ -452,10 +387,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuilder& other)
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Left, "/", "number", _expr);
-	else if( !other.canBeNumber() )
-		error_handle(ArgType::Right, "/", "number", other._expr);
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	_expr = std::make_shared<DivideExpression>(std::move(_expr), other.get());
@@ -473,11 +404,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuilder& other)
 {
-	if( !canBeNumber() )
-		error_handle(ArgType::Left, "%", "number", _expr);
-	else if( !other.canBeNumber() )
-		error_handle(ArgType::Right, "%", "number", other._expr);
-
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	_expr = std::make_shared<ModuloExpression>(std::move(_expr), other.get());
@@ -495,11 +421,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Left, "^", "int", _expr);
-	else if( !other._expr->isInt() )
-		error_handle(ArgType::Right, "^", "int", other._expr);
-
 	_expr = std::make_shared<BitwiseXorExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Int);
@@ -515,11 +436,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Left, "&", "int", _expr);
-	else if( !other._expr->isInt() )
-		error_handle(ArgType::Right, "&", "int", other._expr);
-
 	_expr = std::make_shared<BitwiseAndExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Int);
@@ -535,11 +451,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Left, "|", "int", _expr);
-	else if( !other._expr->isInt() )
-		error_handle(ArgType::Right, "|", "int", other._expr);
-
 	_expr = std::make_shared<BitwiseOrExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Int);
@@ -555,11 +466,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuil
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Left, "<<", "int", _expr);
-	else if( !other._expr->isInt() )
-		error_handle(ArgType::Right, "<<", "int", other._expr);
-
 	_expr = std::make_shared<ShiftLeftExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Int);
@@ -575,11 +481,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isInt() )
-		error_handle(ArgType::Left, ">>", "int", _expr);
-	else if( !other._expr->isInt() )
-		error_handle(ArgType::Right, ">>", "int", other._expr);
-
 	_expr = std::make_shared<ShiftRightExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Int);
@@ -611,11 +512,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  */
 YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isString() )
-		error_handle(ArgType::Left, "contains", "string", _expr);
-	else if( !other._expr->isString() )
-		error_handle(ArgType::Right, "contains", "string", other._expr);
-
 	_expr = std::make_shared<ContainsExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Bool);
@@ -631,11 +527,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuild
  */
 YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilder& other)
 {
-	if( !_expr->isString() )
-		error_handle(ArgType::Left, "matches", "string", _expr);
-	else if( !other._expr->isRegexp() )
-		error_handle(ArgType::Right, "matches", "regular expression", other._expr);
-
 	_expr = std::make_shared<MatchesExpression>(std::move(_expr), other.get());
 
 	setType(Expression::Type::Bool);
@@ -651,20 +542,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
  */
 YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) // pe.attr
 {
-	if( !_expr->isObject() )
-		error_handle(ArgType::Left, ".", "object", _expr);
-	auto parentSymbol = std::static_pointer_cast<const IdExpression>(_expr)->getSymbol();
-	if (!parentSymbol->isStructure())
-		error_handle("Identifier '" + parentSymbol->getName() + "' is not a structure");
-	auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
-	auto attribute = structParentSymbol->getAttribute(attr);
-	if (!attribute)
-		error_handle("Unrecognized identifier '" + attr + "' referenced");
-	auto symbol = attribute.value();
-
+	auto symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
 	_expr = std::make_shared<StructAccessExpression>(symbol, std::move(_expr));
 	setType(symbol->getDataType());
-
 	return *this;
 }
 
@@ -677,16 +557,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
  */
 YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBuilder& other)
 {
-	if( !_expr->isObject() )
-		error_handle("Identifier '" + _expr->getText() + "' is not an object");
-	auto parentSymbol = std::static_pointer_cast<const IdExpression>(_expr)->getSymbol();
-	if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
-		error_handle("Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
-
-	auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
-
-	_expr = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(),                        std::move(_expr), std::move(other.get()));
-	_expr->setType(iterParentSymbol->getElementType());
+	_expr = std::make_shared<ArrayAccessExpression>(std::make_shared<ValueSymbol>("dummy", Expression::Type::Object), std::move(_expr), other.get());
+	setType(Expression::Type::Unknown);
 	return *this;
 }
 
@@ -700,8 +572,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "int8be" : "int8";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -717,8 +587,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt8(IntFunctionEndianness end
 YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "int16be" : "int16";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -734,8 +602,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt16(IntFunctionEndianness en
 YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "int32be" : "int32";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -751,8 +617,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::readInt32(IntFunctionEndianness en
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "uint8be" : "uint8";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -768,8 +632,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt8(IntFunctionEndianness en
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "uint16be" : "uint16";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -785,8 +647,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt16(IntFunctionEndianness e
 YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(IntFunctionEndianness endianness)
 {
 	const std::string& function_name = endianness == IntFunctionEndianness::Big ? "uint32be" : "uint32";
-	if( !_expr->isInt() )
-		error_handle("Invalid input '" + _expr->getText() + "' of type " + _expr->getTypeString() + " for function" + function_name + ". Expected integer.");
 	_expr = std::make_shared<IntFunctionExpression>(function_name, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
@@ -814,7 +674,7 @@ YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult)
 		default:
 			break;
 	}
-	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(std::move(strValue)), Expression::Type::Int);
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(value, std::make_optional<std::string>(std::move(strValue))), Expression::Type::Int);
 }
 
 /**
@@ -839,7 +699,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
 		default:
 			break;
 	}
-	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(std::move(strValue)), Expression::Type::Int);
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(value, std::move(strValue)), Expression::Type::Int);
 }
 
 /**
@@ -851,7 +711,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
  */
 YaraExpressionBuilder hexIntVal(std::uint64_t value)
 {
-	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(numToStr(value, std::hex, true)), Expression::Type::Int);
+	return YaraExpressionBuilder(std::make_shared<IntLiteralExpression>(value, numToStr(value, std::hex, true)), Expression::Type::Int);
 }
 
 /**
@@ -863,7 +723,7 @@ YaraExpressionBuilder hexIntVal(std::uint64_t value)
  */
 YaraExpressionBuilder doubleVal(double value)
 {
-	return YaraExpressionBuilder(std::make_shared<DoubleLiteralExpression>(numToStr(value)), Expression::Type::Float);
+	return YaraExpressionBuilder(std::make_shared<DoubleLiteralExpression>(value, numToStr(value)), Expression::Type::Float);
 }
 
 /**
@@ -899,17 +759,10 @@ YaraExpressionBuilder boolVal(bool value)
  */
 YaraExpressionBuilder id(const std::string& id)
 {
-//    //TODO: check that id is known
-// 	auto symbol = driver.findSymbol(id);
-// 	if (!symbol)
-// 		error_handle("Unrecognized identifier '" + $1 + "' referenced");
-
-// 	const auto& x = YaraExpressionBuilder(std::make_shared<IdExpression>(symbol), symbol->getDataType());
-// 	std::cout << "Type of " << id << " is " << x.get()->getTypeString() << std::endl;
-// 	return x;
-
 	std::cout << "Warning: This call of id(" << id << ") does not perform type checking or known symbol check. In our parser, we do not use this method." << std::endl;
-	return YaraExpressionBuilder(std::make_shared<IdExpression>(std::make_shared<ValueSymbol>(id, Expression::Type::Object)));
+	auto expression = std::make_shared<IdExpression>( std::make_shared<ValueSymbol>(id, Expression::Type::Object) );
+	// expression->setType(Expression::Type::Object);
+	return YaraExpressionBuilder(expression);
 }
 
 /**
@@ -1251,7 +1104,7 @@ YaraExpressionBuilder them()
  */
 YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods)
 {
-	std::shared_ptr<TokenStream> ts;
+	std::shared_ptr<TokenStream> ts = std::make_shared<TokenStream>();
 	auto regexp = std::make_shared<Regexp>(ts, std::make_shared<RegexpText>(text));
 	regexp->setSuffixModifiers(suffixMods);
 	return YaraExpressionBuilder(ts, std::make_shared<RegexpExpression>(std::move(regexp)), Expression::Type::Regexp);
