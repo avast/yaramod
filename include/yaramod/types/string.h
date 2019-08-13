@@ -119,6 +119,8 @@ public:
 
 		return text;
 	}
+
+	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
 	/// @}
 
 	/// @name Setter methods
