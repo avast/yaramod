@@ -157,7 +157,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_int", &Literal::isInt)
 		.def_property_readonly("is_int64_t", &Literal::isInt64_t)
 		.def_property_readonly("is_uint64_t", &Literal::isUInt64_t)
-		.def_property_readonly("is_float", &Literal::isFloat);
+		.def_property_readonly("is_float", &Literal::isDouble);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
@@ -386,14 +386,18 @@ void addExpressionClasses(py::module& module)
 				&FunctionCallExpression::getArguments,
 				py::overload_cast<const std::vector<Expression::Ptr>&>(&FunctionCallExpression::setArguments));
 
-	exprClass<LiteralExpression<bool>>(module, "_BoolLiteralExpression")
-		.def_property_readonly("value", &LiteralExpression<bool>::getValue);
-	exprClass<LiteralExpression<std::string>>(module, "_StringLiteralExpression")
-		.def_property_readonly("value", &LiteralExpression<std::string>::getValue);
+	exprClass<BoolLiteralExpression>(module, "_BoolLiteralExpression")
+		.def_property_readonly("value", &BoolLiteralExpression::getValue);
+	exprClass<StringLiteralExpression>(module, "_StringLiteralExpression")
+		.def_property_readonly("value", &StringLiteralExpression::getValue);
+	exprClass<IntLiteralExpression>(module, "_IntLiteralExpression")
+		.def_property_readonly("value", &IntLiteralExpression::getValue);
+	exprClass<DoubleLiteralExpression>(module, "_DoubleLiteralExpression")
+		.def_property_readonly("value", &DoubleLiteralExpression::getValue);
 	exprClass<BoolLiteralExpression, LiteralExpression<bool>>(module, "BoolLiteralExpression");
 	exprClass<StringLiteralExpression, LiteralExpression<std::string>>(module, "StringLiteralExpression");
-	exprClass<IntLiteralExpression, LiteralExpression<std::string>>(module, "IntLiteralExpression");
-	exprClass<DoubleLiteralExpression, LiteralExpression<std::string>>(module, "DoubleLiteralExpression");
+	exprClass<IntLiteralExpression, LiteralExpression<std::uint64_t>>(module, "IntLiteralExpression");
+	exprClass<DoubleLiteralExpression, LiteralExpression<double>>(module, "DoubleLiteralExpression");
 
 	exprClass<KeywordExpression>(module, "KeywordExpression");
 	keywordClass<FilesizeExpression>(module, "FilesizeExpression");
