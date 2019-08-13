@@ -41,7 +41,7 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 	// name:
 	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, std::move(name));
 	// symbol:
-	_symbol = std::make_shared<ValueSymbol>(_name->getText(), Expression::Type::Bool);
+	_symbol = std::make_shared<ValueSymbol>(_name->getPureText(), Expression::Type::Bool);
 	// tags:
 	for( const std::string& tag : tags )
 	{
@@ -66,7 +66,7 @@ Rule::Rule(std::shared_ptr<TokenStream> tokenStream, TokenIt name, std::optional
 	, _strings(std::move(strings))
 	, _condition(std::move(condition))
 	, _tags(tags)
-	, _symbol(std::make_shared<ValueSymbol>(name->getText(), Expression::Type::Bool)) //We do not need any token in tokenStream for this Symbol. Only for globalVariables and imports.
+	, _symbol(std::make_shared<ValueSymbol>(name->getPureText(), Expression::Type::Bool)) //We do not need any token in tokenStream for this Symbol. Only for globalVariables and imports.
 	, _location({"[stream]", 0})
 {
 }
