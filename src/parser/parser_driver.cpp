@@ -630,8 +630,10 @@ namespace gr {
    			return matchCount( n->string() );
    		else if( n->is< cond_entrypoint >() )
    			return entrypoint();
-   		else if( n->is< cond_hex_number >() )
-				return YaraExpressionBuilder( std::make_shared< IntLiteralExpression >( n->string() ) );
+   		else if( n->is< cond_hex_number >() ){
+   			TokenIt t = d._tokenStream->emplace_back(TokenType::INTEGER, n->string());
+				return YaraExpressionBuilder( std::make_shared< IntLiteralExpression >( t ) );
+   		}
    		else if( n->is< _string_body >() )
    			return stringVal( n->string() );
    		else if( n->is< _uint >() )

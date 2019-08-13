@@ -174,7 +174,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
-%type <yaramod::TokenIt> strings_id assign strings_value hex_integer hex_alt_left_bracket hex_alt_right_bracket hex_alt_operator hex_jump_left_bracket hex_jump_right_bracket
+%type <yaramod::TokenIt> strings_id assign strings_value hex_integer hex_alt_left_bracket hex_alt_right_bracket hex_alt_operator hex_jump_left_bracket hex_jump_right_bracket left_bracket right_bracket integer_function integer_token
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -314,7 +314,7 @@ metas_body
 			$$ = std::move($body);
 			TokenIt key = driver._tokenStream->emplace_back(TokenType::META_KEY, std::move($2));
 			driver._tokenStream->emplace_back(TokenType::EQ, "=");
-			TokenIt val = driver._tokenStream->emplace_back(TokenType::META_KEY, std::move($4));
+			TokenIt val = driver._tokenStream->emplace_back(TokenType::META_VALUE, std::move($4));
 			$$.emplace_back(key, val);
 		}
 	| %empty { $$.clear(); }
@@ -363,9 +363,9 @@ assign
 	}
 
 string
-	: strings_value[literal] string_mods
+	: strings_value[value] string_mods
 		{
-			$$ = std::make_shared<PlainString>(driver._tokenStream, std::move($literal));
+			$$ = std::make_shared<PlainString>(driver._tokenStream, std::move($value));
 			$$->setModifiers($string_mods.first, std::move($string_mods.second));
 		}
 	| LCB
@@ -400,7 +400,10 @@ condition
 expression
 	: boolean
 		{
-			$$ = std::make_shared<BoolLiteralExpression>($1);
+			if($1)
+				$$ = std::make_shared<BoolLiteralExpression>(driver._tokenStream->emplace_back(BOOL_TRUE, $1));
+			else
+				$$ = std::make_shared<BoolLiteralExpression>(driver._tokenStream->emplace_back(BOOL_FALSE, $1));
 			$$->setType(Expression::Type::Bool);
 		}
 	| STRING_ID
@@ -559,44 +562,52 @@ expression
 		{
 			$$ = std::move($primary_expression);
 		}
-	| LP expression[expr] RP //expr je neco jako $2, tj. druha vec na prave strane pravidla
+	| left_bracket expression[expr] right_bracket //expr je neco jako $2, tj. druha vec na prave strane pravidla
 		{
 			auto type = $expr->getType();
-			$$ = std::make_shared<ParenthesesExpression>(std::move($expr));
+			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
 			$$->setType(type);
 		}
 	;
 
+left_bracket : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
+
+right_bracket : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
+
 primary_expression // (primary_expression[expr]) | filesize | entrypoint |
-	: LP primary_expression[expr] RP
+	: left_bracket primary_expression[expr] right_bracket
 		{
 			auto type = $expr->getType();
-			$$ = std::make_shared<ParenthesesExpression>(std::move($expr));
+			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
 			$$->setType(type);
 		}
 	| FILESIZE
 		{
-			$$ = std::make_shared<FilesizeExpression>();
+			TokenIt t = driver._tokenStream->emplace_back(FILESIZE, "filesize");
+			$$ = std::make_shared<FilesizeExpression>(t);
 			$$->setType(Expression::Type::Int);
 		}
 	| ENTRYPOINT
 		{
-			$$ = std::make_shared<EntrypointExpression>();
+			TokenIt t = driver._tokenStream->emplace_back(ENTRYPOINT, "entrypoint");
+			$$ = std::make_shared<EntrypointExpression>(t);
 			$$->setType(Expression::Type::Int);
 		}
-	| INTEGER
+	| integer_token
 		{
-			$$ = std::make_shared<IntLiteralExpression>(std::move($1));
+			$$ = std::make_shared<IntLiteralExpression>($1);
 			$$->setType(Expression::Type::Int);
 		}
 	| DOUBLE
 		{
-			$$ = std::make_shared<DoubleLiteralExpression>(std::move($1));
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::DOUBLE, std::stod(std::move($1)));
+			$$ = std::make_shared<DoubleLiteralExpression>(t);
 			$$->setType(Expression::Type::Float);
 		}
 	| STRING_LITERAL
 		{
-			$$ = std::make_shared<StringLiteralExpression>(std::move($1));
+			TokenIt t = driver._tokenStream->emplace_back(TokenType::STRING_LITERAL, std::move($1));
+			$$ = std::make_shared<StringLiteralExpression>(t);
 			$$->setType(Expression::Type::String);
 		}
 	| STRING_COUNT
@@ -871,15 +882,15 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<ShiftRightExpression>(std::move($1), std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| INTEGER_FUNCTION LP primary_expression RP
+	| integer_function left_bracket primary_expression right_bracket
 		{
 			if (!$3->isInt())
 			{
-				error(driver.getLocation(), "operator '" + $1 + "' expects integer");
+				error(driver.getLocation(), "operator '" + $1->getString() + "' expects integer");
 				YYABORT;
 			}
 
-			$$ = std::make_shared<IntFunctionExpression>(std::move($1), std::move($3));
+			$$ = std::make_shared<IntFunctionExpression>(std::move($1), $2, std::move($3), $4);
 			$$->setType(Expression::Type::Int);
 		}
 	| identifier
@@ -892,6 +903,31 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$->setType(Expression::Type::Regexp);
 		}
 	; // konec primary_expression
+
+integer_function : INTEGER_FUNCTION { $$ = driver._tokenStream->emplace_back(INTEGER_FUNCTION, $1); }
+
+integer_token
+	: INTEGER
+		{
+			int multiplier = 1;
+			if($1.size() >= 2)
+		   {
+		      if(std::toupper($1.back()) == 'B')
+		      {
+		         if(std::toupper(*($1.end()-2)) == 'K')
+	   		      multiplier = 1000;
+		         else if(std::toupper(*($1.end()-2)) == 'M')
+	   		      multiplier = 1000000;
+		      }
+	      }
+			if($1.substr(0,2) == "0x" || $1.substr(0,2) == "0X")
+				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol($1.substr(2)) * multiplier, $1);
+			else if(multiplier != 1)
+				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol(std::move($1)) * multiplier, $1);
+			else
+				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol(std::move($1)));
+		}
+
 
 range
 	: LP primary_expression[low] RANGE primary_expression[high] RP
@@ -914,8 +950,16 @@ range
 
 for_expression
 	: primary_expression { $$ = std::move($primary_expression); }
-	| ALL { $$ = std::make_shared<AllExpression>(); }
-	| ANY { $$ = std::make_shared<AnyExpression>(); }
+	| ALL
+		{
+			TokenIt t = driver._tokenStream->emplace_back(ALL, "all");
+			$$ = std::make_shared<AllExpression>(t);
+		}
+	| ANY
+		{
+			TokenIt t = driver._tokenStream->emplace_back(ANY, "any");
+			$$ = std::make_shared<AnyExpression>();
+		}
 	;
 
 integer_set
@@ -949,7 +993,11 @@ integer_enumeration
 
 string_set
 	: LP string_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($string_enumeration)); }
-	| THEM { $$ = std::make_shared<ThemExpression>(); }
+	| THEM
+		{
+			TokenIt t = driver._tokenStream->emplace_back(THEM, "them");
+			$$ = std::make_shared<ThemExpression>();
+		}
 	;
 
 string_enumeration
@@ -1083,6 +1131,13 @@ identifier
 
 			if (!funcParentSymbol->overloadExists(argTypes))
 			{
+				std::cerr << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
+				std::for_each($arguments.begin(), $arguments.end(),
+					[](const Expression::Ptr& expr)
+					{
+						std::cerr << expr->getTypeString() << " ";
+					});
+				std::cerr << ")" << std::endl;
 				error(driver.getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters");
 				YYABORT;
 			}
@@ -1142,7 +1197,10 @@ string_mods
 	;
 
 literal
-	: STRING_LITERAL { $$ = Literal(std::move($1)); }
+	: STRING_LITERAL
+	{
+		$$ = Literal(std::move($1));
+	}
 	| INTEGER
 	{
 		int64_t value = std::stoll($1);
@@ -1208,13 +1266,18 @@ hex_byte
 		}
 	| HEX_WILDCARD HEX_WILDCARD
 		{
-			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "?? ");
+			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
 			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
-			// TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "??");
-			// auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
-			$$.reserve(1);
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "? ");
+			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
+			$$.reserve(2);
 			$$.push_back(std::move(first));
-			// $$.push_back(std::move(second));
+			$$.push_back(std::move(second));
+
+			// TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "?? ");
+			// auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
+			// $$.reserve(1);
+			// $$.push_back(std::move(first));
 		}
 	;
 
