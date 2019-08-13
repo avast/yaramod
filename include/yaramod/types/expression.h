@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "yaramod/utils/visitor_result.h"
+#include "yaramod/types/literal.h"
 
 namespace yaramod {
 
@@ -40,7 +41,16 @@ public:
 
 	/// @name Constructors
 	/// @{
-	Expression() : _type(Expression::Type::Undefined) {}
+	Expression()
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _type(Expression::Type::Undefined)
+	{
+	}
+	Expression(std::shared_ptr<TokenStream> ts)
+		: _tokenStream(ts)
+		, _type(Expression::Type::Undefined)
+	{
+	}
 	Expression(Expression&&) = default;
 	virtual ~Expression() = default;
 	/// @}
@@ -68,12 +78,18 @@ public:
 			default: return "Error - unknown type";
 		}
 	}
+	TokenStream* getTokenStream()
+	{
+		return _tokenStream.get();
+	}
 	/// @}
 
 	/// @name Setter methods
 	/// @{
 	void setType(Expression::Type type) { _type = type; }
 	/// @}
+
+	// virtual void clear() = 0;
 
 	/// @name Detection methods
 	/// @{
@@ -95,6 +111,8 @@ public:
 	const T* as() const noexcept { return dynamic_cast<const T*>(this); }
 	/// @}
 
+protected:
+	std::shared_ptr<TokenStream> _tokenStream;
 private:
 	Type _type; ///< Type of the expression
 };
