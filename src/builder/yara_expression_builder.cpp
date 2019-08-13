@@ -558,7 +558,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
 YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBuilder& other)
 {
 	_expr = std::make_shared<ArrayAccessExpression>(std::make_shared<ValueSymbol>("dummy", Expression::Type::Object), std::move(_expr), other.get());
-	setType(Expression::Type::Unknown);
+	setType(Expression::Type::Undefined);
 	return *this;
 }
 
