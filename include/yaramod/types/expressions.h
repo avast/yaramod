@@ -1817,9 +1817,9 @@ public:
 		: _expr(std::forward<ExpPtr>(expr))
 		, _linebreak(linebreak) //used only by builder, the expr->tokenStream must be extracted
 	{
-		_left_bracket = _tokenStream->emplace_back(LP, linebreak ? "(\n" : "(");
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
 		_tokenStream->move_append(_expr->getTokenStream());
-		_right_bracket = _tokenStream->emplace_back(RP, linebreak ? "\n)" : ")");
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
 	}
 	/**
 	 * Constructor used by parser.
@@ -1830,9 +1830,9 @@ public:
 	 * @param bool linebreak.
 	 */
 	template<typename ExpPtr>
-	ParenthesesExpression(TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket, bool linebreak = false)
+	ParenthesesExpression(TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket) //linebreak uses only builder
 		: _expr(std::forward<ExpPtr>(expr))
-		, _linebreak(linebreak)
+		, _linebreak(false)
 		, _left_bracket(left_bracket)
 		, _right_bracket(right_bracket)
 	{
@@ -1848,10 +1848,10 @@ public:
 		if (_linebreak)
 		{
 			auto newIndent = indent + '\t';
-			return _left_bracket->getString() + "\n" + newIndent + _expr->getText(newIndent) + '\n' + indent + _right_bracket->getString();
+			return _left_bracket->getString() + '\n' + newIndent + _expr->getText(newIndent) + '\n' + indent + _right_bracket->getString();
 		}
 
-		return '(' + _expr->getText(indent) + ')';
+		return _left_bracket->getString() + _expr->getText(indent) + _right_bracket->getString();
 	}
 
 	const Expression::Ptr& getEnclosedExpression() const { return _expr; }
