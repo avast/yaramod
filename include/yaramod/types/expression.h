@@ -50,6 +50,7 @@ public:
 		: _tokenStream(ts)
 		, _type(Expression::Type::Undefined)
 	{
+		assert(_tokenStream);
 	}
 	Expression(Expression&&) = default;
 	virtual ~Expression() = default;
