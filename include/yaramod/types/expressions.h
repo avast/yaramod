@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include <sstream>
 
 #include "yaramod/types/expression.h"
 #include "yaramod/types/string.h"
@@ -795,8 +796,11 @@ public:
 class ShiftRightExpression : public BinaryOpExpression
 {
 public:
-	ShiftRightExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression(">>", left, right) {}
-	ShiftRightExpression(Expression::Ptr&& left, Expression::Ptr&& right) : BinaryOpExpression(">>", std::move(left), std::move(right)) {}
+	template<typename ExpPtr>
+	ShiftRightExpression(ExpPtr&& left, ExpPtr&& right)
+		: BinaryOpExpression(">>", std::forward<ExpPtr>(left), std::forward<ExpPtr>(right))
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -828,12 +832,42 @@ public:
 	void setBody(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 protected:
-	ForExpression(const Expression::Ptr& forExpr, const Expression::Ptr& set, const Expression::Ptr& expr)
-		: _forExpr(forExpr), _set(set), _expr(expr) {}
-	ForExpression(Expression::Ptr&& forExpr, Expression::Ptr&& set, Expression::Ptr&& expr)
-		: _forExpr(std::move(forExpr)), _set(std::move(set)), _expr(std::move(expr)) {}
+	template<typename ExpPtr>
+	ForExpression( ExpPtr&& forExpr, ExpPtr&& set )
+		: _forExpr( std::forward<ExpPtr>(forExpr) )
+		, _set( std::forward<ExpPtr>(set) )
+		, _expr( nullptr )
+	{
+	}
+
+	template<typename ExpPtr>
+	ForExpression( ExpPtr&& forExpr, ExpPtr&& set, ExpPtr&& expr )
+		: _forExpr( std::forward<ExpPtr>(forExpr) )
+		, _set( std::forward<ExpPtr>(set) )
+		, _expr( std::forward<ExpPtr>(expr) )
+	{
+	}
+
+	template<typename ExpPtr>
+	ForExpression(ExpPtr&& forExpr, ExpPtr&& set, ExpPtr&& expr, TokenIt of_in)
+		: _forExpr(std::forward<ExpPtr>(forExpr))
+		, _set(std::forward<ExpPtr>(set))
+		, _expr(std::forward<ExpPtr>(expr))
+		, _of_in(of_in)
+	{
+	}
+
+	template<typename ExpPtr>
+	ForExpression(ExpPtr&& forExpr, ExpPtr&& set, TokenIt of_in)
+		: _forExpr(std::forward<ExpPtr>(forExpr))
+		, _set(std::forward<ExpPtr>(set))
+		, _expr(nullptr)
+		, _of_in(of_in)
+	{
+	}
 
 	Expression::Ptr _forExpr, _set, _expr;
+	TokenIt _of_in;
 };
 
 /**
@@ -847,10 +881,49 @@ protected:
 class ForIntExpression : public ForExpression
 {
 public:
-	ForIntExpression(const Expression::Ptr& forExpr, const std::string& id, const Expression::Ptr& set, const Expression::Ptr& expr)
-		: ForExpression(forExpr, set, expr), _id(id) {}
-	ForIntExpression(Expression::Ptr&& forExpr, std::string&& id, Expression::Ptr&& set, Expression::Ptr&& expr)
-		: ForExpression(std::move(forExpr), std::move(set), std::move(expr)), _id(std::move(id)) {}
+	/**
+	 * Constructor used by builder.Example:
+	 * for all i in (1 .. 5) : ( #str[i] > 0 }
+	 *
+	 * @param Expression::Ptr forExpr     "all"
+	 * @param std::string id               "i"
+	 * @param Expression::Ptr set       "(1 .. 5)"
+	 * @param Expression::Ptr expr     "#str[i] > 0"
+	 */
+	template<typename S, typename ExpPtr>
+	ForIntExpression(ExpPtr&& forExpr, S id, ExpPtr&& set, ExpPtr&& expr)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set), std::forward<ExpPtr>(expr))
+	{
+		_for = _tokenStream->emplace_back(FOR, "for");
+		_tokenStream->move_append(_forExpr->getTokenStream());
+		_id = _tokenStream->emplace_back(ID, std::forward<S>(id));
+		_of_in = _tokenStream->emplace_back(IN, "in");
+		_tokenStream->move_append(_set->getTokenStream());
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		_tokenStream->move_append(_expr->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
+	/**
+	 * Constructor used by parser. Example:
+	 * for all i in (1 .. 5) : ( #str[i] > 0 }
+	 *
+	 * @param Expression::Ptr forExpr     "all"
+	 * @param TokenIt id                   "i"
+	 * @param Expression::Ptr set       "(1 .. 5)"
+	 * @param Expression::Ptr expr     "#str[i] > 0"
+	 * @param TokenIt in                   "in"
+	 * @param TokenIt left_bracket          "("
+	 * @param TokenIt right_bracket         ")"
+	 */
+	template<typename ExpPtr>
+	ForIntExpression(ExpPtr&& forExpr, TokenIt id, ExpPtr&& set, ExpPtr&& expr, TokenIt for_token, TokenIt in, TokenIt left_bracket, TokenIt right_bracket)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set), std::forward<ExpPtr>(expr), in)
+		, _id(id)
+		, _for(for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -859,11 +932,17 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return "for " + _forExpr->getText(indent) + ' ' + _id + " in " + _set->getText(indent) + " : ( " + _expr->getText(indent) + " )";
+		assert(_set);
+		std::stringstream ss;
+		ss << _for->getString() << " " << _forExpr->getText(indent) << " " << _id->getString() << " " << _of_in->getString() << " " << _set->getText(indent) << " : " << _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
+		return ss.str();
 	}
 
 private:
-	std::string _id; ///< Iterating identifier
+	TokenIt _id; ///< Iterating identifier
+	TokenIt _for;
+	TokenIt _left_bracket;
+	TokenIt _right_bracket;
 };
 
 /**
@@ -877,10 +956,33 @@ private:
 class ForStringExpression : public ForExpression
 {
 public:
-	ForStringExpression(const Expression::Ptr& forExpr, const Expression::Ptr& set, const Expression::Ptr& expr)
-		: ForExpression(forExpr, set, expr) {}
-	ForStringExpression(Expression::Ptr&& forExpr, Expression::Ptr&& set, Expression::Ptr&& expr)
-		: ForExpression(std::move(forExpr), std::move(set), std::move(expr)) {}
+	/**
+	 * Constructor for builder.
+	 */
+	template <typename ExpPtr>
+	ForStringExpression(ExpPtr&& forExpr, ExpPtr&& set, ExpPtr&& expr)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set), std::forward<ExpPtr>(expr))
+	{
+		_for = _tokenStream->emplace_back(FOR, "for");
+		_tokenStream->move_append(_forExpr->getTokenStream());
+		_of_in = _tokenStream->emplace_back(OF, "of");
+		_tokenStream->move_append(_set->getTokenStream());
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		_tokenStream->move_append(_expr->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
+
+	/**
+	 * Constructor for parser.
+	 */
+	template<typename ExpPtr>
+	ForStringExpression(ExpPtr&& forExpr, ExpPtr&& set, ExpPtr&& expr, TokenIt for_token, TokenIt of, TokenIt left_bracket, TokenIt right_bracket)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set), std::forward<ExpPtr>(expr), of)
+		, _for(for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -889,8 +991,12 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return "for " + _forExpr->getText(indent) + " of " + _set->getText(indent) + " : ( " + _expr->getText(indent) + " )";
+		return _for->getString() + " " + _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent) + " : " + _left_bracket->getString() + " " + _expr->getText(indent) + " " + _right_bracket->getString();
 	}
+private:
+	TokenIt _for;
+	TokenIt _left_bracket;
+	TokenIt _right_bracket;
 };
 
 /**
@@ -905,10 +1011,25 @@ public:
 class OfExpression : public ForExpression
 {
 public:
-	OfExpression(const Expression::Ptr& forExpr, const Expression::Ptr& set)
-		: ForExpression(forExpr, set, nullptr) {}
-	OfExpression(Expression::Ptr&& forExpr, Expression::Ptr&& set)
-		: ForExpression(std::move(forExpr), std::move(set), nullptr) {}
+	/**
+	 * Constructor for builder.
+	 */
+	template<typename ExpPtr>
+	OfExpression(ExpPtr&& forExpr, ExpPtr&& set)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set))
+	{
+		_tokenStream->move_append(_forExpr->getTokenStream());
+		_of_in = _tokenStream->emplace_back(OF, "of");
+		_tokenStream->move_append(_set->getTokenStream());
+	}
+	/**
+	 * Constructor for parser.
+	 */
+	template<typename ExpPtr>
+	OfExpression(ExpPtr&& forExpr, ExpPtr&& set, TokenIt of)
+		: ForExpression(std::forward<ExpPtr>(forExpr), std::forward<ExpPtr>(set), of)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -917,7 +1038,7 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _forExpr->getText(indent) + " of " + _set->getText(indent);
+		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent);
 	}
 };
 
@@ -936,8 +1057,26 @@ public:
 class SetExpression : public Expression
 {
 public:
-	SetExpression(const std::vector<Expression::Ptr>& elements) : _elements(elements) {}
-	SetExpression(std::vector<Expression::Ptr>&& elements) : _elements(std::move(elements)) {}
+	template<typename ExpPtrVector>
+	SetExpression(ExpPtrVector&& elements)
+		: _elements(std::forward<ExpPtrVector>(elements))
+	{
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		for(size_t i = 0; i < _elements.size(); ++i )
+		{
+			_tokenStream->move_append(_elements[i]->getTokenStream());
+			if(i < _elements.size() - 1)
+				_tokenStream->emplace_back(COMMA, ",");
+		}
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
+	template<typename ExpPtrVector>
+	SetExpression(TokenIt left_bracket, ExpPtrVector&& elements, TokenIt right_bracket)
+		: _left_bracket(left_bracket)
+		, _elements(std::forward<ExpPtrVector>(elements))
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -947,12 +1086,10 @@ public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
 		std::ostringstream ss;
-		ss << '(';
+		ss << _left_bracket->getString();
 		for (const auto& elem : _elements)
-		{
 			ss << elem->getText(indent) << ", ";
-		}
-		ss << ')';
+		ss <<_right_bracket->getString();
 
 		// Remove last ', ' from the result.
 		auto text = ss.str();
@@ -973,7 +1110,9 @@ public:
 	}
 
 private:
+	TokenIt _left_bracket;
 	std::vector<Expression::Ptr> _elements; ///< Elements of the set
+	TokenIt _right_bracket;
 };
 
 /**
@@ -988,9 +1127,27 @@ private:
 class RangeExpression : public Expression
 {
 public:
-	RangeExpression(const Expression::Ptr& low, const Expression::Ptr& high) : _low(low), _high(high) {}
-	RangeExpression(Expression::Ptr&& low, Expression::Ptr&& high) : _low(std::move(low)), _high(std::move(high)) {}
+	template<typename ExpPtr>
+	RangeExpression(ExpPtr&& low, ExpPtr&& high)
+		: _low(std::forward<ExpPtr>(low))
+		, _high(std::forward<ExpPtr>(high))
+	{
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		_tokenStream->move_append(_low->getTokenStream());
+		_double_dot = _tokenStream->emplace_back(DOUBLE_DOT, "..");
+		_tokenStream->move_append(_high->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
 
+	template<typename ExpPtr>
+	RangeExpression(TokenIt left_bracket, Expression::Ptr&& low, TokenIt double_dot, Expression::Ptr&& high, TokenIt right_bracket)
+		: _left_bracket(left_bracket)
+		, _low(std::forward<ExpPtr>(low))
+		, _double_dot(double_dot)
+		, _high(std::forward<ExpPtr>(high))
+		, _right_bracket(right_bracket)
+	{
+	}
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -998,7 +1155,7 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return '(' + _low->getText(indent) + " .. " + _high->getText(indent) + ')';
+		return _left_bracket->getString() + _low->getText(indent) + " " + _double_dot->getString() + " " + _high->getText(indent) + _right_bracket->getString();
 	}
 
 	const Expression::Ptr& getLow() const { return _low; }
@@ -1010,7 +1167,11 @@ public:
 	void setHigh(Expression::Ptr&& high) { _high = std::move(high); }
 
 private:
-	Expression::Ptr _low, _high; ///< Low and high bounds of the range
+	TokenIt _left_bracket;
+	Expression::Ptr _low;
+	TokenIt _double_dot;
+	Expression::Ptr _high; ///< Low and high bounds of the range
+	TokenIt _right_bracket;
 };
 
 /**
@@ -1026,7 +1187,17 @@ private:
 class IdExpression : public Expression
 {
 public:
-	IdExpression(const std::shared_ptr<Symbol>& symbol) : _symbol(symbol) {}
+	IdExpression(const std::shared_ptr<Symbol>& symbol)
+	{
+		if(symbol)
+			_symbol = _tokenStream->emplace_back(SYMBOL, symbol, symbol->getName());
+	}
+
+	IdExpression(TokenIt symbol)
+		: _symbol(symbol)
+	{
+		assert(symbol->isSymbol());
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1035,15 +1206,25 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
-		return _symbol->getName();
+		if(_symbol)
+			return _symbol.value()->getSymbol()->getName();
+		return std::string();
 	}
 
-	const std::shared_ptr<Symbol>& getSymbol() const { return _symbol; }
+	const std::shared_ptr<Symbol>& getSymbol() const
+	{
+		assert(_symbol.has_value());
+		return _symbol.value()->getSymbol();
+	}
 
-	void setSymbol(const std::shared_ptr<Symbol>& symbol) { _symbol = symbol; }
+	void setSymbol(const std::shared_ptr<Symbol>& symbol)
+	{
+		assert(_symbol.has_value());
+	 	_symbol.value()->setValue(symbol, symbol->getName());
+	}
 
 protected:
-	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
+	std::optional<TokenIt> _symbol; ///< Symbol of the identifier
 };
 
 /**
@@ -1059,8 +1240,21 @@ protected:
 class StructAccessExpression : public IdExpression
 {
 public:
-	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, const Expression::Ptr& structure) : IdExpression(symbol), _structure(structure) {}
-	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, Expression::Ptr&& structure) : IdExpression(symbol), _structure(std::move(structure)) {}
+	template<typename ExpPtr>
+	StructAccessExpression(const std::shared_ptr<Symbol>& symbol, ExpPtr&& structure)
+		: IdExpression(symbol)
+		, _structure(std::forward<ExpPtr>(structure))
+	{
+		_dot = _tokenStream->emplace_back(DOT, ".");
+		_tokenStream->move_append(_structure->getTokenStream());
+	}
+	template<typename ExpPtr>
+	StructAccessExpression(TokenIt symbol, ExpPtr&& structure, TokenIt dot)
+		: IdExpression(symbol)
+		, _structure(std::forward<ExpPtr>(structure))
+		, _dot(dot)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1069,7 +1263,9 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _structure->getText(indent) + '.' + _symbol->getName();
+		if(_symbol)
+			return _structure->getText(indent) + _dot->getString() + _symbol.value()->getSymbol()->getName();
+		return _structure->getText(indent) + _dot->getString();
 	}
 
 	const Expression::Ptr& getStructure() const { return _structure; }
@@ -1079,6 +1275,7 @@ public:
 
 private:
 	Expression::Ptr _structure; ///< Structure identifier expression
+	TokenIt _dot; //'.'
 };
 
 /**
@@ -1094,10 +1291,27 @@ private:
 class ArrayAccessExpression : public IdExpression
 {
 public:
-	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, const Expression::Ptr& array, const Expression::Ptr& accessor)
-		: IdExpression(symbol), _array(std::move(array)), _accessor(std::move(accessor)) {}
-	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, Expression::Ptr&& array, Expression::Ptr&& accessor)
-		: IdExpression(symbol), _array(std::move(array)), _accessor(std::move(accessor)) {}
+	template<typename ExpPtr>
+	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, ExpPtr&& array, ExpPtr&& accessor)
+		: IdExpression(symbol)
+		, _array(std::forward<ExpPtr>(array))
+		, _accessor(std::forward<ExpPtr>(accessor))
+	{
+		_tokenStream->emplace_back(DOT, ".");
+		_tokenStream->move_append(_array->getTokenStream());
+		_left_bracket = _tokenStream->emplace_back(LSQB, "[");
+		_tokenStream->move_append(_accessor->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RSQB, "]");
+	}
+	template<typename ExpPtr>
+	ArrayAccessExpression(TokenIt symbol, ExpPtr&& array, TokenIt left_bracket, ExpPtr&& accessor, TokenIt right_bracket)
+		: IdExpression(symbol)
+		, _array(std::forward<ExpPtr>(array))
+		, _left_bracket(left_bracket)
+		, _accessor(std::forward<ExpPtr>(accessor))
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1106,7 +1320,7 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _array->getText(indent) + '[' + _accessor->getText(indent) + ']';
+		return _array->getText(indent) + _left_bracket->getString() + _accessor->getText(indent) + _right_bracket->getString();
 	}
 
 	const Expression::Ptr& getArray() const { return _array; }
@@ -1119,7 +1333,9 @@ public:
 
 private:
 	Expression::Ptr _array; ///< Array identifier expression
+	TokenIt _left_bracket; //'['
 	Expression::Ptr _accessor; ///< Accessor expression (expression enclosed in [])
+	TokenIt _right_bracket; //']'
 };
 
 /**
@@ -1134,10 +1350,32 @@ private:
 class FunctionCallExpression : public IdExpression
 {
 public:
-	FunctionCallExpression(const Expression::Ptr& func, const std::vector<Expression::Ptr>& args)
-		: IdExpression(nullptr), _func(func), _args(args) {}
-	FunctionCallExpression(Expression::Ptr&& func, std::vector<Expression::Ptr>&& args)
-		: IdExpression(nullptr), _func(std::move(func)), _args(std::move(args)) {}
+	template<typename ExpPtr, typename ExpPtrVector>
+	FunctionCallExpression(ExpPtr&& func, ExpPtrVector&& args)
+		: IdExpression(nullptr)
+		, _func(std::forward<ExpPtr>(func))
+		, _args(std::forward<ExpPtrVector>(args))
+	{
+		_tokenStream->move_append(_func->getTokenStream());
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		for(size_t i = 0; i < _args.size(); ++i)
+		{
+			assert(_args[i]);
+			_tokenStream->move_append(_args[i]->getTokenStream());
+			if(i < _args.size() - 1)
+				_tokenStream->emplace_back(COMMA, ",");
+		}
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
+	template<typename ExpPtr, typename ExpPtrVector>
+	FunctionCallExpression(Expression::Ptr&& func, TokenIt left_bracket, std::vector<Expression::Ptr>&& args, TokenIt right_bracket)
+		: IdExpression(nullptr)
+		, _func(std::forward<ExpPtr>(func))
+		, _left_bracket(left_bracket)
+		, _args(std::forward<ExpPtrVector>(args))
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1148,15 +1386,15 @@ public:
 	{
 		// Use just empty parentheses for parameter-less function
 		if (_args.empty())
-			return _func->getText(indent) + "()";
+			return _func->getText(indent) + _left_bracket->getString() + _right_bracket->getString();
 
 		std::ostringstream ss;
-		ss << _func->getText(indent) << '(';
+		ss << _func->getText(indent) << _left_bracket->getString();
 		for (const auto& arg : _args)
 		{
 			ss << arg->getText(indent) << ", ";
 		}
-		ss << ')';
+		ss << _right_bracket->getString();
 
 		// Remove last ', ' from the result.
 		auto text = ss.str();
@@ -1174,7 +1412,9 @@ public:
 
 private:
 	Expression::Ptr _func; ///< Function identifier expression
+	TokenIt _left_bracket; //'('
 	std::vector<Expression::Ptr> _args; ///< Arguments expressions
+	TokenIt _right_bracket; //')'
 };
 
 /**
@@ -1187,13 +1427,38 @@ class LiteralExpression : public Expression
 public:
 	using LiteralType = T;
 
-	LiteralExpression(const T& value) : _value(value) {}
-	LiteralExpression(T&& value) : _value(std::move(value)) {}
+	LiteralExpression() = default;
+	LiteralExpression(TokenIt value) : _value(value) {}
+	LiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value) //no need to have emplacing here - Builder takes care of that.
+		: Expression(ts)
+		, _value(value)
+	{
+	}
+	// LiteralType getValue() const
+	// {
+	// 	assert(_value.has_value());
+	// 	return T();
+	// 	// return _value.value()->getValue<T>();
+	// }
 
-	LiteralType getValue() const { return _value; }
+	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	{
+		if(_value.has_value()){
+			return _value.value()->getText();
+		}
+		else
+			return std::string();
+	}
+
+	// virtual void clear() override
+	void clear()
+	{
+		if(_value.has_value())
+			_tokenStream->erase(_value.value());
+	}
 
 protected:
-	LiteralType _value; ///< Value of the literal
+	std::optional<TokenIt> _value; ///< Value of the literal
 };
 
 /**
@@ -1208,17 +1473,32 @@ protected:
 class BoolLiteralExpression : public LiteralExpression<bool>
 {
 public:
-	BoolLiteralExpression(bool value) : LiteralExpression<bool>(value) {}
+	BoolLiteralExpression(TokenIt value)
+		: LiteralExpression<bool>(value)
+	{
+	}
+	BoolLiteralExpression(bool value)
+		: LiteralExpression<bool>()
+	{
+		if(value)
+			_value = _tokenStream->emplace_back(BOOL_TRUE, value, "true");
+		else
+			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
+	}
+	BoolLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+		: LiteralExpression<bool>(ts, value)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	bool getValue() const
 	{
-		return _value ? "true" : "false";
-		//return _value;
+		assert(_value.has_value());
+		return _value.value()->getBool();
 	}
 };
 
@@ -1234,17 +1514,35 @@ public:
 class StringLiteralExpression : public LiteralExpression<std::string>
 {
 public:
-	StringLiteralExpression(const std::string& str) : LiteralExpression<std::string>(str) {}
-	StringLiteralExpression(std::string&& str) : LiteralExpression<std::string>(std::move(str)) {}
+	StringLiteralExpression(TokenIt value)
+		: LiteralExpression<std::string>(value)
+	{
+	}
+	StringLiteralExpression(const std::string& value)
+		: LiteralExpression<std::string>()
+	{
+		_value = _tokenStream->emplace_back(STRING_LITERAL, value);
+	}
+	StringLiteralExpression(std::string&& value)
+		: LiteralExpression<std::string>()
+	{
+		_value = _tokenStream->emplace_back(STRING_LITERAL, std::move(value));
+	}
+	StringLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+		: LiteralExpression<std::string>(ts, value)
+	{
+	}
+	// StringLiteralExpression(std::string&& str) : LiteralExpression<std::string>(std::move(str)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	std::string getValue() const
 	{
-		return '"' + escapeString(_value) + '"';
+		assert(_value.has_value());
+		return _value.value()->getString();
 	}
 };
 
@@ -1258,20 +1556,32 @@ public:
  *          ^^^^^
  * @endcode
  */
-class IntLiteralExpression : public LiteralExpression<std::string>
+class IntLiteralExpression : public LiteralExpression<uint64_t>
 {
 public:
-	IntLiteralExpression(const std::string& value) : LiteralExpression<std::string>(value) {}
-	IntLiteralExpression(std::string&& value) : LiteralExpression<std::string>(std::move(value)) {}
+	IntLiteralExpression(TokenIt value)
+		: LiteralExpression<uint64_t>(value)
+	{
+	}
+	IntLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+		: LiteralExpression<uint64_t>(ts, value)
+	{
+	}
+	IntLiteralExpression(uint64_t value, const std::optional<std::string>& formatted_value = std::nullopt)
+		: LiteralExpression<uint64_t>()
+	{
+		_value = _tokenStream->emplace_back(INTEGER, value, formatted_value);
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	uint64_t getValue() const
 	{
-		return _value;
+		assert(_value.has_value());
+		return _value.value()->getUInt64_t();
 	}
 };
 
@@ -1285,20 +1595,32 @@ public:
  *                          ^^^^
  * @endcode
  */
-class DoubleLiteralExpression : public LiteralExpression<std::string>
+class DoubleLiteralExpression : public LiteralExpression<double>
 {
 public:
-	DoubleLiteralExpression(const std::string& value) : LiteralExpression<std::string>(value) {}
-	DoubleLiteralExpression(std::string&& value) : LiteralExpression<std::string>(std::move(value)) {}
+	DoubleLiteralExpression(TokenIt value) // parser uses this
+		: LiteralExpression<double>(value)
+	{
+	}
+	DoubleLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+		: LiteralExpression<double>(ts, value)
+	{
+	}// DoubleLiteralExpression(std::string&& value) : LiteralExpression<std::string>(std::move(value)) {}
+	DoubleLiteralExpression(double value, const std::optional<std::string>& formatted_value = std::nullopt) //builder uses this
+		: LiteralExpression<double>()
+	{
+		_value = _tokenStream->emplace_back(DOUBLE, value, formatted_value);
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	double getValue() const
 	{
-		return _value;
+		assert(_value.has_value());
+		return _value.value()->getDouble();
 	}
 };
 
@@ -1310,15 +1632,27 @@ class KeywordExpression : public Expression
 public:
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
-		return _keyword;
+		return _keyword->getString();
 	}
 
 protected:
-	KeywordExpression(const std::string& keyword) : _keyword(keyword) {}
-	KeywordExpression(std::string&& keyword) : _keyword(std::move(keyword)) {}
-
-private:
-	std::string _keyword; ///< Keyword
+	KeywordExpression() = default;
+	KeywordExpression(TokenIt keyword)
+		: _keyword(keyword)
+	{
+		assert(keyword->isString());
+	}
+	// void setValue(TokenIt t)
+	// {
+	// 	_keyword = t;
+	// }
+	// KeywordExpression(std::shared_ptr<TokenStream> ts, TokenIt keyword)
+	// 	: Expression(ts)
+	// 	, _keyword(keyword)
+	// {
+	// 	assert(keyword->isString());
+	// }
+	TokenIt _keyword; ///< Keyword
 };
 
 /**
@@ -1333,7 +1667,14 @@ private:
 class FilesizeExpression : public KeywordExpression
 {
 public:
-	FilesizeExpression() : KeywordExpression("filesize") {}
+	FilesizeExpression()
+	{
+		_keyword = _tokenStream->emplace_back(FILESIZE, "filesize");
+	}
+	FilesizeExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1353,7 +1694,14 @@ public:
 class EntrypointExpression : public KeywordExpression
 {
 public:
-	EntrypointExpression() : KeywordExpression("entrypoint") {}
+	EntrypointExpression()
+	{
+		_keyword = _tokenStream->emplace_back(ENTRYPOINT, "entrypoint");
+	}
+	EntrypointExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1374,7 +1722,14 @@ public:
 class AllExpression : public KeywordExpression
 {
 public:
-	AllExpression() : KeywordExpression("all") {}
+	AllExpression()
+	{
+		_keyword = _tokenStream->emplace_back(ALL, "all");
+	}
+	AllExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1395,7 +1750,14 @@ public:
 class AnyExpression : public KeywordExpression
 {
 public:
-	AnyExpression() : KeywordExpression("any") {}
+	AnyExpression()
+	{
+		_keyword = _tokenStream->emplace_back(ANY, "any");
+	}
+	AnyExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1416,7 +1778,14 @@ public:
 class ThemExpression : public KeywordExpression
 {
 public:
-	ThemExpression() : KeywordExpression("them") {}
+	ThemExpression()
+	{
+		_keyword = _tokenStream->emplace_back(THEM, "them");
+	}
+	ThemExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1437,8 +1806,37 @@ public:
 class ParenthesesExpression : public Expression
 {
 public:
-	ParenthesesExpression(const Expression::Ptr& expr, bool linebreak = false) : _expr(expr), _linebreak(linebreak) {}
-	ParenthesesExpression(Expression::Ptr&& expr, bool linebreak = false) : _expr(std::move(expr)), _linebreak(linebreak) {}
+	/**
+	 * Constructor used by builder.
+	 *
+	 * @param Expression::Ptr expr  argument inside the brackets.
+	 * @param bool linebreak.
+	 */
+	template<typename ExpPtr>
+	ParenthesesExpression(ExpPtr&& expr, bool linebreak = false)
+		: _expr(std::forward<ExpPtr>(expr))
+		, _linebreak(linebreak) //used only by builder, the expr->tokenStream must be extracted
+	{
+		_left_bracket = _tokenStream->emplace_back(LP, linebreak ? "(\n" : "(");
+		_tokenStream->move_append(_expr->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RP, linebreak ? "\n)" : ")");
+	}
+	/**
+	 * Constructor used by parser.
+	 *
+	 * @param TokenIt left_bracket.
+	 * @param Expression::Ptr expr  argument inside the brackets.
+	 * @param TokenIt right_bracket.
+	 * @param bool linebreak.
+	 */
+	template<typename ExpPtr>
+	ParenthesesExpression(TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket, bool linebreak = false)
+		: _expr(std::forward<ExpPtr>(expr))
+		, _linebreak(linebreak)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1450,7 +1848,7 @@ public:
 		if (_linebreak)
 		{
 			auto newIndent = indent + '\t';
-			return "(\n" + newIndent + _expr->getText(newIndent) + '\n' + indent + ')';
+			return _left_bracket->getString() + "\n" + newIndent + _expr->getText(newIndent) + '\n' + indent + _right_bracket->getString();
 		}
 
 		return '(' + _expr->getText(indent) + ')';
@@ -1464,6 +1862,8 @@ public:
 private:
 	Expression::Ptr _expr; ///< Enclosed expression
 	bool _linebreak; ///< Put linebreak after opening and before closing parenthesis and indent content by one more level.
+	TokenIt _left_bracket;
+	TokenIt _right_bracket;
 };
 
 /**
@@ -1480,8 +1880,37 @@ private:
 class IntFunctionExpression : public Expression
 {
 public:
-	IntFunctionExpression(const std::string& func, const Expression::Ptr& expr) : _func(func), _expr(expr) {}
-	IntFunctionExpression(std::string&& func, Expression::Ptr&& expr) : _func(std::move(func)), _expr(std::move(expr)) {}
+	/**
+	 * Constructor used by builder.
+	 *
+	 * @param std::string func  name of the function.
+	 * @param Expression::Ptr expr  argument of the function.
+	 */
+	template<typename S, typename ExpPtr>
+	IntFunctionExpression(S&& func, ExpPtr&& expr)
+		: _expr(std::forward<ExpPtr>(expr))
+	{
+		_func = _tokenStream->emplace_back(INTEGER_FUNCTION, std::forward<S>(func));
+		_left_bracket = _tokenStream->emplace_back(LP, "(");
+		_tokenStream->move_append(_expr->getTokenStream());
+		_right_bracket = _tokenStream->emplace_back(RP, ")");
+	}
+	/**
+	 * Constructor used by parser.
+	 *
+	 * @param TokenIt func  name of the function.
+	 * @param TokenIt left_bracket.
+	 * @param Expression::Ptr expr  argument of the function.
+	 * @param TokenIt right_bracket.
+	 */
+	template<typename ExpPtr>
+	IntFunctionExpression(TokenIt func, TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket)
+		: _func(func)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1490,20 +1919,22 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _func + '(' + _expr->getText(indent) + ')';
+		return _func->getString() + _left_bracket->getString() + _expr->getText(indent) + _right_bracket->getString();
 	}
 
-	const std::string& getFunction() const { return _func; }
+	const std::string& getFunction() const { return _func->getString(); }
 	const Expression::Ptr& getArgument() const { return _expr; }
 
-	void setFunction(const std::string& func) { _func = func; }
-	void setFunction(std::string&& func) { _func = std::move(func); }
+	void setFunction(const std::string& func) { _func->setValue(func); }
+	void setFunction(std::string&& func) { _func->setValue(std::move(func)); }
 	void setArgument(const Expression::Ptr& expr) { _expr = expr; }
 	void setArgument(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 private:
-	std::string _func; ///< Function identifier
+	TokenIt _func; ///< Function identifier
 	Expression::Ptr _expr; ///< Function argument
+	TokenIt _left_bracket;
+	TokenIt _right_bracket;
 };
 
 /**
@@ -1518,8 +1949,17 @@ private:
 class RegexpExpression : public Expression
 {
 public:
-	RegexpExpression(const std::shared_ptr<String>& regexp) : _regexp(regexp) {}
-	RegexpExpression(std::shared_ptr<String>&& regexp) : _regexp(std::move(regexp)) {}
+	/**
+	 * Constructor.
+	 *
+	 * @param std::string regexp.
+	 */
+	template<typename S>
+	RegexpExpression(S&& regexp)
+		: _regexp(std::forward<S>(regexp))
+	{
+		_tokenStream = _regexp->getTokenStream();
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
