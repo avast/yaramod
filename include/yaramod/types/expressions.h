@@ -473,7 +473,6 @@ private:
 class AndExpression : public BinaryOpExpression
 {
 public:
-	// AndExpression(const Expression::Ptr& left, const Expression::Ptr& right, bool linebreak = false) : BinaryOpExpression("and", left, right, linebreak) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	AndExpression(ExpPtr1&& left, TokenIt and_op, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), and_op, std::forward<ExpPtr2>(right), linebreak) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -497,11 +496,10 @@ public:
 class OrExpression : public BinaryOpExpression
 {
 public:
-	// OrExpression(const Expression::Ptr& left, const Expression::Ptr& right, bool linebreak = false) : BinaryOpExpression("or", left, right, linebreak) {}
-	template<typename ExpPtr1, typename ExpPtr2>
-	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression( std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	OrExpression(ExpPtr1&& left, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression( std::forward<ExpPtr1>(left), "or", OR, std::forward<ExpPtr2>(right), linebreak) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression( std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -521,9 +519,9 @@ class LtExpression : public BinaryOpExpression
 {
 public:
 	template<typename ExpPtr1, typename ExpPtr2>
-	LtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
-	template<typename ExpPtr1, typename ExpPtr2>
 	LtExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "<", LT, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	LtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -542,7 +540,6 @@ public:
 class GtExpression : public BinaryOpExpression
 {
 public:
-	// GtExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression(">", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	GtExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), ">", GT, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -565,9 +562,10 @@ public:
 class LeExpression : public BinaryOpExpression
 {
 public:
-	// LeExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("<=", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	LeExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "<=", LE, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	LeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -586,9 +584,10 @@ public:
 class GeExpression : public BinaryOpExpression
 {
 public:
-	// GeExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression(">=", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	GeExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), ">=", GE, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	GeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -607,9 +606,10 @@ public:
 class EqExpression : public BinaryOpExpression
 {
 public:
-	// EqExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("==", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	EqExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "==", EQ, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	EqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -631,6 +631,8 @@ public:
 	// NeqExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("!=", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	NeqExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "!=", NEQ, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	NeqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -652,6 +654,8 @@ public:
 	// ContainsExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("contains", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ContainsExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "contains", CONTAINS, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	ContainsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -673,6 +677,8 @@ public:
 	// MatchesExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("matches", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "matches", MATCHES, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	MatchesExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -695,6 +701,8 @@ public:
 	// PlusExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("+", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	PlusExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "+", PLUS, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	PlusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -717,6 +725,8 @@ public:
 	// MinusExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("-", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MinusExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "-", MINUS, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	MinusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -739,6 +749,8 @@ public:
 	// MultiplyExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("*", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MultiplyExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "*", MULTIPLY, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	MultiplyExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -761,6 +773,8 @@ public:
 	// DivideExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("\\", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	DivideExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "\\", DIVIDE, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	DivideExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -783,6 +797,8 @@ public:
 	// ModuloExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("%", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ModuloExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "%", MODULO, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	ModuloExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -805,6 +821,8 @@ public:
 	// BitwiseXorExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("^", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseXorExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "^", BITWISE_XOR, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	BitwiseXorExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -826,6 +844,8 @@ public:
 	// BitwiseAndExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("&", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseAndExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "&", BITWISE_AND, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	BitwiseAndExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -847,6 +867,8 @@ public:
 	// BitwiseOrExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("|", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseOrExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "|", BITWISE_OR, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	BitwiseOrExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -868,6 +890,8 @@ public:
 	// ShiftLeftExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("<<", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ShiftLeftExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "<<", SHIFT_LEFT, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	ShiftLeftExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -889,6 +913,8 @@ public:
 	// ShiftRightExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression(">>", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ShiftRightExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), ">>", SHIFT_RIGHT, std::forward<ExpPtr2>(right)) {}
+	template<typename ExpPtr1, typename ExpPtr2>
+	ShiftRightExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
