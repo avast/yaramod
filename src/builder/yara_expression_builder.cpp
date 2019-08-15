@@ -496,7 +496,6 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBui
  */
 YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpressionBuilder>& args)
 {
-	std::cerr << "Builded call without type checking" << std::endl;
 	std::vector<Expression::Ptr> exprArgs;
 	std::for_each(args.begin(), args.end(), [&exprArgs](const YaraExpressionBuilder& expr) { exprArgs.push_back(expr.get()); });
 	_expr = std::make_shared<FunctionCallExpression>(std::move(_expr), std::move(exprArgs));

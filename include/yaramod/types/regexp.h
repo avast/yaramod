@@ -609,10 +609,13 @@ public:
 
 	void setSuffixModifiers(const std::string& suffixMods)
 	{
-		if(_suffixMods.has_value())
-			(*_suffixMods)->setValue(suffixMods);
-		else
-			_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods );
+		if(suffixMods != "")
+		{
+			if(_suffixMods.has_value())
+				(*_suffixMods)->setValue(suffixMods);
+			else
+				_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods );
+		}
 	}
 
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
