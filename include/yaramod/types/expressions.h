@@ -206,26 +206,31 @@ private:
 class StringCountExpression : public Expression
 {
 public:
-	StringCountExpression(const std::string& id) : _id(id) {}
-	StringCountExpression(std::string&& id) : _id(std::move(id)) {}
+	StringCountExpression(TokenIt id) : _id(id) {}
+
+	template<typename Str>
+	StringCountExpression(Str&& id)
+	{
+		_id = _tokenStream->emplace_back(STRING_COUNT, std::forward<Str>(id));
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id; }
+	const std::string& getId() const { return _id->getString(); }
 
-	void setId(const std::string& id) { _id = id; }
-	void setId(std::string&& id) { _id = std::move(id); }
+	void setId(const std::string& id) { _id->setValue(id); }
+	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
-		return _id;
+		return _id->getString();
 	}
 
 private:
-	std::string _id; ///< Identifier of the string
+	TokenIt _id; ///< Identifier of the string
 };
 
 /**
@@ -241,19 +246,26 @@ private:
 class StringOffsetExpression : public Expression
 {
 public:
-	StringOffsetExpression(const std::string& id) : _id(id), _expr() {}
-	StringOffsetExpression(std::string&& id) : _id(std::move(id)), _expr() {}
+	StringOffsetExpression(TokenIt id)
+		: _id(id)
+	{
+	}
 	template<typename ExpPtr>
-	StringOffsetExpression(const std::string& id, ExpPtr&& expr)
+	StringOffsetExpression(TokenIt id, ExpPtr&& expr)
 		: _id(id)
 		, _expr(std::forward<ExpPtr>(expr))
 	{
 	}
-	template<typename ExpPtr>
-	StringOffsetExpression(std::string&& id, ExpPtr&& expr)
-		: _id(std::move(id))
-		, _expr(std::forward<ExpPtr>(expr))
+	template<typename Str>
+	StringOffsetExpression(Str&& id)
 	{
+		_id = _tokenStream->emplace_back(STRING_OFFSET, std::forward<Str>(id));
+	}
+	template<typename Str, typename ExpPtr>
+	StringOffsetExpression(Str&& id, ExpPtr&& expr)
+		: _expr(std::forward<ExpPtr>(expr))
+	{
+		_id = _tokenStream->emplace_back(STRING_OFFSET, std::forward<Str>(id));
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -261,21 +273,21 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id; }
+	const std::string& getId() const { return _id->getString(); }
 	const Expression::Ptr& getIndexExpression() const { return _expr; }
 
-	void setId(const std::string& id) { _id = id; }
-	void setId(std::string&& id) { _id = std::move(id); }
+	void setId(const std::string& id) { _id->setValue(id); }
+	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 	void setIndexExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _expr ? _id + '[' + _expr->getText(indent) + ']' : _id;
+		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
 
 private:
-	std::string _id; ///< Identifier of the string
+	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
 };
 
@@ -332,7 +344,10 @@ class UnaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _op + _expr->getText(indent);
+		if(_op->getType() == NOT)
+			return _op->getString() + " " + _expr->getText(indent);
+		else
+			return _op->getString() + _expr->getText(indent);
 	}
 
 	const Expression::Ptr& getOperand() const { return _expr; }
@@ -342,14 +357,20 @@ public:
 
 protected:
 	template<typename ExpPtr>
-	UnaryOpExpression(const std::string& op, ExpPtr&& expr)
+	UnaryOpExpression(TokenIt op, ExpPtr&& expr)
 		: _op(op)
 		, _expr(std::forward<ExpPtr>(expr))
 	{
 	}
+	template<typename ExpPtr>
+	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr)
+		: _expr(std::forward<ExpPtr>(expr))
+	{
+		_op = _tokenStream->emplace_back(type, op);
+	}
 
 private:
-	std::string _op; ///< Unary operation symbol
+	TokenIt _op; ///< Unary operation symbol, std::string
 	Expression::Ptr _expr; ///< Expression to apply operator on
 };
 
@@ -365,7 +386,9 @@ class NotExpression : public UnaryOpExpression //odpovida not v condition
 {
 public:
 	template<typename ExpPtr>
-	NotExpression(ExpPtr&& expr) : UnaryOpExpression("not ", std::forward<ExpPtr>(expr)) {}
+	NotExpression(ExpPtr&& expr) : UnaryOpExpression("not", NOT, std::forward<ExpPtr>(expr)) {}
+	template<typename ExpPtr>
+	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -386,10 +409,9 @@ class UnaryMinusExpression : public UnaryOpExpression
 {
 public:
 	template<typename ExpPtr>
-	UnaryMinusExpression(ExpPtr&& expr)
-	 	: UnaryOpExpression("-", std::forward<ExpPtr>(expr))
- 	{
- 	}
+	UnaryMinusExpression(ExpPtr&& expr) : UnaryOpExpression("-", MINUS, std::forward<ExpPtr>(expr)) {}
+	template<typename ExpPtr>
+	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -410,7 +432,9 @@ class BitwiseNotExpression : public UnaryOpExpression
 {
 public:
 	template<typename ExpPtr>
-	BitwiseNotExpression(ExpPtr&& expr) : UnaryOpExpression("~", std::forward<ExpPtr>(expr)) {}
+	BitwiseNotExpression(ExpPtr&& expr) : UnaryOpExpression("~", BITWISE_NOT, std::forward<ExpPtr>(expr)) {}
+	template<typename ExpPtr>
+	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -446,7 +470,6 @@ protected:
 		, _linebreak(linebreak)
 	{
 	}
-
 	template<typename ExpPtr1, typename ExpPtr2>
 	BinaryOpExpression(ExpPtr1&& left, const std::string& op, TokenType type, ExpPtr2&& right, bool linebreak = false)
 		: _left(std::forward<ExpPtr1>(left))
