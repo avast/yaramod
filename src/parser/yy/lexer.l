@@ -94,7 +94,7 @@ whitespace  [ \v\r\t]
 "xor"        { return Parser::make_XOR(CURRENT_LOC); }
 "true"       { return Parser::make_BOOL_TRUE(CURRENT_LOC); }
 "false"      { return Parser::make_BOOL_FALSE(CURRENT_LOC); }
-"import"     { return Parser::make_IMPORT_MODULE(CURRENT_LOC); }
+"import"     { return Parser::make_IMPORT_KEYWORD(CURRENT_LOC); }
 "not"        { return Parser::make_NOT(CURRENT_LOC); }
 "and"        { return Parser::make_AND(CURRENT_LOC); }
 "or"         { return Parser::make_OR(CURRENT_LOC); }
@@ -156,8 +156,8 @@ whitespace  [ \v\r\t]
 u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::string(yytext, yyleng), CURRENT_LOC); }
 "$"({letter}|{digit}|_)*           { return Parser::make_STRING_ID(std::string(yytext, yyleng), CURRENT_LOC); }
 "$"({letter}|{digit}|_)*"*"        { return Parser::make_STRING_ID_WILDCARD(std::string(yytext, yyleng), CURRENT_LOC); }
-"#"({letter}|{digit}|_)*           { return Parser::make_STRING_COUNT(std::string(yytext, yyleng), CURRENT_LOC); }
-"@"({letter}|{digit}|_)*           { return Parser::make_STRING_OFFSET(std::string(yytext, yyleng), CURRENT_LOC); }
+"#"({letter}|{digit}|_)*           { return Parser::make_STRING_COUNT(_driver._tokenStream->emplace_back(STRING_COUNT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"@"({letter}|{digit}|_)*           { return Parser::make_STRING_OFFSET(_driver._tokenStream->emplace_back(STRING_OFFSET, std::string(yytext, yyleng)), CURRENT_LOC); }
 "!"({letter}|{digit}|_)*           { return Parser::make_STRING_LENGTH(std::string(yytext, yyleng), CURRENT_LOC); }
 ({letter}|_)({letter}|{digit}|_)*  { return Parser::make_ID(std::string(yytext, yyleng), CURRENT_LOC); }
 
