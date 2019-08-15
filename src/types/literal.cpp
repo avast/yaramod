@@ -680,6 +680,26 @@ TokenConstIt TokenStream::end() const
 	return _tokens.end();
 }
 
+std::reverse_iterator<TokenIt> TokenStream::rbegin()
+{
+	return _tokens.rbegin();
+}
+
+std::reverse_iterator<TokenIt> TokenStream::rend()
+{
+	return _tokens.rend();
+}
+
+std::reverse_iterator<TokenConstIt> TokenStream::rbegin() const
+{
+	return _tokens.rbegin();
+}
+
+std::reverse_iterator<TokenConstIt> TokenStream::rend() const
+{
+	return _tokens.rend();
+}
+
 size_t TokenStream::size() const
 {
 	return _tokens.size();
@@ -707,6 +727,38 @@ TokenIt TokenStream::find( TokenType type, TokenIt from, TokenIt to )
 		to,
 		[&type](const Token& t){ return t.getType() == type; }
 	);
+}
+
+TokenIt TokenStream::findBackwards( TokenType type )
+{
+	return findBackwards(type, begin(), end());
+}
+
+TokenIt TokenStream::findBackwards( TokenType type, TokenIt to )
+{
+	return findBackwards(type, begin(), to);
+}
+
+TokenIt TokenStream::findBackwards( TokenType type, TokenIt from, TokenIt to )
+{
+	if(from == to)
+		return to;
+	for(TokenIt it = to; --it != from;)
+	{
+		if(it->getType() == type)
+			return it;
+	}
+	if(from->getType() == type)
+		return from;
+	else
+		return to;
+}
+
+std::string TokenStream::getText() const
+{
+	std::stringstream ss;
+	ss << *this;
+	return ss.str();
 }
 
 std::vector<std::string> TokenStream::getTokensAsText() const

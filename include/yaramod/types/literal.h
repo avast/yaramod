@@ -100,6 +100,7 @@ enum TokenType
    XOR = 295,
    BOOL_TRUE = 296,
    BOOL_FALSE = 297,
+   IMPORT_KEYWORD = 361,
    IMPORT_MODULE = 298,
    NOT = 299,
    AND = 300,
@@ -325,7 +326,18 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-      return os << *(token._value);
+   	std::cerr << ",";
+   	if(token._type == NEW_LINE)
+			std::cerr << "/n";
+   	switch(token._type)
+      {
+      	case META_VALUE:
+      	case STRING_LITERAL:
+      	case IMPORT_MODULE:
+		      return os << token.getText();// << token._type;
+	      default:
+	      	return os << token.getPureText();// << token._type;
+      }
    }
 
    /// @name Getter methods
@@ -351,9 +363,10 @@ private:
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 };
 
-
 using TokenIt = std::list< Token >::iterator;
 using TokenConstIt = std::list< Token >::const_iterator;
+using TokenItReversed = std::reverse_iterator<TokenIt>;
+using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
 
 class TokenStream
 {
@@ -404,6 +417,10 @@ public:
 	TokenIt end();
 	TokenConstIt begin() const;
 	TokenConstIt end() const;
+	TokenItReversed rbegin();
+	TokenItReversed rend();
+	TokenConstItReversed rbegin() const;
+	TokenConstItReversed rend() const;
 
 	/// @}
 
@@ -416,33 +433,31 @@ public:
 	TokenIt find( TokenType type );
 	TokenIt find( TokenType type, TokenIt from );
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
+	TokenIt findBackwards(TokenType type);
+	TokenIt findBackwards(TokenType type, TokenIt to);
+	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
 
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
 		bool inside_rule = false;
-		bool inside_hex_string = false;
-		bool inside_regexp_string = false;
+		bool inside_string = false;
       for(auto it = ts.begin(); it != ts.end(); ++it)
       {
-   		os << *it;
-   		auto current_type = it->getType();
+      	os << *it;
+
+			auto current_type = it->getType();
    		auto nextIt = std::next(it);
    		std::optional<TokenType> next_type;
    		if(nextIt != ts.end())
    			next_type = nextIt->getType();
-
-   		if(current_type == TokenType::RULE_BEGIN)
+   		if(current_type == RULE_BEGIN)
    			inside_rule = true;
-   		else if(current_type == TokenType::RULE_END)
+   		else if(current_type == RULE_END)
    			inside_rule = false;
-   		else if(current_type == TokenType::HEX_START_BRACKET)
-   			inside_hex_string = true;
-   		else if(current_type == TokenType::HEX_END_BRACKET)
-   			inside_hex_string = false;
-   		else if(current_type == TokenType::REGEXP_START_SLASH)
-   			inside_regexp_string = true;
-   		else if(current_type == TokenType::REGEXP_END_SLASH)
-   			inside_regexp_string = false;
-   		if(current_type == TokenType::NEW_LINE)
+   		else if(current_type == HEX_START_BRACKET || current_type == REGEXP_START_SLASH)
+   			inside_string = true;
+   		else if(current_type == HEX_END_BRACKET || current_type == REGEXP_END_SLASH)
+   			inside_string = false;
+   		if(current_type == NEW_LINE)
       	{
       		if(inside_rule)
 	      	{
@@ -450,27 +465,45 @@ public:
 	      		auto next = std::next(it);
 	      		if(next == ts.end())
 	      			break;
-	      		if(next->getType() == TokenType::META
-	      			|| next->getType() == TokenType::STRINGS
-	      			|| next->getType() == TokenType::CONDITION)
+	      		if(next->getType() == META
+	      			|| next->getType() == STRINGS
+	      			|| next->getType() == CONDITION)
 	      			os << "\t";
-	      		else if(next->getType() != TokenType::RULE_END)
+	      		else if(next->getType() != RULE_END)
 	      			os << "\t\t";
 	      	}
       	}
-      	else if(current_type != TokenType::META
-      			&& current_type != TokenType::STRINGS
-      			&& current_type != TokenType::CONDITION
+      	else if(current_type != META
+      			&& current_type != STRINGS
+      			&& current_type != CONDITION
+      			&& current_type != UNARY_MINUS
+      			&& current_type != BITWISE_NOT
+      			&& current_type != INTEGER_FUNCTION
       			&& next_type && next_type.value() != NEW_LINE
       			&& it->getText() != ""
-      			&& nextIt->getText() != "")
+      			&& current_type != LP
+      			&& next_type != RP
+      			&& current_type != LSQB
+      			&& next_type != RSQB
+      			/*&& nextIt->getText() != ""*/)
       	{
-      		if(!inside_hex_string && !inside_regexp_string)
-      			os << " ";
+
+      		if(!inside_string)
+		   	{
+		   		if(current_type == STRING_OFFSET || current_type == STRING_LENGTH)
+		   		{
+		   			if(next_type != LSQB)
+	   	   			os << " ";
+		   		}
+   	   		else
+   	   			os << " ";
+		   	}
       	}
       }
       return os;
    }
+
+   std::string getText() const;
 
 	std::vector<std::string> getTokensAsText() const;
 

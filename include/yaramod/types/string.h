@@ -204,6 +204,7 @@ public:
 		{
 			_mods = mods;
 
+			//delete current modifiers
 			for(const TokenIt& it : _mods_strings)
 				_tokenStream->erase(it);
 

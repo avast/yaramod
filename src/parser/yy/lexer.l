@@ -158,7 +158,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 "$"({letter}|{digit}|_)*"*"        { return Parser::make_STRING_ID_WILDCARD(std::string(yytext, yyleng), CURRENT_LOC); }
 "#"({letter}|{digit}|_)*           { return Parser::make_STRING_COUNT(_driver._tokenStream->emplace_back(STRING_COUNT, std::string(yytext, yyleng)), CURRENT_LOC); }
 "@"({letter}|{digit}|_)*           { return Parser::make_STRING_OFFSET(_driver._tokenStream->emplace_back(STRING_OFFSET, std::string(yytext, yyleng)), CURRENT_LOC); }
-"!"({letter}|{digit}|_)*           { return Parser::make_STRING_LENGTH(std::string(yytext, yyleng), CURRENT_LOC); }
+"!"({letter}|{digit}|_)*           { return Parser::make_STRING_LENGTH(_driver._tokenStream->emplace_back(STRING_LENGTH, std::string(yytext, yyleng)), CURRENT_LOC); }
 ({letter}|_)({letter}|{digit}|_)*  { return Parser::make_ID(std::string(yytext, yyleng), CURRENT_LOC); }
 
 "0x"({hexdigit}+)                  { return Parser::make_INTEGER(std::string(yytext, yyleng), CURRENT_LOC); }

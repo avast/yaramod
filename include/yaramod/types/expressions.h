@@ -304,35 +304,47 @@ private:
 class StringLengthExpression : public Expression
 {
 public:
-	StringLengthExpression(const std::string& id) : _id(id), _expr() {}
-	StringLengthExpression(std::string&& id) : _id(std::move(id)), _expr() {}
-
+	StringLengthExpression(TokenIt id)
+		: _id(id)
+	{
+	}
 	template<typename ExpPtr>
-	StringLengthExpression(const std::string& id, ExpPtr&& expr) : _id(id), _expr(std::forward<ExpPtr>(expr)) {}
-
-	template<typename ExpPtr>
-	StringLengthExpression(std::string&& id, ExpPtr&& expr) : _id(std::move(id)), _expr(std::forward<ExpPtr>(expr)) {}
-
+	StringLengthExpression(TokenIt id, ExpPtr&& expr)
+		: _id(id)
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+	}
+	template<typename Str>
+	StringLengthExpression(Str&& id)
+	{
+		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
+	}
+	template<typename Str, typename ExpPtr>
+	StringLengthExpression(Str&& id, ExpPtr&& expr)
+		: _expr(std::forward<ExpPtr>(expr))
+	{
+		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
+	}
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id; }
+	const std::string& getId() const { return _id->getString(); }
 	const Expression::Ptr& getIndexExpression() const { return _expr; }
 
-	void setId(const std::string& id) { _id = id; }
-	void setId(std::string&& id) { _id = std::move(id); }
+	void setId(const std::string& id) { _id->setValue(id); }
+	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 	void setIndexExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _expr ? _id + '[' + _expr->getText(indent) + ']' : _id;
+		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
 
 private:
-	std::string _id; ///< Identifier of the string
+	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
 };
 

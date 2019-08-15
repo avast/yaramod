@@ -138,7 +138,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> DOUBLE             		"float"
 %token <std::string> STRING_ID          		"string identifier"
 %token <std::string> STRING_ID_WILDCARD 		"string wildcard"
-%token <std::string> STRING_LENGTH      		"string length"
+%token <yaramod::TokenIt> STRING_LENGTH   	"string length"
 %token <yaramod::TokenIt> STRING_OFFSET     	"string offset"
 %token <yaramod::TokenIt> STRING_COUNT      	"string count"
 %token <std::string> ID                 		"identifier"
@@ -690,31 +690,31 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 	| STRING_LENGTH
 		{
 			// Replace '!' for '$' to get string id
-			auto stringId = $1;
+			auto stringId = $1->getString();
 			stringId[0] = '$';
 
 			if (!driver.stringExists(stringId))
 			{
-				error(driver.getLocation(), "Reference to undefined string '" + $1 + "'");
+				error(driver.getLocation(), "Reference to undefined string '" + $1->getString() + "'");
 				YYABORT;
 			}
 
-			$$ = std::make_shared<StringLengthExpression>(std::move($1));
+			$$ = std::make_shared<StringLengthExpression>($1);
 			$$->setType(Expression::Type::Int);
 		}
 	| STRING_LENGTH LSQB primary_expression RSQB
 		{
 			// Replace '!' for '$' to get string id
-			auto stringId = $1;
+			auto stringId = $1->getString();
 			stringId[0] = '$';
 
 			if (!driver.stringExists(stringId))
 			{
-				error(driver.getLocation(), "Reference to undefined string '" + $1 + "'");
+				error(driver.getLocation(), "Reference to undefined string '" + $1->getString() + "'");
 				YYABORT;
 			}
 
-			$$ = std::make_shared<StringLengthExpression>(std::move($1), std::move($3));
+			$$ = std::make_shared<StringLengthExpression>($1, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
 	| op_minus_unary primary_expression %prec UNARY_MINUS
