@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.9.0 (2019-08-19)
 
 * New: Interface for obtaining internal representation of regular expressions ([#29](https://github.com/avast/yaramod/issues/29)).
 * New: Interface for visitor over regular expressions ([#33](https://github.com/avast/yaramod/pull/33)).
