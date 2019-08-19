@@ -100,9 +100,9 @@ whitespace  [ \v\r\t]
 "or"         { return Parser::make_OR(CURRENT_LOC); }
 "all"        { return Parser::make_ALL(CURRENT_LOC); }
 "any"        { return Parser::make_ANY(CURRENT_LOC); }
-"of"         { return Parser::make_OF(CURRENT_LOC); }
+"of"         { return Parser::make_OF(_driver._tokenStream->emplace_back(OF, std::string(yytext, yyleng)), CURRENT_LOC); }
 "them"       { return Parser::make_THEM(CURRENT_LOC); }
-"for"        { return Parser::make_FOR(CURRENT_LOC); }
+"for"        { return Parser::make_FOR(_driver._tokenStream->emplace_back(FOR, std::string(yytext, yyleng)), CURRENT_LOC); }
 "entrypoint" { return Parser::make_ENTRYPOINT(CURRENT_LOC); }
 "at"         { return Parser::make_OP_AT(CURRENT_LOC); }
 "in"         { return Parser::make_OP_IN(CURRENT_LOC); }
