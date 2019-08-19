@@ -123,9 +123,9 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token OR               "or"
 %token ALL              "all"
 %token ANY              "any"
-%token OF               "of"
+%token <yaramod::TokenIt> OF 	               "of"
 %token THEM             "them"
-%token FOR              "for"
+%token <yaramod::TokenIt> FOR              "for"
 %token ENTRYPOINT       "entrypoint"
 %token OP_AT            "at"
 %token OP_IN            "in"
@@ -174,8 +174,8 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
-%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_left_bracket hex_alt_right_bracket hex_alt_operator hex_jump_left_bracket hex_jump_right_bracket left_bracket right_bracket integer_function integer_token
-%type <yaramod::TokenIt> op_at op_in op_not op_and op_or op_lt op_gt op_le op_ge op_eq op_neq op_plus op_minus_unary op_minus_binary op_multiply op_divide op_modulo op_bw_xor op_bw_and op_bw_or op_bw_not op_shift_left op_shift_right op_contains op_matches left_bracket_range right_bracket_range double_dot
+%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_alt_operator hex_jump_lb hex_jump_rb lb rb integer_function integer_token enumeration_lb enumeration_rb
+%type <yaramod::TokenIt> op_at op_in op_not op_and op_or op_lt op_gt op_le op_ge op_eq op_neq op_plus op_minus_unary op_minus_binary op_multiply op_divide op_modulo op_bw_xor op_bw_and op_bw_or op_bw_not op_shift_left op_shift_right op_contains op_matches lb_range rb_range double_dot
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -504,16 +504,16 @@ expression
 
 			driver.stringLoopEnter();
 		}
-		COLON LP expression[expr] RP
+		COLON lb[lft] expression[expr] rb[rgt]
 		{
-			$$ = std::make_shared<ForStringExpression>(std::move($for_expression), std::move($string_set), std::move($expr));
+			$$ = std::make_shared<ForStringExpression>($1, std::move($for_expression), $3, std::move($string_set), $lft, std::move($expr), $rgt);
 			$$->setType(Expression::Type::Bool);
 
 			driver.stringLoopLeave();
 		}
 	| for_expression OF string_set
 		{
-			$$ = std::make_shared<OfExpression>(std::move($for_expression), std::move($string_set));
+			$$ = std::make_shared<OfExpression>(std::move($for_expression), $2, std::move($string_set));
 			$$->setType(Expression::Type::Bool);
 		}
 	| op_not expression[expr]
@@ -594,7 +594,7 @@ expression
 		{
 			$$ = std::move($primary_expression);
 		}
-	| left_bracket expression[expr] right_bracket
+	| lb expression[expr] rb
 		{
 			auto type = $expr->getType();
 			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
@@ -602,12 +602,12 @@ expression
 		}
 	;
 
-left_bracket : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
+lb : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
 
-right_bracket : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
+rb : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
 
 primary_expression // (primary_expression[expr]) | filesize | entrypoint |
-	: left_bracket primary_expression[expr] right_bracket
+	: lb primary_expression[expr] rb
 		{
 			auto type = $expr->getType();
 			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
@@ -914,7 +914,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<ShiftRightExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| integer_function left_bracket primary_expression right_bracket
+	| integer_function lb primary_expression rb
 		{
 			if (!$3->isInt())
 			{
@@ -962,7 +962,7 @@ integer_token
 
 
 range
-	: left_bracket_range primary_expression[low] double_dot primary_expression[high] right_bracket_range
+	: lb_range primary_expression[low] double_dot primary_expression[high] rb_range
 		{
 			if (!$low->isInt())
 			{
@@ -981,8 +981,10 @@ range
 	;
 
 double_dot : RANGE { $$ = driver._tokenStream->emplace_back(DOUBLE_DOT, ".."); }
-left_bracket_range : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
-right_bracket_range : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
+lb_range : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
+rb_range : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
+enumeration_lb : LP { $$ = driver._tokenStream->emplace_back(LP_ENUMERATION, "("); }
+enumeration_rb : RP { $$ = driver._tokenStream->emplace_back(RP_ENUMERATION, ")"); }
 
 for_expression
 	: primary_expression { $$ = std::move($primary_expression); }
@@ -999,7 +1001,7 @@ for_expression
 	;
 
 integer_set
-	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($integer_enumeration)); }
+	: lb integer_enumeration rb { $$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3); }
 	| range { $$ = std::move($range); }
 	;
 
@@ -1028,7 +1030,7 @@ integer_enumeration
 	;
 
 string_set
-	: LP string_enumeration RP { $$ = std::make_shared<SetExpression>(std::move($string_enumeration)); }
+	: enumeration_lb string_enumeration enumeration_rb { $$ = std::make_shared<SetExpression>($1, std::move($string_enumeration), $3); }
 	| THEM
 		{
 			TokenIt t = driver._tokenStream->emplace_back(THEM, "them");
@@ -1037,15 +1039,15 @@ string_set
 	;
 
 string_enumeration
-	: STRING_ID[id]
+	: string_id[id]
 		{
-			if (!driver.stringExists($id))
+			if (!driver.stringExists($id->getPureText()))
 			{
-				error(driver.getLocation(), "Reference to undefined string '" + $id + "'");
+				error(driver.getLocation(), "Reference to undefined string '" + $id->getPureText() + "'");
 				YYABORT;
 			}
 
-			$$.push_back(std::make_shared<StringExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringExpression>($id));
 		}
 	| STRING_ID_WILDCARD[id]
 		{
@@ -1057,16 +1059,16 @@ string_enumeration
 
 			$$.push_back(std::make_shared<StringWildcardExpression>(std::move($id)));
 		}
-	| string_enumeration[enum] COMMA STRING_ID[id]
+	| string_enumeration[enum] COMMA string_id[id]
 		{
-			if (!driver.stringExists($id))
+			if (!driver.stringExists($id->getPureText()))
 			{
-				error(driver.getLocation(), "Reference to undefined string '" + $id + "'");
+				error(driver.getLocation(), "Reference to undefined string '" + $id->getPureText() + "'");
 				YYABORT;
 			}
 
 			$$ = std::move($enum);
-			$$.push_back(std::make_shared<StringExpression>(std::move($id)));
+			$$.push_back(std::make_shared<StringExpression>($id));
 		}
 	| string_enumeration[enum] COMMA STRING_ID_WILDCARD[id]
 		{
@@ -1090,8 +1092,8 @@ identifier
 				error(driver.getLocation(), "Unrecognized identifier '" + $1 + "' referenced");
 				YYABORT;
 			}
-
-			$$ = std::make_shared<IdExpression>(symbol);
+			TokenIt symbol_token = driver._tokenStream->emplace_back(ID, symbol, symbol->getName());
+			$$ = std::make_shared<IdExpression>(symbol_token);
 			$$->setType(symbol->getDataType());
 		}
 	| identifier DOT ID
@@ -1118,7 +1120,9 @@ identifier
 			}
 
 			auto symbol = attr.value();
-			$$ = std::make_shared<StructAccessExpression>(symbol, std::move($1));
+			TokenIt dot = driver._tokenStream->emplace_back(DOT, ".");
+			TokenIt symbol_token = driver._tokenStream->emplace_back(symbol->getTokenType(), symbol, symbol->getName() );
+			$$ = std::make_shared<StructAccessExpression>(symbol_token, std::move($1), dot);
 			$$->setType(symbol->getDataType());
 		}
 	| identifier LSQB primary_expression RSQB
@@ -1140,7 +1144,7 @@ identifier
 			$$ = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move($1), std::move($primary_expression));
 			$$->setType(iterParentSymbol->getElementType());
 		}
-	| identifier LP arguments RP
+	| identifier lb arguments rb
 		{
 			if (!$1->isObject())
 			{
@@ -1178,7 +1182,7 @@ identifier
 				YYABORT;
 			}
 
-			$$ = std::make_shared<FunctionCallExpression>(std::move($1), std::move($arguments));
+			$$ = std::make_shared<FunctionCallExpression>(std::move($1), $2, std::move($arguments), $4);
 			$$->setType(funcParentSymbol->getReturnType());
 		}
 	;
@@ -1337,7 +1341,7 @@ hex_string_body
 	;
 
 hex_or
-	: hex_alt_left_bracket hex_or_body hex_alt_right_bracket { $$ = std::make_shared<HexStringOr>(std::move($hex_or_body)); }
+	: hex_alt_lb hex_or_body hex_alt_rb { $$ = std::make_shared<HexStringOr>(std::move($hex_or_body)); }
 
 hex_or_body //vektor<shared_ptr<HexString>>
 	: hex_string_body
@@ -1356,27 +1360,27 @@ hex_or_body //vektor<shared_ptr<HexString>>
 hex_alt_operator
 	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "| "); }
 
-hex_alt_left_bracket
+hex_alt_lb
 	: LP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_LEFT_BRACKET, "( "); }
 
-hex_alt_right_bracket
+hex_alt_rb
 	: RP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_RIGHT_BRACKET, ") "); }
 
 hex_jump
-	: hex_jump_left_bracket hex_integer[value] hex_jump_right_bracket
+	: hex_jump_lb hex_integer[value] hex_jump_rb
 		{
 			$$ = std::make_shared<HexStringJump>($value, $value);
 		}
-	| hex_jump_left_bracket hex_integer[low] DASH hex_integer[high] hex_jump_right_bracket
+	| hex_jump_lb hex_integer[low] DASH hex_integer[high] hex_jump_rb
 		{
 			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
 			$$ = std::make_shared<HexStringJump>($low, $high);
 		}
-	| hex_jump_left_bracket hex_integer[low] DASH hex_jump_right_bracket
+	| hex_jump_lb hex_integer[low] DASH hex_jump_rb
 		{
 			$$ = std::make_shared<HexStringJump>($low);
 		}
-	| hex_jump_left_bracket DASH hex_jump_right_bracket
+	| hex_jump_lb DASH hex_jump_rb
 		{
 			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
 			$$ = std::make_shared<HexStringJump>();
@@ -1385,10 +1389,10 @@ hex_jump
 hex_integer
 	: HEX_INTEGER {$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, $1);}
 
-hex_jump_left_bracket
+hex_jump_lb
 	: LSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_LEFT_BRACKET, "["); }
 
-hex_jump_right_bracket
+hex_jump_rb
 	: RSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "] "); }
 
 regexp
