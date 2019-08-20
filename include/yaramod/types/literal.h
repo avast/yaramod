@@ -98,10 +98,8 @@ enum TokenType
    WIDE = 293,
    FULLWORD = 294,
    XOR = 295,
-   BOOL_TRUE = 296,
-   BOOL_FALSE = 297,
-   IMPORT_KEYWORD = 361,
-   IMPORT_MODULE = 298,
+   IMPORT_MODULE = 296,
+   IMPORT_KEYWORD = 297,
    NOT = 299,
    AND = 300,
    OR = 301,
@@ -160,7 +158,22 @@ enum TokenType
    META_KEY = 354,
    META_VALUE = 355,
    STRING_KEY = 356,
-   SYMBOL = 360,
+   VALUE_SYMBOL = 360,
+   FUNCTION_SYMBOL = 361,
+   ARRAY_SYMBOL = 362,
+   DICTIONARY_SYMBOL = 363,
+   STRUCTURE_SYMBOL = 364,
+   LP_ENUMERATION = 366,
+   RP_ENUMERATION = 367,
+   LP_WITHOUT_SPACE = 368,
+   RP_WITHOUT_SPACE = 369,
+   LP_WITH_SPACE_AFTER = 370,
+   RP_WITH_SPACE_BEFORE = 371,
+   LP_WITH_SPACES = 372,
+   RP_WITH_SPACES = 373,
+   NULLSYMBOL = 374,
+   BOOL_TRUE = 375,
+   BOOL_FALSE = 376,
 
    INVALID = 16384
 };
@@ -310,6 +323,8 @@ public:
    void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
    void setValue(const std::shared_ptr<Symbol>& value, const std::string& symbol_name) { _value->setValue(value, symbol_name); }
    void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
+
+   void setType(TokenType type) { _type = type; }
    /// @}
 
    /// @name Detection methods
@@ -326,10 +341,11 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-   	std::cerr << ",";
-   	if(token._type == NEW_LINE)
-			std::cerr << "/n";
-   	switch(token._type)
+   	// std::cerr << ",";
+   	// if(token._type == NEW_LINE)
+			// std::cerr << "/n";
+	   // std::cerr << token._type;
+      switch(token._type)
       {
       	case META_VALUE:
       	case STRING_LITERAL:
@@ -440,6 +456,8 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
 		bool inside_rule = false;
 		bool inside_string = false;
+      bool inside_enumeration_brackets = false;
+      int spaces = 0; //spaces when not 0
       for(auto it = ts.begin(); it != ts.end(); ++it)
       {
       	os << *it;
@@ -457,6 +475,18 @@ public:
    			inside_string = true;
    		else if(current_type == HEX_END_BRACKET || current_type == REGEXP_END_SLASH)
    			inside_string = false;
+         else if(current_type == LP_WITH_SPACES)
+            spaces++;
+         else if(current_type == RP_WITH_SPACES)
+            spaces--;
+         // else if(current_type == LP_WITHOUT_SPACE)
+         //    inside_string = true;
+         // else if(current_type == RP_WITHOUT_SPACE)
+         //    inside_string = false;
+         else if(current_type == LP_ENUMERATION)
+            inside_enumeration_brackets = true;
+         else if(current_type == RP_ENUMERATION)
+            inside_enumeration_brackets = false;
    		if(current_type == NEW_LINE)
       	{
       		if(inside_rule)
@@ -473,32 +503,46 @@ public:
 	      			os << "\t\t";
 	      	}
       	}
-      	else if(current_type != META
-      			&& current_type != STRINGS
-      			&& current_type != CONDITION
-      			&& current_type != UNARY_MINUS
-      			&& current_type != BITWISE_NOT
-      			&& current_type != INTEGER_FUNCTION
-      			&& next_type && next_type.value() != NEW_LINE
-      			&& it->getText() != ""
-      			&& current_type != LP
-      			&& next_type != RP
-      			&& current_type != LSQB
-      			&& next_type != RSQB
-      			/*&& nextIt->getText() != ""*/)
-      	{
-
-      		if(!inside_string)
-		   	{
-		   		if(current_type == STRING_OFFSET || current_type == STRING_LENGTH)
-		   		{
-		   			if(next_type != LSQB)
-	   	   			os << " ";
-		   		}
-   	   		else
-   	   			os << " ";
-		   	}
-      	}
+         else if(spaces > 0)
+            os << " ";
+         else if(next_type && !inside_string && !inside_enumeration_brackets)
+         {
+            switch(current_type)
+            {
+               case NULLSYMBOL:
+               case META:
+               case STRINGS:
+               case CONDITION:
+               case UNARY_MINUS:
+               case BITWISE_NOT:
+               case INTEGER_FUNCTION:
+               case FUNCTION_SYMBOL:
+               case ARRAY_SYMBOL:
+               case LP:
+               case LSQB:
+               case DOT:
+                  break;
+               default:
+                  switch(next_type.value())
+                  {
+                     case RP:
+                     case RSQB:
+                     case RP_WITHOUT_SPACE:
+                     case DOT:
+                     case NEW_LINE:
+                        break;
+                     case REGEXP_MODIFIERS:
+                        if(current_type != REGEXP_MODIFIERS)
+                           break;
+                        [[fallthrough]];
+                     default:
+                        if(next_type != LSQB || ( current_type != STRING_OFFSET && current_type != STRING_LENGTH) )
+                           os << " ";
+                  }
+            }
+         }
+         else if(current_type == HEX_ALT_RIGHT_BRACKET || current_type == HEX_ALT_LEFT_BRACKET)
+            os << " ";
       }
       return os;
    }

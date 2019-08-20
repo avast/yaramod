@@ -50,6 +50,7 @@ public:
 	explicit String(std::shared_ptr<TokenStream> ts, Type type)
 		: _tokenStream(ts)
 		, _type(type)
+		, _mods(Modifiers::None)
 	{
 		assert(_tokenStream);
 	}
@@ -58,12 +59,9 @@ public:
 		, _type(type)
 		, _mods(Modifiers::None)
 	{
-		// std::cout << "String Constructor" << std::endl;
 		assert(_tokenStream);
 		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
-		// std::cout << "String Constructor" << std::endl;
 		_equal_sign = _tokenStream->emplace_back(TokenType::EQ, "=");
-		// std::cout << "String Constructor" << std::endl;
 	}
 	explicit String(std::shared_ptr<TokenStream> ts, Type type, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings)
 		: _tokenStream(ts)
@@ -121,28 +119,29 @@ public:
 	}
 
 	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
+
+	virtual TokenIt getFirstTokenIt() const = 0;
 	/// @}
 
 	/// @name Setter methods
 	/// @{
-	void setIdentifier(std::string&& id)
+	template<typename Str>
+	void setIdentifier(Str&& id)
 	{
 		if(_id)
-			_id.value()->setValue(id);
+			_id.value()->setValue(std::forward<Str>(id));
 		else
-			_id = _tokenStream->emplace_back(TokenType::STRING_KEY, std::move(id));
+		{
+			auto first = getFirstTokenIt();
+			_id = _tokenStream->emplace(first, TokenType::STRING_KEY, std::forward<Str>(id));
+			_equal_sign = _tokenStream->emplace(first, TokenType::EQ, "=");
+		}
 	}
 
 	void setIdentifier(TokenIt id, TokenIt equal_sign)
 	{
 		setIdentifier(id);
 		_equal_sign = equal_sign;
-	}
-
-	void setIdentifier(const std::string& id)
-	{
-		std::string forward = id;
-		setIdentifier(std::move(forward));
 	}
 
 	void setIdentifier(TokenIt id)

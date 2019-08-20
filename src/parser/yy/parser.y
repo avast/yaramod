@@ -174,8 +174,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
-%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_alt_operator hex_jump_lb hex_jump_rb lb rb integer_function integer_token enumeration_lb enumeration_rb
-%type <yaramod::TokenIt> lb_range rb_range
+%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_alt_operator hex_jump_lb hex_jump_rb lb rb integer_function integer_token
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -222,7 +221,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
  * or to reduce primary_expression to expression and then shift ')'.
  * In the end, it produces the same result both ways.
  */
-%expect 15
+%expect 1
 
 %%
 
@@ -450,17 +449,19 @@ expression
 	| FOR for_expression ID[id]
 		{
 			auto symbol = std::make_shared<ValueSymbol>($id, Expression::Type::Int);
-			driver._tokenStream->emplace_back(TokenType::FOR, symbol.get());
+			driver._tokenStream->emplace_back(TokenType::ID, symbol->getName());
 			if (!driver.addLocalSymbol(symbol))
 			{
 				error(driver.getLocation(), "Redefinition of identifier '" + $id + "'");
 				YYABORT;
 			}
 		}
-		OP_IN integer_set COLON LP expression[expr] RP
+		OP_IN integer_set COLON LP[lft] expression[expr] RP[rgt]
 		{
 			/* Delete $id before we move it to ForIntExpression */
 			driver.removeLocalSymbol($id);
+			$lft->setType(LP_WITH_SPACE_AFTER);
+			$rgt->setType(RP_WITH_SPACE_BEFORE);
 			$$ = std::make_shared<ForIntExpression>(std::move($for_expression), std::move($id), std::move($integer_set), std::move($expr));
 			$$->setType(Expression::Type::Bool);
 		}
@@ -474,8 +475,10 @@ expression
 
 			driver.stringLoopEnter();
 		}
-		COLON lb[lft] expression[expr] rb[rgt]
+		COLON LP[lft] expression[expr] RP[rgt]
 		{
+			$lft->setType(LP_WITH_SPACE_AFTER);
+			$rgt->setType(RP_WITH_SPACE_BEFORE);
 			$$ = std::make_shared<ForStringExpression>($1, std::move($for_expression), $3, std::move($string_set), $lft, std::move($expr), $rgt);
 			$$->setType(Expression::Type::Bool);
 
@@ -930,7 +933,7 @@ integer_token
 
 
 range
-	: lb_range primary_expression[low] RANGE primary_expression[high] rb_range
+	: LP primary_expression[low] RANGE primary_expression[high] RP
 		{
 			if (!$low->isInt())
 			{
@@ -948,11 +951,6 @@ range
 		}
 	;
 
-lb_range : LP { $$ = $1; }
-rb_range : RP { $$ = $1; }
-enumeration_lb : LP { $$ = $1; $$->setType(LP_ENUMERATION); }
-enumeration_rb : RP { $$ = $1; $$->setType(RP_ENUMERATION); }
-
 for_expression
 	: primary_expression { $$ = std::move($primary_expression); }
 	| ALL
@@ -966,7 +964,12 @@ for_expression
 	;
 
 integer_set
-	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3); }
+	: LP integer_enumeration RP
+		{
+			$1->setType(LP_WITHOUT_SPACE);
+			$3->setType(RP_WITHOUT_SPACE);
+			$$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3);
+		}
 	| range { $$ = std::move($range); }
 	;
 
@@ -995,10 +998,14 @@ integer_enumeration
 	;
 
 string_set
-	: enumeration_lb string_enumeration enumeration_rb { $$ = std::make_shared<SetExpression>($1, std::move($string_enumeration), $3); }
+	: LP string_enumeration RP
+		{
+			$1->setType(LP_ENUMERATION);
+			$3->setType(RP_ENUMERATION);
+			$$ = std::make_shared<SetExpression>($1, std::move($string_enumeration), $3);
+		}
 	| THEM
 		{
-			TokenIt t = driver._tokenStream->emplace_back(THEM, "them");
 			$$ = std::make_shared<ThemExpression>();
 		}
 	;
@@ -1022,7 +1029,8 @@ string_enumeration
 				YYABORT;
 			}
 
-			$$.push_back(std::make_shared<StringWildcardExpression>(std::move($id)));
+			TokenIt t = driver._tokenStream->emplace_back(STRING_ID_WILDCARD, $id);
+			$$.push_back(std::make_shared<StringWildcardExpression>(t));
 		}
 	| string_enumeration[enum] COMMA string_id[id]
 		{

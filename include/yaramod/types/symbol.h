@@ -45,6 +45,17 @@ public:
 	/// @{
 	const std::string& getName() const { return _name; }
 	Expression::Type getDataType() const { return _dataType; }
+	TokenType getTokenType() const
+	{
+		switch(_type)
+		{
+			case Type::Value : return VALUE_SYMBOL;
+			case Type::Array : return ARRAY_SYMBOL;
+			case Type::Dictionary : return DICTIONARY_SYMBOL;
+			case Type::Function : return FUNCTION_SYMBOL;
+			case Type::Structure : return STRUCTURE_SYMBOL;
+		}
+	}
 	/// @}
 
 	/// @name Detection methods

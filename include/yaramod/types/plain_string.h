@@ -32,10 +32,11 @@ public:
 	~PlainString() = default;
 	/// @}
 
-	/// @name String representation
+	/// @name Virtual methods
 	/// @{
 	virtual std::string getText() const override;
 	virtual std::string getPureText() const override;
+	virtual TokenIt getFirstTokenIt() const override;
 	/// @}
 
 private:

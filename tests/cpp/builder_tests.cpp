@@ -46,6 +46,11 @@ TEST_F(BuilderTests,
 UnnamedRuleWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule.get();
+	assert(rule);
+	EXPECT_EQ(R"(rule unknown {
+	condition:
+		true
+})", rule->getText());
 
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
@@ -287,10 +292,10 @@ TEST_F(BuilderTests,
 RuleWithHexStringWorks) {
 	auto cond = stringRef("$1").get();
 
-	auto alt1 = YaraHexStringBuilder().add(0xBB, 0xCC);
+	auto alt1 = YaraHexStringBuilder().add(0xBB).add(0xCC);
 	auto alt2 = YaraHexStringBuilder().add(0xDD, 0xEE);
-	auto alt3 = YaraHexStringBuilder().add(0xFF);
-	auto alt4 = YaraHexStringBuilder(std::vector<std::uint8_t>{ 0xFE, 0xED });
+	auto alt3 = YaraHexStringBuilder().add(0xFF, 0xF1);
+	auto alt4 = YaraHexStringBuilder(std::vector<std::uint8_t>{ 0xFE, 0xED, 0xDC });
 
 	YaraHexStringBuilder newHexStr;
 	auto hexStr = newHexStr
@@ -307,6 +312,8 @@ RuleWithHexStringWorks) {
 		.withCondition(cond)
 		.get();
 
+	ASSERT_NE(nullptr, rule);
+
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
@@ -315,7 +322,7 @@ RuleWithHexStringWorks) {
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_hex_string {
 	strings:
-		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF | FE ED ) 99 }
+		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
 		$1
 })", yaraFile->getText());
