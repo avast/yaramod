@@ -978,8 +978,7 @@ bool ParserDriver::parse()
 
 	bool output = _parser.parse() == 0;
 	std::cout << "TokenStream when getParsedFile(): " << std::endl;
-	std::cout << " - of the file: '" << *_file.getTokenStream() << "'" << std::endl;
-	std::cout << " - of the driver: '" << *_tokenStream << "'" << std::endl;
+	std::cout << *_file.getTokenStream() << "'" << std::endl;
 	return output;
 /*
 	std::cerr << "ParserDriver::parse called" << std::endl;

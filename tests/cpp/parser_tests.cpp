@@ -25,17 +25,12 @@ public:
 		input.str(std::string());
 		input.clear();
 		input << inputText;
+		input_text = inputText;
 	}
 
 	std::stringstream input;
+	std::string input_text;
 };
-
-TEST_F(ParserTests,
-GrammarAnalysis) {
-	const std::size_t issues_found = tao::pegtl::analyze<gr::grammar>();
-
-	EXPECT_EQ(0u, issues_found);
-}
 
 TEST_F(ParserTests,
 EmptyInputWorks) {
@@ -67,6 +62,8 @@ rule empty_rule {
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 	EXPECT_EQ(0u, rule->getMetas().size());
 	EXPECT_TRUE(rule->getStrings().empty());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -120,6 +117,8 @@ rule rule_with_tags : Tag1 Tag2 Tag3 {
 
 	std::vector<std::string> expected = { "Tag1", "Tag2", "Tag3" };
 	EXPECT_EQ(expected, rule->getTags());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -156,12 +155,14 @@ rule rule_with_metas {
 	EXPECT_EQ(R"("string meta")", strMeta.getValue().getText());
 
 	EXPECT_EQ("int_meta", intMeta.getKey());
-	EXPECT_TRUE(intMeta.getValue().isInt());
+	EXPECT_TRUE(intMeta.getValue().isIntegral());
 	EXPECT_EQ("42", intMeta.getValue().getText());
 
 	EXPECT_EQ("bool_meta", boolMeta.getKey());
 	EXPECT_TRUE(boolMeta.getValue().isBool());
 	EXPECT_EQ("true", boolMeta.getValue().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -192,12 +193,14 @@ rule hex_and_decimal_integers_are_preserved {
 	const auto& decMeta = rule->getMetas()[1];
 
 	EXPECT_EQ("hex_meta", hexMeta.getKey());
-	EXPECT_TRUE(hexMeta.getValue().isInt());
+	EXPECT_TRUE(hexMeta.getValue().isIntegral());
 	EXPECT_EQ("0x42", hexMeta.getValue().getText());
 
 	EXPECT_EQ("dec_meta", decMeta.getKey());
-	EXPECT_TRUE(decMeta.getValue().isInt());
-	EXPECT_EQ("42", decMeta.getValue().getText());
+	EXPECT_TRUE(decMeta.getValue().isIntegral());
+	EXPECT_EQ("42", decMeta.getValue().getText(true));
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -237,6 +240,8 @@ rule rule_with_plain_strings {
 	EXPECT_EQ("$2", byeWorld->getIdentifier());
 	EXPECT_EQ("\"Bye World.\"", byeWorld->getText());
 	EXPECT_TRUE(static_cast<const PlainString*>(byeWorld)->isAscii());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -293,6 +298,8 @@ rule rule_3 {
 
 		ruleId++;
 	}
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -337,6 +344,8 @@ rule rule_with_plain_strings {
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isWide());
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isNocase());
 	EXPECT_TRUE(static_cast<const PlainString*>(byeWorld)->isFullword());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -350,7 +359,6 @@ rule hex_string_with_plain_nibbles {
 		true
 }
 )");
-
 	ParserDriver driver(input);
 
 	EXPECT_TRUE(driver.parse());
@@ -367,6 +375,8 @@ rule hex_string_with_plain_nibbles {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 45 67 89 AB CD EF }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -397,6 +407,8 @@ rule hex_string_with_low_high_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 [5-6] 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -427,6 +439,8 @@ rule hex_string_with_low_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 [5-] 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -457,6 +471,8 @@ rule hex_string_with_unrestricted_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 [-] 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -487,6 +503,8 @@ rule hex_string_with_constant_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 [5] 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -517,6 +535,8 @@ rule hex_string_with_simple_or_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 ( AB | CD ) 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -547,6 +567,8 @@ rule hex_string_with_multibyte_simple_or_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 ( AB CD EF | AA BB | EE | FF FF ) 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -577,6 +599,8 @@ rule hex_string_with_nested_or {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 ( AB ( EE | FF ( 11 | 22 ) FF | ( 11 22 | 33 ) ) | DD ) 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -607,6 +631,8 @@ rule hex_string_with_or_and_jump {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ 01 23 ( AA DD | FF [5-7] FF ) 45 56 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -637,6 +663,8 @@ rule hex_string_with_or_on_the_beginning_and_end {
 	EXPECT_TRUE(hexString->isHex());
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ ( 11 | 22 ) 33 44 ( 55 | 66 ) }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -661,7 +689,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at line 4: hex-string syntax error: Unexpected jump '[5-6]' at the beginning of hex-string, expecting ( or ? or nibble.", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.10: syntax error, unexpected hex string [, expecting ( or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -687,7 +715,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at line 4: hex-string syntax error: Unexpected jump '[5-6]' at the end of hex-string, expecting ( or ? or nibble.", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.25: syntax error, unexpected }, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -713,7 +741,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 0X }' failed.", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.16: syntax error, unexpected end of file, expecting hex string ? or hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -740,7 +768,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 0 }' failed.", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.17: syntax error, unexpected }, expecting hex string ? or hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -767,7 +795,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at line 4: Parsing hex-string '{ 01 | }' failed.", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.15: syntax error, unexpected hex string |, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -800,6 +828,8 @@ rule regexp_with_just_chars {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ("/abcd/", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -830,6 +860,8 @@ rule regexp_limited_to_whole_line {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ("/^abcd$/", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -860,6 +892,8 @@ rule regexp_with_predefined_classes {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/\w\W\s\S\d\D\babc\B/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -890,6 +924,8 @@ rule regexp_with_custom_class {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/abc[xyz]def/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -920,6 +956,8 @@ rule regexp_with_custom_negative_class {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/abc[^xyz]def/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -950,6 +988,8 @@ rule regexp_with_iteration {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/ab*c/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -980,6 +1020,8 @@ rule regexp_with_positive_iteration {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/ab+c/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1010,6 +1052,8 @@ rule regexp_with_optional {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/ab?c/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1040,6 +1084,8 @@ rule regexp_with_ranges {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/a{5}b{2,3}c{4,}d{,5}/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1070,6 +1116,8 @@ rule regexp_with_greedy_operators {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/a*?b+?c??d{5,6}?/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1100,6 +1148,8 @@ rule regexp_with_groups {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/ab(cd(ef)gh(i))/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1130,6 +1180,8 @@ rule regexp_with_or {
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/(abc|def|xyz)/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1166,6 +1218,8 @@ rule regexp_with_modifiers {
 	EXPECT_TRUE(regexp2->isRegexp());
 	EXPECT_EQ("$2", regexp2->getIdentifier());
 	EXPECT_EQ(R"(/(abc|def|xyz)/ nocase fullword)", regexp2->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1237,6 +1291,8 @@ global rule global_rule {
 	EXPECT_EQ("global_rule", rule->getName());
 	EXPECT_EQ(Rule::Modifier::Global, rule->getModifier());
 	EXPECT_TRUE(rule->isGlobal());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1258,6 +1314,8 @@ private rule private_rule {
 	EXPECT_EQ("private_rule", rule->getName());
 	EXPECT_EQ(Rule::Modifier::Private, rule->getModifier());
 	EXPECT_TRUE(rule->isPrivate());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1278,6 +1336,8 @@ rule dummy_rule {
 	EXPECT_EQ(1u, driver.getParsedFile().getRules().size());
 	ASSERT_EQ(1u, driver.getParsedFile().getImports().size());
 	EXPECT_EQ("pe", driver.getParsedFile().getImports()[0]->getName());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1324,6 +1384,8 @@ rule true_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("true", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1343,6 +1405,8 @@ rule false_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("false", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1364,6 +1428,8 @@ rule string_id_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1385,6 +1451,8 @@ rule string_at_entrypoint_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1 at entrypoint", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1406,6 +1474,32 @@ rule string_in_range_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1 in (10 .. 20)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+StringInRangeConditionWorks2) {
+	prepareInput(
+R"(
+rule string_in_range_condition2 {
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		$a in (0 .. 100) and $b in (100 .. filesize)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("$a in (0 .. 100) and $b in (100 .. filesize)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1425,6 +1519,8 @@ rule not_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("not true", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1444,13 +1540,40 @@ rule and_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("true and not false", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+
+TEST_F(ParserTests,
+AndConditionWorks2) {
+	prepareInput(
+R"(
+rule and_condition {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Bye World."
+	condition:
+		$1 and $2
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("$1 and $2", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
 OrConditionWorks) {
 	prepareInput(
 R"(
-rule and_condition {
+rule or_condition {
 	condition:
 		true or not false
 }
@@ -1463,6 +1586,8 @@ rule and_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("true or not false", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1482,6 +1607,8 @@ rule relational_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("filesize < 10 or filesize > 20 or filesize <= 10 or filesize >= 20 or filesize != 15 or filesize == 16", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1503,7 +1630,31 @@ rule relational_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("($1 at (entrypoint)) and (filesize > 100)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
+
+TEST_F(ParserTests,
+ArithmeticOpConditionWorksSimple) {
+	prepareInput(
+R"(
+rule arithmetic_op_condition {
+	condition:
+		(10 + 20 < 200 - 100)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"((10 + 20 < 200 - 100))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
 
 TEST_F(ParserTests,
 ArithmeticOpConditionWorks) {
@@ -1522,6 +1673,29 @@ rule arithmetic_op_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((10 + 20 < 200 - 100) and (10 * 20 > 20 \ 10) and (10 % 2) and (-5))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+BitwiseOpConditionNegation) {
+	prepareInput(
+R"(
+rule bitwise_op_condition_negation {
+	condition:
+		(~2 == 0)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"((~2 == 0))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1541,6 +1715,8 @@ rule bitwise_op_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((3 & 2 == 2) and (7 ^ 7 == 0) and (3 | 4 == 7) and (~5) and (8 >> 2 == 2) and (1 << 3 == 8))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1560,6 +1736,8 @@ rule int_function_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("int8(uint32(int32be(5))) == 64", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1579,6 +1757,8 @@ rule double_in_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("1.23 + 4.56 > 10.5", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1598,6 +1778,8 @@ rule contains_in_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"("Hello" contains "Hell")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1617,7 +1799,10 @@ rule matches_in_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"("Hello" matches /^Hell.*$/)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
+
 
 TEST_F(ParserTests,
 StringCountConditionWorks) {
@@ -1638,6 +1823,8 @@ rule string_count_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("#1 == 5", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1647,8 +1834,9 @@ R"(
 rule string_offset_condition {
 	strings:
 		$1 = "Hello World"
+		$2 = "Hello World2"
 	condition:
-		(@1 > 0) and (@1[0] > 100)
+		(@1 > 5) and (@2[0] > 100)
 }
 )");
 
@@ -1658,7 +1846,33 @@ rule string_offset_condition {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("(@1 > 0) and (@1[0] > 100)", rule->getCondition()->getText());
+	EXPECT_EQ("(@1 > 5) and (@2[0] > 100)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+HexadecimalNumbersInConditionWorks) {
+	prepareInput(
+R"(
+rule string_offset_condition {
+	strings:
+		$1 = "Hello World"
+		$2 = "Hello World2"
+	condition:
+		(@1 > 0x6006006006) and (@2[0x11] > 0x14)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("(@1 > 0x6006006006) and (@2[0x11] > 0x14)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1680,6 +1894,8 @@ rule string_length_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(!1 > 0) and (!1[1] > 100)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1701,6 +1917,8 @@ rule function_call_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((pe.is_dll()) and (pe.section_index(".text") == 0))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1722,6 +1940,8 @@ rule structure_access_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(pe.linker_version.major > 0) and (pe.linker_version.minor > 0)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1743,6 +1963,8 @@ rule array_access_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((pe.number_of_sections > 0) and (pe.sections[0].name == ".text"))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1765,6 +1987,8 @@ rule for_integer_set_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for all i in (1, 2, 3) : ( @a[i] + 10 == @b[i] )", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1787,6 +2011,8 @@ rule for_string_set_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for any of ($a, $b) : ( $ at entrypoint )", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1809,6 +2035,8 @@ rule of_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("1 of ($a, $b)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -1930,6 +2158,8 @@ rule string_wildcard_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for any of ($aa*, $bbb) : ( $ )", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2007,6 +2237,8 @@ rule cuckoo_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"($some_string and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2028,6 +2260,8 @@ rule dotnet_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("dotnet.assembly.version.major > 0 and dotnet.assembly.version.minor > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2049,6 +2283,8 @@ rule elf_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("elf.type == elf.ET_EXEC and elf.sections[0].type == elf.SHT_NULL", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2070,6 +2306,8 @@ rule hash_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(hash.md5("dummy") == "275876e34cf609db118f3d84b799a790")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2091,6 +2329,8 @@ rule magic_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(magic.type() contains "PDF")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2112,6 +2352,8 @@ rule math_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(math.entropy("dummy") > 7)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2133,6 +2375,8 @@ rule pe_module {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(pe.exports("ExitProcess") and pe.characteristics & pe.DLL)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2200,6 +2444,8 @@ rule rule_2 {
 	condition:
 		elf.type == elf.ET_EXEC and $abc at elf.entry_point
 })", driver.getParsedFile().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2219,10 +2465,12 @@ rule kb_mb_integer_multipliers {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(1KB <= filesize) and (filesize <= 1MB)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
-ReferncingRuleFromOtherRuleWorks) {
+ReferencingRuleFromOtherRuleWorks) {
 	prepareInput(
 R"(
 rule rule_1 {
@@ -2246,6 +2494,8 @@ rule rule_2 {
 
 	const auto& rule2 = driver.getParsedFile().getRules()[1];
 	EXPECT_EQ("rule_1 and (filesize < 10MB)", rule2->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2269,6 +2519,8 @@ rule regexp_with_suffix_modifier {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"($some_string and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/is))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2286,6 +2538,8 @@ R"(rule rule_with_global_variables {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(new_file and positives > 10 and signatures matches /Trojan\.Generic.*/ and file_type contains "pe")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2312,7 +2566,71 @@ R"(rule rule_with_some_hex_string {
 	ASSERT_TRUE(string->isHex());
 
 	EXPECT_EQ(12u, static_cast<const HexString*>(string)->getLength());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
+
+TEST_F(ParserTests,
+ComplicatedHexStringAlterationWorks) {
+	prepareInput(
+R"(rule rule_with_complicated_alteration_hex_string {
+	strings:
+		$hex_string = { 11 ( 12 | 22 | 33 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_complicated_alteration_hex_string", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$hex_string", hexString->getIdentifier());
+	EXPECT_EQ("{ 11 ( 12 | 22 | 33 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+ComplicatedHexStringWorks) {
+	prepareInput(
+R"(rule rule_with_complicated_hex_string {
+	strings:
+		$hex_string = { ( 11 1? | 22 ?0 19 49 | 33 30 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }
+	condition:
+		true
+}
+)");
+
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_complicated_hex_string", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$hex_string", hexString->getIdentifier());
+	EXPECT_EQ("{ ( 11 1? | 22 ?0 19 49 | 33 30 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
 
 TEST_F(ParserTests,
 NibbleGetterWorks) {
@@ -2340,12 +2658,43 @@ R"(rule rule_with_some_hex_string {
 	const auto units = static_cast<const HexString*>(string)->getUnits();
 	EXPECT_EQ(0x9, std::static_pointer_cast<HexStringNibble>(units[0])->getValue());
 	EXPECT_EQ(0xF, std::static_pointer_cast<HexStringNibble>(units[1])->getValue());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+HexEscapeWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_with_hex_escaped_works {
+	meta:
+		simple_string_meta = "Simple is \x11"
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto simple_meta = rule->getMetaWithName("simple_string_meta");
+	auto expected = R"("Simple is \x11")";
+	EXPECT_EQ(expected, simple_meta->getValue().getText());
+	EXPECT_EQ("Simple is \x11", simple_meta->getValue().getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
 EscapedSequencesWorks) {
 	prepareInput(
-R"(import"pe"
+R"(
+import "pe"
 
 rule rule_with_escaped_double_quotes_works {
 	meta:
@@ -2354,7 +2703,7 @@ rule rule_with_escaped_double_quotes_works {
 		$str = "Another \"\t\n\\\x01\xff"
 	condition:
 		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
-}"
+}
 )");
 
 	ParserDriver driver(input);
@@ -2380,6 +2729,8 @@ rule rule_with_escaped_double_quotes_works {
 
 	expected = R"(pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff")";
 	EXPECT_EQ(expected, rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2420,7 +2771,7 @@ R"(rule rule_with_invalid_escape_sequence {
 			   }
 	condition:
 		$str
-}"
+}
 )");
 
 	ParserDriver driver(input);
@@ -2437,6 +2788,8 @@ R"(rule rule_with_invalid_escape_sequence {
 	ASSERT_TRUE(string->isHex());
 
 	EXPECT_EQ("{ AA BB [5-6] CC }", string->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2447,7 +2800,7 @@ R"(import "pe";
 rule public_rule {
 	condition:
 		true
-}"
+}
 )");
 
 	ParserDriver driver(input);
@@ -2472,7 +2825,7 @@ R"(import "pe"
 rule public_rule {
 	condition:
 		pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0
-}"
+}
 )");
 
 	ParserDriver driver(input);
@@ -2483,6 +2836,8 @@ rule public_rule {
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	EXPECT_EQ("pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 TEST_F(ParserTests,
@@ -2494,7 +2849,7 @@ R"(rule public_rule {
 		$ = "Bye World"
 	condition:
 		all of them
-}"
+}
 )");
 
 	ParserDriver driver(input);
@@ -2511,6 +2866,39 @@ R"(rule public_rule {
 	EXPECT_EQ("Hello World", strings[0]->getPureText());
 	EXPECT_EQ("$", strings[1]->getIdentifier());
 	EXPECT_EQ("Bye World", strings[1]->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+OneMoreTest) {
+	prepareInput(
+R"(rule public_rule {
+	strings:
+		$1 = "Hello World"
+		$2 = "Bye World"
+	condition:
+		true and uint32be(1)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(2u, strings.size());
+
+	EXPECT_EQ("$1", strings[0]->getIdentifier());
+	EXPECT_EQ("Hello World", strings[0]->getPureText());
+	EXPECT_EQ("$2", strings[1]->getIdentifier());
+	EXPECT_EQ("Bye World", strings[1]->getPureText());
+	EXPECT_EQ("true and uint32be(1)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
 }

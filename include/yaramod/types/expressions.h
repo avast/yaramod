@@ -998,7 +998,7 @@ protected:
 	}
 
 	template<typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	ForExpression(ExpPtr1&& forExpr, ExpPtr2&& set, ExpPtr3&& expr, TokenIt of_in)
+	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& set, ExpPtr3&& expr)
 		: _forExpr(std::forward<ExpPtr1>(forExpr))
 		, _set(std::forward<ExpPtr2>(set))
 		, _expr(std::forward<ExpPtr3>(expr))
@@ -1007,7 +1007,7 @@ protected:
 	}
 
 	template<typename ExpPtr1, typename ExpPtr2>
-	ForExpression(ExpPtr1&& forExpr, ExpPtr2&& set, TokenIt of_in)
+	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& set)
 		: _forExpr(std::forward<ExpPtr1>(forExpr))
 		, _set(std::forward<ExpPtr2>(set))
 		, _expr(nullptr)
@@ -1066,7 +1066,7 @@ public:
 	 */
 	template<typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
 	ForIntExpression(ExpPtr1&& forExpr, TokenIt id, ExpPtr2&& set, ExpPtr3&& expr, TokenIt for_token, TokenIt in, TokenIt left_bracket, TokenIt right_bracket)
-		: ForExpression(std::forward<ExpPtr1>(forExpr), std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr), in)
+		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
 		, _id(id)
 		, _for(for_token)
 		, _left_bracket(left_bracket)
@@ -1125,8 +1125,8 @@ public:
 	 * Constructor for parser.
 	 */
 	template<typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	ForStringExpression(ExpPtr1&& forExpr, ExpPtr2&& set, ExpPtr3&& expr, TokenIt for_token, TokenIt of, TokenIt left_bracket, TokenIt right_bracket)
-		: ForExpression(std::forward<ExpPtr1>(forExpr), std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr), of)
+	ForStringExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
 		, _for(for_token)
 		, _left_bracket(left_bracket)
 		, _right_bracket(right_bracket)
@@ -1175,8 +1175,8 @@ public:
 	 * Constructor for parser.
 	 */
 	template<typename ExpPtr1, typename ExpPtr2>
-	OfExpression(ExpPtr1&& forExpr, ExpPtr2&& set, TokenIt of)
-		: ForExpression(std::forward<ExpPtr1>(forExpr), std::forward<ExpPtr2>(set), of)
+	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set)
+		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
 	{
 	}
 
@@ -1339,7 +1339,7 @@ public:
 	IdExpression(const std::shared_ptr<Symbol>& symbol)
 	{
 		if(symbol)
-			_symbol = _tokenStream->emplace_back(SYMBOL, symbol, symbol->getName());
+			_symbol = _tokenStream->emplace_back(ID, symbol, symbol->getName());
 	}
 
 	IdExpression(TokenIt symbol)
@@ -1517,7 +1517,7 @@ public:
 		_right_bracket = _tokenStream->emplace_back(RP, ")");
 	}
 	template<typename ExpPtr, typename ExpPtrVector>
-	FunctionCallExpression(Expression::Ptr&& func, TokenIt left_bracket, std::vector<Expression::Ptr>&& args, TokenIt right_bracket)
+	FunctionCallExpression(ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
 		: IdExpression(nullptr)
 		, _func(std::forward<ExpPtr>(func))
 		, _left_bracket(left_bracket)
@@ -1791,16 +1791,6 @@ protected:
 	{
 		assert(keyword->isString());
 	}
-	// void setValue(TokenIt t)
-	// {
-	// 	_keyword = t;
-	// }
-	// KeywordExpression(std::shared_ptr<TokenStream> ts, TokenIt keyword)
-	// 	: Expression(ts)
-	// 	, _keyword(keyword)
-	// {
-	// 	assert(keyword->isString());
-	// }
 	TokenIt _keyword; ///< Keyword
 };
 

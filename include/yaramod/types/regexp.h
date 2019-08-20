@@ -564,8 +564,12 @@ class Regexp : public String
 {
 public:
 	Regexp(std::shared_ptr<TokenStream> ts, std::shared_ptr<RegexpUnit>&& unit)
-		: Regexp(ts, std::move(unit), "unknown")
+		: String(ts, String::Type::Regexp)
+		, _unit(std::move(unit))
 	{
+		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
+		_tokenStream->move_append(_unit->getTokenStream().get());
+		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
 
 	Regexp(std::shared_ptr<TokenStream> ts, std::shared_ptr<RegexpUnit>&& unit, const std::string& id)
@@ -587,6 +591,17 @@ public:
 		return _unit->getText();
 	}
 
+
+	virtual TokenIt getFirstTokenIt() const override
+	{
+		if(_id)
+			return _id.value();
+		else if(_equal_sign)
+			return _equal_sign.value();
+		else
+			return _leftSlash;
+	}
+
 	/**
 	* Return regular expression suffix modifiers.
 	*
@@ -599,7 +614,7 @@ public:
 	*                    ^
 	* @endcode
 	*/
-	const std::string& getSuffixModifiers() const
+	std::string getSuffixModifiers() const
 	{
 		if(!_suffixMods)
 			return "";

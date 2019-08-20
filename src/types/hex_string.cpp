@@ -70,6 +70,16 @@ std::string HexString::getPureText() const
 	return trim(ss.str());
 }
 
+TokenIt HexString::getFirstTokenIt() const
+{
+   if(_id)
+      return _id.value();
+   else if(_equal_sign)
+      return _equal_sign.value();
+   else
+      return _tokenStream->begin();
+}
+
 /**
  * Returns the length of the hex string as the number of nibbles.
  * Jumps and wildcards are not counted towards the length.

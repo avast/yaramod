@@ -71,4 +71,14 @@ std::string PlainString::getPureText() const
 	return _text->getString();
 }
 
+TokenIt PlainString::getFirstTokenIt() const
+{
+   if(_id)
+      return _id.value();
+   else if(_equal_sign)
+      return _equal_sign.value();
+   else
+      return _text;
+}
+
 }
