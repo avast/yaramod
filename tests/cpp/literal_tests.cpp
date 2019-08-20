@@ -54,6 +54,37 @@ TokenStreamFind) {
 }
 
 TEST_F(LiteralTests,
+TokenStreamFindBackwardsSimple) {
+   TokenStream ts;
+
+   auto found = ts.findBackwards(TokenType::META_KEY);
+   ASSERT_EQ(found, ts.begin());
+   TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
+   found = ts.findBackwards(TokenType::META_KEY);
+   ASSERT_EQ(found, key);
+}
+
+TEST_F(LiteralTests,
+TokenStreamFindBackwards) {
+   TokenStream ts;
+   TokenIt c1 = ts.emplace_back(TokenType::COMMENT, "/*c1*/");
+   TokenIt c2 = ts.emplace_back(TokenType::COMMENT, "/*c2*/");
+   TokenIt k1 = ts.emplace_back(TokenType::META_KEY, "k1");
+   TokenIt c3 = ts.emplace_back(TokenType::COMMENT, "/*c3*/");
+   TokenIt k2 = ts.emplace_back(TokenType::META_KEY, "k2");
+   TokenIt c4 = ts.emplace_back(TokenType::COMMENT, "/*c4*/");
+   TokenIt c5 = ts.emplace_back(TokenType::COMMENT, "/*c5*/");
+   ts.emplace_back(TokenType::META_KEY, "k3");
+
+   ASSERT_EQ(ts.findBackwards(COMMENT), c5);
+   ASSERT_EQ(ts.findBackwards(COMMENT, k1), c2);
+   ASSERT_EQ(ts.findBackwards(COMMENT, c3), c2);
+   ASSERT_EQ(ts.findBackwards(META_VALUE),         ts.end());
+   ASSERT_EQ(ts.findBackwards(META_VALUE, c1),     c1);
+   ASSERT_EQ(ts.findBackwards(META_KEY, c1, c4), k2      );
+}
+
+TEST_F(LiteralTests,
 TokenStreamEmplaceBack) {
    TokenStream ts;
 
