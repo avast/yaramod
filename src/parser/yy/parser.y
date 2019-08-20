@@ -78,60 +78,60 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %debug
 
 %token END              "end of file"
-%token RANGE            "integer range"
-%token DOT              "."
-%token LT               "<"
-%token GT               ">"
-%token LE               "<="
-%token GE               ">="
-%token EQ               "=="
-%token NEQ              "!="
-%token SHIFT_LEFT       "<<"
-%token SHIFT_RIGHT      ">>"
-%token MINUS            "-"
-%token PLUS             "+"
-%token MULTIPLY         "*"
-%token DIVIDE           "\\"
-%token MODULO           "%"
-%token BITWISE_XOR      "^"
-%token BITWISE_AND      "&"
-%token BITWISE_OR       "|"
-%token BITWISE_NOT      "~"
-%token LP               "("
-%token RP               ")"
+%token <yaramod::TokenIt> RANGE            "integer range"
+%token <yaramod::TokenIt> DOT              "."
+%token <yaramod::TokenIt> LT               "<"
+%token <yaramod::TokenIt> GT               ">"
+%token <yaramod::TokenIt> LE               "<="
+%token <yaramod::TokenIt> GE               ">="
+%token <yaramod::TokenIt> EQ               "=="
+%token <yaramod::TokenIt> NEQ              "!="
+%token <yaramod::TokenIt> SHIFT_LEFT       "<<"
+%token <yaramod::TokenIt> SHIFT_RIGHT      ">>"
+%token <yaramod::TokenIt> MINUS            "-"
+%token <yaramod::TokenIt> PLUS             "+"
+%token <yaramod::TokenIt> MULTIPLY         "*"
+%token <yaramod::TokenIt> DIVIDE           "\\"
+%token <yaramod::TokenIt> MODULO           "%"
+%token <yaramod::TokenIt> BITWISE_XOR      "^"
+%token <yaramod::TokenIt> BITWISE_AND      "&"
+%token <yaramod::TokenIt> BITWISE_OR       "|"
+%token <yaramod::TokenIt> BITWISE_NOT      "~"
+%token <yaramod::TokenIt> LP               "("
+%token <yaramod::TokenIt> RP               ")"
 %token LCB              "{"
 %token RCB              "}"
 %token ASSIGN           "="
-%token COLON            ":"
-%token COMMA            ","
+%token <yaramod::TokenIt> COLON            ":"
+%token <yaramod::TokenIt> COMMA            ","
 %token PRIVATE          "private"
 %token GLOBAL           "global"
-%token RULE             "rule"
-%token META             "meta"
-%token STRINGS          "strings"
-%token CONDITION        "condition"
-%token ASCII            "ascii"
-%token NOCASE           "nocase"
-%token WIDE             "wide"
-%token FULLWORD         "fullword"
-%token XOR              "xor"
+%token <yaramod::TokenIt> RULE             "rule"
+%token <yaramod::TokenIt> META             "meta"
+%token <yaramod::TokenIt> STRINGS          "strings"
+%token <yaramod::TokenIt> CONDITION        "condition"
+%token <yaramod::TokenIt> ASCII            "ascii"
+%token <yaramod::TokenIt> NOCASE           "nocase"
+%token <yaramod::TokenIt> WIDE             "wide"
+%token <yaramod::TokenIt> FULLWORD         "fullword"
+%token <yaramod::TokenIt> XOR              "xor"
 %token BOOL_TRUE        "true"
 %token BOOL_FALSE       "false"
-%token IMPORT_KEYWORD    "import"
-%token NOT              "not"
-%token AND              "and"
-%token OR               "or"
-%token ALL              "all"
-%token ANY              "any"
+%token <yaramod::TokenIt> IMPORT_KEYWORD    "import"
+%token <yaramod::TokenIt> NOT              "not"
+%token <yaramod::TokenIt> AND              "and"
+%token <yaramod::TokenIt> OR               "or"
+%token <yaramod::TokenIt> ALL              "all"
+%token <yaramod::TokenIt> ANY              "any"
 %token <yaramod::TokenIt> OF 	               "of"
-%token THEM             "them"
+%token <yaramod::TokenIt> THEM             "them"
 %token <yaramod::TokenIt> FOR              "for"
-%token ENTRYPOINT       "entrypoint"
-%token OP_AT            "at"
-%token OP_IN            "in"
-%token FILESIZE         "filesize"
-%token CONTAINS         "contains"
-%token MATCHES          "matches"
+%token <yaramod::TokenIt> ENTRYPOINT       "entrypoint"
+%token <yaramod::TokenIt> OP_AT            "at"
+%token <yaramod::TokenIt> OP_IN            "in"
+%token <yaramod::TokenIt> FILESIZE         "filesize"
+%token <yaramod::TokenIt> CONTAINS         "contains"
+%token <yaramod::TokenIt> MATCHES          "matches"
 %token <std::string> SLASH              		"/"
 %token <std::string> STRING_LITERAL				"string literal"
 %token <std::string> INTEGER           		"integer"
@@ -175,7 +175,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
 %type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_alt_operator hex_jump_lb hex_jump_rb lb rb integer_function integer_token enumeration_lb enumeration_rb
-%type <yaramod::TokenIt> op_at op_in op_not op_and op_or op_lt op_gt op_le op_ge op_eq op_neq op_plus op_minus_unary op_minus_binary op_multiply op_divide op_modulo op_bw_xor op_bw_and op_bw_or op_bw_not op_shift_left op_shift_right op_contains op_matches lb_range rb_range double_dot
+%type <yaramod::TokenIt> lb_range rb_range
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -222,36 +222,10 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
  * or to reduce primary_expression to expression and then shift ')'.
  * In the end, it produces the same result both ways.
  */
-%expect 131
+%expect 15
 
 %%
 
-op_at : OP_AT { $$ = driver._tokenStream->emplace_back(OP_AT, "at"); }
-op_in : OP_IN { $$ = driver._tokenStream->emplace_back(OP_IN, "in"); }
-op_not : NOT { $$ = driver._tokenStream->emplace_back(NOT, "not"); }
-op_and : AND { $$ = driver._tokenStream->emplace_back(AND, "and"); }
-op_or : OR { $$ = driver._tokenStream->emplace_back(OR, "or"); }
-op_lt : LT { $$ = driver._tokenStream->emplace_back(LT, "<"); }
-op_gt : GT { $$ = driver._tokenStream->emplace_back(GT, ">"); }
-op_le : LE { $$ = driver._tokenStream->emplace_back(LE, "<="); }
-op_ge : GE { $$ = driver._tokenStream->emplace_back(GE, ">="); }
-op_eq : EQ { $$ = driver._tokenStream->emplace_back(EQ, "=="); }
-op_neq : NEQ { $$ = driver._tokenStream->emplace_back(NEQ, "!="); }
-op_contains : CONTAINS { $$ = driver._tokenStream->emplace_back(CONTAINS, "contains"); }
-op_matches : MATCHES { $$ = driver._tokenStream->emplace_back(MATCHES, "matches"); }
-
-op_plus : PLUS { $$ = driver._tokenStream->emplace_back(PLUS, "+"); }
-op_minus_unary : MINUS { $$ = driver._tokenStream->emplace_back(UNARY_MINUS, "-"); }
-op_minus_binary : MINUS { $$ = driver._tokenStream->emplace_back(MINUS, "-"); }
-op_multiply : MULTIPLY { $$ = driver._tokenStream->emplace_back(MULTIPLY, "*"); }
-op_divide : DIVIDE { $$ = driver._tokenStream->emplace_back(DIVIDE, "\\"); }
-op_modulo : MODULO { $$ = driver._tokenStream->emplace_back(MODULO, "%"); }
-op_bw_xor : BITWISE_XOR { $$ = driver._tokenStream->emplace_back(BITWISE_XOR, "^"); }
-op_bw_and : BITWISE_AND { $$ = driver._tokenStream->emplace_back(BITWISE_AND, "&"); }
-op_bw_or : BITWISE_OR { $$ = driver._tokenStream->emplace_back(BITWISE_OR, "|"); }
-op_bw_not : BITWISE_NOT { $$ = driver._tokenStream->emplace_back(BITWISE_NOT, "~"); }
-op_shift_left : SHIFT_LEFT { $$ = driver._tokenStream->emplace_back(SHIFT_LEFT, "<<"); }
-op_shift_right : SHIFT_RIGHT { $$ = driver._tokenStream->emplace_back(SHIFT_RIGHT, ">>"); }
 
 rules
 	: rules rule
@@ -261,11 +235,7 @@ rules
 	;
 
 import
-	: IMPORT_KEYWORD
-		{
-			driver._tokenStream->emplace_back(TokenType::IMPORT_KEYWORD, "import");
-		}
-		STRING_LITERAL[module]
+	: IMPORT_KEYWORD STRING_LITERAL[module]
 		{
 			TokenIt import = driver._tokenStream->emplace_back(TokenType::IMPORT_MODULE, $module);
 			if (!driver._file.addImport(import))
@@ -449,7 +419,7 @@ expression
 			$$ = std::make_shared<StringExpression>($1);
 			$$->setType(Expression::Type::Bool);
 		}
-	| string_id op_at primary_expression
+	| string_id OP_AT primary_expression
 		{
 			if (!driver.stringExists($1->getString()))
 			{
@@ -466,7 +436,7 @@ expression
 			$$ = std::make_shared<StringAtExpression>($1, $2, std::move($primary_expression));
 			$$->setType(Expression::Type::Bool);
 		}
-	| string_id op_in range
+	| string_id OP_IN range
 		{
 			if (!driver.stringExists($1->getString()))
 			{
@@ -516,52 +486,52 @@ expression
 			$$ = std::make_shared<OfExpression>(std::move($for_expression), $2, std::move($string_set));
 			$$->setType(Expression::Type::Bool);
 		}
-	| op_not expression[expr]
+	| NOT expression[expr]
 		{
 			$$ = std::make_shared<NotExpression>($1, std::move($expr));
 			$$->setType(Expression::Type::Bool);
 		}
-	| expression[left] op_and expression[right]
+	| expression[left] AND expression[right]
 		{
 			$$ = std::make_shared<AndExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| expression[left] op_or expression[right]
+	| expression[left] OR expression[right]
 		{
 			$$ = std::make_shared<OrExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_lt primary_expression[right]
+	| primary_expression[left] LT primary_expression[right]
 		{
 			$$ = std::make_shared<LtExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_gt primary_expression[right]
+	| primary_expression[left] GT primary_expression[right]
 		{
 			$$ = std::make_shared<GtExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_le primary_expression[right]
+	| primary_expression[left] LE primary_expression[right]
 		{
 			$$ = std::make_shared<LeExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_ge primary_expression[right]
+	| primary_expression[left] GE primary_expression[right]
 		{
 			$$ = std::make_shared<GeExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_eq primary_expression[right]
+	| primary_expression[left] EQ primary_expression[right]
 		{
 			$$ = std::make_shared<EqExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_neq primary_expression[right]
+	| primary_expression[left] NEQ primary_expression[right]
 		{
 			$$ = std::make_shared<NeqExpression>(std::move($left), std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_contains primary_expression[right]
+	| primary_expression[left] CONTAINS primary_expression[right]
 		{
 			if (!$left->isString())
 			{
@@ -578,7 +548,7 @@ expression
 			$$ = std::make_shared<ContainsExpression>(std::move($left), $2, std::move($right));
 			$$->setType(Expression::Type::Bool);
 		}
-	| primary_expression[left] op_matches regexp[right]
+	| primary_expression[left] MATCHES regexp[right]
 		{
 			if (!$left->isString())
 			{
@@ -602,9 +572,9 @@ expression
 		}
 	;
 
-lb : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
+lb : LP { $$ = $1; }
 
-rb : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
+rb : RP { $$ = $1; }
 
 primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 	: lb primary_expression[expr] rb
@@ -615,14 +585,12 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 		}
 	| FILESIZE
 		{
-			TokenIt t = driver._tokenStream->emplace_back(FILESIZE, "filesize");
-			$$ = std::make_shared<FilesizeExpression>(t);
+			$$ = std::make_shared<FilesizeExpression>($1);
 			$$->setType(Expression::Type::Int);
 		}
 	| ENTRYPOINT
 		{
-			TokenIt t = driver._tokenStream->emplace_back(ENTRYPOINT, "entrypoint");
-			$$ = std::make_shared<EntrypointExpression>(t);
+			$$ = std::make_shared<EntrypointExpression>($1);
 			$$->setType(Expression::Type::Int);
 		}
 	| integer_token
@@ -717,7 +685,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<StringLengthExpression>($1, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| op_minus_unary primary_expression %prec UNARY_MINUS
+	| MINUS primary_expression %prec UNARY_MINUS
 		{
 			if (!$2->isInt() && !$2->isFloat())
 			{
@@ -726,10 +694,11 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			}
 
 			auto type = $2->getType();
+			$1->setType(UNARY_MINUS);
 			$$ = std::make_shared<UnaryMinusExpression>($1, std::move($2));
 			$$->setType(type);
 		}
-	| primary_expression op_plus primary_expression
+	| primary_expression PLUS primary_expression
 		{
 			if (!$1->isInt() && !$1->isFloat())
 			{
@@ -747,7 +716,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<PlusExpression>(std::move($1), $2, std::move($3));
 			$$->setType(type);
 		}
-	| primary_expression op_minus_binary primary_expression
+	| primary_expression MINUS primary_expression
 		{
 			if (!$1->isInt() && !$1->isFloat())
 			{
@@ -760,12 +729,11 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 				error(driver.getLocation(), "operator '-' expects integer or float on the right-hand side");
 				YYABORT;
 			}
-
 			auto type = ($1->isInt() && $3->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			$$ = std::make_shared<MinusExpression>(std::move($1), $2, std::move($3));
 			$$->setType(type);
 		}
-	| primary_expression op_multiply primary_expression
+	| primary_expression MULTIPLY primary_expression
 		{
 			if (!$1->isInt() && !$1->isFloat())
 			{
@@ -783,7 +751,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<MultiplyExpression>(std::move($1), $2, std::move($3));
 			$$->setType(type);
 		}
-	| primary_expression op_divide primary_expression
+	| primary_expression DIVIDE primary_expression
 		{
 			if (!$1->isInt() && !$1->isFloat())
 			{
@@ -801,7 +769,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<DivideExpression>(std::move($1), $2, std::move($3));
 			$$->setType(type);
 		}
-	| primary_expression op_modulo primary_expression
+	| primary_expression MODULO primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -818,7 +786,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<ModuloExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| primary_expression op_bw_xor primary_expression
+	| primary_expression BITWISE_XOR primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -835,7 +803,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<BitwiseXorExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| primary_expression op_bw_and primary_expression
+	| primary_expression BITWISE_AND primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -852,7 +820,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<BitwiseAndExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| primary_expression op_bw_or primary_expression
+	| primary_expression BITWISE_OR primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -869,7 +837,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<BitwiseOrExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| op_bw_not primary_expression
+	| BITWISE_NOT primary_expression
 		{
 			if (!$2->isInt())
 			{
@@ -880,7 +848,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<BitwiseNotExpression>($1, std::move($2));
 			$$->setType(Expression::Type::Int);
 		}
-	| primary_expression op_shift_left primary_expression
+	| primary_expression SHIFT_LEFT primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -897,7 +865,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<ShiftLeftExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| primary_expression op_shift_right primary_expression
+	| primary_expression SHIFT_RIGHT primary_expression
 		{
 			if (!$1->isInt())
 			{
@@ -962,7 +930,7 @@ integer_token
 
 
 range
-	: lb_range primary_expression[low] double_dot primary_expression[high] rb_range
+	: lb_range primary_expression[low] RANGE primary_expression[high] rb_range
 		{
 			if (!$low->isInt())
 			{
@@ -980,28 +948,25 @@ range
 		}
 	;
 
-double_dot : RANGE { $$ = driver._tokenStream->emplace_back(DOUBLE_DOT, ".."); }
-lb_range : LP { $$ = driver._tokenStream->emplace_back(LP, "("); }
-rb_range : RP { $$ = driver._tokenStream->emplace_back(RP, ")"); }
-enumeration_lb : LP { $$ = driver._tokenStream->emplace_back(LP_ENUMERATION, "("); }
-enumeration_rb : RP { $$ = driver._tokenStream->emplace_back(RP_ENUMERATION, ")"); }
+lb_range : LP { $$ = $1; }
+rb_range : RP { $$ = $1; }
+enumeration_lb : LP { $$ = $1; $$->setType(LP_ENUMERATION); }
+enumeration_rb : RP { $$ = $1; $$->setType(RP_ENUMERATION); }
 
 for_expression
 	: primary_expression { $$ = std::move($primary_expression); }
 	| ALL
 		{
-			TokenIt t = driver._tokenStream->emplace_back(ALL, "all");
-			$$ = std::make_shared<AllExpression>(t);
+			$$ = std::make_shared<AllExpression>($1);
 		}
 	| ANY
 		{
-			TokenIt t = driver._tokenStream->emplace_back(ANY, "any");
-			$$ = std::make_shared<AnyExpression>();
+			$$ = std::make_shared<AnyExpression>($1);
 		}
 	;
 
 integer_set
-	: lb integer_enumeration rb { $$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3); }
+	: LP integer_enumeration RP { $$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3); }
 	| range { $$ = std::move($range); }
 	;
 
@@ -1096,7 +1061,7 @@ identifier
 			$$ = std::make_shared<IdExpression>(symbol_token);
 			$$->setType(symbol->getDataType());
 		}
-	| identifier DOT ID
+	| identifier DOT[dot] ID
 		{
 			if (!$1->isObject())
 			{
@@ -1120,9 +1085,8 @@ identifier
 			}
 
 			auto symbol = attr.value();
-			TokenIt dot = driver._tokenStream->emplace_back(DOT, ".");
 			TokenIt symbol_token = driver._tokenStream->emplace_back(symbol->getTokenType(), symbol, symbol->getName() );
-			$$ = std::make_shared<StructAccessExpression>(symbol_token, std::move($1), dot);
+			$$ = std::make_shared<StructAccessExpression>(symbol_token, std::move($1), $dot);
 			$$->setType(symbol->getDataType());
 		}
 	| identifier LSQB primary_expression RSQB
@@ -1201,36 +1165,31 @@ string_mods
 	: string_mods ASCII
 		{
 			uint32_t m1 = $1.first | String::Modifiers::Ascii;
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::ASCII, "ascii");
-			$1.second.push_back(t);
+			$1.second.push_back($2);
 			$$ = std::make_pair(m1, std::move($1.second));
 		}
 	| string_mods WIDE
 		{
 			uint32_t m1 = $1.first | String::Modifiers::Wide;
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::WIDE, "wide");
-			$1.second.push_back(t);
+			$1.second.push_back($2);
 			$$ = std::make_pair(m1, std::move($1.second));
 		}
 	| string_mods NOCASE
 		{
 			uint32_t m1 = $1.first | String::Modifiers::Nocase;
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::NOCASE, "nocase");
-			$1.second.push_back(t);
+			$1.second.push_back($2);
 			$$ = std::make_pair(m1, std::move($1.second));
 		}
 	| string_mods FULLWORD
 		{
 			uint32_t m1 = $1.first | String::Modifiers::Fullword;
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::FULLWORD, "fullword");
-			$1.second.push_back(t);
+			$1.second.push_back($2);
 			$$ = std::make_pair(m1, std::move($1.second));
 		}
 	| string_mods XOR
 		{
 			uint32_t m1 = $1.first | String::Modifiers::Xor;
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::XOR, "xor");
-			$1.second.push_back(t);
+			$1.second.push_back($2);
 			$$ = std::make_pair(m1, std::move($1.second));
 		}
 	| %empty { $$ = std::make_pair(String::Modifiers::None, std::move(std::vector<TokenIt>())); }
@@ -1361,10 +1320,10 @@ hex_alt_operator
 	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "| "); }
 
 hex_alt_lb
-	: LP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_LEFT_BRACKET, "( "); }
+	: LP { $1->setType(HEX_ALT_LEFT_BRACKET); $$ = $1; }
 
 hex_alt_rb
-	: RP { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT_RIGHT_BRACKET, ") "); }
+	: RP { $1->setType(HEX_ALT_RIGHT_BRACKET); $$ = $1; }
 
 hex_jump
 	: hex_jump_lb hex_integer[value] hex_jump_rb
