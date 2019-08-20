@@ -2761,7 +2761,7 @@ R"(rule rule_with_invalid_escape_sequence {
 TEST_F(ParserTests,
 NewlineInHexString) {
 	prepareInput(
-R"(rule rule_with_invalid_escape_sequence {
+R"(rule rule_with_hex_string_with_newlines {
 	strings:
 		$str = { AA
 				 BB
