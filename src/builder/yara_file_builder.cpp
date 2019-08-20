@@ -41,6 +41,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
 		}
 		catch (const ParserError&)
 		{
+			std::cerr << "Recheck failed: parser error, parsing '" << yaraFile->getText() << "'" << std::endl;
 			return nullptr;
 		}
 

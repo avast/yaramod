@@ -181,14 +181,10 @@ std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream
 	if( acceptor)
 	{
 		acceptor->move_append(_tokenStream.get());
-		std::cout << "TokenStream when YaraHexStringBuilder::get: --with acceptor" << std::endl << *acceptor << std::endl;
 		return std::make_shared<HexString>(acceptor, _units);
 	}
 	else
-	{
-		std::cout << "TokenStream when YaraHexStringBuilder::get: -- without acceptor" << std::endl << *_tokenStream << std::endl;
 		return std::make_shared<HexString>(_tokenStream, _units);
-	}
 }
 
 /**
@@ -375,7 +371,6 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 			ts->emplace_back( HEX_ALT, "|" ); // add '|' in between the hexStrings
 		}
 	}
-	std::cout << "Made alt from " << units.size() << " units. The TokenStream: " << std::endl << *ts << std::endl;
 	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
 }
 

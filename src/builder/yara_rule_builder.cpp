@@ -42,7 +42,6 @@ YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
  */
 std::unique_ptr<Rule> YaraRuleBuilder::get()
 {
-	std::cout << "get() called" << std::endl;
 	// If rule has invalid name
 	if(!_name.has_value()){
 		std::cerr << "Unspecified name" << std::endl;
@@ -64,7 +63,6 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 		return nullptr;
 	}
 
-	std::cout << "TokenStream when rule_builder.get() called: '" << *_tokenStream << "'" << std::endl;
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(*_name), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
 	_tokenStream = std::make_shared<TokenStream>();
 	_name = std::nullopt;
@@ -278,8 +276,8 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 {
 	if(id == "" || hexString->getText() == "")
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
-	_tokenStream->move_append(std::move(hexString->_tokenStream.get()));
 	hexString->setIdentifier(id);
+	_tokenStream->move_append(std::move(hexString->_tokenStream.get()));
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));
 	return *this;
 }
