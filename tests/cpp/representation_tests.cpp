@@ -84,14 +84,15 @@ RegexpConstruction) {
    auto unit1 = std::make_shared<RegexpText>("abc");
    auto regexp1 = Regexp(ts, std::move(unit1));
    EXPECT_EQ(regexp1.getText(), "/abc/");
-   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"unknown", "=", "/", "a", "b", "c", "/"}));
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"/", "a", "b", "c", "/"}));
+
    regexp1.setIdentifier("$s1");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/"}));
 
    auto unit2 = std::make_shared<RegexpAnyChar>();
    auto regexp2 = Regexp(ts, std::move(unit2));
    EXPECT_EQ(regexp2.getText(), "/./");
-   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "unknown", "=", "/", ".", "/" }));
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "/", ".", "/" }));
    regexp2.setIdentifier("$s2");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" }));
 
@@ -99,8 +100,6 @@ RegexpConstruction) {
    auto regexp3 = Regexp(ts, std::move(unit3), "$s3");
    EXPECT_EQ(regexp3.getText(), "/$/");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" , "$s3", "=", "/", "$", "/" }));
-
-   std::cout << *ts << std::endl;
 }
 
 TEST_F(RepresentationTests,
@@ -110,7 +109,7 @@ RegexpSetters) {
    auto unit2 = std::make_shared<RegexpAnyChar>();
    auto regexp2 = Regexp(ts, std::move(unit2));
    EXPECT_EQ(regexp2.getText(), "/./");
-   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "unknown", "=", "/", ".", "/" }));
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "/", ".", "/" }));
    regexp2.setIdentifier("$s2");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/" }));
 
