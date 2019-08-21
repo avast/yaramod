@@ -10,8 +10,6 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/plain_string.h"
 
-#include <pegtl/tao/pegtl/analyze.hpp>
-
 using namespace ::testing;
 
 namespace yaramod {
