@@ -1974,7 +1974,7 @@ rule for_integer_set_condition {
 		$a = "dummy1"
 		$b = "dummy2"
 	condition:
-		for all i in (1,2,3) : ( @a[i] + 10 == @b[i] )
+		for all i in (1, 2, 3) : ( @a[i] + 10 == @b[i] )
 }
 )");
 
@@ -1998,7 +1998,7 @@ rule for_string_set_condition {
 		$a = "dummy1"
 		$b = "dummy2"
 	condition:
-		for any of ($a,$b) : ( $ at entrypoint )
+		for any of ($a, $b) : ( $ at entrypoint )
 }
 )");
 
@@ -2022,7 +2022,7 @@ rule of_condition {
 		$a = "dummy1"
 		$b = "dummy2"
 	condition:
-		1 of ($a,$b)
+		1 of ($a, $b)
 }
 )");
 
@@ -2761,12 +2761,12 @@ NewlineInHexString) {
 	prepareInput(
 R"(rule rule_with_hex_string_with_newlines {
 	strings:
-		$str = { AA
-				 BB
-				 [ 5 -
-				 6 ]
-				 CC
-			   }
+		$str = {
+			AA
+			BB
+			[5-6]
+			CC
+		}
 	condition:
 		$str
 }

@@ -372,7 +372,7 @@ string
 		}
 	| LCB
 		{
-			driver._tokenStream->emplace_back(TokenType::HEX_START_BRACKET, "{ ");
+			driver._tokenStream->emplace_back(TokenType::HEX_START_BRACKET, "{");
 			driver.getLexer().switchToHexLexer();
 		}
 		hex_string RCB
@@ -966,8 +966,8 @@ for_expression
 integer_set
 	: LP integer_enumeration RP
 		{
-			$1->setType(LP_WITHOUT_SPACE);
-			$3->setType(RP_WITHOUT_SPACE);
+			$1->setType(LP_ENUMERATION);
+			$3->setType(RP_ENUMERATION);
 			$$ = std::make_shared<SetExpression>($1, std::move($integer_enumeration), $3);
 		}
 	| range { $$ = std::move($range); }
@@ -1243,7 +1243,7 @@ hex_byte
 			auto unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
 			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
 			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
-			auto unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2 + " ");
+			auto unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
 			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1254,7 +1254,7 @@ hex_byte
 			uint8_t u1 = ('A' <= std::toupper($1[0]) && std::toupper($1[0]) <= 'F') ? std::toupper($1[0]) - 'A' + 10 : $1[0] - '0';
 			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
 			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "? ");
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
 			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1265,7 +1265,7 @@ hex_byte
 			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
 			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
 			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2 + " ");
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
 			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1275,13 +1275,13 @@ hex_byte
 		{
 			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
 			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "? ");
+			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
 			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
 			$$.push_back(std::move(second));
 
-			// TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "?? ");
+			// TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "??");
 			// auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
 			// $$.reserve(1);
 			// $$.push_back(std::move(first));
@@ -1325,7 +1325,7 @@ hex_or_body //vektor<shared_ptr<HexString>>
 	;
 
 hex_alt_operator
-	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "| "); }
+	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "|"); }
 
 hex_alt_lb
 	: LP { $1->setType(HEX_ALT_LEFT_BRACKET); $$ = $1; }
@@ -1360,7 +1360,7 @@ hex_jump_lb
 	: LSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_LEFT_BRACKET, "["); }
 
 hex_jump_rb
-	: RSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "] "); }
+	: RSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "]"); }
 
 regexp
 	: SLASH
