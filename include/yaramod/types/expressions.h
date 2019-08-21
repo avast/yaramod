@@ -468,10 +468,10 @@ public:
 	const Expression::Ptr& getLeftOperand() const { return _left; }
 	const Expression::Ptr& getRightOperand() const { return _right; }
 
-	void setLeftOperand(Expression::Ptr&& left) { _left = std::move(left); }
-	void setRightOperand(Expression::Ptr&& right) { _right = std::move(right); }
 	void setLeftOperand(const Expression::Ptr& left) { _left = left; }
+	void setLeftOperand(Expression::Ptr&& left) { _left = std::move(left); }
 	void setRightOperand(const Expression::Ptr& right) { _right = right; }
+	void setRightOperand(Expression::Ptr&& right) { _right = std::move(right); }
 
 protected:
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -663,7 +663,6 @@ public:
 class NeqExpression : public BinaryOpExpression
 {
 public:
-	// NeqExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("!=", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	NeqExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "!=", NEQ, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -686,7 +685,6 @@ public:
 class ContainsExpression : public BinaryOpExpression
 {
 public:
-	// ContainsExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("contains", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ContainsExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "contains", CONTAINS, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -709,7 +707,6 @@ public:
 class MatchesExpression : public BinaryOpExpression
 {
 public:
-	// MatchesExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("matches", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "matches", MATCHES, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -733,7 +730,6 @@ public:
 class PlusExpression : public BinaryOpExpression
 {
 public:
-	// PlusExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("+", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	PlusExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "+", PLUS, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -757,7 +753,6 @@ public:
 class MinusExpression : public BinaryOpExpression
 {
 public:
-	// MinusExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("-", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MinusExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "-", MINUS, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -781,7 +776,6 @@ public:
 class MultiplyExpression : public BinaryOpExpression
 {
 public:
-	// MultiplyExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("*", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	MultiplyExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "*", MULTIPLY, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -805,7 +799,6 @@ public:
 class DivideExpression : public BinaryOpExpression
 {
 public:
-	// DivideExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("\\", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	DivideExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "\\", DIVIDE, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -829,7 +822,6 @@ public:
 class ModuloExpression : public BinaryOpExpression
 {
 public:
-	// ModuloExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("%", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ModuloExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "%", MODULO, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -853,7 +845,6 @@ public:
 class BitwiseXorExpression : public BinaryOpExpression
 {
 public:
-	// BitwiseXorExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("^", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseXorExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "^", BITWISE_XOR, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -876,7 +867,6 @@ public:
 class BitwiseAndExpression : public BinaryOpExpression
 {
 public:
-	// BitwiseAndExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("&", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseAndExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "&", BITWISE_AND, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -899,7 +889,6 @@ public:
 class BitwiseOrExpression : public BinaryOpExpression
 {
 public:
-	// BitwiseOrExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("|", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	BitwiseOrExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "|", BITWISE_OR, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -922,7 +911,6 @@ public:
 class ShiftLeftExpression : public BinaryOpExpression
 {
 public:
-	// ShiftLeftExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression("<<", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ShiftLeftExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), "<<", SHIFT_LEFT, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -945,7 +933,6 @@ public:
 class ShiftRightExpression : public BinaryOpExpression
 {
 public:
-	// ShiftRightExpression(const Expression::Ptr& left, const Expression::Ptr& right) : BinaryOpExpression(">>", left, right) {}
 	template<typename ExpPtr1, typename ExpPtr2>
 	ShiftRightExpression(ExpPtr1&& left, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), ">>", SHIFT_RIGHT, std::forward<ExpPtr2>(right)) {}
 	template<typename ExpPtr1, typename ExpPtr2>
@@ -1031,7 +1018,7 @@ class ForIntExpression : public ForExpression
 {
 public:
 	/**
-	 * Constructor used by builder.Example:
+	 * Constructor used by builder. Example:
 	 * for all i in (1 .. 5) : ( #str[i] > 0 }
 	 *
 	 * @param Expression::Ptr forExpr     "all"
@@ -1083,7 +1070,9 @@ public:
 	{
 		assert(_set);
 		std::stringstream ss;
-		ss << _for->getString() << " " << _forExpr->getText(indent) << " " << _id->getString() << " " << _of_in->getString() << " " << _set->getText(indent) << " : " << _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
+		ss << _for->getString() << " " << _forExpr->getText(indent) << " " << _id->getString() << " "
+			<< _of_in->getString() << " " << _set->getText(indent) << " : "
+			<< _left_bracket->getString()<< " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
 	}
 
@@ -1140,7 +1129,11 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		return _for->getString() + " " + _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent) + " : " + _left_bracket->getString() + " " + _expr->getText(indent) + " " + _right_bracket->getString();
+		std::stringstream ss;
+		ss << _for->getString() << " " << _forExpr->getText(indent) << " "
+			<< _of_in->getString() + " " << _set->getText(indent) << " : "
+			<< _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
+		return ss.str();
 	}
 private:
 	TokenIt _for;
@@ -1316,11 +1309,11 @@ public:
 	void setHigh(Expression::Ptr&& high) { _high = std::move(high); }
 
 private:
-	TokenIt _left_bracket;
-	Expression::Ptr _low;
-	TokenIt _double_dot;
-	Expression::Ptr _high; ///< Low and high bounds of the range
-	TokenIt _right_bracket;
+	TokenIt _left_bracket; ///< '('
+	Expression::Ptr _low;  ///< Upper bound of the range
+	TokenIt _double_dot; ///< '..'
+	Expression::Ptr _high; ///< Lower bound of the range
+	TokenIt _right_bracket; ///< ')'
 };
 
 /**
@@ -1424,7 +1417,7 @@ public:
 
 private:
 	Expression::Ptr _structure; ///< Structure identifier expression
-	TokenIt _dot; //'.'
+	TokenIt _dot; ///< '.'
 };
 
 /**
@@ -1482,9 +1475,9 @@ public:
 
 private:
 	Expression::Ptr _array; ///< Array identifier expression
-	TokenIt _left_bracket; //'['
+	TokenIt _left_bracket; ///< '['
 	Expression::Ptr _accessor; ///< Accessor expression (expression enclosed in [])
-	TokenIt _right_bracket; //']'
+	TokenIt _right_bracket; ///< ']'
 };
 
 /**
@@ -1561,9 +1554,9 @@ public:
 
 private:
 	Expression::Ptr _func; ///< Function identifier expression
-	TokenIt _left_bracket; //'('
+	TokenIt _left_bracket; ///< '('
 	std::vector<Expression::Ptr> _args; ///< Arguments expressions
-	TokenIt _right_bracket; //')'
+	TokenIt _right_bracket; ///< ')'
 };
 
 /**
@@ -1578,17 +1571,11 @@ public:
 
 	LiteralExpression() = default;
 	LiteralExpression(TokenIt value) : _value(value) {}
-	LiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value) //no need to have emplacing here - Builder takes care of that.
+	LiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
 		: Expression(ts)
 		, _value(value)
 	{
 	}
-	// LiteralType getValue() const
-	// {
-	// 	assert(_value.has_value());
-	// 	return T();
-	// 	// return _value.value()->getValue<T>();
-	// }
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
@@ -1599,7 +1586,6 @@ public:
 			return std::string();
 	}
 
-	// virtual void clear() override
 	void clear()
 	{
 		if(_value.has_value())
@@ -1667,21 +1653,16 @@ public:
 		: LiteralExpression<std::string>(value)
 	{
 	}
-	StringLiteralExpression(const std::string& value)
+	template<typename Str>
+	StringLiteralExpression(Str&& value)
 		: LiteralExpression<std::string>()
 	{
-		_value = _tokenStream->emplace_back(STRING_LITERAL, value);
-	}
-	StringLiteralExpression(std::string&& value)
-		: LiteralExpression<std::string>()
-	{
-		_value = _tokenStream->emplace_back(STRING_LITERAL, std::move(value));
+		_value = _tokenStream->emplace_back(STRING_LITERAL, std::forward<Str>(value));
 	}
 	StringLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
 		: LiteralExpression<std::string>(ts, value)
 	{
 	}
-	// StringLiteralExpression(std::string&& str) : LiteralExpression<std::string>(std::move(str)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
