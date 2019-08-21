@@ -50,7 +50,7 @@ public:
 	RegexpClass(const std::string& characters, bool negative = false)
 	{
 		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
-		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative? "^" : "");
+		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative, negative? "^" : "");
 		addCharacters(std::move(characters));
 		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
@@ -66,22 +66,34 @@ public:
 
 		return ss.str();
 	}
-	
+
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
 	}
-	
+
 	void addCharacters(const std::string& text)
 	{
 		for( char c : text )
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
 	}
 
-	const std::string& getCharacters() const { return _characters; }
-	void setCharacters(const std::string& characters) { _characters = characters; }
+	std::string getCharacters() const
+	{
+		std::stringstream ss;
+		for(TokenIt it : _characters)
+			ss << it->getPureText();
+		ss << _rightRectBracket->getPureText();
+		return ss.str();
+	}
 
-	bool isNegative() const { return _negative; }
+	void setCharacters(const std::string& characters)
+	{
+		_characters.clear();
+		addCharacters(characters);
+	}
+
+	bool isNegative() const { return _negative->getBool(); }
 
 private:
 	TokenIt _leftRectBracket;
@@ -308,9 +320,9 @@ public:
 		return _operand->getText() + _operation->getString() + _greedy->getPureText();
 	}
 
-	char getOperation() const { return _operation; }
+	virtual char getOperation() const { return _operation->getString()[0]; }
 
-	bool isGreedy() const { return _greedy; }
+	bool isGreedy() const { return _greedy->getBool(); }
 
 	const std::shared_ptr<RegexpUnit>& getOperand() const { return _operand; }
 
@@ -325,7 +337,7 @@ protected:
 		//take the operand's tokenStream and append first the operation and then greedy
 		_tokenStream = std::move(_operand->getTokenStream());
 		_operation = _tokenStream->emplace_back(operation_token_type, std::string() + operation_symbol);
-		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy ? std::string() : "?");
+		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
 	// RegexpOperation(TokenIt operation, std::shared_ptr<RegexpUnit>&& operand, TokenIt _greedy)
 	// 	: _operation(operation)
@@ -349,6 +361,11 @@ class RegexpIteration : public RegexpOperation
 {
 public:
 	RegexpIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_ITER, '*', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -359,6 +376,11 @@ class RegexpPositiveIteration : public RegexpOperation
 {
 public:
 	RegexpPositiveIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_PITER, '+', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -369,6 +391,11 @@ class RegexpOptional : public RegexpOperation
 {
 public:
 	RegexpOptional(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_OPTIONAL, '?', std::move(operand), greedy) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
 };
 
 /**
@@ -406,6 +433,8 @@ public:
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy ? std::string() : "?");
 	}
 
+	virtual char getOperation() const override { return ' '; }
+
 	virtual std::string getText() const override
 	{
 		std::ostringstream ss;
@@ -431,9 +460,15 @@ public:
 		return v->visit(this);
 	}
 
-	const std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>& getRange() const
+	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> getRange() const
 	{
-		return _range;
+		std::optional<std::uint64_t> out1 = std::nullopt;
+		std::optional<std::uint64_t> out2 = std::nullopt;
+		if(_first)
+			out1 = std::make_optional(_first.value()->getUInt64_t());
+		if(_second)
+			out2 = std::make_optional(_second.value()->getUInt64_t());
+		return std::make_pair(out1, out2);
 	}
 
 private:
@@ -496,6 +531,11 @@ public:
 	virtual std::string getText() const override
 	{
 		return _left_bracket->getPureText() + _unit->getText() + _right_bracket->getPureText();
+	}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
 	}
 
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }

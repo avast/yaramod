@@ -16,7 +16,7 @@
 
 /**
  * Always include this file before anything else in `src/python` folder.
- * Otherwise, you'll get `template spcialization after instantiation` errors.
+ * Otherwise, you'll get `template specialization after instantiation` errors.
  */
 
 namespace pybind11 { namespace detail {
@@ -44,8 +44,8 @@ struct visit_helper<mpark::variant>
 /**
  * This type caster allows us to use `nonstd::optional<T>` in python bindings.
  */
-template <typename T>
-struct type_caster<nonstd::optional<T>> : optional_caster<nonstd::optional<T>> {};
+// template <typename T>
+// struct type_caster<nonstd::optional<T>> : optional_caster<nonstd::optional<T>> {};
 
 /**
  * This type caster allows us to use `std::vector<const yaramod::String*>` with `return_value_policy:reference`.
