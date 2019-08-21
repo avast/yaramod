@@ -13,7 +13,6 @@
 #include <sstream>
 #include <vector>
 
-
 #include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
 

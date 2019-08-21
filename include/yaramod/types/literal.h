@@ -48,7 +48,6 @@ enum TokenType
    HEX_START_BRACKET = 20,
    HEX_END_BRACKET = 21,
    NEW_LINE = 22,
-   COMMENT = 23,
    META = 24,       //carries 'meta:'
    META_END = 25,   //only marker which does not carry any value
    MODULE_NAME = 26,
@@ -165,8 +164,6 @@ enum TokenType
    STRUCTURE_SYMBOL = 364,
    LP_ENUMERATION = 366,
    RP_ENUMERATION = 367,
-   LP_WITHOUT_SPACE = 368,
-   RP_WITHOUT_SPACE = 369,
    LP_WITH_SPACE_AFTER = 370,
    RP_WITH_SPACE_BEFORE = 371,
    LP_WITH_SPACES = 372,
@@ -174,6 +171,7 @@ enum TokenType
    NULLSYMBOL = 374,
    BOOL_TRUE = 375,
    BOOL_FALSE = 376,
+   COMMENT = 377,
 
    INVALID = 16384
 };
@@ -350,9 +348,11 @@ public:
       	case META_VALUE:
       	case STRING_LITERAL:
       	case IMPORT_MODULE:
-		      return os << "|" << token.getText() << "|";// << token._type;
+            return os << token.getText();// << token._type;
+            // return os << "|" << token.getText() << "|";// << token._type;
 	      default:
-	      	return os << "|" << token.getPureText() << "|";// << token._type;
+            return os << token.getPureText();// << token._type;
+            // return os << "|" << token.getPureText() << "|";// << token._type;
       }
    }
 
@@ -455,8 +455,11 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) {
 		bool inside_rule = false;
-		bool inside_string = false;
+      bool inside_hex_string = false;
+      bool inside_hex_jump = false;
+      bool inside_regexp = false;
       bool inside_enumeration_brackets = false;
+      bool secondNibble = true;
       int spaces = 0; //spaces when not 0
       for(auto it = ts.begin(); it != ts.end(); ++it)
       {
@@ -471,10 +474,18 @@ public:
    			inside_rule = true;
    		else if(current_type == RULE_END)
    			inside_rule = false;
-   		else if(current_type == HEX_START_BRACKET || current_type == REGEXP_START_SLASH)
-   			inside_string = true;
-   		else if(current_type == HEX_END_BRACKET || current_type == REGEXP_END_SLASH)
-   			inside_string = false;
+         else if(current_type == HEX_START_BRACKET)
+            inside_hex_string = true;
+         else if(current_type == HEX_END_BRACKET)
+            inside_hex_string = false;
+         else if(current_type == HEX_JUMP_LEFT_BRACKET)
+            inside_hex_jump = true;
+         else if(current_type == HEX_JUMP_RIGHT_BRACKET)
+            inside_hex_jump = false;
+         else if(current_type == REGEXP_START_SLASH)
+            inside_regexp = true;
+         else if(current_type == REGEXP_END_SLASH)
+            inside_regexp = false;
          else if(current_type == LP_WITH_SPACES)
             spaces++;
          else if(current_type == RP_WITH_SPACES)
@@ -491,7 +502,7 @@ public:
       	{
       		if(inside_rule)
 	      	{
-	      		if(inside_string)
+	      		if(inside_hex_string || inside_regexp)
                {
                   if(next_type != HEX_END_BRACKET && next_type != REGEXP_END_SLASH)
                      os << "\t\t\t";
@@ -511,7 +522,38 @@ public:
       	}
          else if(spaces > 0)
             os << " ";
-         else if(next_type && !inside_string && !inside_enumeration_brackets)
+         else if(inside_hex_string)
+         {
+            // bool mustAddSpace = false;
+            switch(current_type)
+            {
+               case HEX_NIBBLE:
+               case HEX_WILDCARD_LOW:
+               case HEX_WILDCARD_HIGH:
+                  secondNibble = !secondNibble;
+                  // if(secondNibble && next_type != NEW_LINE)
+                  //    os << " ";
+                  break;
+               case HEX_ALT:
+               case HEX_JUMP_FIXED:
+               case HEX_JUMP_VARYING:
+               case HEX_JUMP_VARYING_RANGE:
+               case HEX_JUMP_RIGHT_BRACKET:
+               case HEX_START_BRACKET:
+                  secondNibble = true;
+                  break;
+               default:
+                  break;
+            }
+            if(!inside_hex_jump && next_type != NEW_LINE)
+            {
+               if(secondNibble)
+               {
+                  os << " ";
+               }
+            }
+         }
+         else if(!inside_regexp && !inside_enumeration_brackets)
          {
             switch(current_type)
             {
@@ -533,7 +575,6 @@ public:
                   {
                      case RP:
                      case RSQB:
-                     case RP_WITHOUT_SPACE:
                      case DOT:
                      case NEW_LINE:
                         break;
@@ -543,9 +584,14 @@ public:
                         [[fallthrough]];
                      default:
                         if(next_type != LSQB || ( current_type != STRING_OFFSET && current_type != STRING_LENGTH) )
-                           os << "@";
+                           os << " ";
                   }
             }
+         }
+         else if(inside_enumeration_brackets)
+         {
+            if(current_type != LP_ENUMERATION && next_type != RP_ENUMERATION && next_type != COMMA)
+               os << " ";
          }
          else if(current_type == HEX_ALT_RIGHT_BRACKET || current_type == HEX_ALT_LEFT_BRACKET)
             os << " ";
