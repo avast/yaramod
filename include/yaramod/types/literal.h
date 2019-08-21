@@ -29,11 +29,8 @@ enum TokenType
    RULE_NAME = 1,
    TAG = 2,
 
-   FILE_END = 4,
    HEX_ALT = 6, // '|'
    HEX_NIBBLE = 7,
-   // HEX_WILDCARD_SINGLE,
-  	// HEX_WILDCARD_FULL = 8,
    HEX_WILDCARD_LOW = 9,
    HEX_WILDCARD_HIGH = 10,
    HEX_JUMP_VARYING = 11,
@@ -43,8 +40,6 @@ enum TokenType
    HEX_ALT_LEFT_BRACKET = 15,
    HEX_ALT_RIGHT_BRACKET = 16,
    HEX_JUMP_FIXED = 17,
-   HEX_LEFT_BRACKET = 18,
-   HEX_RIGHT_BRACKET = 19,
    HEX_START_BRACKET = 20,
    HEX_END_BRACKET = 21,
    NEW_LINE = 22,
@@ -54,11 +49,9 @@ enum TokenType
    MODIFIER = 27,
    LQUOTE = 28,
    RQUOTE = 29,
-   GLOBAL_VARIABLE_NAME = 30,
    RULE_END = 256,
    RULE_BEGIN = 257,
 
-   END = 258,
    RANGE = 259,
    DOT = 260,
    DOUBLE_DOT,
@@ -105,7 +98,7 @@ enum TokenType
    ALL = 302,
    ANY = 303,
    OF = 304,
-   IN,
+   IN = 400,
    THEM = 305,
    FOR = 306,
    ENTRYPOINT = 307,
@@ -116,7 +109,6 @@ enum TokenType
    MATCHES = 312,
    SLASH = 313,
    STRING_LITERAL = 314,
-   INTEGER_LITERAL = 359,
    INTEGER = 315,
    DOUBLE = 316,
    STRING_ID = 317,
@@ -133,24 +125,13 @@ enum TokenType
    REGEXP_ITER = 332,
    REGEXP_PITER = 333,
    REGEXP_OPTIONAL = 334,
-   REGEXP_START_OF_LINE = 335,
-   REGEXP_END_OF_LINE = 336,
    REGEXP_START_SLASH = 357,
    REGEXP_END_SLASH = 358,
-   REGEXP_ANY_CHAR = 337,
-   REGEXP_WORD_CHAR = 338,
-   REGEXP_NON_WORD_CHAR = 339,
-   REGEXP_SPACE = 340,
-   REGEXP_NON_SPACE = 341,
-   REGEXP_DIGIT = 342,
-   REGEXP_NON_DIGIT = 343,
-   REGEXP_WORD_BOUNDARY = 344,
-   REGEXP_NON_WORD_BOUNDARY = 345,
    REGEXP_CHAR = 346,
    REGEXP_RANGE = 347,
-   REGEXP_CLASS = 348,
    REGEXP_TEXT = 349,
    REGEXP_CLASS_NEGATIVE = 350,
+
    REGEXP_MODIFIERS = 351,
    REGEXP_GREEDY = 352,
    UNARY_MINUS = 353,
@@ -172,8 +153,6 @@ enum TokenType
    BOOL_TRUE = 375,
    BOOL_FALSE = 376,
    COMMENT = 377,
-
-   INVALID = 16384
 };
 
 class Symbol;
@@ -210,12 +189,6 @@ public:
 	Literal& operator=(const Literal& literal) = default;
 	/// @}
 
-	/// @name String representation
-	/// @{
-	std::string getText( bool pure = false ) const;
-	std::string getPureText() const;
-	/// @}
-
    /// @name Setter methods
    /// @{
    void setValue(const std::string& s);
@@ -239,6 +212,12 @@ public:
    double getDouble() const;
    const std::shared_ptr<Symbol>& getSymbol() const;
    template<typename T> T getValue() const;
+   /// @}
+
+   /// @name String representation
+   /// @{
+   std::string getText( bool pure = false ) const;
+   std::string getPureText() const;
    /// @}
 
 	/// @name Detection methods
@@ -273,8 +252,8 @@ public:
 
 private:
 	/// For an integral literal x there are two options:
-	/// i.  x it is unformatted, thus _int_formated_value is empty and _value contains x
-	/// ii. x it is formatted,     so _int_formated_value contains x's string representation and _value contains pure x
+	/// i.  x it is unformatted:   _formated_value is empty  AND  _value contains x
+	/// ii. x it is formatted:     _formated_value contains x's string representation  AND  _value contains pure x
 	std::variant< std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol> > _value; ///< Value used for all literals:
 	std::optional< std::string > _formated_value; ///< Value used for integral literals with particular formatting
 };
@@ -339,20 +318,14 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-   	// std::cerr << ",";
-   	// if(token._type == NEW_LINE)
-			// std::cerr << "/n";
-	   // std::cerr << token._type;
       switch(token._type)
       {
       	case META_VALUE:
       	case STRING_LITERAL:
       	case IMPORT_MODULE:
-            return os << token.getText();// << token._type;
-            // return os << "|" << token.getText() << "|";// << token._type;
+            return os << token.getText();
 	      default:
-            return os << token.getPureText();// << token._type;
-            // return os << "|" << token.getPureText() << "|";// << token._type;
+            return os << token.getPureText();
       }
    }
 
@@ -420,9 +393,7 @@ public:
 	TokenIt push_back( Token&& t );
 	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
 	TokenIt insert( TokenIt before, TokenType type, Literal&& literal);
-	// returns iterator behind the last erased element
 	TokenIt erase( TokenIt element );
-	// Removes the elements in the range [first, last).
 	TokenIt erase( TokenIt first, TokenIt last );
 	void move_append( TokenStream* donor );
 	/// @}
@@ -460,7 +431,6 @@ public:
       bool inside_regexp = false;
       bool inside_enumeration_brackets = false;
       bool secondNibble = true;
-      int spaces = 0; //spaces when not 0
       for(auto it = ts.begin(); it != ts.end(); ++it)
       {
       	os << *it;
@@ -486,14 +456,6 @@ public:
             inside_regexp = true;
          else if(current_type == REGEXP_END_SLASH)
             inside_regexp = false;
-         else if(current_type == LP_WITH_SPACES)
-            spaces++;
-         else if(current_type == RP_WITH_SPACES)
-            spaces--;
-         // else if(current_type == LP_WITHOUT_SPACE)
-         //    inside_string = true;
-         // else if(current_type == RP_WITHOUT_SPACE)
-         //    inside_string = false;
          else if(current_type == LP_ENUMERATION)
             inside_enumeration_brackets = true;
          else if(current_type == RP_ENUMERATION)
@@ -520,19 +482,14 @@ public:
                }
 	      	}
       	}
-         else if(spaces > 0)
-            os << " ";
          else if(inside_hex_string)
          {
-            // bool mustAddSpace = false;
             switch(current_type)
             {
                case HEX_NIBBLE:
                case HEX_WILDCARD_LOW:
                case HEX_WILDCARD_HIGH:
                   secondNibble = !secondNibble;
-                  // if(secondNibble && next_type != NEW_LINE)
-                  //    os << " ";
                   break;
                case HEX_ALT:
                case HEX_JUMP_FIXED:
