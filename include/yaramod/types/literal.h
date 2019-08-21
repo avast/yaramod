@@ -195,9 +195,9 @@ public:
 	/// @name Costructors
 	/// @{
 	Literal() {assert(isString());};
-	explicit Literal(const char* value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-   explicit Literal(const std::string& value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-   explicit Literal(std::string&& value, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	explicit Literal(const char* value, const std::optional<std::string>& formated_value = std::nullopt);
+   explicit Literal(const std::string& value, const std::optional<std::string>& formated_value = std::nullopt);
+   explicit Literal(std::string&& value, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(bool boolValue);
 	explicit Literal(int value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
