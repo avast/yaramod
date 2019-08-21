@@ -257,8 +257,8 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
-      if( literal._integral_formated_value.has_value() )
-      	os << literal._integral_formated_value.value();
+      if( literal._formated_value.has_value() )
+      	os << literal._formated_value.value();
       else if(literal.isBool()){
       	os << (literal.getBool() ? "true" : "false");
       }
@@ -278,7 +278,7 @@ private:
 	/// i.  x it is unformatted, thus _int_formated_value is empty and _value contains x
 	/// ii. x it is formatted,     so _int_formated_value contains x's string representation and _value contains pure x
 	std::variant< std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol> > _value; ///< Value used for all literals:
-	std::optional< std::string > _integral_formated_value; ///< Value used for integral literals with particular formatting
+	std::optional< std::string > _formated_value; ///< Value used for integral literals with particular formatting
 };
 
 
@@ -350,9 +350,9 @@ public:
       	case META_VALUE:
       	case STRING_LITERAL:
       	case IMPORT_MODULE:
-		      return os << token.getText();// << token._type;
+		      return os << "|" << token.getText() << "|";// << token._type;
 	      default:
-	      	return os << token.getPureText();// << token._type;
+	      	return os << "|" << token.getPureText() << "|";// << token._type;
       }
    }
 
@@ -464,9 +464,9 @@ public:
 
 			auto current_type = it->getType();
    		auto nextIt = std::next(it);
-   		std::optional<TokenType> next_type;
-   		if(nextIt != ts.end())
-   			next_type = nextIt->getType();
+   		if(nextIt == ts.end())
+   		    break;
+         auto next_type = nextIt->getType();
    		if(current_type == RULE_BEGIN)
    			inside_rule = true;
    		else if(current_type == RULE_END)
@@ -491,16 +491,22 @@ public:
       	{
       		if(inside_rule)
 	      	{
-	      		// we will add 1 or 2 tabs:
-	      		auto next = std::next(it);
-	      		if(next == ts.end())
-	      			break;
-	      		if(next->getType() == META
-	      			|| next->getType() == STRINGS
-	      			|| next->getType() == CONDITION)
-	      			os << "\t";
-	      		else if(next->getType() != RULE_END)
-	      			os << "\t\t";
+	      		if(inside_string)
+               {
+                  if(next_type != HEX_END_BRACKET && next_type != REGEXP_END_SLASH)
+                     os << "\t\t\t";
+                  else
+                     os << "\t\t";
+               }
+               else
+               {
+                  if(nextIt->getType() == META
+   	      			|| nextIt->getType() == STRINGS
+   	      			|| nextIt->getType() == CONDITION)
+   	      			os << "\t";
+   	      		else if(nextIt->getType() != RULE_END)
+   	      			os << "\t\t";
+               }
 	      	}
       	}
          else if(spaces > 0)
@@ -523,7 +529,7 @@ public:
                case DOT:
                   break;
                default:
-                  switch(next_type.value())
+                  switch(next_type)
                   {
                      case RP:
                      case RSQB:
@@ -537,7 +543,7 @@ public:
                         [[fallthrough]];
                      default:
                         if(next_type != LSQB || ( current_type != STRING_OFFSET && current_type != STRING_LENGTH) )
-                           os << " ";
+                           os << "@";
                   }
             }
          }
