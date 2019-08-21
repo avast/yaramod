@@ -14,25 +14,6 @@
 namespace yaramod {
 
 /**
- * Returns the string representation of the TokenValueBase.
- *
- * @return String representation.
- */
-// std::string TokenValueBase::getText() const
-// {
-//    std::stringstream ss;
-//    ss << token->type;
-//    return ss.str();
-// }
-// std::string TokenValueBase::getPureText() const
-// {
-//    std::stringstream ss;
-//    ss << token->type;
-//    return ss.str();
-// }
-
-
-/**
  * Constructor.
  *
  * @param value String value of the literal.
@@ -82,7 +63,7 @@ Literal::Literal( bool value )
  */
 Literal::Literal( int value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
    : _value( value )
-   , _integral_formated_value( integral_formated_value )
+   , _formated_value( integral_formated_value )
 {
 }
 
@@ -94,7 +75,7 @@ Literal::Literal( int value, const std::optional<std::string>& integral_formated
  */
 Literal::Literal( int64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
    : _value( value )
-   , _integral_formated_value( integral_formated_value )
+   , _formated_value( integral_formated_value )
 {
 }
 
@@ -106,7 +87,7 @@ Literal::Literal( int64_t value, const std::optional<std::string>& integral_form
  */
 Literal::Literal( uint64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
    : _value( value )
-   , _integral_formated_value( integral_formated_value )
+   , _formated_value( integral_formated_value )
 {
 }
 
@@ -118,7 +99,7 @@ Literal::Literal( uint64_t value, const std::optional<std::string>& integral_for
  */
 Literal::Literal( double value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
    : _value( value )
-   , _integral_formated_value( integral_formated_value )
+   , _formated_value( integral_formated_value )
 {
 }
 
@@ -130,13 +111,13 @@ Literal::Literal( double value, const std::optional< std::string >& integral_for
  */
 Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name )
    : _value( value )
-   , _integral_formated_value(name)
+   , _formated_value(name)
 {
 }
 
 Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
    : _value( std::move(value) )
-   , _integral_formated_value(name)
+   , _formated_value(name)
 {
 }
 
@@ -158,37 +139,37 @@ void Literal::setValue( bool b )
 void Literal::setValue( int i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = i;
-	_integral_formated_value = integral_formated_value;
+	_formated_value = integral_formated_value;
 }
 
 void Literal::setValue( int64_t i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = i;
-	_integral_formated_value = integral_formated_value;
+	_formated_value = integral_formated_value;
 }
 
 void Literal::setValue( uint64_t i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = i;
-	_integral_formated_value = integral_formated_value;
+	_formated_value = integral_formated_value;
 }
 
 void Literal::setValue( double f, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
 {
 	_value = f;
-	_integral_formated_value = integral_formated_value;
+	_formated_value = integral_formated_value;
 }
 
 
 void Literal::setValue( const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
 {
 	_value = s;
-	_integral_formated_value = symbol_name;
+	_formated_value = symbol_name;
 }
 void Literal::setValue( std::shared_ptr<Symbol>&& s, std::string&& symbol_name )
 {
 	_value = std::move(s);
-	_integral_formated_value = std::move(symbol_name);
+	_formated_value = std::move(symbol_name);
 }
 
 /**
@@ -214,36 +195,36 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	}
 	else if (isInt())
 	{
-		if(_integral_formated_value.has_value())
-			return _integral_formated_value.value();
+		if(_formated_value.has_value())
+			return _formated_value.value();
 		else
 			return numToStr<int>( getInt() );
 	}
 	else if (isInt64_t())
 	{
-		if(_integral_formated_value.has_value())
-			return _integral_formated_value.value();
+		if(_formated_value.has_value())
+			return _formated_value.value();
 		else
 			return numToStr<int64_t>( getInt64_t() );
 	}
 	else if (isUInt64_t())
 	{
-		if(_integral_formated_value.has_value())
-			return _integral_formated_value.value();
+		if(_formated_value.has_value())
+			return _formated_value.value();
 		else
 			return numToStr<uint64_t>( getUInt64_t() );
 	}
 	else if (isDouble())
 	{
-		if(_integral_formated_value.has_value())
-			return _integral_formated_value.value();
+		if(_formated_value.has_value())
+			return _formated_value.value();
 		else
 			return numToStr<double>( getDouble() );
 	}
 	else if (isSymbol())
 	{
-		assert(_integral_formated_value);
-		return _integral_formated_value.value();
+		assert(_formated_value);
+		return _formated_value.value();
 	}
 	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
 	std::cerr << "Value:" << *this << std::endl;
