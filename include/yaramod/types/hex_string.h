@@ -9,10 +9,10 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <vector>
 
-#include <optional_lite/optional.hpp>
 
 #include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
@@ -223,21 +223,21 @@ public:
 
 	/// @name Getters
 	/// @{
-	nonstd::optional<std::uint64_t> getLow() const
+	std::optional<std::uint64_t> getLow() const
 	{
 		if(_low.has_value())
-			return nonstd::optional<std::uint64_t>( _low.value()->getUInt64_t() );
-		return nonstd::optional<std::uint64_t>();
+			return std::make_optional( _low.value()->getUInt64_t() );
+		return std::nullopt;
 	}
-	nonstd::optional<std::uint64_t> getHigh() const {
+	std::optional<std::uint64_t> getHigh() const {
 		if(_high.has_value())
-			return nonstd::optional<std::uint64_t>( _high.value()->getUInt64_t() );
-		return nonstd::optional<std::uint64_t>();
+			return std::make_optional( _high.value()->getUInt64_t() );
+		return std::nullopt;
    }
 	/// @}
 
 private:
-	nonstd::optional<TokenIt> _low, _high; ///< Low and high bounds of the jump.
+	std::optional<TokenIt> _low, _high; ///< Low and high bounds of the jump.
 };
 
 /**
