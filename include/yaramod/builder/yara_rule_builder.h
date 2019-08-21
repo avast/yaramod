@@ -17,12 +17,10 @@ namespace yaramod {
 /**
  * Represents error during building.
  */
-class RuleBuilderError : public YaramodError {
-	public:
-	RuleBuilderError(const std::string& errorMsg)
-		: YaramodError(errorMsg)
-	{
-	}
+class RuleBuilderError : public YaramodError
+{
+public:
+	RuleBuilderError(const std::string& errorMsg) : YaramodError(errorMsg) {}
 	RuleBuilderError(const RuleBuilderError&) = default;
 };
 
@@ -52,8 +50,6 @@ public:
 	YaraRuleBuilder& withName(const std::string& name);
 	YaraRuleBuilder& withModifier(Rule::Modifier mod);
 	YaraRuleBuilder& withTag(const std::string& tag);
-
-	//TODO: add methods with<...> accepting string r-values (std::string&&)
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
 	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value, const std::optional<std::string>& formated_value = std::nullopt);

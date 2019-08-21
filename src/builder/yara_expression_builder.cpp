@@ -74,20 +74,10 @@ YaraExpressionBuilder::YaraExpressionBuilder()
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(const Expression::Ptr& expr)
+template<typename ExpPtr>
+YaraExpressionBuilder::YaraExpressionBuilder(ExpPtr&& expr)
 	: _tokenStream( std::make_shared<TokenStream>() )
-	, _expr(expr)
-{
-}
-
-/**
- * Constructor.
- *
- * @param expr Expression to use.
- */
-YaraExpressionBuilder::YaraExpressionBuilder(Expression::Ptr&& expr)
-	: _tokenStream( std::make_shared<TokenStream>() )
-	, _expr(std::move(expr))
+	, _expr(std::forward<ExpPtr>(expr))
 {
 }
 
@@ -129,9 +119,10 @@ YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts)
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr)
+template<typename ExpPtr>
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr)
 	: _tokenStream( ts )
-	, _expr(expr)
+	, _expr(std::forward<ExpPtr>(expr))
 {
 }
 
@@ -140,32 +131,10 @@ YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, co
  *
  * @param expr Expression to use.
  */
-YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr)
+template<typename ExpPtr>
+YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr, const Expression::Type& type)
 	: _tokenStream( ts )
-	, _expr(std::move(expr))
-{
-}
-
-/**
- * Constructor.
- *
- * @param expr Expression to use.
- */
-YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, const Expression::Ptr& expr, const Expression::Type& type)
-	: _tokenStream( ts )
-	, _expr(expr)
-{
-	setType(type);
-}
-
-/**
- * Constructor.
- *
- * @param expr Expression to use.
- */
-YaraExpressionBuilder::YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, Expression::Ptr&& expr, const Expression::Type& type)
-	: _tokenStream( ts )
-	, _expr(std::move(expr))
+	, _expr(std::forward<ExpPtr>(expr))
 {
 	setType(type);
 }
