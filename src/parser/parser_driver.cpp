@@ -120,15 +120,6 @@ const YaraFile& ParserDriver::getParsedFile() const
 	return _file;
 }
 
-
-std::istream* ParserDriver::currentStream()
-{
-	if(initial_stream)
-		return initial_stream;
-	else
-	   return _includedFiles[0].get();
-}
-
 /**
  * Parses the input stream or file.
  *
@@ -140,8 +131,8 @@ bool ParserDriver::parse()
 		return false;
 
 	bool output = _parser.parse() == 0;
-	std::cout << "TokenStream when getParsedFile(): " << std::endl;
-	std::cout << *_file.getTokenStream() << "'" << std::endl;
+	// std::cout << "TokenStream when getParsedFile(): " << std::endl;
+	// std::cout << *_file.getTokenStream() << "'" << std::endl;
 	return output;
 }
 
@@ -260,11 +251,11 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 		_file.addRule(std::move(rule));
 }
 
-void ParserDriver::finishRule()
-{
-   std::unique_ptr<Rule> rule = builder.get();
-   addRule(std::move(rule));
-}
+// void ParserDriver::finishRule()
+// {
+//    std::unique_ptr<Rule> rule = builder.get();
+//    addRule(std::move(rule));
+// }
 
 /**
  * Marks the line number where the rule starts.

@@ -257,13 +257,13 @@ rule
 				error(driver.getLocation(), "Redefinition of rule '" + $id + "'");
 				YYABORT;
 			}
-			driver.tmp_token = driver._tokenStream->emplace_back(TokenType::RULE_NAME, $id);
+			driver._tmp_token = driver._tokenStream->emplace_back(TokenType::RULE_NAME, $id);
 		}
 		tags rule_begin
 		metas strings condition rule_end
 		{
-			driver.addRule(Rule(driver._tokenStream, driver.tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
-			driver.tmp_token.reset();
+			driver.addRule(Rule(driver._tokenStream, driver._tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver._tmp_token.reset();
 		}
 	;
 

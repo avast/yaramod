@@ -11,11 +11,7 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <variant>
 
-#include "yaramod/builder/yara_expression_builder.h"
-#include "yaramod/builder/yara_hex_string_builder.h"
-#include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/yaramod_error.h"
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/hex_string.h"
@@ -60,8 +56,6 @@ public:
 	/// @name Constructors
 	/// @{
   	ParserDriver() = delete;
-	// explicit ParserDriver(bool& oldConstructor, const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
-	// explicit ParserDriver(bool& oldConstructor, std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	/// @}
@@ -95,21 +89,12 @@ public:
 	void moveLineLocation();
 	void moveLocation(std::uint64_t moveLength);
 
-	/// @name Methods for handling symbols
-	/// @{
-	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
-	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
-	void removeLocalSymbol(const std::string& name);
-	/// @}
-
 	/// @name Methods for handling comments
    /// @{
    void addComment(TokenIt comment);
    /// @}
 
 protected:
-	std::istream* currentStream();
-
 	/// @name Methods for handling includes
 	/// @{
 	bool includeFile(const std::string& includePath);
@@ -121,7 +106,6 @@ protected:
 	bool ruleExists(const std::string& name) const;
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
-	void finishRule();
 	void markStartOfRule();
 	/// @}
 
@@ -138,6 +122,13 @@ protected:
 	void stringLoopLeave();
 	/// @}
 
+   /// @name Methods for handling symbols
+   /// @{
+   std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
+   bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
+   void removeLocalSymbol(const std::string& name);
+   /// @}
+
 	/// @name Method for handling anonymous strings
 	/// @{
 	bool isAnonymousStringId(const std::string& stringId) const;
@@ -151,28 +142,14 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	yy::Lexer _lexer; ///< Flex lexer //TODO:delete
-	yy::Parser _parser; ///< Bison parser //TODO:delete
+	yy::Lexer _lexer; ///< Flex lexer
+	yy::Parser _parser; ///< Bison parser
 	yy::location _loc; ///< Location
 
 	std::shared_ptr<TokenStream> _tokenStream;
 	std::vector<TokenIt> _comments;
-	std::optional<TokenIt> tmp_token;
-	YaraRuleBuilder builder;
-	YaraExpressionBuilder expression_builder;
-   size_t max_size = UINT_MAX; //-1
-   int current_stream = -1;
-   std::istream* initial_stream = nullptr;
-
-   std::string tmp_external_symbol;
-	std::string meta_key;
-	std::string str_key;
-	std::string plain_str_value;
-	std::string hex_str_value;
+	std::optional<TokenIt> _tmp_token;
    std::string _tmp_comment;
-	uint32_t str_modifiers = 0u;
-	int hex_jump_number1 = -1;
-	int hex_jump_number2 = -1;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
