@@ -102,7 +102,10 @@ public:
 	void removeLocalSymbol(const std::string& name);
 	/// @}
 
-	void addComment(TokenIt comment);
+	/// @name Methods for handling comments
+   /// @{
+   void addComment(TokenIt comment);
+   /// @}
 
 protected:
 	std::istream* currentStream();
@@ -166,6 +169,7 @@ private:
 	std::string str_key;
 	std::string plain_str_value;
 	std::string hex_str_value;
+   std::string _tmp_comment;
 	uint32_t str_modifiers = 0u;
 	int hex_jump_number1 = -1;
 	int hex_jump_number2 = -1;
