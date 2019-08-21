@@ -110,8 +110,8 @@ Literal::Literal( double value, const std::optional< std::string >& integral_for
 /**
  * Constructor.
  *
- * @param value integral value of the literal.
- * @param name formatted value of the integral literal.
+ * @param value Symbol value of the literal.
+ * @param name formatted value of the literal.
  */
 Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name )
    : _value( value )
@@ -119,12 +119,22 @@ Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name 
 {
 }
 
+/**
+ * Constructor.
+ *
+ * @param value Symbol value of the literal.
+ * @param name formatted value of the literal.
+ */
 Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
    : _value( std::move(value) )
    , _formated_value(name)
 {
 }
 
+/**
+ * Setter methods
+ *
+ */
 void Literal::setValue( const std::string& s )
 {
 	_value = s;
@@ -177,123 +187,9 @@ void Literal::setValue( std::shared_ptr<Symbol>&& s, std::string&& symbol_name )
 }
 
 /**
- * Returns the string representation of the literal.
+ * Getter methods
  *
- * @return String representation.
  */
-std::string Literal::getText( bool pure /*= false*/ ) const
-{
-	if (isString())
-	{
-		const std::string& output = getString();
-		if(pure || output == "")
-			return output;
-		else
-			return '"' + escapeString(output) + '"';
-	}
-	else if (isBool())
-	{
-		std::ostringstream ss;
-		ss << std::boolalpha << getBool();
-		return ss.str();
-	}
-	else if (isInt())
-	{
-		if(_formated_value.has_value())
-			return _formated_value.value();
-		else
-			return numToStr<int>( getInt() );
-	}
-	else if (isInt64_t())
-	{
-		if(_formated_value.has_value())
-			return _formated_value.value();
-		else
-			return numToStr<int64_t>( getInt64_t() );
-	}
-	else if (isUInt64_t())
-	{
-		if(_formated_value.has_value())
-			return _formated_value.value();
-		else
-			return numToStr<uint64_t>( getUInt64_t() );
-	}
-	else if (isDouble())
-	{
-		if(_formated_value.has_value())
-			return _formated_value.value();
-		else
-			return numToStr<double>( getDouble() );
-	}
-	else if (isSymbol())
-	{
-		assert(_formated_value);
-		return _formated_value.value();
-	}
-	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
-	std::cerr << "Value:" << *this << std::endl;
-	assert(false);
-}
-
-/**
- * Returns the string representation but string literals are not enclosed in double quotes.
- *
- * @return String representation.
- */
-std::string Literal::getPureText() const
-{
-	return getText(true);
-}
-
-bool Literal::isString() const
-{
-	// std::cout << "isString(" << *this << ")? exp 0, actual index: " << _value.index() << std::endl;
-	// return std::is_same_v< decltype(_value), std::string& >;
-	return _value.index() == 0;
-}
-
-bool Literal::isBool() const
-{
-	// std::cout << "isBool(" << *this << ")? exp 1, actual index: " << _value.index() << std::endl;
-	return _value.index() == 1;
-}
-
-bool Literal::isInt() const
-{
-	// std::cout << "isInt(" << *this << ")? exp 2, actual index: " << _value.index() << std::endl;
-	return _value.index() == 2;
-}
-
-bool Literal::isInt64_t() const
-{
-	// std::cout << "isInt64_t(" << *this << ")? exp 3, actual index: " << _value.index() << std::endl;
-	return _value.index() == 3;
-}
-
-bool Literal::isUInt64_t() const
-{
-	// std::cout << "isUInt64_t(" << *this << ")? exp 4, actual index: " << _value.index() << std::endl;
-	return _value.index() == 4;
-}
-
-bool Literal::isDouble() const
-{
-	// std::cout << "isDouble(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
-	return _value.index() == 5;
-}
-
-bool Literal::isSymbol() const
-{
-	// std::cout << "isDouble(" << *this << ")? exp 5, actual index: " << _value.index() << std::endl;
-	return _value.index() == 6;
-}
-
-bool Literal::isIntegral() const
-{
-	// std::cout << "isIntegral(" << *this << ")? index: " << _value.index() << std::endl;
-	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
-}
-
 const std::string& Literal::getString() const
 {
    try
@@ -385,9 +281,10 @@ const std::shared_ptr<Symbol>& Literal::getSymbol() const
    }
 }
 
-template<typename T> T Literal::getValue() const
+template<typename T>
+T Literal::getValue() const
 {
-	try
+   try
    {
       return std::get<T>(_value);
    }
@@ -396,6 +293,117 @@ template<typename T> T Literal::getValue() const
       std::cerr << "Called getValue<T>() with incompatible type T. TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
       assert(false && "Called getValue<T>() with incompatible type T.");
    }
+}
+
+
+/**
+ * Returns the string representation of the literal.
+ *
+ * @return String representation.
+ */
+std::string Literal::getText( bool pure /*= false*/ ) const
+{
+	if (isString())
+	{
+		const std::string& output = getString();
+		if(pure || output == "")
+			return output;
+		else
+			return '"' + escapeString(output) + '"';
+	}
+	else if (isBool())
+	{
+		std::ostringstream ss;
+		ss << std::boolalpha << getBool();
+		return ss.str();
+	}
+	else if (isInt())
+	{
+		if(_formated_value.has_value())
+			return _formated_value.value();
+		else
+			return numToStr<int>( getInt() );
+	}
+	else if (isInt64_t())
+	{
+		if(_formated_value.has_value())
+			return _formated_value.value();
+		else
+			return numToStr<int64_t>( getInt64_t() );
+	}
+	else if (isUInt64_t())
+	{
+		if(_formated_value.has_value())
+			return _formated_value.value();
+		else
+			return numToStr<uint64_t>( getUInt64_t() );
+	}
+	else if (isDouble())
+	{
+		if(_formated_value.has_value())
+			return _formated_value.value();
+		else
+			return numToStr<double>( getDouble() );
+	}
+	else if (isSymbol())
+	{
+		assert(_formated_value);
+		return _formated_value.value();
+	}
+	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
+	std::cerr << "Value:" << *this << std::endl;
+	assert(false);
+}
+
+/**
+ * Returns the string representation but string literals are not enclosed in double quotes.
+ *
+ * @return String representation.
+ */
+std::string Literal::getPureText() const
+{
+	return getText(true);
+}
+
+bool Literal::isString() const
+{
+	// return std::is_same_v< decltype(_value), std::string& >;
+	return _value.index() == 0;
+}
+
+bool Literal::isBool() const
+{
+	return _value.index() == 1;
+}
+
+bool Literal::isInt() const
+{
+	return _value.index() == 2;
+}
+
+bool Literal::isInt64_t() const
+{
+	return _value.index() == 3;
+}
+
+bool Literal::isUInt64_t() const
+{
+	return _value.index() == 4;
+}
+
+bool Literal::isDouble() const
+{
+	return _value.index() == 5;
+}
+
+bool Literal::isSymbol() const
+{
+	return _value.index() == 6;
+}
+
+bool Literal::isIntegral() const
+{
+	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
 }
 
 const std::string& Token::getString() const
@@ -761,4 +769,4 @@ void TokenStream::clear()
 	_tokens.clear();
 }
 
-}
+} //namespace yaramod
