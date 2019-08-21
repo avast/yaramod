@@ -17,10 +17,11 @@ namespace yaramod {
  * Constructor.
  *
  * @param value String value of the literal.
- * @param type Type of the literal.
+ * @param formated_value formatted value of the literal.
  */
-Literal::Literal(const std::string& value)
+Literal::Literal(const std::string& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value(value)
+   , _formated_value( formated_value )
 {
 }
 
@@ -28,10 +29,11 @@ Literal::Literal(const std::string& value)
  * Constructor.
  *
  * @param value String value of the literal.
- * @param type Type of the literal.
+ * @param formated_value formatted value of the literal.
  */
-Literal::Literal(const char* value)
+Literal::Literal(const char* value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value(std::string(value))
+   , _formated_value( formated_value )
 {
 }
 
@@ -39,9 +41,11 @@ Literal::Literal(const char* value)
  * Constructor.
  *
  * @param value String value of the literal.
+ * @param formated_value formatted value of the literal.
  */
-Literal::Literal(std::string&& value)
+Literal::Literal(std::string&& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
    : _value(std::move(value))
+   , _formated_value( formated_value )
 {
 }
 
