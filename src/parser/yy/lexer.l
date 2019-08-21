@@ -209,12 +209,12 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 	highStr.pop_back(); // Remove '}' at the end
 
 	std::uint64_t lowNum = 0;
-	nonstd::optional<std::uint64_t> low;
+	std::optional<std::uint64_t> low;
 	if (strToNum(lowStr, lowNum, std::dec))
 		low = lowNum;
 
 	std::uint64_t highNum = 0;
-	nonstd::optional<std::uint64_t> high;
+	std::optional<std::uint64_t> high;
 	if (strToNum(highStr, highNum, std::dec))
 		high = highNum;
 
@@ -223,7 +223,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <REGEXP>"{"{digit}+"}"             {
 	std::string numStr = std::string(yytext + 1, yyleng - 2);
 
-	nonstd::optional<std::uint64_t> range;
+	std::optional<std::uint64_t> range;
 	std::uint64_t num = 0;
 	if (strToNum(numStr, num, std::dec))
 		range = num;

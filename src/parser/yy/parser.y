@@ -38,7 +38,7 @@ class ParserDriver;
 // error: too many arguments provided to function-like macro invocation
 //
 // See https://github.com/avast/yaramod/issues/11 for further information.
-using RegexpRangePair = std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>;
+using RegexpRangePair = std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>;
 
 }
 

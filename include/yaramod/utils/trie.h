@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <optional_lite/optional.hpp>
+#include <optional>
 
 namespace yaramod {
 
@@ -62,7 +62,7 @@ public:
 	 *
 	 * @return Value.
 	 */
-	const nonstd::optional<T>& getValue() const
+	const std::optional<T>& getValue() const
 	{
 		return _value;
 	}
@@ -141,7 +141,7 @@ public:
 
 private:
 	std::map<char, TrieNode*> _subnodes; ///< Subtries.
-	nonstd::optional<T> _value; ///< Value stored in node
+	std::optional<T> _value; ///< Value stored in node
 };
 
 /**

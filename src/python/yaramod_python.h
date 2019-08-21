@@ -11,7 +11,6 @@
 
 #include <yaramod/yaramod.h>
 
-#include <optional_lite/optional.hpp>
 #include <variant/variant.hpp>
 
 /**

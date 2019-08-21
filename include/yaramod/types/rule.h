@@ -7,9 +7,8 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
-
-#include <optional_lite/optional.hpp>
 
 #include "yaramod/types/expression.h"
 #include "yaramod/types/meta.h"
