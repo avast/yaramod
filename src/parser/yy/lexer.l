@@ -111,7 +111,7 @@ whitespace  [ \v\r\t]
 "matches"    { return Parser::make_MATCHES(_driver._tokenStream->emplace_back(MATCHES, std::string(yytext, yyleng)), CURRENT_LOC); }
 "include"    { BEGIN(INCLUDE); }
 
-<INCLUDE>{newline}           { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); std::cout << "WOW" << std::endl; }
+<INCLUDE>{newline}           { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); }
 <INCLUDE>{whitespace}*       { }
 <INCLUDE>"\""                { BEGIN(INCLUDE_FILE); }
 <INCLUDE>.                   { return yyterminate(); }
@@ -126,12 +126,26 @@ whitespace  [ \v\r\t]
 	BEGIN(INITIAL);
 }
 
-"/*"                         { BEGIN(MULTILINE_COMMENT); }
-<MULTILINE_COMMENT>"*/"      { BEGIN(INITIAL); }
-<MULTILINE_COMMENT>{newline} { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); }
-<MULTILINE_COMMENT>.         { }
+"/*" {
+	_driver._tmp_comment.append(std::string(yytext, yyleng));
+	BEGIN(MULTILINE_COMMENT);
+}
+<MULTILINE_COMMENT>"*/" {
+	_driver._tmp_comment.append(std::string(yytext, yyleng));
+	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment));
+	_driver.addComment(it);
+	BEGIN(INITIAL);
+}
+<MULTILINE_COMMENT>{newline} {
+	_driver._tmp_comment.append(std::string(yytext, yyleng));
+	_driver.moveLineLocation();
+}
+<MULTILINE_COMMENT>.     	  { _driver._tmp_comment.append(std::string(yytext, yyleng)); }
 
-"//"[^\n]*                { }
+"//"[^\n]* {
+	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::string(yytext, yyleng));
+	_driver.addComment(it);
+}
 
 "\""                      { BEGIN(STR); _strLiteral.clear(); }
 <STR>\\t                  { _strLiteral += '\t'; }
