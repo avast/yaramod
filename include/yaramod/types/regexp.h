@@ -330,7 +330,6 @@ public:
 	void setOperand(std::shared_ptr<RegexpUnit>&& operand) { _operand = std::move(operand); }
 
 protected:
-//	RegexpOperation(char operation, std::shared_ptr<RegexpUnit>&& operand, bool greedy) : _operation(operation), _operand(std::move(operand)), _greedy(greedy) {}
 	RegexpOperation(TokenType operation_token_type, char operation_symbol, std::shared_ptr<RegexpUnit>&& operand, bool greedy)
 		: _operand(std::move(operand))
 	{
@@ -339,12 +338,6 @@ protected:
 		_operation = _tokenStream->emplace_back(operation_token_type, std::string() + operation_symbol);
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
-	// RegexpOperation(TokenIt operation, std::shared_ptr<RegexpUnit>&& operand, TokenIt _greedy)
-	// 	: _operation(operation)
-	// 	, _operand(std::move(operand))
-	// 	, _greedy(greedy)
-	// {
-	// }
 	RegexpOperation() = default;
 
 protected:
@@ -462,8 +455,8 @@ public:
 
 	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> getRange() const
 	{
-		std::optional<std::uint64_t> out1 = std::nullopt;
-		std::optional<std::uint64_t> out2 = std::nullopt;
+		std::optional<std::uint64_t> out1;
+		std::optional<std::uint64_t> out2;
 		if(_first)
 			out1 = std::make_optional(_first.value()->getUInt64_t());
 		if(_second)

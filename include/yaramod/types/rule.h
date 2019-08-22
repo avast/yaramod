@@ -77,8 +77,6 @@ public:
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
 	const Expression::Ptr& getCondition() const;
 	std::vector<std::string> getTags() const;
-	// std::vector<std::string>& getTags();
-	// const std::vector<std::string>& getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
 	const Location& getLocation() const;
