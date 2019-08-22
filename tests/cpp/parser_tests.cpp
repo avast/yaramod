@@ -2869,7 +2869,7 @@ R"(rule public_rule {
 }
 
 TEST_F(ParserTests,
-CommentsPartOne) {
+CommentsInCommonLocations) {
 	prepareInput(
 R"(
 // We need pe for exports
@@ -2888,7 +2888,7 @@ rule rule_1 : Tag1 Tag2 {
 	// Random comment strings
 	strings:
 		// Random comment strings 1
-		$1 = "plain string" wide
+		$1 = "plain string" wide //xor
 		$2 = { ab cd ef }
 		// Random comment strings 3
 		$3 = /ab*c/
@@ -2911,7 +2911,7 @@ rule rule_2 {
 	 strings comment
 	*/
 	strings: // COMMENT
-		$abc = "no case full word" nocase fullword // COMMENT
+		$abc = "no case full word" nocase fullword // xor
 	/*
 	*	condition comment
 	*/
@@ -2920,6 +2920,7 @@ rule rule_2 {
 		and
 		$abc at elf.entry_point
 }
+// Comment at the end of file
 )");
 
 	ParserDriver driver(input);
@@ -2954,6 +2955,78 @@ rule rule_2 {
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
+
+TEST_F(ParserTests,
+CommentsInCondition) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_1 : Tag1 Tag2 {
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		/*not $1 and*/ pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+}
+
+import "elf"
+
+rule rule_2 {
+	meta:
+		valid = true
+	strings:
+		$1 = "no case full word" nocase fullword
+		$2 = "String 2"
+		$3 = /./
+		$5 = "String 5"
+	condition:
+		elf.type == elf.ET_EXEC
+		and
+		2 of ($1, $2, $3 /*, $4*/, $5)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(import "pe"
+import "elf"
+
+rule rule_1 : Tag1 Tag2 {
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+}
+
+rule rule_2 {
+	meta:
+		valid = true
+	strings:
+		$1 = "no case full word" nocase fullword
+		$2 = "String 2"
+		$3 = /./
+		$5 = "String 5"
+	condition:
+		elf.type == elf.ET_EXEC and 2 of ($1, $2, $3, $5)
+})", driver.getParsedFile().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
 
 TEST_F(ParserTests,
 OneMoreTest) {
