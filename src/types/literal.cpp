@@ -295,6 +295,10 @@ T Literal::getValue() const
    }
 }
 
+std::string Literal::getFormattedValue() const
+{
+   return _formated_value.value_or(std::string());
+}
 
 /**
  * Returns the string representation of the literal.
@@ -406,6 +410,12 @@ bool Literal::isIntegral() const
 	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
 }
 
+const Literal& Token::getValue() const
+{
+      assert(_value);
+      return *_value;
+}
+
 const std::string& Token::getString() const
 {
 	return _value->getString();
@@ -441,33 +451,27 @@ const std::shared_ptr<Symbol>& Token::getSymbol() const
 	return _value->getSymbol();
 }
 
-template<typename T> T Token::getValue() const
-{
-	return _value->getValue<T>();
-}
-
 TokenIt TokenStream::emplace_back( TokenType type, char value )
 {
 	_tokens.emplace_back(type, std::move(Literal(std::string() + value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const char* value )
+TokenIt TokenStream::emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value )
 {
-	auto l = Literal(value);
-	_tokens.emplace_back(type, std::move(l));
+	_tokens.emplace_back(type, std::move(Literal(value, formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const std::string& value )
+TokenIt TokenStream::emplace_back( TokenType type, const std::string& value, const std::optional<std::string>& formatted_value )
 {
-	_tokens.emplace_back(type, std::move(Literal(value)));
+	_tokens.emplace_back(type, std::move(Literal(value, formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, std::string&& value )
+TokenIt TokenStream::emplace_back( TokenType type, std::string&& value, const std::optional<std::string>& formatted_value )
 {
-	_tokens.emplace_back(type, std::move(Literal(std::move(value))));
+	_tokens.emplace_back(type, std::move(Literal(std::move(value), formatted_value)));
 	return --_tokens.end();
 }
 

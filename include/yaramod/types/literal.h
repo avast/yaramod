@@ -212,6 +212,7 @@ public:
    double getDouble() const;
    const std::shared_ptr<Symbol>& getSymbol() const;
    template<typename T> T getValue() const;
+   std::string getFormattedValue() const;
    /// @}
 
    /// @name String representation
@@ -332,11 +333,7 @@ public:
    /// @name Getter methods
    /// @{
    TokenType getType() const { return _type; }
-	const Literal& getValue() {
-		assert(_value);
-		return *_value;
-	}
-
+	const Literal& getValue() const;
    const std::string& getString() const;
    bool getBool() const;
    int getInt() const;
@@ -344,7 +341,7 @@ public:
    uint64_t getUInt64_t() const;
    double getDouble() const;
    const std::shared_ptr<Symbol>& getSymbol() const;
-   template<typename T> T getValue() const;
+   //template<typename T> T getValue() const;
    /// @}
 
 private:
@@ -364,9 +361,9 @@ public:
 	/// @name Insertion methods
 	/// @{
 	TokenIt emplace_back( TokenType type, char value );
-	TokenIt emplace_back( TokenType type, const char* value );
-	TokenIt emplace_back( TokenType type, const std::string& value );
-	TokenIt emplace_back( TokenType type, std::string&& value );
+	TokenIt emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt );
+	TokenIt emplace_back( TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt );
+	TokenIt emplace_back( TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, bool b );
 	TokenIt emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
@@ -433,10 +430,13 @@ public:
       bool secondNibble = true;
       for(auto it = ts.begin(); it != ts.end(); ++it)
       {
-      	os << *it;
 
-			auto current_type = it->getType();
-   		auto nextIt = std::next(it);
+         auto current_type = it->getType();
+         if(current_type == COMMENT && it != ts.begin() && std::prev(it)->getType() == NEW_LINE)
+            os << it->getValue().getFormattedValue();
+         os << *it;
+
+         auto nextIt = std::next(it);
    		if(nextIt == ts.end())
    		    break;
          auto next_type = nextIt->getType();
@@ -462,7 +462,7 @@ public:
             inside_enumeration_brackets = false;
    		if(current_type == NEW_LINE)
       	{
-      		if(inside_rule)
+      		if(inside_rule && next_type != COMMENT)
 	      	{
 	      		if(inside_hex_string || inside_regexp)
                {
