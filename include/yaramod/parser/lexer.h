@@ -57,6 +57,7 @@ protected:
 	ParserDriver& _driver; ///< Parser driver.
 
 	std::string _strLiteral; ///< Currently processed string literal.
+	std::string _indent;
 	std::string _regexpClass; ///< Currently processed regular expression class.
 };
 

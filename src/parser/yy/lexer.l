@@ -132,9 +132,10 @@ whitespace  [ \v\r\t]
 }
 <MULTILINE_COMMENT>"*/" {
 	_driver._tmp_comment.append(std::string(yytext, yyleng));
-	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment));
+	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment), _indent);
 	_driver.addComment(it);
 	BEGIN(INITIAL);
+	_indent.clear();
 }
 <MULTILINE_COMMENT>{newline} {
 	_driver._tmp_comment.append(std::string(yytext, yyleng));
@@ -143,7 +144,7 @@ whitespace  [ \v\r\t]
 <MULTILINE_COMMENT>.     	  { _driver._tmp_comment.append(std::string(yytext, yyleng)); }
 
 "//"[^\n]* {
-	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::string(yytext, yyleng));
+	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::string(yytext, yyleng), _indent);
 	_driver.addComment(it);
 }
 
@@ -289,8 +290,8 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <REGEXP_CLASS>"\\B"                { _regexpClass += "\\B"; }
 <REGEXP_CLASS>.                    { _regexpClass += yytext[0]; }
 
-{newline}                          { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); }
-{whitespace}*                      { }
+{newline}                          { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); _indent.clear(); }
+{whitespace}*                      { _indent += std::string(yytext, yyleng); }
 <<EOF>>                            {
 	if (!_driver.includeEnd())
 		return yyterminate();

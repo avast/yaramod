@@ -2869,6 +2869,93 @@ R"(rule public_rule {
 }
 
 TEST_F(ParserTests,
+CommentsPartOne) {
+	prepareInput(
+R"(
+// We need pe for exports
+import "pe"
+
+/**
+ * Random block comment
+ */
+rule rule_1 : Tag1 Tag2 {
+	// Random comment meta
+	meta:
+		// Random comment meta info
+		info = "meta info"
+		version = 2
+		// Random comment meta version
+	// Random comment strings
+	strings:
+		// Random comment strings 1
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		// Random comment strings 3
+		$3 = /ab*c/
+	// Random comment condition
+	condition:
+		// Random comment expression
+		pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+}
+
+/* SHORT BLOCK COMMENT */
+import "elf"
+
+// Random one-line comment
+rule rule_2 {
+	/*
+	 meta comment*/
+	meta:
+		valid = true
+	/*
+	 strings comment
+	*/
+	strings: // COMMENT
+		$abc = "no case full word" nocase fullword // COMMENT
+	/*
+	*	condition comment
+	*/
+	condition:
+		elf.type == elf.ET_EXEC
+		and
+		$abc at elf.entry_point
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(import "pe"
+import "elf"
+
+rule rule_1 : Tag1 Tag2 {
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+}
+
+rule rule_2 {
+	meta:
+		valid = true
+	strings:
+		$abc = "no case full word" nocase fullword
+	condition:
+		elf.type == elf.ET_EXEC and $abc at elf.entry_point
+})", driver.getParsedFile().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 OneMoreTest) {
 	prepareInput(
 R"(rule public_rule {
