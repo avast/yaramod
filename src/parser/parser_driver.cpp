@@ -427,7 +427,7 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 	if (!includedFile->is_open())
 		return false;
 
-	//_lexer.includeFile(includedFile.get());
+	_lexer.includeFile(includedFile.get());
 
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
@@ -439,12 +439,5 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 	_loc.end.initialize(_loc.end.filename, 1, 1);
 	return true;
 }
-
-// void ParserDriver::includeFile(std::istream* input)
-// {
-// 	//vlastni rozhrani kterym loadnu treba jiny file s jinym pravidlem
-// 	//tady mas istream, ted parsuj z neho
-// 	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
-// }
 
 } //namespace yaramod
