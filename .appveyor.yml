@@ -4,9 +4,9 @@ environment:
   WINFLEXBISON_ARCHIVE: winflexbison-2.5.16.zip
   PANDOC_VERSION: 2.2.2.1
   PANDOC_ARCHIVE: pandoc-%PANDOC_VERSION%-windows-x86_64.zip
-  PYPI_USERNAME: metthal
+  PYPI_USERNAME: yaramod
   PYPI_PASSWORD:
-    secure: UOA4xP+YY/yzrbVc0uIHHg==
+    secure: rqIEDKQDpYkovDQpxHABjjAXnULbrLiwEWa1mwYWKis=
   matrix:
     - PYTHON: "C:\\Python36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
