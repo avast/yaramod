@@ -20,15 +20,6 @@ namespace yaramod {
 
 class ParserDriver;
 
-
-/**
- * Helper function to transfer char ('0' -- 'F') to uint8_t
- */
-//uint8_t charToInt (char c)
-//{
-//	return ('A' <= std::toupper(c) && std::toupper(c) <= 'F') ? std::toupper(c) - 'A' + 10 : c - '0';
-//}
-
 // We need to provide alias to this type because since bison 3.2
 // types are enclosed in YY_RVREF() macro. The comma in template
 // parameter list is however parsed by preprocessor first and
@@ -145,7 +136,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> INTEGER_FUNCTION   		"fixed-width integer function"
 //%token <std::string> STRING_META        	::
 
-%token HEX_OR                      "hex string |"
+%token <yaramod::TokenIt> HEX_OR                      "hex string |"
 %token LSQB                        "hex string ["
 %token RSQB                        "hex string ]"
 %token HEX_WILDCARD                "hex string ?"
@@ -174,7 +165,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
-%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_alt_operator hex_jump_lb hex_jump_rb lb rb integer_function integer_token
+%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_jump_lb hex_jump_rb integer_function integer_token
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -567,7 +558,7 @@ expression
 		{
 			$$ = std::move($primary_expression);
 		}
-	| lb expression[expr] rb
+	| LP expression[expr] RP
 		{
 			auto type = $expr->getType();
 			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
@@ -575,12 +566,8 @@ expression
 		}
 	;
 
-lb : LP { $$ = $1; }
-
-rb : RP { $$ = $1; }
-
 primary_expression // (primary_expression[expr]) | filesize | entrypoint |
-	: lb primary_expression[expr] rb
+	: LP primary_expression[expr] RP
 		{
 			auto type = $expr->getType();
 			$$ = std::make_shared<ParenthesesExpression>($1, std::move($expr), $3);
@@ -885,7 +872,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 			$$ = std::make_shared<ShiftRightExpression>(std::move($1), $2, std::move($3));
 			$$->setType(Expression::Type::Int);
 		}
-	| integer_function lb primary_expression rb
+	| integer_function LP primary_expression RP
 		{
 			if (!$3->isInt())
 			{
@@ -946,7 +933,6 @@ range
 				error(driver.getLocation(), "operator '..' expects integer as higher bound of the interval");
 				YYABORT;
 			}
-			//TokenIt lp = driver._tokenStream->findBackwards(LP, $3);
 			$$ = std::make_shared<RangeExpression>($1, std::move($low), $3, std::move($high), $5);
 		}
 	;
@@ -1116,7 +1102,7 @@ identifier
 			$$ = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move($1), std::move($primary_expression));
 			$$->setType(iterParentSymbol->getElementType());
 		}
-	| identifier lb arguments rb
+	| identifier LP arguments RP
 		{
 			if (!$1->isObject())
 			{
@@ -1316,7 +1302,7 @@ hex_or_body //vektor<shared_ptr<HexString>>
 			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
 			$$.push_back(std::move(hexStr));
 		}
-	| hex_or_body[body] hex_alt_operator hex_string_body
+	| hex_or_body[body] HEX_OR hex_string_body
 		{
 			$$ = std::move($body);
 			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body)); //vektor<shared_ptr<HexStringUnit>>
@@ -1324,14 +1310,9 @@ hex_or_body //vektor<shared_ptr<HexString>>
 		}
 	;
 
-hex_alt_operator
-	: HEX_OR { $$ = driver._tokenStream->emplace_back(TokenType::HEX_ALT, "|"); }
+hex_alt_lb : LP { $1->setType(HEX_ALT_LEFT_BRACKET); $$ = $1; }
 
-hex_alt_lb
-	: LP { $1->setType(HEX_ALT_LEFT_BRACKET); $$ = $1; }
-
-hex_alt_rb
-	: RP { $1->setType(HEX_ALT_RIGHT_BRACKET); $$ = $1; }
+hex_alt_rb : RP { $1->setType(HEX_ALT_RIGHT_BRACKET); $$ = $1; }
 
 hex_jump
 	: hex_jump_lb hex_integer[value] hex_jump_rb

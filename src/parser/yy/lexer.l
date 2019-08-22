@@ -179,7 +179,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 {digit}+"."{digit}+                { return Parser::make_DOUBLE(std::string(yytext, yyleng), CURRENT_LOC); }
 {digit}+(KB|MB)?                   { return Parser::make_INTEGER(std::string(yytext, yyleng), CURRENT_LOC); }
 
-<HEXSTR>"|"                        { return Parser::make_HEX_OR(CURRENT_LOC); }
+<HEXSTR>"|"                        { return Parser::make_HEX_OR(_driver._tokenStream->emplace_back(HEX_ALT, std::string(yytext, yyleng)), CURRENT_LOC); }
 <HEXSTR>"("                        { return Parser::make_LP(_driver._tokenStream->emplace_back(LP, std::string(yytext, yyleng)), CURRENT_LOC); }
 <HEXSTR>")"                        { return Parser::make_RP(_driver._tokenStream->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
 <HEXSTR>"?"                        { return Parser::make_HEX_WILDCARD(CURRENT_LOC); }
