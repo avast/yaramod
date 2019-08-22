@@ -184,10 +184,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <HEXSTR>")"                        { return Parser::make_RP(_driver._tokenStream->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
 <HEXSTR>"?"                        { return Parser::make_HEX_WILDCARD(CURRENT_LOC); }
 <HEXSTR>"}"                        { BEGIN(INITIAL); return Parser::make_RCB(CURRENT_LOC); }
-<HEXSTR>{hexdigit}                 {
-	std::string nibble = yytext;
-	return Parser::make_HEX_NIBBLE(yytext, CURRENT_LOC);
-}
+<HEXSTR>{hexdigit}                 { return Parser::make_HEX_NIBBLE(yytext, CURRENT_LOC); }
 <HEXSTR>"["                        { BEGIN(HEXSTR_JUMP); return Parser::make_LSQB(CURRENT_LOC); }
 <HEXSTR_JUMP>{digit}*              {
 	std::string numStr = std::string(yytext, yyleng);
@@ -312,9 +309,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
  */
 void Lexer::includeFile(std::istream* input)
 {
-	/*vlastni rozhrani kterym loadnu treba jiny file s jinym pravidlem*/
-	//tady mas istream, ted parsuj z neho
-//	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
+	yypush_buffer_state(yy_create_buffer(input, YY_BUF_SIZE));
 }
 
 /**
