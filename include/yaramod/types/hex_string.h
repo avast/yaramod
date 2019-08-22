@@ -16,9 +16,7 @@
 #include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
 
-
 namespace yaramod {
-
 
 /**
  * Abstract class representing single unit in the hex string.
@@ -105,8 +103,8 @@ public:
 	/// @name Iterators
 	/// @{
 	auto begin() const { return _units.begin(); }
-	auto end() const { return _units.end(); }
-	/// @}
+	auto end() const { return _units.end();
+}	/// @}
 
 private:
 	std::vector<std::shared_ptr<HexStringUnit>> _units; ///< Units in the hex string
@@ -143,7 +141,7 @@ public:
 	/// @{
 	std::uint8_t getValue() const
 	{
-		int output = _value->getInt();
+		auto output = _value->getInt();
 		assert(output <= 0xf);
 		return output;
 	}
@@ -171,8 +169,8 @@ public:
 
 	/// @name Virtual methods
 	/// @{
-	virtual std::string getText() const override { return "?"; } // (_value->getType() == HEX_WILDCARD_FULL) ? "??" : "?"; }
-	virtual std::size_t getLength() const override { return 1; } // (_value->getType() == HEX_WILDCARD_FULL) ? 2 : 1; }
+	virtual std::string getText() const override { return "?"; }
+	virtual std::size_t getLength() const override { return 1; }
 	/// @}
 private:
 	TokenIt _value; ///< Value of the nibble, int
