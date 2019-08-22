@@ -709,7 +709,6 @@ YaraExpressionBuilder boolVal(bool value)
  */
 YaraExpressionBuilder id(const std::string& id)
 {
-	std::cout << "Warning: This call of id(" << id << ") does not perform type checking or known symbol check. In our parser, we do not use this method." << std::endl;
 	auto expression = std::make_shared<IdExpression>( std::make_shared<ValueSymbol>(id, Expression::Type::Object) );
 	return YaraExpressionBuilder(expression);
 }

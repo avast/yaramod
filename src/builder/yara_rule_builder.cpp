@@ -55,7 +55,6 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	// If any of the meta information has invalid key identifier
 	if (std::any_of(_metas.begin(), _metas.end(),
 				[](const auto& meta) {
-					std::cout << meta.getKey() << std::endl;
 					return !isValidIdentifier(meta.getKey());
 				}))
 	{
