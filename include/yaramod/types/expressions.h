@@ -1577,6 +1577,12 @@ public:
 	{
 	}
 
+	LiteralType getValue() const
+	{
+		assert( _value.has_value() );
+		return (*_value)->getValue<LiteralType>();
+	}
+
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
 		if(_value.has_value()){
@@ -1629,12 +1635,6 @@ public:
 	{
 		return v->visit(this);
 	}
-
-	bool getValue() const
-	{
-		assert(_value.has_value());
-		return _value.value()->getBool();
-	}
 };
 
 /**
@@ -1667,12 +1667,6 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
-	}
-
-	std::string getValue() const
-	{
-		assert(_value.has_value());
-		return _value.value()->getString();
 	}
 };
 
@@ -1707,12 +1701,6 @@ public:
 	{
 		return v->visit(this);
 	}
-
-	uint64_t getValue() const
-	{
-		assert(_value.has_value());
-		return _value.value()->getUInt64_t();
-	}
 };
 
 /**
@@ -1745,12 +1733,6 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
-	}
-
-	double getValue() const
-	{
-		assert(_value.has_value());
-		return _value.value()->getDouble();
 	}
 };
 

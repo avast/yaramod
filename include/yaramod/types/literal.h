@@ -211,7 +211,20 @@ public:
    uint64_t getUInt64_t() const;
    double getDouble() const;
    const std::shared_ptr<Symbol>& getSymbol() const;
-   template<typename T> T getValue() const;
+
+   template<typename T>
+   const T& getValue() const
+   {
+      try
+      {
+         return std::get<T>(_value);
+      }
+      catch (std::bad_variant_access& exp)
+      {
+         std::cerr << "Called getValue<T>() with incompatible type T. TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+         assert(false && "Called getValue<T>() with incompatible type T.");
+      }
+   }
    std::string getFormattedValue() const;
    /// @}
 
@@ -333,7 +346,7 @@ public:
    /// @name Getter methods
    /// @{
    TokenType getType() const { return _type; }
-	const Literal& getValue() const;
+	const Literal& getLiteral() const;
    const std::string& getString() const;
    bool getBool() const;
    int getInt() const;
@@ -341,7 +354,8 @@ public:
    uint64_t getUInt64_t() const;
    double getDouble() const;
    const std::shared_ptr<Symbol>& getSymbol() const;
-   //template<typename T> T getValue() const;
+   template<typename T>
+   const T& getValue() const { return _value->getValue<T>(); }
    /// @}
 
 private:
@@ -433,7 +447,7 @@ public:
 
          auto current_type = it->getType();
          if(current_type == COMMENT && it != ts.begin() && std::prev(it)->getType() == NEW_LINE)
-            os << it->getValue().getFormattedValue();
+            os << it->getLiteral().getFormattedValue();
          os << *it;
 
          auto nextIt = std::next(it);

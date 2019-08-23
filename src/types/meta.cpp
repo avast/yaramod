@@ -35,7 +35,7 @@ const std::string& Meta::getKey() const
  */
 const Literal& Meta::getValue() const
 {
-	return _value->getValue();
+	return _value->getLiteral();
 }
 
 /**

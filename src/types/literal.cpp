@@ -281,20 +281,6 @@ const std::shared_ptr<Symbol>& Literal::getSymbol() const
    }
 }
 
-template<typename T>
-T Literal::getValue() const
-{
-   try
-   {
-      return std::get<T>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getValue<T>() with incompatible type T. TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getValue<T>() with incompatible type T.");
-   }
-}
-
 std::string Literal::getFormattedValue() const
 {
    return _formated_value.value_or(std::string());
@@ -410,7 +396,7 @@ bool Literal::isIntegral() const
 	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
 }
 
-const Literal& Token::getValue() const
+const Literal& Token::getLiteral() const
 {
       assert(_value);
       return *_value;
