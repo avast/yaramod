@@ -61,17 +61,49 @@ class YaraExpressionBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraExpressionBuilder();
+	YaraExpressionBuilder()
+		: _tokenStream( std::make_shared<TokenStream>() )
+		, _expr()
+	{
+	}
 	template<typename ExpPtr>
-	YaraExpressionBuilder(ExpPtr&& expr);
-	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type);
-	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type);
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts);
+	YaraExpressionBuilder(ExpPtr&& expr)
+		: _tokenStream( std::make_shared<TokenStream>() )
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+	}
+	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
+		: _tokenStream( std::make_shared<TokenStream>() )
+		, _expr(expr)
+	{
+		setType(type);
+	}
+	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
+		: _tokenStream( std::make_shared<TokenStream>() )
+		, _expr(std::move(expr))
+	{
+		setType(type);
+	}
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts)
+		: _tokenStream(ts)
+		, _expr()
+	{
+	}
 	template<typename ExpPtr>
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr)
+		: _tokenStream( ts )
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+	}
 	template<typename ExpPtr>
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr, const Expression::Type& type);
+	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr, const Expression::Type& type)
+		: _tokenStream( ts )
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+		setType(type);
+	}
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
+	YaraExpressionBuilder(YaraExpressionBuilder& builder) : YaraExpressionBuilder(std::as_const(builder)) {}
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
 

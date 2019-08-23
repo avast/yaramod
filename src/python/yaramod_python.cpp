@@ -157,7 +157,9 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_int", &Literal::isInt)
 		.def_property_readonly("is_int64_t", &Literal::isInt64_t)
 		.def_property_readonly("is_uint64_t", &Literal::isUInt64_t)
-		.def_property_readonly("is_float", &Literal::isDouble);
+		.def_property_readonly("is_integral", &Literal::isIntegral)
+		.def_property_readonly("is_float", &Literal::isDouble)
+		.def_property_readonly("is_symbol", &Literal::isSymbol);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
@@ -386,14 +388,15 @@ void addExpressionClasses(py::module& module)
 				&FunctionCallExpression::getArguments,
 				py::overload_cast<const std::vector<Expression::Ptr>&>(&FunctionCallExpression::setArguments));
 
-	exprClass<BoolLiteralExpression>(module, "_BoolLiteralExpression")
-		.def_property_readonly("value", &BoolLiteralExpression::getValue);
-	exprClass<StringLiteralExpression>(module, "_StringLiteralExpression")
-		.def_property_readonly("value", &StringLiteralExpression::getValue);
-	exprClass<IntLiteralExpression>(module, "_IntLiteralExpression")
-		.def_property_readonly("value", &IntLiteralExpression::getValue);
-	exprClass<DoubleLiteralExpression>(module, "_DoubleLiteralExpression")
-		.def_property_readonly("value", &DoubleLiteralExpression::getValue);
+	exprClass<LiteralExpression<bool>>(module, "_BoolLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<bool>::getValue);
+	exprClass<LiteralExpression<std::string>>(module, "_StringLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<std::string>::getValue);
+	exprClass<LiteralExpression<std::uint64_t>>(module, "_IntLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<uint64_t>::getValue);
+	exprClass<LiteralExpression<double>>(module, "_DoubleLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<double>::getValue);
+
 	exprClass<BoolLiteralExpression, LiteralExpression<bool>>(module, "BoolLiteralExpression");
 	exprClass<StringLiteralExpression, LiteralExpression<std::string>>(module, "StringLiteralExpression");
 	exprClass<IntLiteralExpression, LiteralExpression<std::uint64_t>>(module, "IntLiteralExpression");
