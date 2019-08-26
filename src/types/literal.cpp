@@ -741,13 +741,6 @@ TokenIt TokenStream::findBackwards( TokenType type, TokenIt from, TokenIt to )
 		return to;
 }
 
-std::string TokenStream::getText() const
-{
-	std::stringstream ss;
-	ss << *this;
-	return ss.str();
-}
-
 std::vector<std::string> TokenStream::getTokensAsText() const
 {
 	std::vector<std::string> output;
@@ -761,6 +754,152 @@ std::vector<std::string> TokenStream::getTokensAsText() const
 void TokenStream::clear()
 {
 	_tokens.clear();
+}
+
+std::string TokenStream::getText(bool withImports) const
+{
+   std::stringstream os;
+   bool inside_rule = false;
+   bool inside_hex_string = false;
+   bool inside_hex_jump = false;
+   bool inside_regexp = false;
+   bool inside_enumeration_brackets = false;
+   bool secondNibble = true;
+   for(auto it = begin(); it != end(); ++it)
+   {
+
+      auto current_type = it->getType();
+      if(current_type == INCLUDE)
+      {
+         if(!withImports)
+            continue;
+         else
+         {
+            //We need to start adding tokens from subTokenStream in *it:
+         }
+      }
+      if(current_type == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
+         os << it->getLiteral().getFormattedValue();
+      os << *it;
+
+      auto nextIt = std::next(it);
+      if(nextIt == end())
+          break;
+      auto next_type = nextIt->getType();
+      if(current_type == RULE_BEGIN)
+         inside_rule = true;
+      else if(current_type == RULE_END)
+         inside_rule = false;
+      else if(current_type == HEX_START_BRACKET)
+         inside_hex_string = true;
+      else if(current_type == HEX_END_BRACKET)
+         inside_hex_string = false;
+      else if(current_type == HEX_JUMP_LEFT_BRACKET)
+         inside_hex_jump = true;
+      else if(current_type == HEX_JUMP_RIGHT_BRACKET)
+         inside_hex_jump = false;
+      else if(current_type == REGEXP_START_SLASH)
+         inside_regexp = true;
+      else if(current_type == REGEXP_END_SLASH)
+         inside_regexp = false;
+      else if(current_type == LP_ENUMERATION)
+         inside_enumeration_brackets = true;
+      else if(current_type == RP_ENUMERATION)
+         inside_enumeration_brackets = false;
+      if(current_type == NEW_LINE)
+      {
+         if(inside_rule && next_type != COMMENT)
+         {
+            if(inside_hex_string || inside_regexp)
+            {
+               if(next_type != HEX_END_BRACKET && next_type != REGEXP_END_SLASH)
+                  os << "\t\t\t";
+               else
+                  os << "\t\t";
+            }
+            else
+            {
+               if(nextIt->getType() == META
+                  || nextIt->getType() == STRINGS
+                  || nextIt->getType() == CONDITION)
+                  os << "\t";
+               else if(nextIt->getType() != RULE_END)
+                  os << "\t\t";
+            }
+         }
+      }
+      else if(inside_hex_string)
+      {
+         switch(current_type)
+         {
+            case HEX_NIBBLE:
+            case HEX_WILDCARD_LOW:
+            case HEX_WILDCARD_HIGH:
+               secondNibble = !secondNibble;
+               break;
+            case HEX_ALT:
+            case HEX_JUMP_FIXED:
+            case HEX_JUMP_VARYING:
+            case HEX_JUMP_VARYING_RANGE:
+            case HEX_JUMP_RIGHT_BRACKET:
+            case HEX_START_BRACKET:
+               secondNibble = true;
+               break;
+            default:
+               break;
+         }
+         if(!inside_hex_jump && next_type != NEW_LINE)
+         {
+            if(secondNibble)
+            {
+               os << " ";
+            }
+         }
+      }
+      else if(!inside_regexp && !inside_enumeration_brackets)
+      {
+         switch(current_type)
+         {
+            case NULLSYMBOL:
+            case META:
+            case STRINGS:
+            case CONDITION:
+            case UNARY_MINUS:
+            case BITWISE_NOT:
+            case INTEGER_FUNCTION:
+            case FUNCTION_SYMBOL:
+            case ARRAY_SYMBOL:
+            case LP:
+            case LSQB:
+            case DOT:
+               break;
+            default:
+               switch(next_type)
+               {
+                  case RP:
+                  case RSQB:
+                  case DOT:
+                  case NEW_LINE:
+                     break;
+                  case REGEXP_MODIFIERS:
+                     if(current_type != REGEXP_MODIFIERS)
+                        break;
+                     [[fallthrough]];
+                  default:
+                     if(next_type != LSQB || ( current_type != STRING_OFFSET && current_type != STRING_LENGTH) )
+                        os << " ";
+               }
+         }
+      }
+      else if(inside_enumeration_brackets)
+      {
+         if(current_type != LP_ENUMERATION && next_type != RP_ENUMERATION && next_type != COMMA)
+            os << " ";
+      }
+      else if(current_type == HEX_ALT_RIGHT_BRACKET || current_type == HEX_ALT_LEFT_BRACKET)
+         os << " ";
+   }
+   return os.str();
 }
 
 } //namespace yaramod
