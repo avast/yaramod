@@ -911,7 +911,7 @@ integer_token
 		      }
 	      }
 			if($1.substr(0,2) == "0x" || $1.substr(0,2) == "0X")
-				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol($1.substr(2)) * multiplier, $1);
+				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol($1.substr(2), 0, 16) * multiplier, $1);
 			else if(multiplier != 1)
 				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol(std::move($1)) * multiplier, $1);
 			else

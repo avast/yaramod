@@ -3036,7 +3036,7 @@ R"(rule public_rule {
 		$1 = "Hello World"
 		$2 = "Bye World"
 	condition:
-		true and uint32be(1)
+		true and uint32be(1) and filesize > 0xFF
 }
 )");
 
@@ -3054,7 +3054,7 @@ R"(rule public_rule {
 	EXPECT_EQ("Hello World", strings[0]->getPureText());
 	EXPECT_EQ("$2", strings[1]->getIdentifier());
 	EXPECT_EQ("Bye World", strings[1]->getPureText());
-	EXPECT_EQ("true and uint32be(1)", rule->getCondition()->getText());
+	EXPECT_EQ("true and uint32be(1) and filesize > 0xFF", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
