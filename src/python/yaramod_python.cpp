@@ -109,6 +109,7 @@ void addBasicClasses(py::module& module)
 {
 	py::class_<YaraFile>(module, "YaraFile")
 		.def_property_readonly("text", &YaraFile::getText)
+		.def_property_readonly("text_tokenized", &YaraFile::getTextTokenized)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
 		.def("find_symbol", &YaraFile::findSymbol)

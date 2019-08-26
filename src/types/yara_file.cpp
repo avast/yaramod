@@ -148,6 +148,13 @@ std::string YaraFile::getText() const
 	return trim(ss.str());
 }
 
+std::string YaraFile::getTextTokenized() const
+{
+	std::stringstream ss;
+	ss << *getTokenStream();
+	return ss.str();
+}
+
 /**
  * Adds the import of the module to the YARA file. Module needs
  * to exist and be defined in @c types/modules folder.

@@ -30,6 +30,7 @@ public:
 	/// @name String representation
 	/// @{
 	std::string getText() const;
+	std::string getTextTokenized() const;
 	/// @}
 
 	/// @name Addition methods
