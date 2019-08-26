@@ -153,6 +153,8 @@ enum TokenType
    BOOL_TRUE = 375,
    BOOL_FALSE = 376,
    COMMENT = 377,
+
+   INCLUDE = 378,
 };
 
 class Symbol;
@@ -272,6 +274,7 @@ private:
 	std::optional< std::string > _formated_value; ///< Value used for integral literals with particular formatting
 };
 
+class TokenStream;
 
 /**
  * Class representing tokens that YARA rules consist of. Tokens do not store values and are stored in TokenStream
@@ -358,8 +361,16 @@ public:
    const T& getValue() const { return _value->getValue<T>(); }
    /// @}
 
+   /// @name Import substream handler methods
+   /// @{
+   bool isImportToken() const { return _importSubstream != nullptr; }
+   std::shared_ptr<TokenStream> getImportSubstream() { return _importSubstream; }
+   void setImportSubstream( std::shared_ptr<TokenStream>&& ts ) { _importSubstream = std::move(ts); }
+   /// @}
+
 private:
    TokenType _type;
+   std::shared_ptr< TokenStream > _importSubstream = nullptr;
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 };
 
