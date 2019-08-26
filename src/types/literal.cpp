@@ -343,6 +343,7 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
 	std::cerr << "Value:" << *this << std::endl;
 	assert(false);
+   return std::string();
 }
 
 /**

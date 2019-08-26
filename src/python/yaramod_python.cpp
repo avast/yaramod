@@ -552,9 +552,8 @@ void addBuilderClasses(py::module& module)
 		.def(py::init<const std::vector<std::uint8_t>&>())
 		.def(py::init<const std::shared_ptr<HexStringUnit>&>())
 		.def(py::init<const std::vector<std::shared_ptr<HexStringUnit>>&>())
-		//.def("get", &YaraHexStringBuilder::get)
-		.def("get", [](YaraHexStringBuilder& self, std::shared_ptr<TokenStream> acceptor) {
-				return self.get(acceptor);
+		.def("get", [](YaraHexStringBuilder& self) {
+				return self.get();
 			})
 		.def("add", [](YaraHexStringBuilder& self, const YaraHexStringBuilder& unit) {
 				return self.add(unit);
