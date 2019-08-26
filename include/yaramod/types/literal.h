@@ -175,7 +175,7 @@ public:
 	explicit Literal(const char* value, const std::optional<std::string>& formated_value = std::nullopt);
    explicit Literal(const std::string& value, const std::optional<std::string>& formated_value = std::nullopt);
    explicit Literal(std::string&& value, const std::optional<std::string>& formated_value = std::nullopt);
-	explicit Literal(bool boolValue);
+	explicit Literal(bool boolValue, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(int value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	explicit Literal(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
@@ -378,7 +378,7 @@ public:
 	TokenIt emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, bool b );
+	TokenIt emplace_back( TokenType type, bool b, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
 	TokenIt emplace_back( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
