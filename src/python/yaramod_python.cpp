@@ -150,7 +150,7 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Literal>(module, "Literal")
 		.def(py::init<bool>())
-		.def_property_readonly("text", &Literal::getText)
+		.def_property_readonly("text", [](Literal& self) { return self.getText(); })
 		.def_property_readonly("pure_text", &Literal::getPureText)
 		.def_property_readonly("is_string", &Literal::isString)
 		.def_property_readonly("is_bool", &Literal::isBool)
