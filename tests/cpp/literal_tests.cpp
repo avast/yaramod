@@ -23,6 +23,22 @@ namespace tests {
 class LiteralTests : public Test {};
 
 TEST_F(LiteralTests,
+BoolLiteral) {
+   auto l = Literal(true);
+   ASSERT_TRUE(l.isBool());
+   ASSERT_TRUE(l.getBool());
+   ASSERT_EQ(l.getText(), "true");
+   l = Literal(false);
+   ASSERT_TRUE(l.isBool());
+   ASSERT_FALSE(l.getBool());
+   ASSERT_EQ(l.getText(), "false");
+   l = Literal(true, "Yes");
+   ASSERT_TRUE(l.isBool());
+   ASSERT_TRUE(l.getBool());
+   ASSERT_EQ(l.getText(), "Yes");
+}
+
+TEST_F(LiteralTests,
 TokenStreamFindSimple) {
    TokenStream ts;
 
