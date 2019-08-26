@@ -54,8 +54,9 @@ Literal::Literal(std::string&& value, const std::optional<std::string>& formated
  *
  * @param value Bool value of the literal.
  */
-Literal::Literal( bool value )
+Literal::Literal( bool value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value( value )
+   , _formated_value( formated_value )
 {
 }
 
@@ -303,6 +304,8 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	}
 	else if (isBool())
 	{
+      if(_formated_value.has_value())
+         return _formated_value.value();
 		std::ostringstream ss;
 		ss << std::boolalpha << getBool();
 		return ss.str();
@@ -462,9 +465,9 @@ TokenIt TokenStream::emplace_back( TokenType type, std::string&& value, const st
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, bool b )
+TokenIt TokenStream::emplace_back( TokenType type, bool b, const std::optional<std::string>& formatted_value )
 {
-	_tokens.emplace_back(type, std::move(Literal(b)));
+	_tokens.emplace_back(type, std::move(Literal(b, formatted_value)));
 	return --_tokens.end();
 }
 
