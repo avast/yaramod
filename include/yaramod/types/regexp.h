@@ -83,7 +83,6 @@ public:
 		std::stringstream ss;
 		for(TokenIt it : _characters)
 			ss << it->getPureText();
-		ss << _rightRectBracket->getPureText();
 		return ss.str();
 	}
 
@@ -412,6 +411,7 @@ public:
 		{
 			_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, std::string());
+			_second = _first;
 		}
 		else
 		{
@@ -434,14 +434,16 @@ public:
 		ss << _operand->getText();
 		ss << _leftBracket->getPureText();
 
-		if(_first)
+		if( _first && _first == _second)
 			ss << (*_first)->getPureText();
-
-		ss << _operation->getPureText();
-
-		if(_second)
-			ss << (*_second)->getPureText();
-
+		else
+		{
+			if(_first)
+				ss << (*_first)->getPureText();
+			ss << _operation->getPureText();
+			if(_second)
+				ss << (*_second)->getPureText();
+		}
 		ss << _rightBracket->getPureText();
 		ss << _greedy->getPureText();
 
