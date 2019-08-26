@@ -66,7 +66,7 @@ rule rule_with_metas {
         self.assertEqual(rule.metas[0].value.pure_text, 'string meta')
 
         self.assertEqual(rule.metas[1].key, 'int_meta')
-        self.assertTrue(rule.metas[1].value.is_int)
+        self.assertTrue(rule.metas[1].value.is_int64_t)
         self.assertEqual(rule.metas[1].value.text, '42')
 
         self.assertEqual(rule.metas[2].key, 'bool_meta')
