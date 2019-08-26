@@ -176,15 +176,15 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std
  * @param acceptor TokenStream to move-append all our tokens
  * @return Built hex string.
  */
-std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor /*= nullptr*/) const
+std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor) const
 {
-	if( acceptor)
+	if(acceptor)
 	{
 		acceptor->move_append(_tokenStream.get());
 		return std::make_shared<HexString>(acceptor, _units);
 	}
 	else
-		return std::make_shared<HexString>(_tokenStream, _units);
+		return std::make_shared<HexString>(std::move(_tokenStream), _units);
 }
 
 /**
