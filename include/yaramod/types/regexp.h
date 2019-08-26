@@ -423,7 +423,7 @@ public:
 		}
 
 		_rightBracket = _tokenStream->emplace_back(TokenType::RCB, '}');
-		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy ? std::string() : "?");
+		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
 
 	virtual char getOperation() const override { return ' '; }
