@@ -52,9 +52,9 @@ public:
 	YaraRuleBuilder& withTag(const std::string& tag);
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
-	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value, const std::optional<std::string>& formated_value = std::nullopt);
-	YaraRuleBuilder& withUIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value = std::nullopt);
-	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value = std::nullopt);
+	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value);
+	YaraRuleBuilder& withUIntMeta(const std::string& key, std::uint64_t value);
+	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value);
 	YaraRuleBuilder& withBoolMeta(const std::string& key, bool value);
 
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value, std::uint32_t mods = String::Modifiers::Ascii);

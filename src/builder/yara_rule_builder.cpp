@@ -158,14 +158,14 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value)
 {
 	if(key == "")
 		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
 
 	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
 	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value);
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -179,14 +179,14 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value)
 {
 	if(key == "")
 		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
 
 	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
 	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
-	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value);
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -200,18 +200,14 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value)
 {
 	if(key == "")
 		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
 
 	auto itKey = _tokenStream->emplace_back( TokenType::META_KEY, key );
 	_tokenStream->emplace_back( TokenType::EQ, Literal(" = ") );
-	TokenIt itValue;
-	if(!formated_value.has_value())
-		itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, std::make_optional<std::string>(numToStr(value, std::hex, true)) );
-	else
-		itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, formated_value );
+	auto itValue = _tokenStream->emplace_back( TokenType::META_VALUE, value, std::make_optional<std::string>(numToStr(value, std::hex, true)) );
 	_metas.emplace_back(itKey, itValue);
 	return *this;
 }
