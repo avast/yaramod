@@ -25,12 +25,14 @@ public:
 	YaraFile();
 	YaraFile(std::shared_ptr<TokenStream> tokenStream);
 	YaraFile(YaraFile&&) noexcept = default;
+
+	YaraFile& operator=(YaraFile&&) noexcept = default;
 	/// @}
 
 	/// @name String representation
 	/// @{
 	std::string getText() const;
-	std::string getTextTokenized() const;
+	std::string getTextTokenized(bool withIncludes = false) const;
 	/// @}
 
 	/// @name Addition methods

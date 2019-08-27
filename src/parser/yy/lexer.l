@@ -52,77 +52,85 @@ whitespace  [ \v\r\t]
 
 %%
 
-".."         { return Parser::make_RANGE(_driver._tokenStream->emplace_back(RANGE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"."          { return Parser::make_DOT(_driver._tokenStream->emplace_back(DOT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"<"          { return Parser::make_LT(_driver._tokenStream->emplace_back(LT, std::string(yytext, yyleng)), CURRENT_LOC); }
-">"          { return Parser::make_GT(_driver._tokenStream->emplace_back(GT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"<="         { return Parser::make_LE(_driver._tokenStream->emplace_back(LE, std::string(yytext, yyleng)), CURRENT_LOC); }
-">="         { return Parser::make_GE(_driver._tokenStream->emplace_back(GE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"=="         { return Parser::make_EQ(_driver._tokenStream->emplace_back(EQ, std::string(yytext, yyleng)), CURRENT_LOC); }
-"!="         { return Parser::make_NEQ(_driver._tokenStream->emplace_back(NEQ, std::string(yytext, yyleng)), CURRENT_LOC); }
-"<<"         { return Parser::make_SHIFT_LEFT(_driver._tokenStream->emplace_back(SHIFT_LEFT, std::string(yytext, yyleng)), CURRENT_LOC); }
-">>"         { return Parser::make_SHIFT_RIGHT(_driver._tokenStream->emplace_back(SHIFT_RIGHT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"-"          { return Parser::make_MINUS(_driver._tokenStream->emplace_back(MINUS, std::string(yytext, yyleng)), CURRENT_LOC); }
-"+"          { return Parser::make_PLUS(_driver._tokenStream->emplace_back(PLUS, std::string(yytext, yyleng)), CURRENT_LOC); }
-"*"          { return Parser::make_MULTIPLY(_driver._tokenStream->emplace_back(MULTIPLY, std::string(yytext, yyleng)), CURRENT_LOC); }
-"\\"         { return Parser::make_DIVIDE(_driver._tokenStream->emplace_back(DIVIDE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"%"          { return Parser::make_MODULO(_driver._tokenStream->emplace_back(MODULO, std::string(yytext, yyleng)), CURRENT_LOC); }
-"^"          { return Parser::make_BITWISE_XOR(_driver._tokenStream->emplace_back(BITWISE_XOR, std::string(yytext, yyleng)), CURRENT_LOC); }
-"&"          { return Parser::make_BITWISE_AND(_driver._tokenStream->emplace_back(BITWISE_AND, std::string(yytext, yyleng)), CURRENT_LOC); }
-"|"          { return Parser::make_BITWISE_OR(_driver._tokenStream->emplace_back(BITWISE_OR, std::string(yytext, yyleng)), CURRENT_LOC); }
-"~"          { return Parser::make_BITWISE_NOT(_driver._tokenStream->emplace_back(BITWISE_NOT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"("          { return Parser::make_LP(_driver._tokenStream->emplace_back(LP, std::string(yytext, yyleng)), CURRENT_LOC); }
-")"          { return Parser::make_RP(_driver._tokenStream->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
+".."         { return Parser::make_RANGE(_driver.currentStream()->emplace_back(RANGE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"."          { return Parser::make_DOT(_driver.currentStream()->emplace_back(DOT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"<"          { return Parser::make_LT(_driver.currentStream()->emplace_back(LT, std::string(yytext, yyleng)), CURRENT_LOC); }
+">"          { return Parser::make_GT(_driver.currentStream()->emplace_back(GT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"<="         { return Parser::make_LE(_driver.currentStream()->emplace_back(LE, std::string(yytext, yyleng)), CURRENT_LOC); }
+">="         { return Parser::make_GE(_driver.currentStream()->emplace_back(GE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"=="         { return Parser::make_EQ(_driver.currentStream()->emplace_back(EQ, std::string(yytext, yyleng)), CURRENT_LOC); }
+"!="         { return Parser::make_NEQ(_driver.currentStream()->emplace_back(NEQ, std::string(yytext, yyleng)), CURRENT_LOC); }
+"<<"         { return Parser::make_SHIFT_LEFT(_driver.currentStream()->emplace_back(SHIFT_LEFT, std::string(yytext, yyleng)), CURRENT_LOC); }
+">>"         { return Parser::make_SHIFT_RIGHT(_driver.currentStream()->emplace_back(SHIFT_RIGHT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"-"          { return Parser::make_MINUS(_driver.currentStream()->emplace_back(MINUS, std::string(yytext, yyleng)), CURRENT_LOC); }
+"+"          { return Parser::make_PLUS(_driver.currentStream()->emplace_back(PLUS, std::string(yytext, yyleng)), CURRENT_LOC); }
+"*"          { return Parser::make_MULTIPLY(_driver.currentStream()->emplace_back(MULTIPLY, std::string(yytext, yyleng)), CURRENT_LOC); }
+"\\"         { return Parser::make_DIVIDE(_driver.currentStream()->emplace_back(DIVIDE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"%"          { return Parser::make_MODULO(_driver.currentStream()->emplace_back(MODULO, std::string(yytext, yyleng)), CURRENT_LOC); }
+"^"          { return Parser::make_BITWISE_XOR(_driver.currentStream()->emplace_back(BITWISE_XOR, std::string(yytext, yyleng)), CURRENT_LOC); }
+"&"          { return Parser::make_BITWISE_AND(_driver.currentStream()->emplace_back(BITWISE_AND, std::string(yytext, yyleng)), CURRENT_LOC); }
+"|"          { return Parser::make_BITWISE_OR(_driver.currentStream()->emplace_back(BITWISE_OR, std::string(yytext, yyleng)), CURRENT_LOC); }
+"~"          { return Parser::make_BITWISE_NOT(_driver.currentStream()->emplace_back(BITWISE_NOT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"("          { return Parser::make_LP(_driver.currentStream()->emplace_back(LP, std::string(yytext, yyleng)), CURRENT_LOC); }
+")"          { return Parser::make_RP(_driver.currentStream()->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
 "{"          { return Parser::make_LCB( CURRENT_LOC); }
 "}"          { return Parser::make_RCB( CURRENT_LOC); }
-"["          { _driver._tokenStream->emplace_back(TokenType::LSQB, "["); return Parser::make_LSQB(CURRENT_LOC); }
-"]"          { _driver._tokenStream->emplace_back(TokenType::RSQB, "]"); return Parser::make_RSQB(CURRENT_LOC); }
+"["          { _driver.currentStream()->emplace_back(TokenType::LSQB, "["); return Parser::make_LSQB(CURRENT_LOC); }
+"]"          { _driver.currentStream()->emplace_back(TokenType::RSQB, "]"); return Parser::make_RSQB(CURRENT_LOC); }
 "="          { return Parser::make_ASSIGN(CURRENT_LOC); }
-":"          { return Parser::make_COLON(_driver._tokenStream->emplace_back(COLON, std::string(yytext, yyleng)), CURRENT_LOC); }
-","          { return Parser::make_COMMA(_driver._tokenStream->emplace_back(COMMA, std::string(yytext, yyleng)), CURRENT_LOC); }
+":"          { return Parser::make_COLON(_driver.currentStream()->emplace_back(COLON, std::string(yytext, yyleng)), CURRENT_LOC); }
+","          { return Parser::make_COMMA(_driver.currentStream()->emplace_back(COMMA, std::string(yytext, yyleng)), CURRENT_LOC); }
 "/"          { return Parser::make_SLASH(std::string(), CURRENT_LOC); }
 "global"     { return Parser::make_GLOBAL(CURRENT_LOC); }
 "private"    { return Parser::make_PRIVATE(CURRENT_LOC); }
-"rule"       { return Parser::make_RULE(_driver._tokenStream->emplace_back(RULE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"meta"       { return Parser::make_META(_driver._tokenStream->emplace_back(META, std::string(yytext, yyleng)), CURRENT_LOC); }
-"strings"    { return Parser::make_STRINGS(_driver._tokenStream->emplace_back(STRINGS, std::string(yytext, yyleng)), CURRENT_LOC); }
-"condition"  { return Parser::make_CONDITION(_driver._tokenStream->emplace_back(CONDITION, std::string(yytext, yyleng)), CURRENT_LOC); }
-"ascii"      { return Parser::make_ASCII(_driver._tokenStream->emplace_back(ASCII, std::string(yytext, yyleng)), CURRENT_LOC); }
-"nocase"     { return Parser::make_NOCASE(_driver._tokenStream->emplace_back(NOCASE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"wide"       { return Parser::make_WIDE(_driver._tokenStream->emplace_back(WIDE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"fullword"   { return Parser::make_FULLWORD(_driver._tokenStream->emplace_back(FULLWORD, std::string(yytext, yyleng)), CURRENT_LOC); }
-"xor"        { return Parser::make_XOR(_driver._tokenStream->emplace_back(XOR, std::string(yytext, yyleng)), CURRENT_LOC); }
+"rule"       { return Parser::make_RULE(_driver.currentStream()->emplace_back(RULE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"meta"       { return Parser::make_META(_driver.currentStream()->emplace_back(META, std::string(yytext, yyleng)), CURRENT_LOC); }
+"strings"    { return Parser::make_STRINGS(_driver.currentStream()->emplace_back(STRINGS, std::string(yytext, yyleng)), CURRENT_LOC); }
+"condition"  { return Parser::make_CONDITION(_driver.currentStream()->emplace_back(CONDITION, std::string(yytext, yyleng)), CURRENT_LOC); }
+"ascii"      { return Parser::make_ASCII(_driver.currentStream()->emplace_back(ASCII, std::string(yytext, yyleng)), CURRENT_LOC); }
+"nocase"     { return Parser::make_NOCASE(_driver.currentStream()->emplace_back(NOCASE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"wide"       { return Parser::make_WIDE(_driver.currentStream()->emplace_back(WIDE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"fullword"   { return Parser::make_FULLWORD(_driver.currentStream()->emplace_back(FULLWORD, std::string(yytext, yyleng)), CURRENT_LOC); }
+"xor"        { return Parser::make_XOR(_driver.currentStream()->emplace_back(XOR, std::string(yytext, yyleng)), CURRENT_LOC); }
 "true"       { return Parser::make_BOOL_TRUE(CURRENT_LOC); }
 "false"      { return Parser::make_BOOL_FALSE(CURRENT_LOC); }
-"import"     { return Parser::make_IMPORT_KEYWORD(_driver._tokenStream->emplace_back(IMPORT_KEYWORD, std::string(yytext, yyleng)), CURRENT_LOC); }
-"not"        { return Parser::make_NOT(_driver._tokenStream->emplace_back(NOT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"and"        { return Parser::make_AND(_driver._tokenStream->emplace_back(AND, std::string(yytext, yyleng)), CURRENT_LOC); }
-"or"         { return Parser::make_OR(_driver._tokenStream->emplace_back(OR, std::string(yytext, yyleng)), CURRENT_LOC); }
-"all"        { return Parser::make_ALL(_driver._tokenStream->emplace_back(ALL, std::string(yytext, yyleng)), CURRENT_LOC); }
-"any"        { return Parser::make_ANY(_driver._tokenStream->emplace_back(ANY, std::string(yytext, yyleng)), CURRENT_LOC); }
-"of"         { return Parser::make_OF(_driver._tokenStream->emplace_back(OF, std::string(yytext, yyleng)), CURRENT_LOC); }
-"them"       { return Parser::make_THEM(_driver._tokenStream->emplace_back(THEM, std::string(yytext, yyleng)), CURRENT_LOC); }
-"for"        { return Parser::make_FOR(_driver._tokenStream->emplace_back(FOR, std::string(yytext, yyleng)), CURRENT_LOC); }
-"entrypoint" { return Parser::make_ENTRYPOINT(_driver._tokenStream->emplace_back(ENTRYPOINT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"at"         { return Parser::make_OP_AT(_driver._tokenStream->emplace_back(OP_AT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"in"         { return Parser::make_OP_IN(_driver._tokenStream->emplace_back(OP_IN, std::string(yytext, yyleng)), CURRENT_LOC); }
-"filesize"   { return Parser::make_FILESIZE(_driver._tokenStream->emplace_back(FILESIZE, std::string(yytext, yyleng)), CURRENT_LOC); }
-"contains"   { return Parser::make_CONTAINS(_driver._tokenStream->emplace_back(CONTAINS, std::string(yytext, yyleng)), CURRENT_LOC); }
-"matches"    { return Parser::make_MATCHES(_driver._tokenStream->emplace_back(MATCHES, std::string(yytext, yyleng)), CURRENT_LOC); }
-"include"    { BEGIN(INCLUDE); }
+"import"     { return Parser::make_IMPORT_KEYWORD(_driver.currentStream()->emplace_back(IMPORT_KEYWORD, std::string(yytext, yyleng)), CURRENT_LOC); }
+"not"        { return Parser::make_NOT(_driver.currentStream()->emplace_back(NOT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"and"        { return Parser::make_AND(_driver.currentStream()->emplace_back(AND, std::string(yytext, yyleng)), CURRENT_LOC); }
+"or"         { return Parser::make_OR(_driver.currentStream()->emplace_back(OR, std::string(yytext, yyleng)), CURRENT_LOC); }
+"all"        { return Parser::make_ALL(_driver.currentStream()->emplace_back(ALL, std::string(yytext, yyleng)), CURRENT_LOC); }
+"any"        { return Parser::make_ANY(_driver.currentStream()->emplace_back(ANY, std::string(yytext, yyleng)), CURRENT_LOC); }
+"of"         { return Parser::make_OF(_driver.currentStream()->emplace_back(OF, std::string(yytext, yyleng)), CURRENT_LOC); }
+"them"       { return Parser::make_THEM(_driver.currentStream()->emplace_back(THEM, std::string(yytext, yyleng)), CURRENT_LOC); }
+"for"        { return Parser::make_FOR(_driver.currentStream()->emplace_back(FOR, std::string(yytext, yyleng)), CURRENT_LOC); }
+"entrypoint" { return Parser::make_ENTRYPOINT(_driver.currentStream()->emplace_back(ENTRYPOINT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"at"         { return Parser::make_OP_AT(_driver.currentStream()->emplace_back(OP_AT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"in"         { return Parser::make_OP_IN(_driver.currentStream()->emplace_back(OP_IN, std::string(yytext, yyleng)), CURRENT_LOC); }
+"filesize"   { return Parser::make_FILESIZE(_driver.currentStream()->emplace_back(FILESIZE, std::string(yytext, yyleng)), CURRENT_LOC); }
+"contains"   { return Parser::make_CONTAINS(_driver.currentStream()->emplace_back(CONTAINS, std::string(yytext, yyleng)), CURRENT_LOC); }
+"matches"    { return Parser::make_MATCHES(_driver.currentStream()->emplace_back(MATCHES, std::string(yytext, yyleng)), CURRENT_LOC); }
+"include"    {
+	_driver.currentStream()->emplace_back(TokenType::INCLUDE_DIRECTIVE, std::string(yytext, yyleng));
+	BEGIN(INCLUDE);
+}
 
-<INCLUDE>{newline}           { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); }
+<INCLUDE>{newline}           { _driver.currentStream()->emplace_back(TokenType::NEW_LINE, "\n"); }
 <INCLUDE>{whitespace}*       { }
 <INCLUDE>"\""                { BEGIN(INCLUDE_FILE); }
 <INCLUDE>.                   { return yyterminate(); }
 <INCLUDE_FILE>[^"]+"\""      {
 	std::string filePath = std::string(yytext, yyleng - 1);
-	if (!_driver.includeFile(filePath))
+
+	TokenIt includeToken = _driver.currentStream()->emplace_back(INCLUDE_PATH, filePath);
+	includeToken->initializeSubstream();
+	auto substream = includeToken->getIncludeSubstream();
+	if (!_driver.includeFile(filePath, substream))
 	{
 		_driver.getParser().error(_driver.getLocation(), "Unable to include file '" + filePath + "'");
 		return yyterminate();
 	}
-
+	/* switch back to original tokenstream */
+	//_driver.currentStream() = std::move(parentStream);
 	BEGIN(INITIAL);
 }
 
@@ -132,7 +140,7 @@ whitespace  [ \v\r\t]
 }
 <MULTILINE_COMMENT>"*/" {
 	_driver._tmp_comment.append(std::string(yytext, yyleng));
-	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment), _indent);
+	auto it = _driver.currentStream()->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment), _indent);
 	_driver.addComment(it);
 	BEGIN(INITIAL);
 	_indent.clear();
@@ -144,7 +152,7 @@ whitespace  [ \v\r\t]
 <MULTILINE_COMMENT>.     	  { _driver._tmp_comment.append(std::string(yytext, yyleng)); }
 
 "//"[^\n]* {
-	auto it = _driver._tokenStream->emplace_back(TokenType::COMMENT, std::string(yytext, yyleng), _indent);
+	auto it = _driver.currentStream()->emplace_back(TokenType::COMMENT, std::string(yytext, yyleng), _indent);
 	_driver.addComment(it);
 }
 
@@ -171,18 +179,18 @@ whitespace  [ \v\r\t]
 u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::string(yytext, yyleng), CURRENT_LOC); }
 "$"({letter}|{digit}|_)*           { return Parser::make_STRING_ID(std::string(yytext, yyleng), CURRENT_LOC); }
 "$"({letter}|{digit}|_)*"*"        { return Parser::make_STRING_ID_WILDCARD(std::string(yytext, yyleng), CURRENT_LOC); }
-"#"({letter}|{digit}|_)*           { return Parser::make_STRING_COUNT(_driver._tokenStream->emplace_back(STRING_COUNT, std::string(yytext, yyleng)), CURRENT_LOC); }
-"@"({letter}|{digit}|_)*           { return Parser::make_STRING_OFFSET(_driver._tokenStream->emplace_back(STRING_OFFSET, std::string(yytext, yyleng)), CURRENT_LOC); }
-"!"({letter}|{digit}|_)*           { return Parser::make_STRING_LENGTH(_driver._tokenStream->emplace_back(STRING_LENGTH, std::string(yytext, yyleng)), CURRENT_LOC); }
+"#"({letter}|{digit}|_)*           { return Parser::make_STRING_COUNT(_driver.currentStream()->emplace_back(STRING_COUNT, std::string(yytext, yyleng)), CURRENT_LOC); }
+"@"({letter}|{digit}|_)*           { return Parser::make_STRING_OFFSET(_driver.currentStream()->emplace_back(STRING_OFFSET, std::string(yytext, yyleng)), CURRENT_LOC); }
+"!"({letter}|{digit}|_)*           { return Parser::make_STRING_LENGTH(_driver.currentStream()->emplace_back(STRING_LENGTH, std::string(yytext, yyleng)), CURRENT_LOC); }
 ({letter}|_)({letter}|{digit}|_)*  { return Parser::make_ID(std::string(yytext, yyleng), CURRENT_LOC); }
 
 "0x"({hexdigit}+)                  { return Parser::make_INTEGER(std::string(yytext, yyleng), CURRENT_LOC); }
 {digit}+"."{digit}+                { return Parser::make_DOUBLE(std::string(yytext, yyleng), CURRENT_LOC); }
 {digit}+(KB|MB)?                   { return Parser::make_INTEGER(std::string(yytext, yyleng), CURRENT_LOC); }
 
-<HEXSTR>"|"                        { return Parser::make_HEX_OR(_driver._tokenStream->emplace_back(HEX_ALT, std::string(yytext, yyleng)), CURRENT_LOC); }
-<HEXSTR>"("                        { return Parser::make_LP(_driver._tokenStream->emplace_back(LP, std::string(yytext, yyleng)), CURRENT_LOC); }
-<HEXSTR>")"                        { return Parser::make_RP(_driver._tokenStream->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
+<HEXSTR>"|"                        { return Parser::make_HEX_OR(_driver.currentStream()->emplace_back(HEX_ALT, std::string(yytext, yyleng)), CURRENT_LOC); }
+<HEXSTR>"("                        { return Parser::make_LP(_driver.currentStream()->emplace_back(LP, std::string(yytext, yyleng)), CURRENT_LOC); }
+<HEXSTR>")"                        { return Parser::make_RP(_driver.currentStream()->emplace_back(RP, std::string(yytext, yyleng)), CURRENT_LOC); }
 <HEXSTR>"?"                        { return Parser::make_HEX_WILDCARD(CURRENT_LOC); }
 <HEXSTR>"}"                        { BEGIN(INITIAL); return Parser::make_RCB(CURRENT_LOC); }
 <HEXSTR>{hexdigit}                 { return Parser::make_HEX_NIBBLE(yytext, CURRENT_LOC); }
@@ -193,20 +201,20 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 	strToNum(numStr, num, std::dec);
 	return Parser::make_HEX_INTEGER(num, CURRENT_LOC);
 }
-<HEXSTR_JUMP>"-"                   { _driver._tokenStream->emplace_back(TokenType::DASH, "-"); return Parser::make_DASH(CURRENT_LOC); }
+<HEXSTR_JUMP>"-"                   { _driver.currentStream()->emplace_back(TokenType::DASH, "-"); return Parser::make_DASH(CURRENT_LOC); }
 <HEXSTR_JUMP>"]"                   { BEGIN(HEXSTR); return Parser::make_RSQB(CURRENT_LOC); }
 <HEXSTR,HEXSTR_JUMP>"//"[^\n]*     { }
 <HEXSTR,HEXSTR_JUMP>"/*"           { BEGIN(HEXSTR_MULTILINE_COMMENT); }
 <HEXSTR_MULTILINE_COMMENT>"*/"     { BEGIN(HEXSTR); }
 <HEXSTR_MULTILINE_COMMENT>.        { }
 <HEXSTR,HEXSTR_JUMP>{whitespace}*  { }
-<HEXSTR,HEXSTR_JUMP>{newline}*     { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n");}
+<HEXSTR,HEXSTR_JUMP>{newline}*     { _driver.currentStream()->emplace_back(TokenType::NEW_LINE, "\n");}
 <HEXSTR,HEXSTR_JUMP>.              { return yyterminate(); }
 <HEXSTR,HEXSTR_JUMP><<EOF>>        { return yyterminate(); }
 
 <REGEXP>"/"i?s?                    { return Parser::make_SLASH(std::string(yytext + 1, yyleng - 1), CURRENT_LOC); }
-<REGEXP>"("                        { return Parser::make_LP(_driver._tokenStream->emplace_back(NULLSYMBOL, std::string()), CURRENT_LOC); }
-<REGEXP>")"                        { return Parser::make_RP(_driver._tokenStream->emplace_back(NULLSYMBOL, std::string()), CURRENT_LOC); }
+<REGEXP>"("                        { return Parser::make_LP(_driver.currentStream()->emplace_back(NULLSYMBOL, std::string()), CURRENT_LOC); }
+<REGEXP>")"                        { return Parser::make_RP(_driver.currentStream()->emplace_back(NULLSYMBOL, std::string()), CURRENT_LOC); }
 <REGEXP>"|"                        { return Parser::make_REGEXP_OR(CURRENT_LOC); }
 <REGEXP>"*"                        { return Parser::make_REGEXP_ITER(CURRENT_LOC); }
 <REGEXP>"+"                        { return Parser::make_REGEXP_PITER(CURRENT_LOC); }
@@ -290,7 +298,7 @@ u?int(8|16|32)(be)?                { return Parser::make_INTEGER_FUNCTION(std::s
 <REGEXP_CLASS>"\\B"                { _regexpClass += "\\B"; }
 <REGEXP_CLASS>.                    { _regexpClass += yytext[0]; }
 
-{newline}                          { _driver._tokenStream->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); _indent.clear(); }
+{newline}                          { _driver.currentStream()->emplace_back(TokenType::NEW_LINE, "\n"); _driver.moveLineLocation(); _indent.clear(); }
 {whitespace}*                      { _indent += std::string(yytext, yyleng); }
 <<EOF>>                            {
 	if (!_driver.includeEnd())

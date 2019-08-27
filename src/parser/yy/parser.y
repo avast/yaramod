@@ -142,7 +142,6 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token HEX_WILDCARD                "hex string ?"
 %token DASH                        "hex string -"
 %token <std::string> HEX_NIBBLE   "hex string nibble"
-//%token <std::uint8_t> HEX_NIBBLE   "hex string nibble"
 %token <std::uint64_t> HEX_INTEGER "hex string integer"
 
 %token REGEXP_OR                                "regexp |"
@@ -227,7 +226,7 @@ rules
 import
 	: IMPORT_KEYWORD STRING_LITERAL[module]
 		{
-			TokenIt import = driver._tokenStream->emplace_back(TokenType::IMPORT_MODULE, $module);
+			TokenIt import = driver.currentStream()->emplace_back(TokenType::IMPORT_MODULE, $module);
 			if (!driver._file.addImport(import))
 			{
 				error(driver.getLocation(), "Unrecognized module '" + $module + "' imported");
@@ -248,19 +247,19 @@ rule
 				error(driver.getLocation(), "Redefinition of rule '" + $id + "'");
 				YYABORT;
 			}
-			driver._tmp_token = driver._tokenStream->emplace_back(TokenType::RULE_NAME, $id);
+			driver._tmp_token = driver.currentStream()->emplace_back(TokenType::RULE_NAME, $id);
 		}
 		tags rule_begin
 		metas strings condition rule_end
 		{
-			driver.addRule(Rule(driver._tokenStream, driver._tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
+			driver.addRule(Rule(driver.currentStream(), driver._tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
 			driver._tmp_token.reset();
 		}
 	;
 
 rule_mod
-	: GLOBAL { $$ = driver._tokenStream->emplace_back(TokenType::GLOBAL, "global"); }
-	| PRIVATE { $$ = driver._tokenStream->emplace_back(TokenType::PRIVATE, "private"); }
+	: GLOBAL { $$ = driver.currentStream()->emplace_back(TokenType::GLOBAL, "global"); }
+	| PRIVATE { $$ = driver.currentStream()->emplace_back(TokenType::PRIVATE, "private"); }
 	| %empty { $$ = std::nullopt; }
 	;
 
@@ -270,22 +269,22 @@ tags
 	;
 
 rule_begin
-	: LCB {driver._tokenStream->emplace_back(TokenType::RULE_BEGIN, "{");}
+	: LCB {driver.currentStream()->emplace_back(TokenType::RULE_BEGIN, "{");}
 	;
 
 rule_end
-	: RCB {driver._tokenStream->emplace_back(TokenType::RULE_END, "}");}
+	: RCB {driver.currentStream()->emplace_back(TokenType::RULE_END, "}");}
 	;
 
 tag_list
 	: tag_list ID
 		{
 			$$ = std::move($1);
-			$$.push_back(driver._tokenStream->emplace_back(TokenType::TAG, std::move($2)));
+			$$.push_back(driver.currentStream()->emplace_back(TokenType::TAG, std::move($2)));
 		}
 	| ID
 	{
-		$$.push_back(driver._tokenStream->emplace_back(TokenType::TAG, std::move($1)));
+		$$.push_back(driver.currentStream()->emplace_back(TokenType::TAG, std::move($1)));
 	}
 	;
 
@@ -304,9 +303,9 @@ metas_body
 	: metas_body[body] ID ASSIGN literal
 		{
 			$$ = std::move($body);
-			TokenIt key = driver._tokenStream->emplace_back(TokenType::META_KEY, std::move($2));
-			driver._tokenStream->emplace_back(TokenType::EQ, "=");
-			TokenIt val = driver._tokenStream->emplace_back(TokenType::META_VALUE, std::move($4));
+			TokenIt key = driver.currentStream()->emplace_back(TokenType::META_KEY, std::move($2));
+			driver.currentStream()->emplace_back(TokenType::EQ, "=");
+			TokenIt val = driver.currentStream()->emplace_back(TokenType::META_VALUE, std::move($4));
 			$$.emplace_back(key, val);
 		}
 	| %empty { $$.clear(); }
@@ -345,32 +344,32 @@ strings_body
 string_id
 	: STRING_ID
 	{
-		$$ = driver._tokenStream->emplace_back(TokenType::STRING_ID, $1);
-		// $$ = driver._tokenStream->emplace(--driver._tokenStream->end(), STRING_ID, $1);
+		$$ = driver.currentStream()->emplace_back(TokenType::STRING_ID, $1);
+		// $$ = driver.currentStream()->emplace(--driver.currentStream()->end(), STRING_ID, $1);
 	}
 
 assign
 	: ASSIGN
 	{
-		$$ = driver._tokenStream->emplace_back(TokenType::ASSIGN, "=");
+		$$ = driver.currentStream()->emplace_back(TokenType::ASSIGN, "=");
 	}
 
 string
 	: strings_value[value] string_mods
 		{
-			$$ = std::make_shared<PlainString>(driver._tokenStream, std::move($value));
+			$$ = std::make_shared<PlainString>(driver.currentStream(), std::move($value));
 			$$->setModifiers($string_mods.first, std::move($string_mods.second));
 		}
 	| LCB
 		{
-			driver._tokenStream->emplace_back(TokenType::HEX_START_BRACKET, "{");
+			driver.currentStream()->emplace_back(TokenType::HEX_START_BRACKET, "{");
 			driver.getLexer().switchToHexLexer();
 		}
 		hex_string RCB
 		{
-			$$ = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string));
+			$$ = std::make_shared<HexString>(driver.currentStream(), std::move($hex_string));
 			driver.getLexer().switchToYaraLexer();
-			driver._tokenStream->emplace_back(TokenType::HEX_END_BRACKET, "}");
+			driver.currentStream()->emplace_back(TokenType::HEX_END_BRACKET, "}");
 		}
 	| regexp string_mods
 		{
@@ -382,7 +381,7 @@ string
 strings_value
 	: STRING_LITERAL
 		{
-			$$ = driver._tokenStream->emplace_back(TokenType::STRING_LITERAL, $1);
+			$$ = driver.currentStream()->emplace_back(TokenType::STRING_LITERAL, $1);
 		}
 	;
 
@@ -394,9 +393,9 @@ expression
 	: boolean
 		{
 			if($1)
-				$$ = std::make_shared<BoolLiteralExpression>(driver._tokenStream->emplace_back(BOOL_TRUE, $1));
+				$$ = std::make_shared<BoolLiteralExpression>(driver.currentStream()->emplace_back(BOOL_TRUE, $1));
 			else
-				$$ = std::make_shared<BoolLiteralExpression>(driver._tokenStream->emplace_back(BOOL_FALSE, $1));
+				$$ = std::make_shared<BoolLiteralExpression>(driver.currentStream()->emplace_back(BOOL_FALSE, $1));
 			$$->setType(Expression::Type::Bool);
 		}
 	| string_id
@@ -440,7 +439,7 @@ expression
 	| FOR for_expression ID[id]
 		{
 			auto symbol = std::make_shared<ValueSymbol>($id, Expression::Type::Int);
-			driver._tokenStream->emplace_back(TokenType::ID, symbol->getName());
+			driver.currentStream()->emplace_back(TokenType::ID, symbol->getName());
 			if (!driver.addLocalSymbol(symbol))
 			{
 				error(driver.getLocation(), "Redefinition of identifier '" + $id + "'");
@@ -590,13 +589,13 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 		}
 	| DOUBLE
 		{
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::DOUBLE, std::stod(std::move($1)));
+			TokenIt t = driver.currentStream()->emplace_back(TokenType::DOUBLE, std::stod(std::move($1)));
 			$$ = std::make_shared<DoubleLiteralExpression>(t);
 			$$->setType(Expression::Type::Float);
 		}
 	| STRING_LITERAL
 		{
-			TokenIt t = driver._tokenStream->emplace_back(TokenType::STRING_LITERAL, std::move($1));
+			TokenIt t = driver.currentStream()->emplace_back(TokenType::STRING_LITERAL, std::move($1));
 			$$ = std::make_shared<StringLiteralExpression>(t);
 			$$->setType(Expression::Type::String);
 		}
@@ -894,7 +893,7 @@ primary_expression // (primary_expression[expr]) | filesize | entrypoint |
 		}
 	; // konec primary_expression
 
-integer_function : INTEGER_FUNCTION { $$ = driver._tokenStream->emplace_back(INTEGER_FUNCTION, $1); }
+integer_function : INTEGER_FUNCTION { $$ = driver.currentStream()->emplace_back(INTEGER_FUNCTION, $1); }
 
 integer_token
 	: INTEGER
@@ -911,11 +910,11 @@ integer_token
 		      }
 	      }
 			if($1.substr(0,2) == "0x" || $1.substr(0,2) == "0X")
-				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol($1.substr(2), 0, 16) * multiplier, $1);
+				$$ = driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol($1.substr(2), 0, 16) * multiplier, $1);
 			else if(multiplier != 1)
-				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol(std::move($1)) * multiplier, $1);
+				$$ = driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol(std::move($1)) * multiplier, $1);
 			else
-				$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, std::stol(std::move($1)));
+				$$ = driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol(std::move($1)));
 		}
 
 
@@ -1015,7 +1014,7 @@ string_enumeration
 				YYABORT;
 			}
 
-			TokenIt t = driver._tokenStream->emplace_back(STRING_ID_WILDCARD, $id);
+			TokenIt t = driver.currentStream()->emplace_back(STRING_ID_WILDCARD, $id);
 			$$.push_back(std::make_shared<StringWildcardExpression>(t));
 		}
 	| string_enumeration[enum] COMMA string_id[id]
@@ -1051,7 +1050,7 @@ identifier
 				error(driver.getLocation(), "Unrecognized identifier '" + $1 + "' referenced");
 				YYABORT;
 			}
-			TokenIt symbol_token = driver._tokenStream->emplace_back(ID, symbol, symbol->getName());
+			TokenIt symbol_token = driver.currentStream()->emplace_back(ID, symbol, symbol->getName());
 			$$ = std::make_shared<IdExpression>(symbol_token);
 			$$->setType(symbol->getDataType());
 		}
@@ -1079,7 +1078,7 @@ identifier
 			}
 
 			auto symbol = attr.value();
-			TokenIt symbol_token = driver._tokenStream->emplace_back(symbol->getTokenType(), symbol, symbol->getName() );
+			TokenIt symbol_token = driver.currentStream()->emplace_back(symbol->getTokenType(), symbol, symbol->getName() );
 			$$ = std::make_shared<StructAccessExpression>(symbol_token, std::move($1), $dot);
 			$$->setType(symbol->getDataType());
 		}
@@ -1226,10 +1225,10 @@ hex_byte
 	: HEX_NIBBLE HEX_NIBBLE
 		{
 			uint8_t u1 = ('A' <= std::toupper($1[0]) && std::toupper($1[0]) <= 'F') ? std::toupper($1[0]) - 'A' + 10 : $1[0] - '0';
-			auto unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
+			auto unit1 = driver.currentStream()->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
 			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
 			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
-			auto unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
+			auto unit2 = driver.currentStream()->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
 			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1238,9 +1237,9 @@ hex_byte
 	| HEX_NIBBLE HEX_WILDCARD
 		{
 			uint8_t u1 = ('A' <= std::toupper($1[0]) && std::toupper($1[0]) <= 'F') ? std::toupper($1[0]) - 'A' + 10 : $1[0] - '0';
-			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
+			TokenIt unit1 = driver.currentStream()->emplace_back(TokenType::HEX_NIBBLE, u1, $1);
 			auto first = std::make_shared<HexStringNibble>(std::move(unit1));
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
+			TokenIt unit2 = driver.currentStream()->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
 			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1248,10 +1247,10 @@ hex_byte
 		}
 	| HEX_WILDCARD HEX_NIBBLE
 		{
-			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
+			TokenIt unit1 = driver.currentStream()->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
 			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
 			uint8_t u2 = ('A' <= std::toupper($2[0]) && std::toupper($2[0]) <= 'F') ? std::toupper($2[0]) - 'A' + 10 : $2[0] - '0';
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
+			TokenIt unit2 = driver.currentStream()->emplace_back(TokenType::HEX_NIBBLE, u2, $2);
 			auto second = std::make_shared<HexStringNibble>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
@@ -1259,15 +1258,15 @@ hex_byte
 		}
 	| HEX_WILDCARD HEX_WILDCARD
 		{
-			TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
+			TokenIt unit1 = driver.currentStream()->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
 			auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
-			TokenIt unit2 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
+			TokenIt unit2 = driver.currentStream()->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
 			auto second = std::make_shared<HexStringWildcard>(std::move(unit2));
 			$$.reserve(2);
 			$$.push_back(std::move(first));
 			$$.push_back(std::move(second));
 
-			// TokenIt unit1 = driver._tokenStream->emplace_back(TokenType::HEX_WILDCARD_FULL, "??");
+			// TokenIt unit1 = driver.currentStream()->emplace_back(TokenType::HEX_WILDCARD_FULL, "??");
 			// auto first = std::make_shared<HexStringWildcard>(std::move(unit1));
 			// $$.reserve(1);
 			// $$.push_back(std::move(first));
@@ -1299,13 +1298,13 @@ hex_or
 hex_or_body //vektor<shared_ptr<HexString>>
 	: hex_string_body
 		{
-			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body));
+			auto hexStr = std::make_shared<HexString>(driver.currentStream(), std::move($hex_string_body));
 			$$.push_back(std::move(hexStr));
 		}
 	| hex_or_body[body] HEX_OR hex_string_body
 		{
 			$$ = std::move($body);
-			auto hexStr = std::make_shared<HexString>(driver._tokenStream, std::move($hex_string_body)); //vektor<shared_ptr<HexStringUnit>>
+			auto hexStr = std::make_shared<HexString>(driver.currentStream(), std::move($hex_string_body)); //vektor<shared_ptr<HexStringUnit>>
 			$$.push_back(std::move(hexStr));
 		}
 	;
@@ -1321,7 +1320,7 @@ hex_jump
 		}
 	| hex_jump_lb hex_integer[low] DASH hex_integer[high] hex_jump_rb
 		{
-			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
+			// driver.currentStream()->emplace_back(TokenType::DASH, "-");
 			$$ = std::make_shared<HexStringJump>($low, $high);
 		}
 	| hex_jump_lb hex_integer[low] DASH hex_jump_rb
@@ -1330,18 +1329,18 @@ hex_jump
 		}
 	| hex_jump_lb DASH hex_jump_rb
 		{
-			// driver._tokenStream->emplace_back(TokenType::DASH, "-");
+			// driver.currentStream()->emplace_back(TokenType::DASH, "-");
 			$$ = std::make_shared<HexStringJump>();
 		}
 	;
 hex_integer
-	: HEX_INTEGER {$$ = driver._tokenStream->emplace_back(TokenType::INTEGER, $1);}
+	: HEX_INTEGER {$$ = driver.currentStream()->emplace_back(TokenType::INTEGER, $1);}
 
 hex_jump_lb
-	: LSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_LEFT_BRACKET, "["); }
+	: LSQB { $$ = driver.currentStream()->emplace_back(TokenType::HEX_JUMP_LEFT_BRACKET, "["); }
 
 hex_jump_rb
-	: RSQB { $$ = driver._tokenStream->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "]"); }
+	: RSQB { $$ = driver.currentStream()->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "]"); }
 
 regexp
 	: SLASH
@@ -1356,7 +1355,7 @@ regexp
 		}
 
 regexp_body
-	: regexp_or { $$ = std::make_shared<Regexp>(driver._tokenStream, std::move($regexp_or)); }
+	: regexp_or { $$ = std::make_shared<Regexp>(driver.currentStream(), std::move($regexp_or)); }
 	;
 
 regexp_or

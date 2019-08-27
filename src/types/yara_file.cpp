@@ -148,11 +148,9 @@ std::string YaraFile::getText() const
 	return trim(ss.str());
 }
 
-std::string YaraFile::getTextTokenized() const
+std::string YaraFile::getTextTokenized(bool withIncludes) const
 {
-	std::stringstream ss;
-	ss << *getTokenStream();
-	return ss.str();
+	return getTokenStream()->getText(withIncludes);
 }
 
 /**

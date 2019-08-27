@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <memory>
 #include <set>
+#include <stack>
 #include <unordered_map>
 
 #include "yaramod/yaramod_error.h"
@@ -97,7 +98,7 @@ public:
 protected:
 	/// @name Methods for handling includes
 	/// @{
-	bool includeFile(const std::string& includePath);
+	bool includeFile(const std::string& includePath, std::shared_ptr<TokenStream> substream);
 	bool includeEnd();
 	/// @}
 
@@ -129,16 +130,21 @@ protected:
    void removeLocalSymbol(const std::string& name);
    /// @}
 
-	/// @name Method for handling anonymous strings
+	/// @name Methods for handling anonymous strings
 	/// @{
 	bool isAnonymousStringId(const std::string& stringId) const;
 	std::string generateAnonymousStringPseudoId();
 	/// @}
 
+	/// @name Methods for handling token streams
+	/// @{
+	std::shared_ptr<TokenStream> currentStream() const { return _tokenStreams.top(); }
+	/// @}
+
 private:
 	bool isAlreadyIncluded(const std::string& includePath);
 	bool hasRuleWithName(const std::string& name) const;
-	bool includeFileImpl(const std::string& includePath);
+	bool includeFileImpl(const std::string& includePath, std::shared_ptr<TokenStream> substream);
 
 	ParserMode _mode; ///< Parser mode.
 
@@ -146,7 +152,7 @@ private:
 	yy::Parser _parser; ///< Bison parser
 	yy::location _loc; ///< Location
 
-	std::shared_ptr<TokenStream> _tokenStream;
+	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
 	std::vector<TokenIt> _comments;
 	std::optional<TokenIt> _tmp_token;
    std::string _tmp_comment;
