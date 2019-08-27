@@ -3029,6 +3029,63 @@ rule rule_2 {
 
 
 TEST_F(ParserTests,
+ForCycleMultipleRows)
+{
+	prepareInput(
+R"(
+import "pe"
+
+private rule RULE_1
+{
+	meta:
+		author = "Mr. Avastian"
+		description = "cool rule"
+		reliability = "test"
+		strain = "strain"
+		type = "type"
+		severity = "severity"
+		rule_type = "type"
+		hash = "9b7eb04d21397a5afb6b96985196453c9af6011578b1a7f8c7dd464875e6b98b"
+		hash = "8399656db73fe734d110e11b01632b1bebb7a7d6fedbefdae1607847092f8628"
+		hash = "517b882a9365026168f72fa88ace14f1976e027e37e5fc27f2a298a6730bb3a7"
+		hash = "fcc2afe8eca464971d96867e7898b4c929cde65e4dab126a3ae48aee48083256"
+	strings:
+		// Comments are super fun!
+		$h0 = { A1 00 01 00 00 01 E1 10 } ///< Freedom . for . comments!
+		$h1 = { B2 00 01 00 00 66 E2 02 }
+		$h2 = { C3 01 00 00 01 5a E1 30 }
+		$h3 = { D4 00 00 01 00 5b E2 45 }
+		$h4 = { E5 00 00 00 00 5e E1 66 }
+		$h5 = { F6 00 01 00 01 5f E2 11 }
+	condition:
+		for any of ($h*) : (
+			# < 20 and
+			for any i in (1 .. #) : ( //Comment inside expression
+				uint32be(1) == 5 and // comment right after and
+				filesize >= 10 and
+				all of them and
+				entrypoint and
+				@h1 < pe.overlay.offset
+			)
+		)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(6u, strings.size());
+
+	EXPECT_EQ("$h0", strings[0]->getIdentifier());
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 OneMoreTest) {
 	prepareInput(
 R"(rule public_rule {
