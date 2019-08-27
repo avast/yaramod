@@ -852,7 +852,7 @@ std::string TokenStream::getText(bool withIncludes) const
          }
          if(!inside_hex_jump && next != NEW_LINE)
          {
-            if(second_nibble)
+            if(second_nibble && next != COMMA)
             {
                os << " ";
             }
@@ -882,13 +882,14 @@ std::string TokenStream::getText(bool withIncludes) const
                   case RSQB:
                   case DOT:
                   case NEW_LINE:
+                  case COMMA:
                      break;
                   case REGEXP_MODIFIERS:
                      if(current != REGEXP_MODIFIERS)
                         break;
                      [[fallthrough]];
                   default:
-                     if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH) )
+                     if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH))
                         os << " ";
                }
          }
