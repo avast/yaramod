@@ -3094,7 +3094,7 @@ R"(rule public_rule {
 		$1 = "Hello World"
 		$2 = "Bye World"
 	condition:
-		EXE and uint32be(1) and filesize > 0xFF
+		true and uint32be(1) and filesize > 0xFF
 }
 )");
 
