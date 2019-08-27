@@ -109,9 +109,12 @@ void addBasicClasses(py::module& module)
 {
 	py::class_<YaraFile>(module, "YaraFile")
 		.def_property_readonly("text", &YaraFile::getText)
-		.def_property_readonly("text_tokenized", &YaraFile::getTextTokenized)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
+		.def("text_tokenized", &YaraFile::getTextTokenized, py::arg("with_includes") = false)
+		// .def("text_tokenized", [](const YaraFile& self, bool withIncludes) {
+		// 		return self.getTextTokenized(withIncludes);
+		// 	}, py::arg("with_includes") = false)
 		.def("find_symbol", &YaraFile::findSymbol)
 		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
