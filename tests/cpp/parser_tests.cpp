@@ -3054,6 +3054,7 @@ private rule RULE_1
 		$h0 = { A1 00 01 00 00 01 E1 10 } ///< Freedom . for . comments!
 		$h1 = { B2 00 01 00 00 66 E2 02 }
 		$h2 = { C3 01 00 00 01 5a E1 30 }
+
 		$h3 = { D4 00 00 01 00 5b E2 45 }
 		$h4 = { E5 00 00 00 00 5e E1 66 }
 		$h5 = { F6 00 01 00 01 5f E2 11 }
@@ -3093,7 +3094,7 @@ R"(rule public_rule {
 		$1 = "Hello World"
 		$2 = "Bye World"
 	condition:
-		true and uint32be(1) and filesize > 0xFF
+		EXE and uint32be(1) and filesize > 0xFF
 }
 )");
 
