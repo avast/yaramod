@@ -756,7 +756,7 @@ void TokenStream::clear()
 	_tokens.clear();
 }
 
-std::string TokenStream::getText(bool withImports) const
+std::string TokenStream::getText(bool withIncludes) const
 {
    std::stringstream os;
    bool inside_rule = false;
@@ -764,23 +764,31 @@ std::string TokenStream::getText(bool withImports) const
    bool inside_hex_jump = false;
    bool inside_regexp = false;
    bool inside_enumeration_brackets = false;
-   bool secondNibble = true;
+   bool second_nibble = true;
    for(auto it = begin(); it != end(); ++it)
    {
 
       auto current_type = it->getType();
-      if(current_type == INCLUDE)
+      if(current_type == INCLUDE_DIRECTIVE && withIncludes)
+         continue;
+      else if(current_type == INCLUDE_PATH)
       {
-         if(!withImports)
+         std::cout << "INCLUDE_PATH_IS_HERE containing '" << *it << "'" << std::endl;
+         assert(it->isIncludeToken());
+         if(withIncludes){
+            os << it->getIncludeSubstream()->getText(withIncludes);
             continue;
-         else
-         {
-            //We need to start adding tokens from subTokenStream in *it:
          }
+         else
+            os << *it;
       }
-      if(current_type == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
+      else if(current_type == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
+      {
          os << it->getLiteral().getFormattedValue();
-      os << *it;
+         os << *it;
+      }
+      else
+         os << *it;
 
       auto nextIt = std::next(it);
       if(nextIt == end())
@@ -835,7 +843,7 @@ std::string TokenStream::getText(bool withImports) const
             case HEX_NIBBLE:
             case HEX_WILDCARD_LOW:
             case HEX_WILDCARD_HIGH:
-               secondNibble = !secondNibble;
+               second_nibble = !second_nibble;
                break;
             case HEX_ALT:
             case HEX_JUMP_FIXED:
@@ -843,14 +851,14 @@ std::string TokenStream::getText(bool withImports) const
             case HEX_JUMP_VARYING_RANGE:
             case HEX_JUMP_RIGHT_BRACKET:
             case HEX_START_BRACKET:
-               secondNibble = true;
+               second_nibble = true;
                break;
             default:
                break;
          }
          if(!inside_hex_jump && next_type != NEW_LINE)
          {
-            if(secondNibble)
+            if(second_nibble)
             {
                os << " ";
             }

@@ -154,7 +154,8 @@ enum TokenType
    BOOL_FALSE = 376,
    COMMENT = 377,
 
-   INCLUDE = 378,
+   INCLUDE_DIRECTIVE = 378,
+   INCLUDE_PATH = 379,
 };
 
 class Symbol;
@@ -332,6 +333,8 @@ public:
 	bool isSymbol() const { return _value->isSymbol(); }
 
 	bool isIntegral() const { return _value->isIntegral(); }
+
+   bool isIncludeToken() const { return _includeSubstream != nullptr; }
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
@@ -340,6 +343,7 @@ public:
       	case META_VALUE:
       	case STRING_LITERAL:
       	case IMPORT_MODULE:
+         case INCLUDE_PATH:
             return os << token.getText();
 	      default:
             return os << token.getPureText();
@@ -361,16 +365,19 @@ public:
    const T& getValue() const { return _value->getValue<T>(); }
    /// @}
 
-   /// @name Import substream handler methods
+   /// @name Include substream handler methods
    /// @{
-   bool isImportToken() const { return _importSubstream != nullptr; }
-   std::shared_ptr<TokenStream> getImportSubstream() { return _importSubstream; }
-   void setImportSubstream( std::shared_ptr<TokenStream>&& ts ) { _importSubstream = std::move(ts); }
+   std::shared_ptr<TokenStream> getIncludeSubstream() const { return _includeSubstream; }
+   void initializeSubstream()
+   {
+      assert(_includeSubstream == nullptr);
+      _includeSubstream = std::make_shared<TokenStream>();
+   }
    /// @}
 
 private:
    TokenType _type;
-   std::shared_ptr< TokenStream > _importSubstream = nullptr;
+   std::shared_ptr< TokenStream > _includeSubstream = nullptr; // used only for INCLUDE_PATH tokens
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 };
 
@@ -448,7 +455,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) { return os << ts.getText(false); }
 
-   std::string getText(bool withImports = false) const;// { return getTextAsStream(withImports).str(); }
+   std::string getText(bool withIncludes = false) const;
 
 	std::vector<std::string> getTokensAsText() const;
 
@@ -456,7 +463,6 @@ public:
 	void clear();
 	/// @}
 private:
-   // std::stringstream getTextAsStream(bool withImports) const;
 	std::list< Token > _tokens;
 };
 
