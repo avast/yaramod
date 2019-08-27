@@ -42,7 +42,7 @@ namespace yaramod {
  * @param parserMode Parsing mode.
  */
 ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
-	_loc(nullptr), _tokenStream(std::make_shared<TokenStream>()), _valid(true), _filePath(), _inputFile(), _file(_tokenStream), _currentStrings(),
+	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
@@ -51,8 +51,9 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
 
 	// When creating ParserDriver from real file (not from some stringstream) we need to somehow tell lexer which file to process
 	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
-	if (!includeFileImpl(filePath))
+	if (!includeFileImpl(filePath, std::make_shared<TokenStream>()))
 		_valid = false;
+	_file = std::move(YaraFile(_tokenStreams.top()));
 }
 
 /**
@@ -62,12 +63,15 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param parserMode Parsing mode.
  */
 ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
-	_loc(nullptr), _tokenStream(std::make_shared<TokenStream>()),  _valid(true), _filePath(), _inputFile(), _file(_tokenStream), _currentStrings(),
+	_loc(nullptr),  _valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
 	// _parser.set_debug_level(1);
+
+	_tokenStreams.push(std::make_shared<TokenStream>());
+	_file = YaraFile(_tokenStreams.top());
 }
 
 /**
@@ -172,7 +176,7 @@ void ParserDriver::moveLocation(std::uint64_t moveLength)
  *
  * @return @c true if include succeeded, otherwise @c false.
  */
-bool ParserDriver::includeFile(const std::string& includePath)
+bool ParserDriver::includeFile(const std::string& includePath, std::shared_ptr<TokenStream> substream)
 {
 	auto totalPath = includePath;
 	if (pathIsRelative(includePath))
@@ -187,7 +191,7 @@ bool ParserDriver::includeFile(const std::string& includePath)
 		totalPath = absolutePath(joinPaths(parentPath(_includedFileNames.back()), includePath));
 	}
 
-	return includeFileImpl(totalPath);
+	return includeFileImpl(totalPath, substream);
 }
 
 /**
@@ -200,6 +204,8 @@ bool ParserDriver::includeEnd()
 {
 	if (!_includedFileNames.empty())
 	{
+		assert(!_tokenStreams.empty());
+		_tokenStreams.pop();
 		_includedFiles.pop_back();
 		_includedFileNames.pop_back();
 		_loc = _includedFileLocs.back();
@@ -416,7 +422,7 @@ bool ParserDriver::hasRuleWithName(const std::string& name) const
 	return _parsed_rule_names.count(name) != 0;
 }
 
-bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravit
+bool ParserDriver::includeFileImpl(const std::string& includePath, std::shared_ptr<TokenStream> substream)//TODO: upravit
 {
 	if (_mode == ParserMode::IncludeGuarded && isAlreadyIncluded(includePath))
 		return true;
@@ -429,6 +435,7 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)//TODO: upravi
 
 	_lexer.includeFile(includedFile.get());
 
+	_tokenStreams.push(substream);
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
 	_includedFileLocs.push_back(_loc);
