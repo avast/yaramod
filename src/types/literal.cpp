@@ -767,13 +767,11 @@ std::string TokenStream::getText(bool withIncludes) const
    bool second_nibble = true;
    for(auto it = begin(); it != end(); ++it)
    {
-
-      auto current_type = it->getType();
-      if(current_type == INCLUDE_DIRECTIVE && withIncludes)
+      auto current = it->getType();
+      if(current == INCLUDE_DIRECTIVE && withIncludes)
          continue;
-      else if(current_type == INCLUDE_PATH)
+      else if(current == INCLUDE_PATH)
       {
-         std::cout << "INCLUDE_PATH_IS_HERE containing '" << *it << "'" << std::endl;
          assert(it->isIncludeToken());
          if(withIncludes){
             os << it->getIncludeSubstream()->getText(withIncludes);
@@ -782,7 +780,7 @@ std::string TokenStream::getText(bool withIncludes) const
          else
             os << *it;
       }
-      else if(current_type == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
+      else if(current == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
       {
          os << it->getLiteral().getFormattedValue();
          os << *it;
@@ -793,34 +791,35 @@ std::string TokenStream::getText(bool withIncludes) const
       auto nextIt = std::next(it);
       if(nextIt == end())
           break;
-      auto next_type = nextIt->getType();
-      if(current_type == RULE_BEGIN)
+      auto next = nextIt->getType();
+      if(current == RULE_BEGIN)
          inside_rule = true;
-      else if(current_type == RULE_END)
+      else if(current == RULE_END)
          inside_rule = false;
-      else if(current_type == HEX_START_BRACKET)
+      else if(current == HEX_START_BRACKET)
          inside_hex_string = true;
-      else if(current_type == HEX_END_BRACKET)
+      else if(current == HEX_END_BRACKET)
          inside_hex_string = false;
-      else if(current_type == HEX_JUMP_LEFT_BRACKET)
+      else if(current == HEX_JUMP_LEFT_BRACKET)
          inside_hex_jump = true;
-      else if(current_type == HEX_JUMP_RIGHT_BRACKET)
+      else if(current == HEX_JUMP_RIGHT_BRACKET)
          inside_hex_jump = false;
-      else if(current_type == REGEXP_START_SLASH)
+      else if(current == REGEXP_START_SLASH)
          inside_regexp = true;
-      else if(current_type == REGEXP_END_SLASH)
+      else if(current == REGEXP_END_SLASH)
          inside_regexp = false;
-      else if(current_type == LP_ENUMERATION)
+      else if(current == LP_ENUMERATION)
          inside_enumeration_brackets = true;
-      else if(current_type == RP_ENUMERATION)
+      else if(current == RP_ENUMERATION)
          inside_enumeration_brackets = false;
-      if(current_type == NEW_LINE)
+
+      if(current == NEW_LINE)
       {
-         if(inside_rule && next_type != COMMENT)
+         if(inside_rule && next != COMMENT)
          {
             if(inside_hex_string || inside_regexp)
             {
-               if(next_type != HEX_END_BRACKET && next_type != REGEXP_END_SLASH)
+               if(next != HEX_END_BRACKET && next != REGEXP_END_SLASH)
                   os << "\t\t\t";
                else
                   os << "\t\t";
@@ -838,7 +837,7 @@ std::string TokenStream::getText(bool withIncludes) const
       }
       else if(inside_hex_string)
       {
-         switch(current_type)
+         switch(current)
          {
             case HEX_NIBBLE:
             case HEX_WILDCARD_LOW:
@@ -856,7 +855,7 @@ std::string TokenStream::getText(bool withIncludes) const
             default:
                break;
          }
-         if(!inside_hex_jump && next_type != NEW_LINE)
+         if(!inside_hex_jump && next != NEW_LINE)
          {
             if(second_nibble)
             {
@@ -866,7 +865,7 @@ std::string TokenStream::getText(bool withIncludes) const
       }
       else if(!inside_regexp && !inside_enumeration_brackets)
       {
-         switch(current_type)
+         switch(current)
          {
             case NULLSYMBOL:
             case META:
@@ -882,7 +881,7 @@ std::string TokenStream::getText(bool withIncludes) const
             case DOT:
                break;
             default:
-               switch(next_type)
+               switch(next)
                {
                   case RP:
                   case RSQB:
@@ -890,21 +889,21 @@ std::string TokenStream::getText(bool withIncludes) const
                   case NEW_LINE:
                      break;
                   case REGEXP_MODIFIERS:
-                     if(current_type != REGEXP_MODIFIERS)
+                     if(current != REGEXP_MODIFIERS)
                         break;
                      [[fallthrough]];
                   default:
-                     if(next_type != LSQB || ( current_type != STRING_OFFSET && current_type != STRING_LENGTH) )
+                     if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH) )
                         os << " ";
                }
          }
       }
       else if(inside_enumeration_brackets)
       {
-         if(current_type != LP_ENUMERATION && next_type != RP_ENUMERATION && next_type != COMMA)
+         if(current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
             os << " ";
       }
-      else if(current_type == HEX_ALT_RIGHT_BRACKET || current_type == HEX_ALT_LEFT_BRACKET)
+      else if(current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
          os << " ";
    }
    return os.str();
