@@ -759,6 +759,7 @@ void TokenStream::clear()
 std::string TokenStream::getText(bool withIncludes) const
 {
    std::stringstream os;
+   uint tabulatorCounter = 0;
    bool inside_rule = false;
    bool inside_hex_string = false;
    bool inside_hex_jump = false;
@@ -813,26 +814,20 @@ std::string TokenStream::getText(bool withIncludes) const
       else if(current == RP_ENUMERATION)
          inside_enumeration_brackets = false;
 
+      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+         ++tabulatorCounter;
+      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+         --tabulatorCounter;
       if(current == NEW_LINE)
       {
          if(inside_rule && next != COMMENT)
          {
-            if(inside_hex_string || inside_regexp)
-            {
-               if(next != HEX_END_BRACKET && next != REGEXP_END_SLASH)
-                  os << "\t\t\t";
-               else
-                  os << "\t\t";
-            }
-            else
-            {
-               if(nextIt->getType() == META
-                  || nextIt->getType() == STRINGS
-                  || nextIt->getType() == CONDITION)
-                  os << "\t";
-               else if(nextIt->getType() != RULE_END)
-                  os << "\t\t";
-            }
+            if(nextIt->getType() == META
+               || nextIt->getType() == STRINGS
+               || nextIt->getType() == CONDITION)
+               os << "\t";
+            else if(nextIt->getType() != RULE_END)
+               os << "\t\t" << std::string(tabulatorCounter, '\t');
          }
       }
       else if(inside_hex_string)
