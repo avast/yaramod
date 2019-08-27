@@ -820,7 +820,7 @@ std::string TokenStream::getText(bool withIncludes) const
          --tabulatorCounter;
       if(current == NEW_LINE)
       {
-         if(inside_rule && next != COMMENT)
+         if(inside_rule && next != COMMENT && next != NEW_LINE)
          {
             if(nextIt->getType() == META
                || nextIt->getType() == STRINGS
