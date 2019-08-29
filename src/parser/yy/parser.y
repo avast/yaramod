@@ -164,7 +164,7 @@ static yy::Parser::symbol_type yylex(ParserDriver& driver)
 %token <std::string> REGEXP_CLASS               "regexp class"
 
 %type <std::optional<yaramod::TokenIt>> rule_mod
-%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_jump_lb hex_jump_rb integer_function integer_token
+%type <yaramod::TokenIt> string_id assign strings_value hex_integer hex_alt_lb hex_alt_rb hex_jump_lb hex_jump_rb integer_function integer_token rule_name
 %type <yaramod::Rule> rule
 %type <std::vector<yaramod::Meta>> metas metas_body
 %type <std::shared_ptr<yaramod::Rule::StringsTrie>> strings strings_body
@@ -240,22 +240,22 @@ rule
 		{
 			driver.markStartOfRule();
 		}
-		ID[id]
+		rule_name[name]
 		{
-			if (driver.ruleExists($id))
+			if (driver.ruleExists($name->getString()))
 			{
-				error(driver.getLocation(), "Redefinition of rule '" + $id + "'");
+				error(driver.getLocation(), "Redefinition of rule '" + $name->getString() + "'");
 				YYABORT;
 			}
-			driver._tmp_token = driver.currentStream()->emplace_back(TokenType::RULE_NAME, $id);
 		}
 		tags rule_begin
 		metas strings condition rule_end
 		{
-			driver.addRule(Rule(driver.currentStream(), driver._tmp_token.value(), $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
-			driver._tmp_token.reset();
+			driver.addRule(Rule(driver.currentStream(), $name, $rule_mod, std::move($metas), std::move($strings), std::move($condition), std::move($tags)));
 		}
 	;
+
+rule_name : ID { $$ = driver.currentStream()->emplace_back(TokenType::RULE_NAME, $1); }
 
 rule_mod
 	: GLOBAL { $$ = driver.currentStream()->emplace_back(TokenType::GLOBAL, "global"); }

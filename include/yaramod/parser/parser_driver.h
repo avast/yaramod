@@ -154,8 +154,7 @@ private:
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
 	std::vector<TokenIt> _comments;
-	std::optional<TokenIt> _tmp_token;
-   std::string _tmp_comment;
+	std::string _tmp_comment;
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
