@@ -756,10 +756,64 @@ void TokenStream::clear()
 	_tokens.clear();
 }
 
+class BracketEntry {
+public:
+   enum Type{
+      Left,
+      Right,
+   };
+
+   // BracketEntry() = default;
+   // BracketEntry(const BracketEntry&) = default;
+   BracketEntry(Type type, int line, int tabulator) : _tabulator(tabulator), _line(line), _type(type) {}
+   // BracketEntry operator=(const BracketEntry&) = default;
+
+   bool isLeft() const { return _type == Left; }
+   bool isRight() const { return _type == Right; }
+   int getLine() const { return _line; }
+   int getTabulator() const { return _tabulator; }
+private:
+   int _tabulator;
+   int _line;
+   Type _type;
+};
+
+struct BracketStack {
+public:
+   void addLeftBracket(int line)
+   {
+      if( brackets.empty() )
+         brackets.emplace_back(BracketEntry::Type::Left, line, 1);
+      else
+      {
+         const auto& previous = brackets.back();
+         int tabulator = previous.getTabulator();
+         if(line != previous.getLine())
+            ++tabulator;
+         brackets.emplace_back(BracketEntry::Type::Left, line, tabulator);
+      }
+   }
+   void addRightBracket(int line)
+   {
+      assert(!brackets.empty());
+      brackets.pop_back();
+   }
+   int getTabulatorCount() const
+   {
+      if(brackets.empty())
+         return 0;
+      return brackets.back().getTabulator();
+   }
+   std::string getTabulators() const { return std::string(getTabulatorCount(), '\t'); }
+private:
+   std::vector<BracketEntry> brackets;
+};
+
 std::string TokenStream::getText(bool withIncludes) const
 {
+   BracketStack brackets;
+   uint lineCounter = 0;
    std::stringstream os;
-   uint tabulatorCounter = 0;
    bool inside_rule = false;
    bool inside_hex_string = false;
    bool inside_hex_jump = false;
@@ -815,13 +869,14 @@ std::string TokenStream::getText(bool withIncludes) const
          inside_enumeration_brackets = false;
 
       if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES) {
-         ++tabulatorCounter;
+         brackets.addLeftBracket(lineCounter);
       }
       if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES) {
-         --tabulatorCounter;
+         brackets.addRightBracket(lineCounter);
       }
       if(current == NEW_LINE)
       {
+         ++lineCounter;
          if(inside_rule && next != COMMENT && next != NEW_LINE)
          {
             if(nextIt->getType() == META
@@ -829,7 +884,7 @@ std::string TokenStream::getText(bool withIncludes) const
                || nextIt->getType() == CONDITION)
                os << "\t";
             else if(nextIt->getType() != RULE_END)
-               os << "\t\t" << std::string(tabulatorCounter, '\t');
+               os << "\t\t" << brackets.getTabulators();
          }
       }
       else if(inside_hex_string)
@@ -855,9 +910,7 @@ std::string TokenStream::getText(bool withIncludes) const
          if(!inside_hex_jump && next != NEW_LINE)
          {
             if(second_nibble && next != COMMA)
-            {
                os << " ";
-            }
          }
       }
       else if(!inside_regexp && !inside_enumeration_brackets)
