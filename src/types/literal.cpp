@@ -4,9 +4,10 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
+#include <algorithm>
 #include <cassert>
 #include <sstream>
-#include <algorithm>
+#include <stack>
 
 #include "yaramod/types/literal.h"
 #include "yaramod/utils/utils.h"
@@ -756,61 +757,97 @@ void TokenStream::clear()
 	_tokens.clear();
 }
 
-class BracketEntry {
+class LeftBracketEntry {
 public:
-   enum Type{
-      Left,
-      Right,
-   };
+   // enum Type{
+   //    Left,
+   //    Right,
+   // };
 
    // BracketEntry() = default;
    // BracketEntry(const BracketEntry&) = default;
-   BracketEntry(Type type, int line, int tabulator) : _tabulator(tabulator), _line(line), _type(type) {}
+   LeftBracketEntry(int line, int depth, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _depth(depth), _line(line) {}
    // BracketEntry operator=(const BracketEntry&) = default;
 
-   bool isLeft() const { return _type == Left; }
-   bool isRight() const { return _type == Right; }
+   // bool isLeft() const { return _type == Left; }
+   // bool isRight() const { return _type == Right; }
    int getLine() const { return _line; }
    int getTabulator() const { return _tabulator; }
+   int getDepth() const { return _depth; }
+   bool putNewLines() const { return _put_new_lines; }
 private:
+   bool _put_new_lines;
    int _tabulator;
+   int _depth;
    int _line;
-   Type _type;
 };
 
-struct BracketStack {
+class BracketStack {
 public:
-   void addLeftBracket(int line)
+   void addLeftBracket(int line, bool put_new_lines)
    {
+      std::cout << "(" << std::endl;
       if( brackets.empty() )
-         brackets.emplace_back(BracketEntry::Type::Left, line, 1);
+         brackets.emplace_back(line, 1, 1, put_new_lines);
       else
       {
          const auto& previous = brackets.back();
          int tabulator = previous.getTabulator();
          if(line != previous.getLine())
             ++tabulator;
-         brackets.emplace_back(BracketEntry::Type::Left, line, tabulator);
+         int depth = previous.getDepth() + 1;
+         brackets.emplace_back(line, depth, tabulator, put_new_lines);
       }
    }
+
    void addRightBracket(int line)
    {
+      std::cout << ")" << std::endl;
       assert(!brackets.empty());
       brackets.pop_back();
    }
+
+   /// @name Observe methods
+   /// @{
+   bool putNewlineInCurrentSector() const
+   {
+      if(brackets.empty())
+         return false;
+      return brackets.back().putNewLines();
+   }
+
    int getTabulatorCount() const
    {
       if(brackets.empty())
          return 0;
       return brackets.back().getTabulator();
    }
+
    std::string getTabulators() const { return std::string(getTabulatorCount(), '\t'); }
+   /// @}
 private:
-   std::vector<BracketEntry> brackets;
+   std::vector<LeftBracketEntry> brackets;
 };
 
-std::string TokenStream::getText(bool withIncludes) const
+void TokenStream::determineNewlineSectors()
 {
+   std::stack<TokenIt> leftBrackets;
+   for(auto it = begin(); it != end(); ++it)
+   {
+      auto current = it->getType();
+      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+         leftBrackets.push(it);
+      else if(current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
+         leftBrackets.pop();
+      else if(current == NEW_LINE && !leftBrackets.empty())
+         leftBrackets.top()->setFlag(true);
+   }
+}
+
+std::string TokenStream::getText(bool withIncludes)
+{
+   determineNewlineSectors(); //TODO: Find a better place to call the function
+
    BracketStack brackets;
    uint lineCounter = 0;
    std::stringstream os;
@@ -820,7 +857,9 @@ std::string TokenStream::getText(bool withIncludes) const
    bool inside_regexp = false;
    bool inside_enumeration_brackets = false;
    bool second_nibble = true;
-   for(auto it = begin(); it != end(); ++it)
+   // auto nextIt = begin();
+   // ++nextIt;
+   for(auto it = begin(); it != end(); ++it/*, ++nextIt*/)
    {
       auto current = it->getType();
       if(current == INCLUDE_DIRECTIVE && withIncludes)
@@ -869,21 +908,33 @@ std::string TokenStream::getText(bool withIncludes) const
          inside_enumeration_brackets = false;
 
       if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES) {
-         brackets.addLeftBracket(lineCounter);
+         brackets.addLeftBracket(lineCounter, it->getFlag());
+         if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != COMMENT)
+         {
+            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+            next = nextIt->getType();
+         }
       }
-      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES) {
-         brackets.addRightBracket(lineCounter);
+      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+      {
+         if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
+         {
+            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+            next = nextIt->getType();
+         }
+         else
+            brackets.addRightBracket(lineCounter);
       }
       if(current == NEW_LINE)
       {
          ++lineCounter;
          if(inside_rule && next != COMMENT && next != NEW_LINE)
          {
-            if(nextIt->getType() == META
-               || nextIt->getType() == STRINGS
-               || nextIt->getType() == CONDITION)
+            if(next == META
+               || next == STRINGS
+               || next == CONDITION)
                os << "\t";
-            else if(nextIt->getType() != RULE_END)
+            else if(next != RULE_END)
                os << "\t\t" << brackets.getTabulators();
          }
       }
@@ -959,5 +1010,47 @@ std::string TokenStream::getText(bool withIncludes) const
    }
    return os.str();
 }
+
+/**
+ * Counts all brackets in between t and next new line
+ * @param t iterator from this TokenStream.
+ */
+// int TokenStream::minimalNumberOfTabs(TokenIt from)
+// {
+//    int counter = 0;
+//    int minimal = 0;
+//    for(TokenIt it = from; it != end(); ++it)
+//    {
+//       auto type = it->getType();
+//       switch(type)
+//       {
+//          case NEW_LINE:
+//             return minimal;
+//          case LP:
+//          case LP_ENUMERATION:
+//          case HEX_JUMP_LEFT_BRACKET:
+//          case REGEXP_START_SLASH:
+//          case HEX_START_BRACKET:
+//          case LP_WITH_SPACES:
+//          case LP_WITH_SPACE_AFTER:
+//             ++counter;
+//             break;
+//          case RP:
+//          case RP_ENUMERATION:
+//          case HEX_JUMP_RIGHT_BRACKET:
+//          case REGEXP_END_SLASH:
+//          case HEX_END_BRACKET:
+//          case RP_WITH_SPACES:
+//          case RP_WITH_SPACE_BEFORE:
+//             --counter;
+//             if(minimal > counter)
+//                minimal = counter;
+//             break;
+//          default:
+//             break;
+//       }
+//    }
+//    return minimal;
+// }
 
 } //namespace yaramod

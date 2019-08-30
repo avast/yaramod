@@ -3117,5 +3117,121 @@ R"(rule public_rule {
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
+TEST_F(ParserTests,
+Autoformatting1) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			(i == 1) or
+			(i == 2) or
+			(i == 3) or
+			(i == 4 and (
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+				))
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			(i == 1) or
+			(i == 2) or
+			(i == 3) or
+			(i == 4 and (
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+			))
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+Autoformatting2) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or
+		(true and
+			(
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+				))
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or
+		(
+			true and
+			(
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+			)
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+Autoformatting3) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+			(false and
+			true )
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		(
+			false and
+			true
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
 }
 }
