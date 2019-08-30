@@ -320,6 +320,7 @@ public:
    void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
 
    void setType(TokenType type) { _type = type; }
+   void setFlag(bool flag) { _flag = flag; }
    /// @}
 
    /// @name Detection methods
@@ -363,6 +364,7 @@ public:
    const std::shared_ptr<Symbol>& getSymbol() const;
    template<typename T>
    const T& getValue() const { return _value->getValue<T>(); }
+   bool getFlag() const { return _flag; }
    /// @}
 
    /// @name Include substream handler methods
@@ -376,6 +378,7 @@ public:
    /// @}
 
 private:
+   bool _flag = false; // used for '(' to determine it's sector and whether to put newlines
    TokenType _type;
    std::shared_ptr< TokenStream > _includeSubstream = nullptr; // used only for INCLUDE_PATH tokens
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
@@ -453,9 +456,9 @@ public:
 	TokenIt findBackwards(TokenType type, TokenIt to);
 	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
 
-	friend std::ostream& operator<<(std::ostream& os, const TokenStream& ts) { return os << ts.getText(false); }
+	friend std::ostream& operator<<(std::ostream& os, TokenStream& ts) { return os << ts.getText(false); }
 
-   std::string getText(bool withIncludes = false) const;
+   std::string getText(bool withIncludes = false);
 
 	std::vector<std::string> getTokensAsText() const;
 
@@ -463,6 +466,8 @@ public:
 	void clear();
 	/// @}
 private:
+   void determineNewlineSectors();
+   // int minimalNumberOfTabs(TokenIt from);
 	std::list< Token > _tokens;
 };
 
