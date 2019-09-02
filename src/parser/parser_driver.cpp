@@ -384,7 +384,7 @@ void ParserDriver::removeLocalSymbol(const std::string& name)
 
 void ParserDriver::addComment(TokenIt comment)
 {
-	assert(comment->getType() == TokenType::COMMENT);
+	assert(comment->getType() == TokenType::COMMENT || comment->getType() == TokenType::ONELINE_COMMENT);
 	_comments.push_back(comment);
 }
 

@@ -140,7 +140,7 @@ whitespace  [ \v\r\t]
 }
 <MULTILINE_COMMENT>"*/" {
 	_driver._tmp_comment.append(std::string(yytext, yyleng));
-	auto it = _driver.currentStream()->emplace_back(TokenType::COMMENT, std::move(_driver._tmp_comment), _indent);
+	auto it = _driver.currentStream()->emplace_back(TokenType::ONELINE_COMMENT, std::move(_driver._tmp_comment), _indent);
 	_driver.addComment(it);
 	BEGIN(INITIAL);
 	_indent.clear();

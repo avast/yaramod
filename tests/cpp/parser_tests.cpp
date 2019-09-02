@@ -3083,6 +3083,7 @@ private rule RULE_1
 	ASSERT_EQ(6u, strings.size());
 
 	EXPECT_EQ("$h0", strings[0]->getIdentifier());
+
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
@@ -3118,7 +3119,124 @@ R"(rule public_rule {
 }
 
 TEST_F(ParserTests,
-Autoformatting1) {
+AutoformattingClosingBracket) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and (
+				true or
+				false
+				)
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and (
+				true or
+				false
+			)
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingClosingDoubleBracket) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and ((
+				true or
+				false
+				))
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and ((
+				true or
+				false
+			))
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingClosingBracketWithOtherBracketsInside) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and (((
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+				)))
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		for 2 i in (1 .. 4) : (
+			i == 4 and (((
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+			)))
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingMultipleLineBrackets) {
 	prepareInput(
 R"(
 import "cuckoo"
@@ -3142,7 +3260,10 @@ rule public_rule {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
-R"(rule public_rule {
+R"(
+import "cuckoo"
+
+rule public_rule {
 	condition:
 		for 2 i in (1 .. 4) : (
 			(i == 1) or
@@ -3160,7 +3281,120 @@ R"(rule public_rule {
 }
 
 TEST_F(ParserTests,
-Autoformatting2) {
+AutoformattingProperAlignment) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or (
+			true and (false or (true and (
+						true
+						) /*comment*/))
+						)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or (
+			true and (false or (true and (
+				true
+			) /*comment*/))
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingAddNewlinesMinimal) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+			(false and
+			true )
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		(
+			false and
+			true
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingAddNewLines) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or (
+			true and (
+				false or (
+					true and (
+						true
+					)))
+					)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or (
+			true and (
+				false or (
+					true and (
+						true
+					)
+				)
+			)
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+AutoformattingAddNewlinesToBothSides) {
 	prepareInput(
 R"(
 import "cuckoo"
@@ -3193,39 +3427,6 @@ rule public_rule {
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
 			)
-		)
-}
-)";
-
-	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
-}
-
-TEST_F(ParserTests,
-Autoformatting3) {
-	prepareInput(
-R"(
-import "cuckoo"
-
-rule public_rule {
-	condition:
-			(false and
-			true )
-}
-)");
-
-	ParserDriver driver(input);
-	EXPECT_TRUE(driver.parse());
-	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-
-	std::string expected =
-R"(
-import "cuckoo"
-
-rule public_rule {
-	condition:
-		(
-			false and
-			true
 		)
 }
 )";
