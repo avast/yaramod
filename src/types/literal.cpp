@@ -757,77 +757,73 @@ void TokenStream::clear()
 	_tokens.clear();
 }
 
+
 class LeftBracketEntry {
 public:
-   // enum Type{
-   //    Left,
-   //    Right,
-   // };
+   LeftBracketEntry(int line, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
 
-   // BracketEntry() = default;
-   // BracketEntry(const BracketEntry&) = default;
-   LeftBracketEntry(int line, int depth, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _depth(depth), _line(line) {}
-   // BracketEntry operator=(const BracketEntry&) = default;
-
-   // bool isLeft() const { return _type == Left; }
-   // bool isRight() const { return _type == Right; }
    int getLine() const { return _line; }
    int getTabulator() const { return _tabulator; }
-   int getDepth() const { return _depth; }
    bool putNewLines() const { return _put_new_lines; }
 private:
    bool _put_new_lines;
    int _tabulator;
-   int _depth;
    int _line;
 };
+
 
 class BracketStack {
 public:
    void addLeftBracket(int line, bool put_new_lines)
    {
-      std::cout << "(" << std::endl;
-      if( brackets.empty() )
-         brackets.emplace_back(line, 1, 1, put_new_lines);
+
+      if( _brackets.empty() )
+         _brackets.emplace_back(line, 1, put_new_lines);
       else
       {
-         const auto& previous = brackets.back();
+         const auto& previous = _brackets.back();
          int tabulator = previous.getTabulator();
          if(line != previous.getLine())
             ++tabulator;
-         int depth = previous.getDepth() + 1;
-         brackets.emplace_back(line, depth, tabulator, put_new_lines);
+         _brackets.emplace_back(line, tabulator, put_new_lines);
       }
    }
 
-   void addRightBracket(int line)
+   void addRightBracket()
    {
-      std::cout << ")" << std::endl;
-      assert(!brackets.empty());
-      brackets.pop_back();
+      assert(!_brackets.empty());
+      _brackets.pop_back();
    }
 
    /// @name Observe methods
    /// @{
    bool putNewlineInCurrentSector() const
    {
-      if(brackets.empty())
+      if(_brackets.empty())
          return false;
-      return brackets.back().putNewLines();
+      return _brackets.back().putNewLines();
    }
 
-   int getTabulatorCount() const
+   uint getTabulatorCount() const
    {
-      if(brackets.empty())
+      if(_brackets.empty())
          return 0;
-      return brackets.back().getTabulator();
+      return _brackets.back().getTabulator();
+   }
+
+   friend std::ostream& operator<<(std::ostream& os, const BracketStack& stack) {
+      os << "Stack:" << std::endl;
+      for(const auto& entry : stack._brackets)
+         os << "(line: " << entry.getLine() << ", tabulator: " << entry.getTabulator() << ")" << std::endl;
+      return os;
    }
 
    std::string getTabulators() const { return std::string(getTabulatorCount(), '\t'); }
    /// @}
 private:
-   std::vector<LeftBracketEntry> brackets;
+   std::vector<LeftBracketEntry> _brackets;
 };
+
 
 void TokenStream::determineNewlineSectors()
 {
@@ -844,12 +840,58 @@ void TokenStream::determineNewlineSectors()
    }
 }
 
-std::string TokenStream::getText(bool withIncludes)
+void TokenStream::addMissingNewLines()
 {
-   determineNewlineSectors(); //TODO: Find a better place to call the function
-
    BracketStack brackets;
    uint lineCounter = 0;
+   for(auto it = begin(); it != end(); ++it)
+   {
+      auto current = it->getType();
+      auto nextIt = std::next(it);
+      if(nextIt == end())
+          break;
+      auto next = nextIt->getType();
+      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+      {
+         brackets.addLeftBracket(lineCounter, it->getFlag());
+         if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
+         {
+            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+            next = nextIt->getType();
+         }
+      }
+      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+      {
+         if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
+         {
+            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+            next = nextIt->getType();
+         }
+         else
+            brackets.addRightBracket();
+      }
+      if(current == NEW_LINE)
+      {
+         ++lineCounter;
+      }
+   }
+}
+
+void TokenStream::autoformat()
+{
+   determineNewlineSectors();
+   addMissingNewLines();
+   formatted = true;
+}
+
+std::string TokenStream::getText(bool withIncludes)
+{
+   if(!formatted)
+      autoformat();
+   BracketStack brackets;
+   uint lineCounter = 0;
+   int tabs = 0;
+   int current_line_tabs = 0;
    std::stringstream os;
    bool inside_rule = false;
    bool inside_hex_string = false;
@@ -857,11 +899,10 @@ std::string TokenStream::getText(bool withIncludes)
    bool inside_regexp = false;
    bool inside_enumeration_brackets = false;
    bool second_nibble = true;
-   // auto nextIt = begin();
-   // ++nextIt;
-   for(auto it = begin(); it != end(); ++it/*, ++nextIt*/)
+   for(auto it = begin(); it != end(); ++it)
    {
       auto current = it->getType();
+
       if(current == INCLUDE_DIRECTIVE && withIncludes)
          continue;
       else if(current == INCLUDE_PATH)
@@ -874,10 +915,16 @@ std::string TokenStream::getText(bool withIncludes)
          else
             os << *it;
       }
-      else if(current == COMMENT && it != begin() && std::prev(it)->getType() == NEW_LINE)
+      else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
       {
-         os << it->getLiteral().getFormattedValue();
-         os << *it;
+         std::cout << "COMMENT: " << *it << std::endl;
+         auto prevIt = std::prev(it);
+         if( prevIt->getType() == NEW_LINE)
+            os << it->getLiteral().getFormattedValue() << *it; //indention
+         else if( prevIt->isLeftBracket() || prevIt->isRightBracket() )
+            os << *it;
+         else
+            os << *it << " ";
       }
       else
          os << *it;
@@ -907,36 +954,40 @@ std::string TokenStream::getText(bool withIncludes)
       else if(current == RP_ENUMERATION)
          inside_enumeration_brackets = false;
 
-      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES) {
-         brackets.addLeftBracket(lineCounter, it->getFlag());
-         if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != COMMENT)
-         {
-            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
-            next = nextIt->getType();
-         }
-      }
-      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+      if(it->isLeftBracket())
       {
-         if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
-         {
-            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
-            next = nextIt->getType();
-         }
-         else
-            brackets.addRightBracket(lineCounter);
+         brackets.addLeftBracket(lineCounter, it->getFlag());
+         ++current_line_tabs;
+      }
+      if(it->isRightBracket())
+      {
+         brackets.addRightBracket();
+         --current_line_tabs;
       }
       if(current == NEW_LINE)
       {
          ++lineCounter;
-         if(inside_rule && next != COMMENT && next != NEW_LINE)
+         if(inside_rule && (next != ONELINE_COMMENT || next != COMMENT) && next != NEW_LINE)
          {
             if(next == META
                || next == STRINGS
                || next == CONDITION)
+            {
                os << "\t";
+               tabs = 0;
+            }
             else if(next != RULE_END)
-               os << "\t\t" << brackets.getTabulators();
+            {
+               if(nextIt->isRightBracket())
+                  --tabs;
+               if(current_line_tabs > 0)
+                  ++tabs;
+               if(tabs < 0)
+                  tabs = 0;
+               os << std::string( 2 + tabs, '\t');
+            }
          }
+         current_line_tabs = 0;
       }
       else if(inside_hex_string)
       {
@@ -1012,15 +1063,16 @@ std::string TokenStream::getText(bool withIncludes)
 }
 
 /**
- * Counts all brackets in between t and next new line
+ * Counts difference between the current bracket sector and the outermost bracket sector that occurs on the same line.
  * @param t iterator from this TokenStream.
  */
 // int TokenStream::minimalNumberOfTabs(TokenIt from)
 // {
 //    int counter = 0;
 //    int minimal = 0;
-//    for(TokenIt it = from; it != end(); ++it)
+//    for(TokenIt it = from; it != end(); )
 //    {
+//       ++it;
 //       auto type = it->getType();
 //       switch(type)
 //       {
@@ -1045,7 +1097,7 @@ std::string TokenStream::getText(bool withIncludes)
 //             --counter;
 //             if(minimal > counter)
 //                minimal = counter;
-//             break;
+//             return minimal;
 //          default:
 //             break;
 //       }

@@ -152,10 +152,11 @@ enum TokenType
    NULLSYMBOL = 374,
    BOOL_TRUE = 375,
    BOOL_FALSE = 376,
-   COMMENT = 377,
+   ONELINE_COMMENT = 377,
+   COMMENT = 378,
 
-   INCLUDE_DIRECTIVE = 378,
-   INCLUDE_PATH = 379,
+   INCLUDE_DIRECTIVE = 379,
+   INCLUDE_PATH = 380,
 };
 
 class Symbol;
@@ -336,6 +337,26 @@ public:
 	bool isIntegral() const { return _value->isIntegral(); }
 
    bool isIncludeToken() const { return _includeSubstream != nullptr; }
+   bool isLeftBracket() const
+   {
+      return _type == LP ||
+             _type == LP_ENUMERATION ||
+             _type == HEX_JUMP_LEFT_BRACKET ||
+             _type == REGEXP_START_SLASH ||
+             _type == HEX_START_BRACKET ||
+             _type == LP_WITH_SPACE_AFTER ||
+             _type == LP_WITH_SPACES;
+   }
+   bool isRightBracket() const
+   {
+      return _type == RP ||
+             _type == RP_ENUMERATION ||
+             _type == HEX_JUMP_RIGHT_BRACKET ||
+             _type == REGEXP_END_SLASH ||
+             _type == HEX_END_BRACKET ||
+             _type == RP_WITH_SPACE_BEFORE ||
+             _type == RP_WITH_SPACES;
+   }
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
@@ -462,13 +483,17 @@ public:
 
 	std::vector<std::string> getTokensAsText() const;
 
+
 	/// @name Reseting methods
 	void clear();
 	/// @}
 private:
+   void autoformat();
    void determineNewlineSectors();
+   void addMissingNewLines();
    // int minimalNumberOfTabs(TokenIt from);
-	std::list< Token > _tokens;
+	std::list< Token > _tokens; ///< All tokens off the rule
+   bool formatted = false; ///< The flag is set once autoformat has been called
 };
 
 
