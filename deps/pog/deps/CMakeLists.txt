@@ -1,0 +1,6 @@
+if(POG_DOWNLOAD_RE2)
+	add_subdirectory(re2)
+endif()
+if(POG_DOWNLOAD_FMT)
+	add_subdirectory(fmt)
+endif()
