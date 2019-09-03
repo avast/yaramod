@@ -834,7 +834,11 @@ void TokenStream::determineNewlineSectors()
       if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
          leftBrackets.push(it);
       else if(current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
+      {
+         if(leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
+            it->setFlag(true);
          leftBrackets.pop();
+      }
       else if(current == NEW_LINE && !leftBrackets.empty())
          leftBrackets.top()->setFlag(true);
    }
@@ -917,7 +921,6 @@ std::string TokenStream::getText(bool withIncludes)
       }
       else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
       {
-         std::cout << "COMMENT: " << *it << std::endl;
          auto prevIt = std::prev(it);
          if( prevIt->getType() == NEW_LINE)
             os << it->getLiteral().getFormattedValue() << *it; //indention
@@ -1028,9 +1031,12 @@ std::string TokenStream::getText(bool withIncludes)
             case INTEGER_FUNCTION:
             case FUNCTION_SYMBOL:
             case ARRAY_SYMBOL:
-            case LP:
             case LSQB:
             case DOT:
+               break;
+            case LP:
+               if(next == COMMENT || next == ONELINE_COMMENT)
+                  os << " ";
                break;
             default:
                switch(next)

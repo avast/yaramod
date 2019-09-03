@@ -3434,5 +3434,48 @@ rule public_rule {
 	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
 }
 
+TEST_F(ParserTests,
+AutoformattingSpaceBeforeComments) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or
+		(//comment one
+			true and
+			(/*comment two*/
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+			)
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		false or
+		( //comment one
+			true and
+			( /*comment two*/
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+			)
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
 }
 }
