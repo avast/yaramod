@@ -3318,6 +3318,59 @@ rule public_rule {
 }
 
 TEST_F(ParserTests,
+AutoformattingProperAlignmentOrStatement) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		not false and
+		not false and
+		false or (
+			true and (
+				(
+					false or
+					false or
+					false
+				) or (
+					true
+				)
+			)
+		)
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule public_rule {
+	condition:
+		not false and
+		not false and
+		false or (
+			true and (
+				(
+					false or
+					false or
+					false
+				) or (
+					true
+				)
+			)
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 AutoformattingAddNewlinesMinimal) {
 	prepareInput(
 R"(
@@ -3435,21 +3488,52 @@ rule public_rule {
 }
 
 TEST_F(ParserTests,
+AutoformattingNoSpaceBeforeArrayAccess) {
+	prepareInput(
+R"(
+import "cuckoo"
+import "pe"
+
+rule public_rule {
+	condition:
+		pe.version_info["ProductName"] == "Test product name"
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+import "cuckoo"
+import "pe"
+
+rule public_rule {
+	condition:
+		pe.version_info["ProductName"] == "Test product name"
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 AutoformattingSpaceBeforeComments) {
 	prepareInput(
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule { //comment 0
 	condition:
 		false or
-		(//comment one
+		(//comment 1
 			true and
-			(/*comment two*/
+			(/*comment 2*/
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
-			)
-		)
+			)//comment 3
+		)/*comment 4*/
 }
 )");
 
@@ -3461,16 +3545,16 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule { //comment 0
 	condition:
 		false or
-		( //comment one
+		( //comment 1
 			true and
-			( /*comment two*/
+			( /*comment 2*/
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
-			)
-		)
+			) //comment 3
+		) /*comment 4*/
 }
 )";
 
