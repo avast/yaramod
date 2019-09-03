@@ -921,7 +921,7 @@ std::string TokenStream::getText(bool withIncludes)
          auto prevIt = std::prev(it);
          if( prevIt->getType() == NEW_LINE)
             os << it->getLiteral().getFormattedValue() << *it; //indention
-         else if( prevIt->isLeftBracket() || prevIt->isRightBracket() )
+         else if( prevIt->isLeftBracket() || prevIt->isRightBracket() || std::next(it)->getType() == COMMA  || std::next(it)->getType() == NEW_LINE )
             os << *it;
          else
             os << *it << " ";
@@ -967,7 +967,7 @@ std::string TokenStream::getText(bool withIncludes)
       if(current == NEW_LINE)
       {
          ++lineCounter;
-         if(inside_rule && (next != ONELINE_COMMENT || next != COMMENT) && next != NEW_LINE)
+         if(inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
          {
             if(next == META
                || next == STRINGS
@@ -1061,48 +1061,5 @@ std::string TokenStream::getText(bool withIncludes)
    }
    return os.str();
 }
-
-/**
- * Counts difference between the current bracket sector and the outermost bracket sector that occurs on the same line.
- * @param t iterator from this TokenStream.
- */
-// int TokenStream::minimalNumberOfTabs(TokenIt from)
-// {
-//    int counter = 0;
-//    int minimal = 0;
-//    for(TokenIt it = from; it != end(); )
-//    {
-//       ++it;
-//       auto type = it->getType();
-//       switch(type)
-//       {
-//          case NEW_LINE:
-//             return minimal;
-//          case LP:
-//          case LP_ENUMERATION:
-//          case HEX_JUMP_LEFT_BRACKET:
-//          case REGEXP_START_SLASH:
-//          case HEX_START_BRACKET:
-//          case LP_WITH_SPACES:
-//          case LP_WITH_SPACE_AFTER:
-//             ++counter;
-//             break;
-//          case RP:
-//          case RP_ENUMERATION:
-//          case HEX_JUMP_RIGHT_BRACKET:
-//          case REGEXP_END_SLASH:
-//          case HEX_END_BRACKET:
-//          case RP_WITH_SPACES:
-//          case RP_WITH_SPACE_BEFORE:
-//             --counter;
-//             if(minimal > counter)
-//                minimal = counter;
-//             return minimal;
-//          default:
-//             break;
-//       }
-//    }
-//    return minimal;
-// }
 
 } //namespace yaramod
