@@ -491,7 +491,6 @@ private:
    void autoformat();
    void determineNewlineSectors();
    void addMissingNewLines();
-   // int minimalNumberOfTabs(TokenIt from);
 	std::list< Token > _tokens; ///< All tokens off the rule
    bool formatted = false; ///< The flag is set once autoformat has been called
 };
