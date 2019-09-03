@@ -894,7 +894,6 @@ std::string TokenStream::getText(bool withIncludes)
       autoformat();
    BracketStack brackets;
    uint lineCounter = 0;
-   int tabs = 0;
    int current_line_tabs = 0;
    std::stringstream os;
    bool inside_rule = false;
@@ -960,12 +959,12 @@ std::string TokenStream::getText(bool withIncludes)
       if(it->isLeftBracket())
       {
          brackets.addLeftBracket(lineCounter, it->getFlag());
-         ++current_line_tabs;
+         if(it->getFlag())
+            ++current_line_tabs;
       }
       if(it->isRightBracket())
       {
          brackets.addRightBracket();
-         --current_line_tabs;
       }
       if(current == NEW_LINE)
       {
@@ -977,20 +976,14 @@ std::string TokenStream::getText(bool withIncludes)
                || next == CONDITION)
             {
                os << "\t";
-               tabs = 0;
             }
             else if(next != RULE_END)
             {
-               if(nextIt->isRightBracket())
-                  --tabs;
-               if(current_line_tabs > 0)
-                  ++tabs;
-               if(tabs < 0)
-                  tabs = 0;
-               os << std::string( 2 + tabs, '\t');
+               if(nextIt->isRightBracket() && nextIt->getFlag())
+                  --current_line_tabs;
+               os << std::string( 2 + current_line_tabs, '\t');
             }
          }
-         current_line_tabs = 0;
       }
       else if(inside_hex_string)
       {
@@ -1046,6 +1039,7 @@ std::string TokenStream::getText(bool withIncludes)
                   case DOT:
                   case NEW_LINE:
                   case COMMA:
+                  case LSQB:
                      break;
                   case REGEXP_MODIFIERS:
                      if(current != REGEXP_MODIFIERS)
