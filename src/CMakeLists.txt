@@ -90,6 +90,9 @@ if(NOT TARGET yaramod)
 		target_link_libraries(yaramod shlwapi)
 	endif()
 
+	# Pog library
+	target_link_libraries(yaramod pog::pog)
+
 	# Python module.
 	if(YARAMOD_PYTHON)
 		add_subdirectory(python)
