@@ -13,6 +13,9 @@
 #include <stack>
 #include <unordered_map>
 
+#define FMT_HEADER_ONLY 1
+#include <pog/pog.h>
+
 #include "yaramod/yaramod_error.h"
 #include "yaramod/parser/lexer.h"
 #include "yaramod/types/hex_string.h"
@@ -21,6 +24,27 @@
 #include "yaramod/yy/yy_parser.hpp"
 
 namespace yaramod {
+
+using Value = std::variant<std::string, int, bool, TokenIt>;
+
+class ParserDriver;
+
+class PogParser{
+public:
+	PogParser(ParserDriver* driver);
+	void defineTokens();
+	void defineGrammar();
+	bool prepareParser();
+	void parse( std::stringstream& input );
+private:
+	template<typename... Args> TokenIt emplace_back(Args&&... args);
+
+	std::string _strLiteral; ///< Currently processed string literal.
+	std::string _indent;
+	std::string _regexpClass; ///< Currently processed regular expression class.
+	pog::Parser<Value> _parser;
+	ParserDriver* _driver;
+};
 
 /**
  * Represents error during parsing.
@@ -52,6 +76,7 @@ class ParserDriver
 {
 	friend class yy::Lexer;
 	friend class yy::Parser;
+	friend class PogParser;
 
 public:
 	/// @name Constructors
