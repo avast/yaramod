@@ -1,4 +1,5 @@
 include(ExternalProject)
+include(GNUInstallDirs)
 
 if(CMAKE_C_COMPILER)
    set(CMAKE_C_COMPILER_OPTION "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
@@ -7,77 +8,35 @@ if(CMAKE_CXX_COMPILER)
    set(CMAKE_CXX_COMPILER_OPTION "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
 endif()
 
-if(false)                                                                      #TODO POG_LOCAL_DIR
-   message(STATUS "pog: using local pog directory.")
-
-   ExternalProject_Add(pog-project                                                     #TODO pog-project
-      DOWNLOAD_COMMAND ""
-      SOURCE_DIR "${POG_LOCAL_DIR}"
-      CMAKE_ARGS
-         # This does not work on MSVC, but may be useful on Linux.
-         -DCMAKE_BUILD_TYPE=Release
-         # Force the use of the same compiler as used to build the top-level
-         # project. Otherwise, the external project may pick up a different
-         # compiler, which may result in link errors.
-         "${CMAKE_C_COMPILER_OPTION}"
-         "${CMAKE_CXX_COMPILER_OPTION}"
-         # Disable unused options.
-         -DPOG_DOWNLOAD_FMT=ON
-         -DPOG_DOWNLOAD_RE2=ON
-         -DPOG_PIC=ON
-      # Disable the update step.
-      UPDATE_COMMAND ""
-      # Disable the install step.
-      INSTALL_COMMAND ""
-   )
-   force_configure_step(pog-project)
-else()
-   message(STATUS "pog: using remote pog revision.")
-
-   ExternalProject_Add(pog-project
-      URL https://github.com/metthal/pog/archive/master.zip
-      URL_HASH SHA256=5e5e4a38a6a70e6dcdfed949eebd42e76c3173ebca60f8bfaee0c8ad84e576a6    #TODO: Je ok ze jde o sha256('https://github.com/metthal/pog/archive/master.zip')?
-      DOWNLOAD_NAME pog.zip
-      CMAKE_ARGS
-         # This does not work on MSVC, but may be useful on Linux.
-         -DCMAKE_BUILD_TYPE=Release
-         # Force the use of the same compiler as used to build the top-level
-         # project. Otherwise, the external project may pick up a different
-         # compiler, which may result in link errors.
-         "${CMAKE_C_COMPILER_OPTION}"
-         "${CMAKE_CXX_COMPILER_OPTION}"
-      # Disable the update step.
-      UPDATE_COMMAND ""
-      # Disable the install step.
-      INSTALL_COMMAND ""
-      LOG_DOWNLOAD ON
-      LOG_CONFIGURE ON
-      LOG_BUILD ON
-   )
-endif()
-
-
-check_if_variable_changed(POG_LOCAL_DIR CHANGED)
-if(CHANGED)
-   ExternalProject_Get_Property(pog-project binary_dir)
-   message(STATUS "Pog: path to pog directory changed -> cleaning CMake files in ${binary_dir}.")
-   clean_cmake_files(${binary_dir})
-endif()
-
+set(POG_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/pog-install)
 # Set include directories.
-ExternalProject_Get_Property(pog-project source_dir)
-set(POG_INCLUDE_DIR ${source_dir}/include)
+set(POG_INCLUDE_DIR ${POG_INSTALL_DIR}/include)
 
-# Add libraries.
-ExternalProject_Get_Property(pog-project binary_dir)
-
-if(MSVC)
-   set(DEBUG_DIR "Debug/")
-   set(RELEASE_DIR "Release/")
-endif()
+ExternalProject_Add(pog-project
+   URL https://github.com/metthal/pog/archive/pic.zip         # /v0.2.1.zip a prepocitat hash pomoci sha256sum
+   URL_HASH SHA256=5bab2afa71c8e17514602a50af49ff3af1f7de23cacde93213afe16cec1343c3
+   DOWNLOAD_NAME pog.zip
+   CMAKE_ARGS
+      # This does not work on MSVC, but may be useful on Linux.
+      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_INSTALL_PREFIX=${POG_INSTALL_DIR}
+      -DPOG_DOWNLOAD_RE2=ON
+      -DPOG_DOWNLOAD_FMT=ON
+      -DPOG_PIC=ON
+      # Force the use of the same compiler as used to build the top-level
+      # project. Otherwise, the external project may pick up a different
+      # compiler, which may result in link errors.
+      "${CMAKE_C_COMPILER_OPTION}"
+      "${CMAKE_CXX_COMPILER_OPTION}"
+   # Disable the update step.
+   UPDATE_COMMAND ""
+   LOG_DOWNLOAD ON
+   LOG_CONFIGURE ON
+   LOG_BUILD ON
+)
 
 add_library(pog INTERFACE)
-target_link_libraries(pog INTERFACE debug ${binary_dir}/src/pog/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}pog${CMAKE_STATIC_LIBRARY_SUFFIX})
-target_link_libraries(pog INTERFACE optimized ${binary_dir}/src/pog/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}pog${CMAKE_STATIC_LIBRARY_SUFFIX})
+target_link_libraries(pog INTERFACE ${POG_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pog_fmt${CMAKE_STATIC_LIBRARY_SUFFIX})
+target_link_libraries(pog INTERFACE ${POG_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pog_re2${CMAKE_STATIC_LIBRARY_SUFFIX})
 target_include_directories(pog SYSTEM INTERFACE ${POG_INCLUDE_DIR})
 add_dependencies(pog pog-project)
