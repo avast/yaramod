@@ -90,7 +90,7 @@ if(NOT TARGET yaramod)
 	endif()
 
 	# Pog library
-	target_link_libraries(yaramod pog::pog)
+	target_link_libraries(yaramod pog)
 
 	# Python module.
 	if(YARAMOD_PYTHON)
