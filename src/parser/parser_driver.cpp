@@ -4,8 +4,6 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
-#include <string>
-
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
 #include "yaramod/types/expressions.h"
@@ -36,12 +34,198 @@ namespace yaramod {
 	}
 
 /**
+ * PogParser Constructor.
+ *
+ * @param driver ParserDriver.
+ */
+PogParser::PogParser(ParserDriver& driver)
+	: _driver(driver)
+{
+	defineTokens();
+	defineGrammar();
+	_parser.set_start_symbol("testing_delete_this");
+	// _parser.set_start_symbol("rules");
+	bool prepared = prepareParser();
+	assert( prepared && "Parser initialization failed");
+}
+
+template<typename... Args>
+TokenIt PogParser::emplace_back(Args&&... args)
+{
+	return _driver.currentStream()->emplace_back(args...);
+}
+
+void PogParser::defineTokens()
+{
+	_parser.token("\\s+");
+
+	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 			-> Value { return emplace_back( RANGE, std::string{str} ); } );
+	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 				-> Value { return emplace_back( DOT, std::string{str} ); } );
+	_parser.token("<").symbol("LT").action( [&](std::string_view str) 				-> Value { return emplace_back( LT, std::string{str} ); } );
+	_parser.token(">").symbol("GT").action( [&](std::string_view str) 				-> Value { return emplace_back( GT, std::string{str} ); } );
+	_parser.token("<=").symbol("LE").action( [&](std::string_view str) 				-> Value { return emplace_back( LE, std::string{str} ); } );
+	_parser.token(">=").symbol("GE").action( [&](std::string_view str) 				-> Value { return emplace_back( GE, std::string{str} ); } );
+	_parser.token("==").symbol("EQ").action( [&](std::string_view str) 				-> Value { return emplace_back( EQ, std::string{str} ); } );
+	_parser.token("!=").symbol("NEQ").action( [&](std::string_view str) 				-> Value { return emplace_back( NEQ, std::string{str} ); } );
+	_parser.token("<<").symbol("SHIFT_LEFT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_LEFT, std::string{str} ); } );
+	_parser.token(">>").symbol("SHIFT_RIGHT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_RIGHT, std::string{str} ); } );
+	_parser.token(R"(-)").symbol("MINUS").action( [&](std::string_view str) 			-> Value { return emplace_back(MINUS, std::string{str}); } )
+		.precedence(1, pog::Associativity::Left);
+	_parser.token(R"(\+)").symbol("PLUS").action( [&](std::string_view str) 				-> Value { return emplace_back(PLUS, std::string{str}); } )
+		.precedence(1, pog::Associativity::Left);
+	_parser.token(R"(\*)").symbol("MULTIPLY").action( [&](std::string_view str) 		-> Value { return emplace_back(MULTIPLY, std::string{str}); } )
+		.precedence(2, pog::Associativity::Left);
+	_parser.token(R"(\\)").symbol("DIVIDE").action( [&](std::string_view str) 			-> Value { return emplace_back(DIVIDE, std::string{str}); } )
+		.precedence(2, pog::Associativity::Left);
+	_parser.token(R"(\%)").symbol("MODULO").action( [&](std::string_view str) -> Value { return emplace_back(MODULO, std::string{str}); } );
+	_parser.token(R"(\^)").symbol("BITWISE_XOR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); } );
+	_parser.token(R"(\&)").symbol("BITWISE_AND").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); } );
+	_parser.token(R"(\|)").symbol("BITWISE_OR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); } );
+	_parser.token(R"(\~)").symbol("BITWISE_NOT").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); } );
+	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
+	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } );
+	_parser.token("\\{").symbol("LCB").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("\\}").symbol("RCB").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back(LSQB, std::string{str} )->getString(); } );
+	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back(RSQB, std::string{str} )->getString(); } );
+	_parser.token("=").symbol("ASSIGN").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token(":").symbol("COLON").action( [&](std::string_view str) -> Value { return emplace_back( COLON, std::string{str} ); } );
+	_parser.token(",").symbol("COMMA").action( [&](std::string_view str) -> Value { return emplace_back( COMMA, std::string{str} ); } );
+	_parser.token("/").symbol("SLASH").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("global").symbol("GLOBAL").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("private").symbol("PRIVATE").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
+	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { return emplace_back( STRINGS, std::string{str} ); } );
+	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { return emplace_back( CONDITION, std::string{str} ); } );
+	_parser.token("ascii").symbol("ASCII").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
+	_parser.token("nocase").symbol("NOCASE").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
+	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
+	_parser.token("fullword").symbol("FULLWORD").action( [&](std::string_view str) -> Value { return emplace_back( FULLWORD, std::string{str} ); } );
+	_parser.token("xor").symbol("XOR").action( [&](std::string_view str) -> Value { return emplace_back( XOR, std::string{str} ); } );
+	_parser.token("true").symbol("BOOL_TRUE").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("false").symbol("BOOL_FALSE").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("import").symbol("IMPORT_KEYWORD").action( [&](std::string_view str) -> Value { return emplace_back( IMPORT_KEYWORD, std::string{str} ); } );
+	_parser.token("not").symbol("NOT").action( [&](std::string_view str) -> Value { return emplace_back( NOT, std::string{str} ); } );
+	_parser.token("and").symbol("AND").action( [&](std::string_view str) -> Value { return emplace_back( AND, std::string{str} ); } );
+	_parser.token("or").symbol("OR").action( [&](std::string_view str) -> Value { return emplace_back( OR, std::string{str} ); } );
+	_parser.token("all").symbol("ALL").action( [&](std::string_view str) -> Value { return emplace_back( ALL, std::string{str} ); } );
+	_parser.token("any").symbol("ANY").action( [&](std::string_view str) -> Value { return emplace_back( ANY, std::string{str} ); } );
+	_parser.token("of").symbol("OF").action( [&](std::string_view str) -> Value { return emplace_back( OF, std::string{str} ); } );
+	_parser.token("them").symbol("THEM").action( [&](std::string_view str) -> Value { return emplace_back( THEM, std::string{str} ); } );
+	_parser.token("for").symbol("FOR").action( [&](std::string_view str) -> Value { return emplace_back( FOR, std::string{str} ); } );
+	_parser.token("entrypoint").symbol("ENTRYPOINT").action( [&](std::string_view str) -> Value { return emplace_back( ENTRYPOINT, std::string{str} ); } );
+	_parser.token("op_at").symbol("AT").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
+	_parser.token("op_in").symbol("IN").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
+	_parser.token("filesize").symbol("FILESIZE").action( [&](std::string_view str) -> Value { return emplace_back( FILESIZE, std::string{str} ); } );
+	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
+	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
+	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
+
+
+
+	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+
+	// STRINGS
+	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { _strLiteral.clear(); return {}; } );
+	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
+	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
+	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)			-> Value {
+		std::uint64_t num = 0;
+		strToNum(std::string{str}, num, std::hex);
+		_strLiteral += static_cast<char>(num);
+		return {};
+	} );
+	_parser.token("\\\"").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\"'; return {}; } );
+	_parser.token("\\\\").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\\'; return {}; } );
+	_parser.token("\\.").states("@str").action( [&](std::string_view str)								-> Value {
+		throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'"));
+	} );
+	_parser.token( R"(([^\\"])+)" ).states("@str").action( [&](std::string_view str)				-> Value { _strLiteral += std::string{str}; return {}; } );
+	_parser.token("\"").states("@str").enter_state("@default").action( [&](std::string_view)	-> Value { return emplace_back(STRING_LITERAL, _strLiteral); } );
+
+
+	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*")
+		.symbol("ID") //TODO: ID like make_ID in lexer
+		.action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("").symbol("");
+
+	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
+}
+
+void PogParser::defineGrammar()
+{
+	_parser.rule("testing_delete_this")
+		.production(
+			"RULE", "rule_name", "LCB", "CONDITION", "COLON", "BOOL_TRUE", "RCB", [&](auto&& args) -> Value {
+				TokenIt name = args[1].token();
+				std::cout << "name:" << name->getString() << std::endl;
+				if(_driver.ruleExists(name->getString()))
+					error_handle("Rule already exists");
+				std::vector<Meta> metas;
+				std::shared_ptr<Rule::StringsTrie> strings = std::make_shared<Rule::StringsTrie>();
+				Expression::Ptr condition = std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_TRUE, true));
+				const std::vector<TokenIt> tags;
+				_driver.addRule(Rule(_driver.currentStream(), name, std::nullopt, std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				std::cout << "Made rule " << name->getString();
+				return {};
+			} );
+	_parser.rule("rule_name")
+		.production("ID", [&](auto&& args) -> Value { return emplace_back(RULE_NAME, args[0].str()); } );
+
+	// _parser.rule("rules")
+	// 	.production("rules", "rule", [](auto&& args) 	-> Value	{ return std::move(args[0]); } )
+	// 	.production("rules", "import", [](auto&& args) 	-> Value { return std::move(args[0]); } )
+	// 	.production("rules", "end", [](auto&& args) 		-> Value { return std::move(args[0]); } )
+	// 	.production()
+	// 	;
+	// _parser.rule("import")
+	// 	.production("IMPORT_KEYWORD", "STRING_LITERAL", [](auto&& args) -> Value { return std::move(args[0]); });
+}
+
+bool PogParser::prepareParser()
+{
+	auto report = _parser.prepare();
+	if(!report)
+	{
+		std::cerr << "Parser initialization failed" << std::endl;
+		fmt::print("{}\n", report.to_string());
+		// for(const auto& issue : report)
+		// 	std::cerr << issue.to_string() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+// void PogParser::includeFile(std::stringstream* input)
+// {
+
+// }
+
+void PogParser::parse()
+{
+	try
+	{
+		auto result = _parser.parse(*_input);
+	   if (!result)
+	   {
+	      std::cerr << "Error" << std::endl;
+	      return;
+	   }
+	}
+	catch(const pog::SyntaxError& err)
+	{
+		std::cerr << err.what() << std::endl;
+	}
+}
+
+/**
  * Constructor.
  *
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this), _pog_parser(*this),
 	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
@@ -62,7 +246,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this), _pog_parser(*this),
 	_loc(nullptr),  _valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols()
 {
@@ -72,6 +256,8 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(p
 
 	_tokenStreams.push(std::make_shared<TokenStream>());
 	_file = YaraFile(_tokenStreams.top());
+
+	_pog_parser.setInput(&input);
 }
 
 /**
@@ -134,7 +320,12 @@ bool ParserDriver::parse()
 	if (!_valid)
 		return false;
 
-	bool output = _parser.parse() == 0;
+	//BISON:
+	//bool output = _parser.parse() == 0;
+	//POG:
+	_pog_parser.parse();
+	bool output = true;
+
 	// std::cout << "TokenStream when getParsedFile(): " << std::endl;
 	// std::cout << *_file.getTokenStream() << "'" << std::endl;
 	return output;
@@ -434,6 +625,8 @@ bool ParserDriver::includeFileImpl(const std::string& includePath, std::shared_p
 		return false;
 
 	_lexer.includeFile(includedFile.get());
+
+	_pog_parser.setInput(includedFile.get());
 
 	_tokenStreams.push(substream);
 	_includedFiles.push_back(std::move(includedFile));

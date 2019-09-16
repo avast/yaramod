@@ -7,11 +7,13 @@
 #pragma once
 
 #include <pog/pog.h>
+#include "yaramod/parser/parser_driver.h"
+
 
 namespace yaramod {
+using Value = std::variant<int, bool, std::string, TokenIt>;
+pog::Parser<Value> parser;
+parser.token
 
-class PogParser{
-
-};
 
 } // namespace yaramod
