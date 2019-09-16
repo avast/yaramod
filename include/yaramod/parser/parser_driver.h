@@ -25,17 +25,53 @@
 
 namespace yaramod {
 
-using Value = std::variant<std::string, int, bool, TokenIt>;
+class Value
+{
+public:
+	Value(const std::string& value) : _value(value) {}
+	Value(std::string&& value) : _value( std::move(value) ) {}
+	Value(int value) : _value(value) {}
+	Value(bool value) : _value(value) {}
+	Value(TokenIt value) : _value(value) {}
+
+	Value() = default;
+
+
+	const std::string& str() const { return getValue<std::string>(); }
+	bool boo() const { return getValue<bool>(); }
+	int number() const { return getValue<int>(); }
+	TokenIt token() const { return getValue<TokenIt>(); }
+protected:
+	template<typename T>
+	const T& getValue() const
+	{
+		try
+      {
+         return std::get<T>(_value);
+      }
+      catch (std::bad_variant_access& exp)
+      {
+         std::cerr << "Called Value.getValue() with incompatible type. Actual index is " << _value.index() << std::endl << exp.what() << std::endl;
+         assert(false && "Called getValue<T>() with incompatible type T.");
+      }
+	}
+private:
+	std::variant<std::string, int, bool, TokenIt> _value;
+};
 
 class ParserDriver;
 
-class PogParser{
+class PogParser
+{
 public:
-	PogParser(ParserDriver* driver);
+	PogParser(ParserDriver& driver);
 	void defineTokens();
 	void defineGrammar();
 	bool prepareParser();
-	void parse( std::stringstream& input );
+	void includeFile();
+	void parse();
+
+	void setInput(std::istream* input) { _input = input; };
 private:
 	template<typename... Args> TokenIt emplace_back(Args&&... args);
 
@@ -43,7 +79,8 @@ private:
 	std::string _indent;
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
-	ParserDriver* _driver;
+	ParserDriver& _driver;
+	std::istream* _input;
 };
 
 /**
@@ -175,6 +212,7 @@ private:
 
 	yy::Lexer _lexer; ///< Flex lexer
 	yy::Parser _parser; ///< Bison parser
+	PogParser _pog_parser; ///< pog parser
 	yy::location _loc; ///< Location
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
