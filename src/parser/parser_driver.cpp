@@ -43,8 +43,8 @@ PogParser::PogParser(ParserDriver& driver)
 {
 	defineTokens();
 	defineGrammar();
-	_parser.set_start_symbol("testing_delete_this");
-	// _parser.set_start_symbol("rules");
+	// _parser.set_start_symbol("testing_delete_this");
+	_parser.set_start_symbol("rules");
 	bool prepared = prepareParser();
 	assert( prepared && "Parser initialization failed");
 }
@@ -69,15 +69,15 @@ void PogParser::defineTokens()
 	_parser.token("!=").symbol("NEQ").action( [&](std::string_view str) 				-> Value { return emplace_back( NEQ, std::string{str} ); } );
 	_parser.token("<<").symbol("SHIFT_LEFT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_LEFT, std::string{str} ); } );
 	_parser.token(">>").symbol("SHIFT_RIGHT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_RIGHT, std::string{str} ); } );
-	_parser.token(R"(-)").symbol("MINUS").action( [&](std::string_view str) 			-> Value { return emplace_back(MINUS, std::string{str}); } )
+	_parser.token(R"(-)").symbol("MINUS").action( [&](std::string_view str) 		-> Value { return emplace_back(MINUS, std::string{str}); } )
 		.precedence(1, pog::Associativity::Left);
-	_parser.token(R"(\+)").symbol("PLUS").action( [&](std::string_view str) 				-> Value { return emplace_back(PLUS, std::string{str}); } )
+	_parser.token(R"(\+)").symbol("PLUS").action( [&](std::string_view str) 		-> Value { return emplace_back(PLUS, std::string{str}); } )
 		.precedence(1, pog::Associativity::Left);
-	_parser.token(R"(\*)").symbol("MULTIPLY").action( [&](std::string_view str) 		-> Value { return emplace_back(MULTIPLY, std::string{str}); } )
+	_parser.token(R"(\*)").symbol("MULTIPLY").action( [&](std::string_view str)	-> Value { return emplace_back(MULTIPLY, std::string{str}); } )
 		.precedence(2, pog::Associativity::Left);
-	_parser.token(R"(\\)").symbol("DIVIDE").action( [&](std::string_view str) 			-> Value { return emplace_back(DIVIDE, std::string{str}); } )
+	_parser.token(R"(\\)").symbol("DIVIDE").action( [&](std::string_view str) 		-> Value { return emplace_back(DIVIDE, std::string{str}); } )
 		.precedence(2, pog::Associativity::Left);
-	_parser.token(R"(\%)").symbol("MODULO").action( [&](std::string_view str) -> Value { return emplace_back(MODULO, std::string{str}); } );
+	_parser.token(R"(\%)").symbol("MODULO").action( [&](std::string_view str) 		-> Value { return emplace_back(MODULO, std::string{str}); } );
 	_parser.token(R"(\^)").symbol("BITWISE_XOR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); } );
 	_parser.token(R"(\&)").symbol("BITWISE_AND").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); } );
 	_parser.token(R"(\|)").symbol("BITWISE_OR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); } );
@@ -94,7 +94,7 @@ void PogParser::defineTokens()
 	_parser.token("/").symbol("SLASH").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("global").symbol("GLOBAL").action( [](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("private").symbol("PRIVATE").action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
 	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { return emplace_back( STRINGS, std::string{str} ); } );
 	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { return emplace_back( CONDITION, std::string{str} ); } );
@@ -121,6 +121,7 @@ void PogParser::defineTokens()
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
+	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 
 
 
@@ -155,32 +156,132 @@ void PogParser::defineTokens()
 
 void PogParser::defineGrammar()
 {
-	_parser.rule("testing_delete_this")
-		.production(
-			"RULE", "rule_name", "LCB", "CONDITION", "COLON", "BOOL_TRUE", "RCB", [&](auto&& args) -> Value {
-				TokenIt name = args[1].token();
-				std::cout << "name:" << name->getString() << std::endl;
-				if(_driver.ruleExists(name->getString()))
-					error_handle("Rule already exists");
-				std::vector<Meta> metas;
-				std::shared_ptr<Rule::StringsTrie> strings = std::make_shared<Rule::StringsTrie>();
-				Expression::Ptr condition = std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_TRUE, true));
-				const std::vector<TokenIt> tags;
-				_driver.addRule(Rule(_driver.currentStream(), name, std::nullopt, std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
-				std::cout << "Made rule " << name->getString();
-				return {};
-			} );
-	_parser.rule("rule_name")
-		.production("ID", [&](auto&& args) -> Value { return emplace_back(RULE_NAME, args[0].str()); } );
+	_parser.rule("rules")
+		.production("rules", "rule"/*, [](auto&& args) 	-> Value	{ return std::move(args[0]); }*/ )
+		.production("rules", "import"/*, [](auto&& args) 	-> Value { return std::move(args[0]); }*/ )
+		// .production("rules", "END"/*, [](auto&& args) 		-> Value { return std::move(args[0]); }*/ )
+		.production()
+		;
+	_parser.rule("import")
+		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
+			TokenIt import = emplace_back(IMPORT_MODULE, args[1].getString());
+			if(!_driver._file.addImport(import))
+				error_handle("Unrecognized module '" + import->getString() + "' imported");
+			return {};
+		});
 
-	// _parser.rule("rules")
-	// 	.production("rules", "rule", [](auto&& args) 	-> Value	{ return std::move(args[0]); } )
-	// 	.production("rules", "import", [](auto&& args) 	-> Value { return std::move(args[0]); } )
-	// 	.production("rules", "end", [](auto&& args) 		-> Value { return std::move(args[0]); } )
-	// 	.production()
-	// 	;
-	// _parser.rule("import")
-	// 	.production("IMPORT_KEYWORD", "STRING_LITERAL", [](auto&& args) -> Value { return std::move(args[0]); });
+	_parser.rule("rule")
+		.production("rule_mod", "RULE", "rule_name", "tags", "rule_begin", "metas", "strings", "condition", "rule_end", [&](auto&& args) -> Value {
+			std::cout << "Matched 'rule'" << std::endl;
+			TokenIt name = args[2].getTokenIt();
+			if(_driver.ruleExists(name->getString()))
+				error_handle("Rule already exists");
+			std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
+			std::vector<Meta> metas = std::move(args[5].getMetas());
+			std::shared_ptr<Rule::StringsTrie> strings = std::make_shared<Rule::StringsTrie>(); //TODO fill it
+			Expression::Ptr condition = std::move(args[7].getExpression()); //TODO fill it
+			const std::vector<TokenIt> tags = std::move(args[3].getMultipleTokenIt());
+
+			_driver.addRule(Rule(_driver.currentStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+			std::cout << "Made rule '" << name->getString() << "'" << std::endl;
+			std::cout << "TokenStream: " << *_driver.currentStream() << std::endl;
+			return {};
+		});
+
+	_parser.rule("rule_mod")
+		.production("GLOBAL", [&](auto&&) -> Value { return emplace_back(GLOBAL, "global"); })
+		.production("PRIVATE", [&](auto&&) -> Value { return emplace_back(PRIVATE, "private"); })
+		.production([&](auto&&) -> Value { return Value(std::nullopt); })
+		;
+	_parser.rule("rule_name")
+		.production("ID", [&](auto&& args) -> Value {
+			std::cout << "Matched 'rule_name'" << std::endl;
+			return emplace_back(RULE_NAME, args[0].getString());
+		});
+	_parser.rule("tags")
+		.production("COLON", "tag_list", [](auto&& args) -> Value {
+			std::cout << "Matched 'tags'" << std::endl;
+			return std::move(args[1]);
+		})
+		.production([](auto&&) -> Value {
+			std::cout << "Matched 'tags' (empty)" << std::endl;
+			return std::vector<TokenIt>();
+		})
+		;
+	_parser.rule("tag_list")
+		.production("tag_list", "ID", [&](auto&& args) -> Value {
+			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
+			tags.push_back(emplace_back(TAG, std::move(args[1].getString())));
+			return Value(std::move(tags));
+		})
+		.production("ID", [&](auto&& args) -> Value {
+			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
+			tags.push_back(emplace_back(TAG, std::move(args[0].getString())));
+			return Value(std::move(tags));
+		})
+		;
+	_parser.rule("rule_begin")
+		.production("LCB", [&](auto&&) -> Value { return emplace_back(RULE_BEGIN, "{"); });
+	_parser.rule("rule_end")
+		.production("RCB", [&](auto&&) -> Value { return emplace_back(RULE_END, "}"); });
+
+	_parser.rule("metas")
+		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
+		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
+		;
+		//Continue with following
+	_parser.rule("metas_body")
+		.production("metas_body", "ID", "ASSIGN", "literal", [&](auto&& args) -> Value {
+			std::vector<Meta> body = std::move(args[0].getMetas());
+			TokenIt key = emplace_back(TokenType::META_KEY, std::move(args[1].getString()));
+			emplace_back(TokenType::EQ, "=");
+			TokenIt val = emplace_back(TokenType::META_VALUE, std::move(args[3].getLiteral()));
+			body.emplace_back(key, val);
+			return Value(std::move(body));
+		})
+		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
+		;
+
+	_parser.rule("literal")
+		.production("STRING_LITERAL", [](auto&& args) -> Value { return Literal(args[0].getString()); })
+		.production("INTEGER", [](auto&& args) -> Value {
+			int64_t number = std::stoll(args[0].getString());
+			return Literal(number, std::move(args[0].getString()));
+		})
+		.production("boolean", [](auto&& args) -> Value { return Literal(args[0].getBool()); })
+		;
+
+	_parser.rule("boolean")
+		.production("BOOL_TRUE", [](auto&&) -> Value { return true; })
+		.production("BOOL_FALSE", [](auto&&) -> Value { return false; })
+		;
+
+	_parser.rule("strings")
+		//TODO .production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value { return args[2]; })
+		.production([&](auto&&) -> Value {
+			auto strings = std::make_shared<Rule::StringsTrie>();
+			_driver.setCurrentStrings(strings);
+			return strings;
+		})
+		;
+	_parser.rule("condition")
+		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
+			std::cout << "Matched 'condition'" << std::endl;
+			return std::move(args[2]);
+		})
+		;
+	_parser.rule("expression")
+		.production("boolean", [&](auto&& args) -> Value {
+			std::cout << "Matched 'expression'" << std::endl;
+			Value output;
+			if(args[0].getBool())
+				output = Value(std::move(std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_TRUE, true))));
+			else
+				output = Value(std::move(std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_FALSE, false))));
+			output.getExpression()->setType(Expression::Type::Bool);
+			return output;
+		}) //TODO add more
+		;
 }
 
 bool PogParser::prepareParser()
@@ -207,6 +308,7 @@ void PogParser::parse()
 	try
 	{
 		auto result = _parser.parse(*_input);
+		std::cout << "parsing finished" << std::endl;
 	   if (!result)
 	   {
 	      std::cerr << "Error" << std::endl;
