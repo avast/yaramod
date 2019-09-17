@@ -57,7 +57,8 @@ TokenIt PogParser::emplace_back(Args&&... args)
 
 void PogParser::defineTokens()
 {
-	_parser.token("\\s+");
+	_parser.token("\\n").action( [&](std::string_view str) -> Value { return emplace_back(NEW_LINE, std::string{str}); });
+	_parser.token("\\s+"); //
 
 	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 			-> Value { return emplace_back( RANGE, std::string{str} ); } );
 	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 				-> Value { return emplace_back( DOT, std::string{str} ); } );
@@ -122,7 +123,6 @@ void PogParser::defineTokens()
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
 	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-
 
 
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
