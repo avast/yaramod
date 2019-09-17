@@ -28,19 +28,138 @@ namespace yaramod {
 class Value
 {
 public:
-	Value(const std::string& value) : _value(value) {}
-	Value(std::string&& value) : _value( std::move(value) ) {}
-	Value(int value) : _value(value) {}
-	Value(bool value) : _value(value) {}
-	Value(TokenIt value) : _value(value) {}
+	using Type = std::variant<
+		std::string, //0
+		int,
+		bool, //2
+		std::optional<TokenIt>,
+		Rule, //4
+		std::vector<Meta>,
+		std::shared_ptr<Rule::StringsTrie>, //6
+		std::pair<std::uint32_t, std::vector<TokenIt>>,
+		Literal, //8
+		Expression::Ptr,
+		std::vector<Expression::Ptr>, //10
+		std::vector<TokenIt>,
+		std::vector<std::shared_ptr<HexStringUnit>>, //12
+		std::shared_ptr<HexStringUnit>,
+		std::vector<std::shared_ptr<HexString>>, //14
+		std::shared_ptr<String>,
+		std::shared_ptr<RegexpUnit>, //16
+		std::vector<std::shared_ptr<RegexpUnit>>,
+		TokenIt //18
+	>;
 
+	/// @name Constructors
+	/// @{
+	Value( const std::string& v ) : _value(v) {}
+	Value( std::string&& v ) : _value( std::move(v) ) {}
+	Value( int v ) : _value(v) {}
+	Value( bool v ) : _value(v) {}
+	Value( std::optional<TokenIt> v ) : _value(v) {}
+	Value( TokenIt v ) : _value(v) {}
+	Value( std::vector<Meta>&& v ) : _value(std::move(v)) {}
+	Value( std::shared_ptr<Rule::StringsTrie> v ) :  _value(v) {}
+	Value( std::shared_ptr<Rule::StringsTrie>&& v ) : _value(std::move(v)) {}
+	Value( std::pair<std::uint32_t, std::vector<TokenIt>>&& v ) : _value(std::move(v)) {}
+	Value( Literal&& v ) : _value(std::move(v)) {}
+	Value( Expression::Ptr&& v ) : _value(std::move(v)) {}
+	Value( std::vector<TokenIt>&& v ) : _value(std::move(v)) {}
+	Value( std::vector<std::shared_ptr<HexStringUnit>>&& v ) : _value(std::move(v)) {}
+	Value( std::shared_ptr<HexStringUnit> v ) : _value(v) {}
+	Value( std::shared_ptr<HexStringUnit>&& v ) : _value(std::move(v)) {}
+	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
+	Value( std::shared_ptr<String> v ) : _value(v) {}
+	Value( std::shared_ptr<String>&& v ) : _value(std::move(v)) {}
+	Value( std::shared_ptr<RegexpUnit> v ) : _value(v) {}
+	Value( std::shared_ptr<RegexpUnit>&& v ) : _value(std::move(v)) {}
+	Value( std::vector<std::shared_ptr<RegexpUnit>>&& v) : _value(std::move(v)) {}
+	// Value(T&& v) : _value(std::forward<T>(v)) {}
+
+	// Value( Variant&& v ) : _value(std::move(v)) {}
 	Value() = default;
+	/// @}
 
 
-	const std::string& str() const { return getValue<std::string>(); }
-	bool boo() const { return getValue<bool>(); }
-	int number() const { return getValue<int>(); }
-	TokenIt token() const { return getValue<TokenIt>(); }
+	/// @name Getter methods
+	/// @{
+	const std::string& getString() const
+	{
+		return getValue<std::string>();
+	}
+	int getInt() const
+	{
+		return getValue<int>();
+	}
+	bool getBool() const
+	{
+		return getValue<bool>();
+	}
+	TokenIt getTokenIt() const {
+		return getValue<TokenIt>();
+	}
+	std::optional<TokenIt> getOptionalTokenIt() const
+	{
+		return getValue<std::optional<TokenIt>>();
+	}
+	const Rule& getRule() const
+	{
+		return getValue<Rule>();
+	}
+	std::vector<Meta>&& getMetas()
+	{
+		return std::move(moveValue<std::vector<Meta>>());
+	}
+	std::shared_ptr<Rule::StringsTrie> getStringsTrie() const
+	{
+		return getValue<std::shared_ptr<Rule::StringsTrie>>();
+	}
+	std::pair<std::uint32_t, std::vector<TokenIt>> getStringMods() const
+	{
+		return getValue<std::pair<std::uint32_t, std::vector<TokenIt>>>();
+	}
+	const Literal& getLiteral() const
+	{
+		return getValue<Literal>();
+	}
+	Expression::Ptr getExpression() const
+	{
+		return getValue<Expression::Ptr>();
+	}
+	std::vector<Expression::Ptr>&& getMultipleExpressions()
+	{
+		return std::move(moveValue<std::vector<Expression::Ptr>>());
+	}
+	std::vector<TokenIt>&& getMultipleTokenIt()
+	{
+		return std::move(moveValue<std::vector<TokenIt>>());
+	}
+	std::vector<std::shared_ptr<HexStringUnit>>&& getMultipleHexUnits()
+	{
+		return std::move(moveValue<std::vector<std::shared_ptr<HexStringUnit>>>());
+	}
+	std::shared_ptr<HexStringUnit> getHexUnit() const
+	{
+		return getValue<std::shared_ptr<HexStringUnit>>();
+	}
+	std::vector<std::shared_ptr<HexString>>&& getMultipleHexStrings()
+	{
+		return std::move(moveValue<std::vector<std::shared_ptr<HexString>>>());
+	}
+	std::shared_ptr<String> getYaramodString() const
+	{
+		return getValue<std::shared_ptr<String>>();
+	}
+	std::shared_ptr<RegexpUnit> getRegexpUnit() const
+	{
+		return getValue<std::shared_ptr<RegexpUnit>>();
+	}
+	std::vector<std::shared_ptr<RegexpUnit>>&& getMultipleRegexpUnits()
+	{
+		return std::move(moveValue<std::vector<std::shared_ptr<RegexpUnit>>>());
+	}
+	/// @}
+
 protected:
 	template<typename T>
 	const T& getValue() const
@@ -52,11 +171,27 @@ protected:
       catch (std::bad_variant_access& exp)
       {
          std::cerr << "Called Value.getValue() with incompatible type. Actual index is " << _value.index() << std::endl << exp.what() << std::endl;
+         std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
+	template< typename T>
+	T&& moveValue()
+	{
+		try
+      {
+         return std::move(std::get<T>(std::move(_value)));
+      }
+      catch (std::bad_variant_access& exp)
+      {
+          std::cerr << "Called Value.moveValue() with incompatible type. Actual index is " << _value.index() << std::endl << exp.what() << std::endl;
+         std::cerr << __PRETTY_FUNCTION__ << std::endl;
+         assert(false && "Called getValue<T>() with incompatible type T.");
+      }
+	}
+
 private:
-	std::variant<std::string, int, bool, TokenIt> _value;
+	Type _value;
 };
 
 class ParserDriver;
