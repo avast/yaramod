@@ -129,7 +129,10 @@ void PogParser::defineTokens()
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
 	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 	// _parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(std::string{str}); } );
-	// _parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); } );
+
+	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, std::stol(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
+	} );
 	// _parser.token(R"([0-9]+\.[0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); } );
 	_parser.token(R"([0-9]+KB)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, 1000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
@@ -137,7 +140,9 @@ void PogParser::defineTokens()
 	_parser.token(R"([0-9]+MB)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, 1000000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
 	} );
-	_parser.token(R"([0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { print("[0-9]", str); return emplace_back(INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str})); } );
+	_parser.token(R"([0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str}));
+	} );
 
 	//like ({letter}|_)({letter}|{digit}|_)* in FLEX lexer:
 	// _parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [](std::string_view str) -> Value { return std::string{str}; } );
