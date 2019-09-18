@@ -74,6 +74,7 @@ bool CuckooModule::initialize()
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("resolved_api", Type::Int, Type::Regexp));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_path", Type::Int, Type::Regexp));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_sha256", Type::Int, Type::String));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("api_call", Type::Int, Type::Regexp));
 	cuckooStruct->addAttribute(processStruct);
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");
