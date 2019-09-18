@@ -55,8 +55,14 @@ TokenIt PogParser::emplace_back(Args&&... args)
 	return _driver.currentStream()->emplace_back(args...);
 }
 
-void print(const std::string& symbol, const std::string_view& value) { std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl; }
-void print(const std::string& symbol, const std::string& value) { std::cerr << symbol << ": '" << value << "'" << std::endl; }
+void print(const std::string& symbol, const std::string_view& value)
+{
+	// std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
+}
+void print(const std::string& symbol, const std::string& value)
+{
+	// std::cerr << symbol << ": '" << value << "'" << std::endl;
+}
 
 void PogParser::defineTokens()
 {
@@ -146,7 +152,8 @@ void PogParser::defineTokens()
 
 	//like ({letter}|_)({letter}|{digit}|_)* in FLEX lexer:
 	// _parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [&](std::string_view str) -> Value { print("ID", str); return emplace_back(ID, std::string{str}); } );
+	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); } );
+	_parser.token(R"(\$[a-zA-Z0-9]*)").symbol("STRING_ID").action( [&](std::string_view str) -> Value { return emplace_back(STRING_ID, std::string{str}); } );
 
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 
@@ -162,12 +169,11 @@ void PogParser::defineTokens()
 	} );
 	_parser.token("\\\"").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\"'; return {}; } );
 	_parser.token("\\\\").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\\'; return {}; } );
-	_parser.token("\\.").states("@str").action( [&](std::string_view str)								-> Value {
+	_parser.token("\\.").states("@str").action( [&](std::string_view str)							-> Value {
 		throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'"));
 	} );
 	_parser.token( R"(([^\\"])+)" ).states("@str").action( [&](std::string_view str)				-> Value { _strLiteral += std::string{str}; return {}; } );
 	_parser.token("\"").states("@str").enter_state("@default").action( [&](std::string_view)	-> Value { return emplace_back(STRING_LITERAL, _strLiteral); } );
-
 
 
 	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
@@ -198,7 +204,7 @@ void PogParser::defineGrammar()
 				error_handle("Rule already exists");
 			std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
 			std::vector<Meta> metas = std::move(args[5].getMetas());
-			std::shared_ptr<Rule::StringsTrie> strings = std::make_shared<Rule::StringsTrie>(); //TODO fill it
+			std::shared_ptr<Rule::StringsTrie> strings = std::move(args[6].getStringsTrie());
 			Expression::Ptr condition = std::move(args[7].getExpression()); //TODO fill it
 			const std::vector<TokenIt> tags = std::move(args[3].getMultipleTokenIt());
 
@@ -274,11 +280,7 @@ void PogParser::defineGrammar()
 
 	_parser.rule("literal") //toto nebude typu literal ale TokenIt a vklada se uz v tokenizeru
 		.production("STRING_LITERAL", [](auto&& args) -> Value { return args[0]; })
-		.production("INTEGER", [](auto&& args) -> Value {
-			// int64_t number = std::stoll(args[0].getString());
-			// return Literal(number, std::move(args[0].getString()));
-			return args[0];
-		})
+		.production("INTEGER", [](auto&& args) -> Value { return std::move(args[0]); })
 		.production("boolean", [](auto&& args) -> Value { return args[0]; })
 		;
 
@@ -288,13 +290,79 @@ void PogParser::defineGrammar()
 		;
 
 	_parser.rule("strings")
-		//TODO .production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value { return args[2]; })
+		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value { return args[2]; })
 		.production([&](auto&&) -> Value {
 			auto strings = std::make_shared<Rule::StringsTrie>();
 			_driver.setCurrentStrings(strings);
-			return strings;
+			return std::move(strings);
 		})
 		;
+	_parser.rule("strings_body")
+		.production("strings_body", "STRING_ID", "ASSIGN", "string", [&](auto&& args) -> Value {
+			const std::string& id = args[1].getTokenIt()->getPureText(); std::cout << "id " << id << std::endl;
+			const std::string& trieId = _driver.isAnonymousStringId(id) ? _driver.generateAnonymousStringPseudoId() : id;
+			auto string = std::move(args[3].getYaramodString());
+			string->setIdentifier(args[1].getTokenIt(), args[2].getTokenIt());
+			auto strings = std::move(args[0].getStringsTrie());
+			std::cout << "inserting string " << string->getText() << std::endl;
+			if(!strings->insert(trieId, std::move(string)))
+			{
+				error_handle("Redefinition of string '" + trieId + "'");
+			}
+			return std::move(strings);
+		})
+		.production([&](auto&&) -> Value {
+			auto strings = std::make_shared<Rule::StringsTrie>();
+			_driver.setCurrentStrings(strings);
+			return std::move(strings);
+		})
+		;
+	_parser.rule("string") //TODO FIX
+		.production("STRING_LITERAL", "string_mods", [&](auto&& args) -> Value {
+			auto string = std::make_shared<PlainString>(_driver.currentStream(), std::move(args[0].getTokenIt()));
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
+			string->setModifiers(mods.first, std::move(mods.second));
+			return Value(std::move(string));
+		})
+		// .production() TODO
+		;
+
+	_parser.rule("string_mods")
+		.production("string_mods", "ASCII", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Ascii;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "WIDE", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Wide;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "NOCASE", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Nocase;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "FULLWORD", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Fullword;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "XOR", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Xor;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production([](auto&&) -> Value {
+			return Value(std::make_pair(String::Modifiers::None, std::move(std::vector<TokenIt>())));
+		})
+		;
+
 	_parser.rule("condition")
 		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
 			std::cout << "Matched 'condition'" << std::endl;
@@ -306,7 +374,7 @@ void PogParser::defineGrammar()
 			std::cout << "Matched 'expression'" << std::endl;
 			auto output = Value(std::move(std::make_shared<BoolLiteralExpression>(args[0].getTokenIt())));
 			output.getExpression()->setType(Expression::Type::Bool);
-			return output;
+			return std::move(output);
 		}) //TODO add more
 		;
 }

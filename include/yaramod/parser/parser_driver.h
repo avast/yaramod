@@ -59,7 +59,6 @@ public:
 	Value( std::optional<TokenIt> v ) : _value(v) {}
 	Value( TokenIt v ) : _value(v) {}
 	Value( std::vector<Meta>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<Rule::StringsTrie> v ) :  _value(v) {}
 	Value( std::shared_ptr<Rule::StringsTrie>&& v ) : _value(std::move(v)) {}
 	Value( std::pair<std::uint32_t, std::vector<TokenIt>>&& v ) : _value(std::move(v)) {}
 	Value( Literal&& v ) : _value(std::move(v)) {}
@@ -69,7 +68,7 @@ public:
 	Value( std::shared_ptr<HexStringUnit> v ) : _value(v) {}
 	Value( std::shared_ptr<HexStringUnit>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<String> v ) : _value(v) {}
+	// Value( std::shared_ptr<String> v ) : _value(v) {}
 	Value( std::shared_ptr<String>&& v ) : _value(std::move(v)) {}
 	Value( std::shared_ptr<RegexpUnit> v ) : _value(v) {}
 	Value( std::shared_ptr<RegexpUnit>&& v ) : _value(std::move(v)) {}
@@ -110,13 +109,13 @@ public:
 	{
 		return std::move(moveValue<std::vector<Meta>>());
 	}
-	std::shared_ptr<Rule::StringsTrie> getStringsTrie() const
+	std::shared_ptr<Rule::StringsTrie>&& getStringsTrie()
 	{
-		return getValue<std::shared_ptr<Rule::StringsTrie>>();
+		return std::move(moveValue<std::shared_ptr<Rule::StringsTrie>>());
 	}
-	std::pair<std::uint32_t, std::vector<TokenIt>> getStringMods() const
+	std::pair<std::uint32_t, std::vector<TokenIt>>&& getStringMods()
 	{
-		return getValue<std::pair<std::uint32_t, std::vector<TokenIt>>>();
+		return std::move(moveValue<std::pair<std::uint32_t, std::vector<TokenIt>>>());
 	}
 	const Literal& getLiteral() const
 	{
