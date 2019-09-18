@@ -60,9 +60,8 @@ void print(const std::string& symbol, const std::string& value) { std::cerr << s
 
 void PogParser::defineTokens()
 {
-	_parser.token("\n").action( [&](std::string_view str) -> Value { std::cout << "MATCHED NEWLINE!!!!!" << std::endl; return emplace_back(NEW_LINE, std::string{str}); });
-//	_parser.token("\n").action( [&](std::string_view str) -> Value { std::cout << "MATCHED NEWLINE!!!!!" << std::endl; emplace_back(NEW_LINE, "\\n"); });
-	_parser.token("\\s+"); //
+	_parser.token("\n").action( [&](std::string_view str) -> Value { return emplace_back(NEW_LINE, std::string{str}); });
+	_parser.token("[ \t\r]+"); // spaces, tabulators, carrige-returns
 
 	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { return emplace_back( RANGE, std::string{str} ); } );
 	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { return emplace_back( DOT, std::string{str} ); } );
@@ -93,9 +92,9 @@ void PogParser::defineTokens()
 	// _parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { print("LCB", str); return emplace_back(LCB, std::string{str}); } );
 	_parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { print("RCB", str); return emplace_back(RCB, std::string{str}); } );
-	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back(LSQB, std::string{str} )->getString(); } );
-	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back(RSQB, std::string{str} )->getString(); } );
-	_parser.token("=").symbol("ASSIGN").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back( LSQB, std::string{str} ); } );
+	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back( RSQB, std::string{str} ); } );
+	_parser.token("=").symbol("ASSIGN").action( [&](std::string_view str) -> Value { return emplace_back( ASSIGN, std::string{str} ); } );
 	_parser.token(":").symbol("COLON").action( [&](std::string_view str) -> Value { return emplace_back( COLON, std::string{str} ); } );
 	_parser.token(",").symbol("COMMA").action( [&](std::string_view str) -> Value { return emplace_back( COMMA, std::string{str} ); } );
 	_parser.token("/").symbol("SLASH").action( [&](std::string_view str) -> Value { return std::string{str}; } );
@@ -110,8 +109,8 @@ void PogParser::defineTokens()
 	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
 	_parser.token("fullword").symbol("FULLWORD").action( [&](std::string_view str) -> Value { return emplace_back( FULLWORD, std::string{str} ); } );
 	_parser.token("xor").symbol("XOR").action( [&](std::string_view str) -> Value { return emplace_back( XOR, std::string{str} ); } );
-	_parser.token("true").symbol("BOOL_TRUE").action( [&](std::string_view str) -> Value { return emplace_back( BOOL_TRUE, std::string{str} ); } );
-	_parser.token("false").symbol("BOOL_FALSE").action( [&](std::string_view str) -> Value { return emplace_back( BOOL_FALSE, std::string{str} ); } );
+	_parser.token("true").symbol("BOOL_TRUE").action( [&](std::string_view) -> Value { return emplace_back( BOOL_TRUE, true ); } );
+	_parser.token("false").symbol("BOOL_FALSE").action( [&](std::string_view) -> Value { return emplace_back( BOOL_FALSE, false ); } );
 	_parser.token("import").symbol("IMPORT_KEYWORD").action( [&](std::string_view str) -> Value { return emplace_back( IMPORT_KEYWORD, std::string{str} ); } );
 	_parser.token("not").symbol("NOT").action( [&](std::string_view str) -> Value { return emplace_back( NOT, std::string{str} ); } );
 	_parser.token("and").symbol("AND").action( [&](std::string_view str) -> Value { return emplace_back( AND, std::string{str} ); } );
@@ -128,8 +127,17 @@ void PogParser::defineTokens()
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
-	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}); } );
+	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 	// _parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(std::string{str}); } );
+	// _parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); } );
+	// _parser.token(R"([0-9]+\.[0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); } );
+	_parser.token(R"([0-9]+KB)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
+	} );
+	_parser.token(R"([0-9]+MB)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
+	} );
+	_parser.token(R"([0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { print("[0-9]", str); return emplace_back(INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str})); } );
 
 	//like ({letter}|_)({letter}|{digit}|_)* in FLEX lexer:
 	// _parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [](std::string_view str) -> Value { return std::string{str}; } );
@@ -250,7 +258,7 @@ void PogParser::defineGrammar()
 			std::vector<Meta> body = std::move(args[0].getMetas());
 			TokenIt key = args[1].getTokenIt();
 			key->setType(META_KEY);
-			emplace_back(EQ, "=");
+			//emplace_back(EQ, "=");
 			TokenIt val = args[3].getTokenIt();
 			val->setType(META_VALUE);
 			body.emplace_back(key, val);
