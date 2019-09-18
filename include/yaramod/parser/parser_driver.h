@@ -137,9 +137,9 @@ public:
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<HexStringUnit>>>());
 	}
-	std::shared_ptr<HexStringUnit> getHexUnit() const
+	std::shared_ptr<HexStringUnit>&& getHexUnit()
 	{
-		return getValue<std::shared_ptr<HexStringUnit>>();
+		return std::move(moveValue<std::shared_ptr<HexStringUnit>>());
 	}
 	std::vector<std::shared_ptr<HexString>>&& getMultipleHexStrings()
 	{
