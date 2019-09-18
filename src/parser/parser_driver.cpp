@@ -133,8 +133,6 @@ void PogParser::defineTokens()
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
-	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
-	// _parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(std::string{str}); } );
 
 	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, std::stol(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
@@ -158,7 +156,7 @@ void PogParser::defineTokens()
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 
 	// STRINGS
-	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { _strLiteral.clear(); return {}; } );
+	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { std::cout << "--> @str" << std::endl; _strLiteral.clear(); return {}; } );
 	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
 	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)		-> Value {
@@ -173,8 +171,11 @@ void PogParser::defineTokens()
 		throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'"));
 	} );
 	_parser.token( R"(([^\\"])+)" ).states("@str").action( [&](std::string_view str)				-> Value { _strLiteral += std::string{str}; return {}; } );
-	_parser.token("\"").states("@str").enter_state("@default").action( [&](std::string_view)	-> Value { return emplace_back(STRING_LITERAL, _strLiteral); } );
+	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action( [&](std::string_view)	-> Value { std::cout << "--> @default" << std::endl; return emplace_back(STRING_LITERAL, _strLiteral); } );
 
+
+
+//	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
 }
