@@ -55,13 +55,17 @@ TokenIt PogParser::emplace_back(Args&&... args)
 	return _driver.currentStream()->emplace_back(args...);
 }
 
+void print(const std::string& symbol, const std::string_view& value) { std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl; }
+void print(const std::string& symbol, const std::string& value) { std::cerr << symbol << ": '" << value << "'" << std::endl; }
+
 void PogParser::defineTokens()
 {
-	_parser.token("\\n").action( [&](std::string_view str) -> Value { return emplace_back(NEW_LINE, std::string{str}); });
+	_parser.token("\n").action( [&](std::string_view str) -> Value { std::cout << "MATCHED NEWLINE!!!!!" << std::endl; return emplace_back(NEW_LINE, std::string{str}); });
+//	_parser.token("\n").action( [&](std::string_view str) -> Value { std::cout << "MATCHED NEWLINE!!!!!" << std::endl; emplace_back(NEW_LINE, "\\n"); });
 	_parser.token("\\s+"); //
 
-	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 			-> Value { return emplace_back( RANGE, std::string{str} ); } );
-	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 				-> Value { return emplace_back( DOT, std::string{str} ); } );
+	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { return emplace_back( RANGE, std::string{str} ); } );
+	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { return emplace_back( DOT, std::string{str} ); } );
 	_parser.token("<").symbol("LT").action( [&](std::string_view str) 				-> Value { return emplace_back( LT, std::string{str} ); } );
 	_parser.token(">").symbol("GT").action( [&](std::string_view str) 				-> Value { return emplace_back( GT, std::string{str} ); } );
 	_parser.token("<=").symbol("LE").action( [&](std::string_view str) 				-> Value { return emplace_back( LE, std::string{str} ); } );
@@ -85,8 +89,10 @@ void PogParser::defineTokens()
 	_parser.token(R"(\~)").symbol("BITWISE_NOT").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); } );
 	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
 	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } );
-	_parser.token("\\{").symbol("LCB").action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("\\}").symbol("RCB").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	// _parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	// _parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { print("LCB", str); return emplace_back(LCB, std::string{str}); } );
+	_parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { print("RCB", str); return emplace_back(RCB, std::string{str}); } );
 	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back(LSQB, std::string{str} )->getString(); } );
 	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back(RSQB, std::string{str} )->getString(); } );
 	_parser.token("=").symbol("ASSIGN").action( [](std::string_view str) -> Value { return std::string{str}; } );
@@ -95,17 +101,17 @@ void PogParser::defineTokens()
 	_parser.token("/").symbol("SLASH").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("global").symbol("GLOBAL").action( [](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("private").symbol("PRIVATE").action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
 	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { return emplace_back( STRINGS, std::string{str} ); } );
-	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { return emplace_back( CONDITION, std::string{str} ); } );
+	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
 	_parser.token("ascii").symbol("ASCII").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
 	_parser.token("nocase").symbol("NOCASE").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
 	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
 	_parser.token("fullword").symbol("FULLWORD").action( [&](std::string_view str) -> Value { return emplace_back( FULLWORD, std::string{str} ); } );
 	_parser.token("xor").symbol("XOR").action( [&](std::string_view str) -> Value { return emplace_back( XOR, std::string{str} ); } );
-	_parser.token("true").symbol("BOOL_TRUE").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("false").symbol("BOOL_FALSE").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("true").symbol("BOOL_TRUE").action( [&](std::string_view str) -> Value { return emplace_back( BOOL_TRUE, std::string{str} ); } );
+	_parser.token("false").symbol("BOOL_FALSE").action( [&](std::string_view str) -> Value { return emplace_back( BOOL_FALSE, std::string{str} ); } );
 	_parser.token("import").symbol("IMPORT_KEYWORD").action( [&](std::string_view str) -> Value { return emplace_back( IMPORT_KEYWORD, std::string{str} ); } );
 	_parser.token("not").symbol("NOT").action( [&](std::string_view str) -> Value { return emplace_back( NOT, std::string{str} ); } );
 	_parser.token("and").symbol("AND").action( [&](std::string_view str) -> Value { return emplace_back( AND, std::string{str} ); } );
@@ -122,8 +128,12 @@ void PogParser::defineTokens()
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
-	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}); } );
+	// _parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(std::string{str}); } );
 
+	//like ({letter}|_)({letter}|{digit}|_)* in FLEX lexer:
+	// _parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [&](std::string_view str) -> Value { print("ID", str); return emplace_back(ID, std::string{str}); } );
 
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 
@@ -131,7 +141,7 @@ void PogParser::defineTokens()
 	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { _strLiteral.clear(); return {}; } );
 	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
 	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
-	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)			-> Value {
+	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)		-> Value {
 		std::uint64_t num = 0;
 		strToNum(std::string{str}, num, std::hex);
 		_strLiteral += static_cast<char>(num);
@@ -146,10 +156,6 @@ void PogParser::defineTokens()
 	_parser.token("\"").states("@str").enter_state("@default").action( [&](std::string_view)	-> Value { return emplace_back(STRING_LITERAL, _strLiteral); } );
 
 
-	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*")
-		.symbol("ID") //TODO: ID like make_ID in lexer
-		.action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("").symbol("");
 
 	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
 }
@@ -164,7 +170,8 @@ void PogParser::defineGrammar()
 		;
 	_parser.rule("import")
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
-			TokenIt import = emplace_back(IMPORT_MODULE, args[1].getString());
+			TokenIt import = args[1].getTokenIt();
+			import->setType(IMPORT_MODULE);
 			if(!_driver._file.addImport(import))
 				error_handle("Unrecognized module '" + import->getString() + "' imported");
 			return {};
@@ -195,35 +202,43 @@ void PogParser::defineGrammar()
 		;
 	_parser.rule("rule_name")
 		.production("ID", [&](auto&& args) -> Value {
-			std::cout << "Matched 'rule_name'" << std::endl;
-			return emplace_back(RULE_NAME, args[0].getString());
+			args[0].getTokenIt()->setType(RULE_NAME);
+			return args[0];
 		});
 	_parser.rule("tags")
 		.production("COLON", "tag_list", [](auto&& args) -> Value {
-			std::cout << "Matched 'tags'" << std::endl;
 			return std::move(args[1]);
 		})
 		.production([](auto&&) -> Value {
-			std::cout << "Matched 'tags' (empty)" << std::endl;
 			return std::vector<TokenIt>();
 		})
 		;
 	_parser.rule("tag_list")
 		.production("tag_list", "ID", [&](auto&& args) -> Value {
 			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
-			tags.push_back(emplace_back(TAG, std::move(args[1].getString())));
+			TokenIt tag = args[1].getTokenIt();
+			tag->setType(TAG);
+			tags.emplace_back(std::move(tag));
 			return Value(std::move(tags));
 		})
 		.production("ID", [&](auto&& args) -> Value {
-			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
-			tags.push_back(emplace_back(TAG, std::move(args[0].getString())));
+			std::vector<TokenIt> tags;
+			TokenIt tag = args[0].getTokenIt();
+			tag->setType(TAG);
+			tags.emplace_back(std::move(tag));
 			return Value(std::move(tags));
 		})
 		;
 	_parser.rule("rule_begin")
-		.production("LCB", [&](auto&&) -> Value { return emplace_back(RULE_BEGIN, "{"); });
+		.production("LCB", [&](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(RULE_BEGIN);
+			return args[0];
+		});
 	_parser.rule("rule_end")
-		.production("RCB", [&](auto&&) -> Value { return emplace_back(RULE_END, "}"); });
+		.production("RCB", [&](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(RULE_END);
+			return args[0];
+		});
 
 	_parser.rule("metas")
 		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
@@ -233,27 +248,30 @@ void PogParser::defineGrammar()
 	_parser.rule("metas_body")
 		.production("metas_body", "ID", "ASSIGN", "literal", [&](auto&& args) -> Value {
 			std::vector<Meta> body = std::move(args[0].getMetas());
-			TokenIt key = emplace_back(TokenType::META_KEY, std::move(args[1].getString()));
-			emplace_back(TokenType::EQ, "=");
-			TokenIt val = emplace_back(TokenType::META_VALUE, std::move(args[3].getLiteral()));
+			TokenIt key = args[1].getTokenIt();
+			key->setType(META_KEY);
+			emplace_back(EQ, "=");
+			TokenIt val = args[3].getTokenIt();
+			val->setType(META_VALUE);
 			body.emplace_back(key, val);
 			return Value(std::move(body));
 		})
 		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
 		;
 
-	_parser.rule("literal")
-		.production("STRING_LITERAL", [](auto&& args) -> Value { return Literal(args[0].getString()); })
+	_parser.rule("literal") //toto nebude typu literal ale TokenIt a vklada se uz v tokenizeru
+		.production("STRING_LITERAL", [](auto&& args) -> Value { return args[0]; })
 		.production("INTEGER", [](auto&& args) -> Value {
-			int64_t number = std::stoll(args[0].getString());
-			return Literal(number, std::move(args[0].getString()));
+			// int64_t number = std::stoll(args[0].getString());
+			// return Literal(number, std::move(args[0].getString()));
+			return args[0];
 		})
-		.production("boolean", [](auto&& args) -> Value { return Literal(args[0].getBool()); })
+		.production("boolean", [](auto&& args) -> Value { return args[0]; })
 		;
 
 	_parser.rule("boolean")
-		.production("BOOL_TRUE", [](auto&&) -> Value { return true; })
-		.production("BOOL_FALSE", [](auto&&) -> Value { return false; })
+		.production("BOOL_TRUE", [](auto&& args) -> Value { return args[0]; })
+		.production("BOOL_FALSE", [](auto&& args) -> Value { return args[0]; })
 		;
 
 	_parser.rule("strings")
@@ -273,11 +291,7 @@ void PogParser::defineGrammar()
 	_parser.rule("expression")
 		.production("boolean", [&](auto&& args) -> Value {
 			std::cout << "Matched 'expression'" << std::endl;
-			Value output;
-			if(args[0].getBool())
-				output = Value(std::move(std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_TRUE, true))));
-			else
-				output = Value(std::move(std::make_shared<BoolLiteralExpression>(emplace_back(BOOL_FALSE, false))));
+			auto output = Value(std::move(std::make_shared<BoolLiteralExpression>(args[0].getTokenIt())));
 			output.getExpression()->setType(Expression::Type::Bool);
 			return output;
 		}) //TODO add more
@@ -291,8 +305,6 @@ bool PogParser::prepareParser()
 	{
 		std::cerr << "Parser initialization failed" << std::endl;
 		fmt::print("{}\n", report.to_string());
-		// for(const auto& issue : report)
-		// 	std::cerr << issue.to_string() << std::endl;
 		return false;
 	}
 	return true;
