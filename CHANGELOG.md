@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* New: Added `cuckoo.process.api_call()`
+
 # v2.9.0 (2019-08-19)
 
 * New: Interface for obtaining internal representation of regular expressions ([#29](https://github.com/avast/yaramod/issues/29)).
