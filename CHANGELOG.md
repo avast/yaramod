@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.10.0 (2019-09-18)
 
 * New: Added `cuckoo.process.api_call()`
 
