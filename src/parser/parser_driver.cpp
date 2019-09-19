@@ -148,14 +148,7 @@ void PogParser::defineTokens()
 		return emplace_back(INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str}));
 	} );
 
-	//like ({letter}|_)({letter}|{digit}|_)* in FLEX lexer:
-	// _parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("[a-zA-Z_][a-zA-Z0-9_]*").symbol("ID").action( [&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); } );
-	_parser.token(R"(\$[a-zA-Z0-9]*)").symbol("STRING_ID").action( [&](std::string_view str) -> Value { return emplace_back(STRING_ID, std::string{str}); } );
-
-	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-
-	// STRINGS
+	// @str
 	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { std::cout << "--> @str" << std::endl; _strLiteral.clear(); return {}; } );
 	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
 	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
@@ -165,17 +158,53 @@ void PogParser::defineTokens()
 		_strLiteral += static_cast<char>(num);
 		return {};
 	} );
-	_parser.token("\\\"").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\"'; return {}; } );
-	_parser.token("\\\\").states("@str").action( [&](std::string_view) 								-> Value { _strLiteral += '\\'; return {}; } );
-	_parser.token("\\.").states("@str").action( [&](std::string_view str)							-> Value {
-		throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'"));
-	} );
-	_parser.token( R"(([^\\"])+)" ).states("@str").action( [&](std::string_view str)				-> Value { _strLiteral += std::string{str}; return {}; } );
-	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action( [&](std::string_view)	-> Value { std::cout << "--> @default" << std::endl; return emplace_back(STRING_LITERAL, _strLiteral); } );
+	_parser.token("\\\"").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\"'; return {}; } );
+	_parser.token("\\\\").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
+	_parser.token("\\.").states("@str").action([&](std::string_view str)	-> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); });
+	_parser.token( R"(([^\\"])+)" ).states("@str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
+	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value { std::cout << "--> @default" << std::endl; return emplace_back(STRING_LITERAL, _strLiteral); });
+	// @str end
 
+	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token(R"(\$[0-9a-zA-Z_]*)").symbol("STRING_ID").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID, std::string{str}); });
 
+	_parser.token(R"(\$[0-9a-zA-Z_]*\*)").symbol("STRING_ID_WILDCARD").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID_WILDCARD, std::string{str}); });
+	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").action([&](std::string_view str) -> Value { return emplace_back(STRING_COUNT, std::string{str}); });
+	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").action([&](std::string_view str) -> Value { return emplace_back(STRING_OFFSET, std::string{str}); });
+	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").action([&](std::string_view str) -> Value { return emplace_back(STRING_LENGTH, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); });
 
-//	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
+	_parser.token(R"(0x[0-9a-fA-F])").symbol("INTEGER").action([&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); });
+	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE, std::string{str}); });
+	//_parser.token(R"()").symbol("INTEGER")???? my jsme KB a MB ohackovali vyse
+	_parser.token("|").states("@hexstr").symbol("HEX_OR").action([&](std::string_view str) -> Value { return emplace_back(HEX_ALT, std::string{str}); });
+	_parser.token(R"(\()").states("@hexstr").symbol("LP").action([&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); });
+	_parser.token(R"(\))").states("@hexstr").symbol("RP").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); });
+	_parser.token(R"(\?)").states("@hexstr").symbol("HEX_WILDCARD").action([&](std::string_view str) -> Value { return emplace_back(HEX_WILDCARD, std::string{str}); });
+	_parser.token(R"(\})").states("@hexstr").enter_state("@default").symbol("RCB").action([&](std::string_view) -> Value { return emplace_back(RCB, "}"); });
+	_parser.token("[0-9a-fA-F]").states("@hexstr").symbol("HEX_NIBBLE").action([&](std::string_view str) -> Value {
+		uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
+		return emplace_back(HEX_NIBBLE, digit, std::string{str});
+	});
+	_parser.token(R"(\[)").states("@hexstr").enter_state("@hexstr_jump").symbol("LSQB").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_LEFT_BRACKET, std::string{str}); });
+	_parser.token("[0-9]*").states("@hexstr_jump").symbol("HEX_INTEGER").action([&](std::string_view str) -> Value {
+		std::string numStr = std::string{str};
+		std::uint64_t num = 0;
+		strToNum(numStr, num, std::dec);
+		return emplace_back(INTEGER, num, numStr);
+	});
+	_parser.token("-").states("hexstr_jump").action([&](std::string_view str) -> Value { return emplace_back(DASH, std::string{str}); });
+	_parser.token(R"(\])").states("hexstr_jump").enter_state("hextr").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_RIGHT_BRACKET, std::string{str}); });
+	_parser.token(R"(//[^\n]*)").states("hexstr_jump").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(///*)").states("hexstr").enter_state("multiline_comment");
+	_parser.token(R"(.)").states("multiline_comment");
+	_parser.token(R"(/*//)").states("multiline_comment").enter_state("hexstr");
+	_parser.token("[ \v\r\t]*").states("@hexstr", "@hexstr_jump");
+	_parser.token("[\n]*").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return emplace_back(NEW_LINE, "\n"); });
+	_parser.token(".").action([](std::string_view) -> Value { assert(false); return {}; });
+	//TODO: rozmyslet jestli je v poradku ze pushujeme (narozdil od flex/bisonu) do tokenstreamu.
+	// @hexstr
+		_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
 }
@@ -198,22 +227,26 @@ void PogParser::defineGrammar()
 		});
 
 	_parser.rule("rule")
-		.production("rule_mod", "RULE", "rule_name", "tags", "rule_begin", "metas", "strings", "condition", "rule_end", [&](auto&& args) -> Value {
-			std::cout << "Matched 'rule'" << std::endl;
-			TokenIt name = args[2].getTokenIt();
-			if(_driver.ruleExists(name->getString()))
-				error_handle("Rule already exists");
-			std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
-			std::vector<Meta> metas = std::move(args[5].getMetas());
-			std::shared_ptr<Rule::StringsTrie> strings = std::move(args[6].getStringsTrie());
-			Expression::Ptr condition = std::move(args[7].getExpression()); //TODO fill it
-			const std::vector<TokenIt> tags = std::move(args[3].getMultipleTokenIt());
+		.production(
+			"rule_mod", "RULE", "rule_name", [&](auto&& args) -> Value {
+				if(_driver.ruleExists(args[2].getTokenIt()->getString()))
+					error_handle("Rule already exists");
+				return {};
+			},
+			"tags", "rule_begin", "metas", "strings", "condition", "rule_end", [&](auto&& args) -> Value {
+				std::cout << "Matched 'rule'" << std::endl;
+				TokenIt name = args[2].getTokenIt();
+				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
+				std::vector<Meta> metas = std::move(args[6].getMetas());
+				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[7].getStringsTrie());
+				Expression::Ptr condition = std::move(args[8].getExpression()); //TODO fill it
+				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
 
-			_driver.addRule(Rule(_driver.currentStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
-			std::cout << "Made rule '" << name->getString() << "'" << std::endl;
-			std::cout << "TokenStream: " << *_driver.currentStream() << std::endl;
-			return {};
-		});
+				_driver.addRule(Rule(_driver.currentStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				std::cout << "Made rule '" << name->getString() << "'" << std::endl;
+				std::cout << "TokenStream: " << *_driver.currentStream() << std::endl;
+				return {};
+			});
 
 	_parser.rule("rule_mod")
 		.production("GLOBAL", [&](auto&&) -> Value { return emplace_back(GLOBAL, "global"); })
@@ -253,13 +286,14 @@ void PogParser::defineGrammar()
 		.production("LCB", [&](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(RULE_BEGIN);
 			return args[0];
-		});
+		})
+		;
 	_parser.rule("rule_end")
 		.production("RCB", [&](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(RULE_END);
 			return args[0];
-		});
-
+		})
+		;
 	_parser.rule("metas")
 		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
 		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
@@ -325,10 +359,14 @@ void PogParser::defineGrammar()
 			string->setModifiers(mods.first, std::move(mods.second));
 			return Value(std::move(string));
 		})
-		// .production() TODO
+		.production("LCB", "hex_string", "RCB", [&](auto&& args) -> Value {
+		 	return Value(std::make_shared<HexString>(_driver.currentStream(), std::move(args[1].getMultipleHexUnits())));
+		 	//TODODONE: switch to default state - to se dela uz v tokenu RCB
+		})//.enter_state("@hexstr")
+		// TODO regexps .production()
 		;
 
-	_parser.rule("string_mods")
+	_parser.rule("string_mods") //pair<uint32_t, vector<TokenIt>>
 		.production("string_mods", "ASCII", [](auto&& args) -> Value {
 			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
 			mods.first = mods.first | String::Modifiers::Ascii;
@@ -361,6 +399,133 @@ void PogParser::defineGrammar()
 		})
 		.production([](auto&&) -> Value {
 			return Value(std::make_pair(String::Modifiers::None, std::move(std::vector<TokenIt>())));
+		})
+		;
+
+	_parser.rule("hex_string") //vector<shared_ptr<HexStringUnit>>
+		.production("hex_string_edge", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("hex_string_edge", "hex_string_body", "hex_string_edge", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output = std::move(args[0].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[1].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> edge = std::move(args[2].getMultipleHexUnits());
+			output.reserve(output.size() + body.size() + edge.size());
+			std::move(body.begin(), body.end(), std::back_inserter(output));
+			std::move(edge.begin(), edge.end(), std::back_inserter(output));
+			return output;
+		})
+		;
+
+	_parser.rule("hex_string_edge") //vector<shared_ptr<HexStringUnit>>
+		.production("hex_byte", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("hex_or", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<yaramod::HexStringUnit>> units;
+			units.push_back(std::move(args[0].getHexUnit()));
+			return std::move(units);
+		})
+		;
+	_parser.rule("hex_byte") //vector<shared_ptr<HexStringUnit>>
+		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
+			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_NIBBLE", "HEX_WILDCARD", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
+			args[1].getTokenIt()->setType(HEX_WILDCARD_HIGH);
+			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_WILDCARD", "HEX_NIBBLE", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			args[0].getTokenIt()->setType(HEX_WILDCARD_LOW);
+			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
+			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_WILDCARD", "HEX_WILDCARD", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			args[0].getTokenIt()->setType(HEX_WILDCARD_LOW);
+			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
+			args[1].getTokenIt()->setType(HEX_WILDCARD_HIGH);
+			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		;
+	_parser.rule("hex_string_body") //vector<shared_ptr<HexStringUnit>>
+		.production("hex_string_body", "hex_byte", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> byte = std::move(args[1].getMultipleHexUnits());
+			std::move(byte.begin(), byte.end(), std::back_inserter(body));
+			return Value(std::move(body));
+		})
+		.production("hex_string_body", "hex_or", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			body.push_back(std::move(args[1].getHexUnit()));
+			return std::move(body);
+		})
+		.production("hex_string_body", "hex_jump", [](auto&& args) -> Value {
+
+		})
+		;
+	_parser.rule("hex_or") //shared_ptr<HexStringUnit>
+		.production("LP", "hex_or_body", "RP", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_ALT_LEFT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_ALT_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringOr>(std::move(args[1].getMultipleHexStrings())));
+		})
+		;
+	_parser.rule("hex_or_body")//vector<shared_ptr<HexString>>
+		.production("hex_string_body", [&](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexString>> output;
+			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[0].getMultipleHexUnits()));
+			output.push_back(std::move(hexStr));
+			return std::move(output);
+		})
+		.production("hex_or_body", "HEX_OR", "hex_string_body", [&](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleHexStrings());
+			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[2].getMultipleHexUnits()));
+			output.push_back(hexStr);
+			return std::move(output);
+		})
+		;
+	_parser.rule("hex_jump")
+		.production("LSQB", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[1].getTokenIt()));
+		})
+		.production("LSQB", "HEX_INTEGER", "DASH", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[4].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[3].getTokenIt()));
+		})
+		.production("LSQB", "HEX_INTEGER", "DASH", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt()));
+		})
+		.production("LSQB", "DASH", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>());
 		})
 		;
 

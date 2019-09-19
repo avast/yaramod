@@ -31,6 +31,7 @@ enum TokenType
 
    HEX_ALT = 6, // '|'
    HEX_NIBBLE = 7,
+   HEX_WILDCARD = 8,
    HEX_WILDCARD_LOW = 9,
    HEX_WILDCARD_HIGH = 10,
    HEX_JUMP_VARYING = 11,

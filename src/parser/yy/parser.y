@@ -1206,7 +1206,7 @@ boolean
 	| BOOL_FALSE { $$ = false; }
 	;
 
-hex_string
+hex_string //vector<shared_ptr<HexStringUnit>>
 	: hex_string_edge { $$ = std::move($hex_string_edge); }
 	| hex_string_edge hex_string_body hex_string_edge
 		{
@@ -1273,7 +1273,7 @@ hex_byte
 		}
 	;
 
-hex_string_body
+hex_string_body //vector<shared_ptr<HexStringUnit>>
 	: hex_string_body[body] hex_byte
 		{
 			$$ = std::move($body);
@@ -1292,7 +1292,7 @@ hex_string_body
 	| %empty { $$.clear(); }
 	;
 
-hex_or
+hex_or //shared_ptr<HexStringUnit>
 	: hex_alt_lb hex_or_body hex_alt_rb { $$ = std::make_shared<HexStringOr>(std::move($hex_or_body)); }
 
 hex_or_body //vektor<shared_ptr<HexString>>
@@ -1313,7 +1313,7 @@ hex_alt_lb : LP { $1->setType(HEX_ALT_LEFT_BRACKET); $$ = $1; }
 
 hex_alt_rb : RP { $1->setType(HEX_ALT_RIGHT_BRACKET); $$ = $1; }
 
-hex_jump
+hex_jump //shared_ptr<HexStringUnit>
 	: hex_jump_lb hex_integer[value] hex_jump_rb
 		{
 			$$ = std::make_shared<HexStringJump>($value, $value);
