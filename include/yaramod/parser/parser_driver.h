@@ -65,7 +65,6 @@ public:
 	Value( Expression::Ptr&& v ) : _value(std::move(v)) {}
 	Value( std::vector<TokenIt>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<HexStringUnit>>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<HexStringUnit> v ) : _value(v) {}
 	Value( std::shared_ptr<HexStringUnit>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
 	// Value( std::shared_ptr<String> v ) : _value(v) {}
@@ -145,13 +144,13 @@ public:
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<HexString>>>());
 	}
-	std::shared_ptr<String> getYaramodString() const
+	std::shared_ptr<String>&& getYaramodString()
 	{
-		return getValue<std::shared_ptr<String>>();
+		return std::move(moveValue<std::shared_ptr<String>>());
 	}
-	std::shared_ptr<RegexpUnit> getRegexpUnit() const
+	std::shared_ptr<RegexpUnit>&& getRegexpUnit()
 	{
-		return getValue<std::shared_ptr<RegexpUnit>>();
+		return std::move(moveValue<std::shared_ptr<RegexpUnit>>());
 	}
 	std::vector<std::shared_ptr<RegexpUnit>>&& getMultipleRegexpUnits()
 	{
