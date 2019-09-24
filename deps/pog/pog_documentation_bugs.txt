@@ -1,0 +1,39 @@
+Compilation:
+-POG_DOWNLOAD_RE2 - re2 will be downloaded during build-time. It will be compiled and installed
++DPOG_DOWNLOAD_RE2=ON - re2 will be downloaded during build-time. It will be compiled and installed
+
+
+Writing Parsers:
+-We do now want to force you to use any specific data type but we recommend using std::variant.
++We do not want to force you to use any specific data type but we recommend using std::variant.
+
+Tokenization:
+-You need to provide regular expression that describes how the recognize the token on the input.
++You need to provide regular expression that describes how to recognize the token on the input.
+
+-catch (const SyntaxError& err)
++catch (const pog::SyntaxError& err)
+
+Grammar rules:
+-Se rule() method expects symbol
++The rule() method expects symbol
+
+Tokenizer states:
+-However, it might be sometimes unncessary
++However, it might be sometimes unnecessary
+-Regular expression of token can be in active in multiple states at once.
++Regular expression of token can be active in multiple states at once.
+-then it appends corrent escaped character to the string.
++then it appends correct escaped character to the string.
+
+
+Jinak je to strašně super a občas i vtipný! :D
+"Most of the times, it is enough to have a rule action being preformed after the whole rule is applied (or rather reduced since we are in advanced section)."
+
+
+
+
+/home/tadeas/yaramod/build/deps/pog/pog-install/include/pog/tokenizer.h:65:26: warning: unused variable ‘name’ [-Wunused-variable]
+   for (auto&& [name, info] : _state_info)
+/home/tadeas/yaramod/build/deps/pog/pog-install/include/pog/tokenizer.h:146:50: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (!best_match || best_match->get_index() > pattern_index)
