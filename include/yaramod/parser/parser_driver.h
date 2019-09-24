@@ -25,10 +25,12 @@
 
 namespace yaramod {
 
+using RegexpRangePair = std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>;
+
 class Value
 {
 public:
-	using Type = std::variant<
+	using Variant = std::variant<
 		std::string, //0
 		int,
 		bool, //2
@@ -47,7 +49,8 @@ public:
 		std::shared_ptr<String>,
 		std::shared_ptr<RegexpUnit>, //16
 		std::vector<std::shared_ptr<RegexpUnit>>,
-		TokenIt //18
+		TokenIt, //18
+		RegexpRangePair
 	>;
 
 	/// @name Constructors
@@ -69,11 +72,11 @@ public:
 	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
 	// Value( std::shared_ptr<String> v ) : _value(v) {}
 	Value( std::shared_ptr<String>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<RegexpUnit> v ) : _value(v) {}
+	//Value( std::shared_ptr<RegexpUnit> v ) : _value(v) {}
 	Value( std::shared_ptr<RegexpUnit>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<RegexpUnit>>&& v) : _value(std::move(v)) {}
 	// Value(T&& v) : _value(std::forward<T>(v)) {}
-
+	Value( RegexpRangePair&& v ) : _value(std::move(v)) {}
 	// Value( Variant&& v ) : _value(std::move(v)) {}
 	Value() = default;
 	/// @}
@@ -156,6 +159,10 @@ public:
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<RegexpUnit>>>());
 	}
+	RegexpRangePair&& getRegexpRangePair()
+	{
+		return std::move(moveValue<RegexpRangePair>());
+	}
 	/// @}
 
 protected:
@@ -168,7 +175,7 @@ protected:
       }
       catch (std::bad_variant_access& exp)
       {
-         std::cerr << "Called Value.getValue() with incompatible type. Actual index is " << _value.index() << std::endl << exp.what() << std::endl;
+         std::cerr << "Called Value.getValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
          std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
@@ -182,14 +189,14 @@ protected:
       }
       catch (std::bad_variant_access& exp)
       {
-          std::cerr << "Called Value.moveValue() with incompatible type. Actual index is " << _value.index() << std::endl << exp.what() << std::endl;
+          std::cerr << "Called Value.moveValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
          std::cerr << __PRETTY_FUNCTION__ << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
 
 private:
-	Type _value;
+	Variant _value;
 };
 
 class ParserDriver;
@@ -200,9 +207,18 @@ public:
 	PogParser(ParserDriver& driver);
 	void defineTokens();
 	void defineGrammar();
+	void enter_state(const std::string& state);
 	bool prepareParser();
 	void includeFile();
 	void parse();
+	bool stringFollows() const { return _stringFollows; };
+	void stringFollows(bool new_value, const std::string& msg = "") {
+		if(new_value)
+			std::cerr << "Set string_follows=true, '" << msg << "'" << std::endl;
+		else
+			std::cerr << "Set string_follows=false, '" << msg << "'" << std::endl;
+		_stringFollows = new_value;
+	};
 
 	void setInput(std::istream* input) { _input = input; };
 private:
@@ -214,6 +230,7 @@ private:
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
 	std::istream* _input;
+	bool _stringFollows = false;
 };
 
 /**

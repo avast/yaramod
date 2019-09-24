@@ -151,7 +151,7 @@ public:
 		if(_id && _id.value() != id)
 		{
 			_tokenStream->erase(_id.value());
-			_tokenStream->erase(_equal_sign.value());
+//			_tokenStream->erase(_equal_sign.value());
 		}
 		_id = id;
 	}
