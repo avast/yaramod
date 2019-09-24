@@ -57,11 +57,11 @@ TokenIt PogParser::emplace_back(Args&&... args)
 
 void print(const std::string& symbol, const std::string_view& value)
 {
-	// std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
+	std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
 }
 void print(const std::string& symbol, const std::string& value)
 {
-	// std::cerr << symbol << ": '" << value << "'" << std::endl;
+	std::cerr << symbol << ": '" << value << "'" << std::endl;
 }
 
 void PogParser::defineTokens()
@@ -96,21 +96,25 @@ void PogParser::defineTokens()
 	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } );
 	// _parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	// _parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { print("LCB", str); return emplace_back(LCB, std::string{str}); } );
+	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value {
+		if(stringFollows())
+			enter_state("@hexstr");
+		return emplace_back(LCB, std::string{str});
+	});
 	_parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { print("RCB", str); return emplace_back(RCB, std::string{str}); } );
 	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back( LSQB, std::string{str} ); } );
 	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back( RSQB, std::string{str} ); } );
 	_parser.token("=").symbol("ASSIGN").action( [&](std::string_view str) -> Value { return emplace_back( ASSIGN, std::string{str} ); } );
 	_parser.token(":").symbol("COLON").action( [&](std::string_view str) -> Value { return emplace_back( COLON, std::string{str} ); } );
 	_parser.token(",").symbol("COMMA").action( [&](std::string_view str) -> Value { return emplace_back( COMMA, std::string{str} ); } );
-	_parser.token("/").state("@default").symbol("SLASH").enter_state("@regexp").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-	_parser.token("/").state("@regexp").symbol("SLASH").enter_state("@default").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("/").states("@default").symbol("SLASH").enter_state("@regexp").action( [&](std::string_view str) -> Value { return std::string{str}; } );
+	_parser.token("/").states("@regexp").symbol("SLASH").enter_state("@default").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("global").symbol("GLOBAL").action( [](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("private").symbol("PRIVATE").action( [](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
-	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { return emplace_back( STRINGS, std::string{str} ); } );
-	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
+	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { stringFollows(true, "strings:"); return emplace_back( STRINGS, std::string{str} ); } );
+	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { stringFollows(false, "condition:"); print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
 	_parser.token("ascii").symbol("ASCII").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
 	_parser.token("nocase").symbol("NOCASE").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
 	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
@@ -150,7 +154,11 @@ void PogParser::defineTokens()
 	} );
 
 	// @str
-	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value { std::cout << "--> @str" << std::endl; _strLiteral.clear(); return {}; } );
+	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value {
+		std::cout << "--> @str" << std::endl;
+		_strLiteral.clear();
+		return {};
+	});
 	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
 	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)		-> Value {
@@ -163,7 +171,11 @@ void PogParser::defineTokens()
 	_parser.token("\\\\").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
 	_parser.token("\\.").states("@str").action([&](std::string_view str)	-> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); });
 	_parser.token( R"(([^\\"])+)" ).states("@str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
-	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value { std::cout << "--> @default" << std::endl; return emplace_back(STRING_LITERAL, _strLiteral); });
+	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value {
+		// stringFollows(false, "\"");
+		std::cout << "Created " << _strLiteral << "  --> @default" << std::endl;
+		return emplace_back(STRING_LITERAL, _strLiteral);
+	});
 	// @str end
 
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").action( [&](std::string_view str) -> Value { return std::string{str}; } );
@@ -180,37 +192,101 @@ void PogParser::defineTokens()
 	//_parser.token(R"()").symbol("INTEGER")???? my jsme KB a MB ohackovali vyse
 
 	// @hexstr
-	_parser.token("|").states("@hexstr").symbol("HEX_OR").action([&](std::string_view str) -> Value { return emplace_back(HEX_ALT, std::string{str}); });
-	_parser.token(R"(\()").states("@hexstr").symbol("LP").action([&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); });
-	_parser.token(R"(\))").states("@hexstr").symbol("RP").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); });
+	_parser.token(R"(\|)").states("@hexstr").symbol("HEX_OR").action([&](std::string_view str) -> Value { std::cout << "token HEX_OR" << std::endl; return emplace_back(HEX_ALT, std::string{str}); });
+	_parser.token(R"(\()").states("@hexstr").symbol("LP").action([&](std::string_view str) -> Value { std::cout << "token LP" << std::endl; return emplace_back(LP, std::string{str}); });
+	_parser.token(R"(\))").states("@hexstr").symbol("RP").action([&](std::string_view str) -> Value { std::cout << "token RP" << std::endl; return emplace_back(RP, std::string{str}); });
 	_parser.token(R"(\?)").states("@hexstr").symbol("HEX_WILDCARD").action([&](std::string_view str) -> Value { return emplace_back(HEX_WILDCARD, std::string{str}); });
 	_parser.token(R"(\})").states("@hexstr").enter_state("@default").symbol("RCB").action([&](std::string_view) -> Value { return emplace_back(RCB, "}"); });
 	_parser.token("[0-9a-fA-F]").states("@hexstr").symbol("HEX_NIBBLE").action([&](std::string_view str) -> Value {
 		uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
 		return emplace_back(HEX_NIBBLE, digit, std::string{str});
 	});
-	_parser.token(R"(\[)").states("@hexstr").enter_state("@hexstr_jump").symbol("LSQB").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_LEFT_BRACKET, std::string{str}); });
+	_parser.token(R"(\[)").states("@hexstr").enter_state("@hexstr_jump").symbol("LSQB").action([&](std::string_view str) -> Value { std::cout << "Switching to @hextr_jump:" << std::endl; return emplace_back(HEX_JUMP_LEFT_BRACKET, std::string{str}); });
 	_parser.token("[0-9]*").states("@hexstr_jump").symbol("HEX_INTEGER").action([&](std::string_view str) -> Value {
+		std::cout << "HEX_INTEGER '" << str << "'" << std::endl;
 		std::string numStr = std::string{str};
 		std::uint64_t num = 0;
 		strToNum(numStr, num, std::dec);
 		return emplace_back(INTEGER, num, numStr);
 	});
-	_parser.token("-").states("hexstr_jump").action([&](std::string_view str) -> Value { return emplace_back(DASH, std::string{str}); });
-	_parser.token(R"(\])").states("hexstr_jump").enter_state("hextr").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_RIGHT_BRACKET, std::string{str}); });
-	_parser.token(R"(//[^\n]*)").states("hexstr_jump").action([](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(///*)").states("hexstr").enter_state("multiline_comment");
-	_parser.token(R"(.)").states("multiline_comment");
-	_parser.token(R"(/*//)").states("multiline_comment").enter_state("hexstr");
+	_parser.token(R"(\-)").states("@hexstr_jump").symbol("DASH").action([&](std::string_view str) -> Value { return emplace_back(DASH, std::string{str}); });
+	_parser.token(R"(\])").states("@hexstr_jump").symbol("RSQB").enter_state("@hexstr").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_RIGHT_BRACKET, std::string{str}); });
+	_parser.token(R"(//[^\n]*)").states("@hexstr_jump").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(///*)").states("@hexstr").enter_state("@hexstr_multiline_comment");
+	_parser.token(R"(.)").states("@hexstr_multiline_comment");
+	_parser.token(R"(/*//)").states("@hexstr_multiline_comment").enter_state("@hexstr");
 	_parser.token("[ \v\r\t]*").states("@hexstr", "@hexstr_jump");
 	_parser.token("[\n]*").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return emplace_back(NEW_LINE, "\n"); });
 	_parser.token(".").action([](std::string_view) -> Value { assert(false); return {}; });
 	//TODO: rozmyslet jestli je v poradku ze pushujeme (narozdil od flex/bisonu) do tokenstreamu.
 	// @hexstr end
-	_parser.token(R"(\"(\\.|[^\\"])*\")").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
+	// _parser.token(R"(\"(\\.|[^\\"])*\")").states("@NEVER").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	// @regexp
-	// _parser.token()
+	_parser.token("/").states("@regexp").symbol("SLASH").action([&](std::string_view str) -> Value {
+		// stringFollows(false, "/");
+		return std::string{str}; /*return emplace_back(SLASH, std::string{str});*/
+	});
+	_parser.token(R"(\()").states("@regexp").symbol("LP").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(LP, std::string{str});*/ });
+	_parser.token(R"(\))").states("@regexp").symbol("RP").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(RP, std::string{str});*/ });
+	_parser.token(R"(\|)").states("@regexp").symbol("REGEXP_OR").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_OR, std::string{str});*/ });
+	_parser.token(R"(\*)").states("@regexp").symbol("REGEXP_ITER").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_ITER, std::string{str});*/ });
+	_parser.token(R"(\+)").states("@regexp").symbol("REGEXP_PITER").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_PITER, std::string{str});*/ });
+	_parser.token(R"(\?)").states("@regexp").symbol("REGEXP_OPTIONAL").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_OPTIONAL, std::string{str});*/ });
+	_parser.token(R"(\^)").states("@regexp").symbol("REGEXP_START_OF_LINE").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_START_OF_LINE, std::string{str});*/ });
+	_parser.token(R"(\$)").states("@regexp").symbol("REGEXP_END_OF_LINE").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_END_OF_LINE, std::string{str});*/ });
+	_parser.token(R"(\.)").states("@regexp").symbol("REGEXP_ANY_CHAR").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(REGEXP_ANY_CHAR, std::string{str});*/ });
+	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("@regexp").symbol("REGEXP_RANGE").action( [&](std::string_view str) -> Value {
+		std::string rangeStr = std::string{str};
+		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
+		std::string highStr = rangeStr.substr(rangeStr.find(',') + 1);
+		highStr.pop_back(); // Remove '}' at the end
+
+		std::uint64_t lowNum = 0;
+		std::optional<std::uint64_t> low;
+		if (strToNum(lowStr, lowNum, std::dec))
+			low = lowNum;
+
+		std::uint64_t highNum = 0;
+		std::optional<std::uint64_t> high;
+		if (strToNum(highStr, highNum, std::dec))
+			high = highNum;
+
+		return std::make_pair(low, high);
+	});
+	_parser.token(R"({[0-9]+})").states("@regexp").symbol("REGEXP_RANGE").action( [&](std::string_view str) -> Value {
+		std::string numStr = std::string(str.substr(1, str.size()-2));
+
+		std::optional<std::uint64_t> range;
+		std::uint64_t num = 0;
+		if (strToNum(numStr, num, std::dec))
+			range = num;
+
+		return std::make_pair(range, range);
+	});
+	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("@regexp").symbol("REGEXP_CHAR").action( [&](std::string_view str) -> Value { return std::string(1, str[0]); });
+	_parser.token(R"(\\w)").states("@regexp").symbol("REGEXP_WORD_CHAR").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\W)").states("@regexp").symbol("REGEXP_NON_WORD_CHAR").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\s)").states("@regexp").symbol("REGEXP_SPACE").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\S)").states("@regexp").symbol("REGEXP_NON_SPACE").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\d)").states("@regexp").symbol("REGEXP_DIGIT").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\D)").states("@regexp").symbol("REGEXP_NON_DIGIT").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\b)").states("@regexp").symbol("REGEXP_WORD_BOUNDARY").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\B)").states("@regexp").symbol("REGEXP_NON_WORD_BOUNDARY").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\\)").states("@regexp").symbol("REGEXP_CHAR").action( [&](std::string_view) -> Value { return {};} );
+	_parser.token(R"(\[\^\])").states("@regexp").enter_state("@regexp_class").action([&](std::string_view) -> Value { _regexpClass = "^]"; return {}; });
+	_parser.token(R"(\[\])").states("@regexp").enter_state("@regexp_class").action([&](std::string_view) -> Value { _regexpClass = "]"; return {}; });
+	_parser.token(R"(\[\^)").states("@regexp").enter_state("@regexp_class").action([&](std::string_view) -> Value { _regexpClass = "^"; return {}; });
+	_parser.token(R"(\[)").states("@regexp").enter_state("@regexp_class").action([&](std::string_view) -> Value { _regexpClass.clear(); return {}; });
+	_parser.token(R"(\])").states("@regexp_class").enter_state("@regexp").action([&](std::string_view) -> Value { return _regexpClass; });
+	_parser.token(R"(\\w)").states("@regexp_class").symbol("REGEXP_WORD_CHAR").action( [&](std::string_view) -> Value { _regexpClass += "\\w"; return {};} );
+	_parser.token(R"(\\W)").states("@regexp_class").symbol("REGEXP_NON_WORD_CHAR").action( [&](std::string_view) -> Value { _regexpClass += "\\W"; return {};} );
+	_parser.token(R"(\\s)").states("@regexp_class").symbol("REGEXP_SPACE").action( [&](std::string_view) -> Value { _regexpClass += "\\s"; return {};} );
+	_parser.token(R"(\\S)").states("@regexp_class").symbol("REGEXP_NON_SPACE").action( [&](std::string_view) -> Value { _regexpClass += "\\S"; return {};} );
+	_parser.token(R"(\\d)").states("@regexp_class").symbol("REGEXP_DIGIT").action( [&](std::string_view) -> Value { _regexpClass += "\\d"; return {};} );
+	_parser.token(R"(\\D)").states("@regexp_class").symbol("REGEXP_NON_DIGIT").action( [&](std::string_view) -> Value { _regexpClass += "\\D"; return {};} );
+	_parser.token(R"(\\b)").states("@regexp_class").symbol("REGEXP_WORD_BOUNDARY").action( [&](std::string_view) -> Value { _regexpClass += "\\b"; return {};} );
+	_parser.token(R"(\\B)").states("@regexp_class").symbol("REGEXP_NON_WORD_BOUNDARY").action( [&](std::string_view) -> Value { _regexpClass += "\\B"; return {};} );
 	// @regexp end
 
 	_parser.end_token().action([](std::string_view str) -> Value { std::cout << "End of input" << std::string{str} << std::endl; return {}; });
@@ -340,19 +416,24 @@ void PogParser::defineGrammar()
 		})
 		;
 	_parser.rule("strings_body")
-		.production("strings_body", "STRING_ID", "ASSIGN", "string", [&](auto&& args) -> Value {
-			const std::string& id = args[1].getTokenIt()->getPureText(); std::cout << "id " << id << std::endl;
-			const std::string& trieId = _driver.isAnonymousStringId(id) ? _driver.generateAnonymousStringPseudoId() : id;
-			auto string = std::move(args[3].getYaramodString());
-			string->setIdentifier(args[1].getTokenIt(), args[2].getTokenIt());
-			auto strings = std::move(args[0].getStringsTrie());
-			std::cout << "inserting string " << string->getText() << std::endl;
-			if(!strings->insert(trieId, std::move(string)))
-			{
-				error_handle("Redefinition of string '" + trieId + "'");
+		.production(
+			"strings_body", "STRING_ID", "ASSIGN", [&](auto&&) -> Value {
+				// stringFollows(true, "=");
+			},
+			"string", [&](auto&& args) -> Value {
+				const std::string& id = args[1].getTokenIt()->getPureText(); std::cout << "id " << id << std::endl;
+				const std::string& trieId = _driver.isAnonymousStringId(id) ? _driver.generateAnonymousStringPseudoId() : id;
+				auto string = std::move(args[4].getYaramodString());
+				string->setIdentifier(args[1].getTokenIt(), args[2].getTokenIt());
+				auto strings = std::move(args[0].getStringsTrie());
+				std::cout << "inserting string " << string->getText() << std::endl;
+				if(!strings->insert(trieId, std::move(string)))
+				{
+					error_handle("Redefinition of string '" + trieId + "'");
+				}
+				return std::move(strings);
 			}
-			return std::move(strings);
-		})
+		)
 		.production([&](auto&&) -> Value {
 			auto strings = std::make_shared<Rule::StringsTrie>();
 			_driver.setCurrentStrings(strings);
@@ -366,15 +447,23 @@ void PogParser::defineGrammar()
 			string->setModifiers(mods.first, std::move(mods.second));
 			return Value(std::move(string));
 		})
-		.production("LCB", "hex_string", "RCB", [&](auto&& args) -> Value {
-		 	return Value(std::make_shared<HexString>(_driver.currentStream(), std::move(args[1].getMultipleHexUnits())));
-		 	//TODODONE: switch to default state - to se dela uz v tokenu RCB
-		})//.enter_state("@hexstr")
+		.production("LCB", [&](auto&& args) -> Value {
+				// std::cout << "found '{' of hexstring" << std::endl;
+				//enter_tokenizer_state("@hexstr");
+				// std::cerr << " -> switched to @hexstr state." << std::endl;
+				args[0].getTokenIt()->setType(HEX_START_BRACKET);
+				return {};
+			},
+		 	"hex_string", "RCB", [&](auto&& args) -> Value {
+				args[3].getTokenIt()->setType(HEX_END_BRACKET);
+			 	return Value(std::make_shared<HexString>(_driver.currentStream(), std::move(args[2].getMultipleHexUnits())));
+			}
+		)
 		.production("regexp", "string_mods", [&](auto&& args) -> Value {
-			// auto regexp = std::move(...);
-			// std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
-			// regexp->setModifiers(mods.first, std::move(mods.second));
-			// return Value(std::move(regexp));
+			auto regexp_string = std::move(args[0].getYaramodString());
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
+			std::static_pointer_cast<Regexp>(regexp_string)->setModifiers(mods.first, std::move(mods.second));
+			return Value(std::move(regexp_string));
 		})
 		;
 
@@ -416,9 +505,11 @@ void PogParser::defineGrammar()
 
 	_parser.rule("hex_string") //vector<shared_ptr<HexStringUnit>>
 		.production("hex_string_edge", [](auto&& args) -> Value {
+			std::cout << "smaller hex string matched" << std::endl;
 			return std::move(args[0]);
 		})
 		.production("hex_string_edge", "hex_string_body", "hex_string_edge", [](auto&& args) -> Value {
+			std::cout << "bigger hex string matched" << std::endl;
 			std::vector<std::shared_ptr<HexStringUnit>> output = std::move(args[0].getMultipleHexUnits());
 			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[1].getMultipleHexUnits());
 			std::vector<std::shared_ptr<HexStringUnit>> edge = std::move(args[2].getMultipleHexUnits());
@@ -434,13 +525,20 @@ void PogParser::defineGrammar()
 			return std::move(args[0]);
 		})
 		.production("hex_or", [](auto&& args) -> Value {
+			std::cout << "matched hex_or" << std::endl;
 			std::vector<std::shared_ptr<yaramod::HexStringUnit>> units;
 			units.push_back(std::move(args[0].getHexUnit()));
 			return std::move(units);
 		})
 		;
 	_parser.rule("hex_byte") //vector<shared_ptr<HexStringUnit>>
+		.production("INTEGER", [](auto&&) -> Value {
+			std::cerr << "Matched INTEGER, that is an ERROR: INTEGER should not be here. tokenizer switch state failed." << std::endl;
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			return std::move(output);
+		})
 		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
+			std::cout << "Matched two nibbles: " << *args[0].getTokenIt() << *args[1].getTokenIt() << std::endl;
 			std::vector<std::shared_ptr<HexStringUnit>> output;
 			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
 			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
@@ -494,11 +592,15 @@ void PogParser::defineGrammar()
 			return std::move(body);
 		})
 		.production("hex_string_body", "hex_jump", [](auto&& args) -> Value {
-
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			body.push_back(std::move(args[1].getHexUnit()));
+			return std::move(body);
 		})
+		.production([](auto&&) -> Value { return std::vector<std::shared_ptr<HexStringUnit>>(); })
 		;
 	_parser.rule("hex_or") //shared_ptr<HexStringUnit>
 		.production("LP", "hex_or_body", "RP", [](auto&& args) -> Value {
+			std::cout << "matched hex_or 55" << std::endl;
 			args[0].getTokenIt()->setType(HEX_ALT_LEFT_BRACKET);
 			args[2].getTokenIt()->setType(HEX_ALT_RIGHT_BRACKET);
 			return Value(std::make_shared<HexStringOr>(std::move(args[1].getMultipleHexStrings())));
@@ -506,125 +608,131 @@ void PogParser::defineGrammar()
 		;
 	_parser.rule("hex_or_body")//vector<shared_ptr<HexString>>
 		.production("hex_string_body", [&](auto&& args) -> Value {
+			std::cout << "matched hex_or->hex_or_body" << std::endl;
 			std::vector<std::shared_ptr<HexString>> output;
 			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[0].getMultipleHexUnits()));
 			output.push_back(std::move(hexStr));
 			return std::move(output);
 		})
 		.production("hex_or_body", "HEX_OR", "hex_string_body", [&](auto&& args) -> Value {
+			std::cout << "matched hex_or->hex_or_body HEX_OR hex_string_body" << std::endl;
 			auto output = std::move(args[0].getMultipleHexStrings());
 			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[2].getMultipleHexUnits()));
 			output.push_back(hexStr);
 			return std::move(output);
 		})
 		;
-	_parser.rule("hex_jump")
+	_parser.rule("hex_jump") //shared_ptr<HexStringUnit>
 		.production("LSQB", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			std::cout << "matched " << "[" << *args[1].getTokenIt() << "-" << *args[1].getTokenIt() << "]" << std::endl;
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
 			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[1].getTokenIt()));
 		})
 		.production("LSQB", "HEX_INTEGER", "DASH", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			std::cout << "matched " << "[" << *args[1].getTokenIt() << "-" << *args[3].getTokenIt() << "]" << std::endl;
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[4].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
 			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[3].getTokenIt()));
 		})
 		.production("LSQB", "HEX_INTEGER", "DASH", "RSQB", [](auto&& args) -> Value {
+			std::cout << "matched " << "[" << *args[1].getTokenIt() << "]" << std::endl;
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
 			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt()));
 		})
 		.production("LSQB", "DASH", "RSQB", [](auto&& args) -> Value {
+			std::cout << "matched " << "[-]" << std::endl;
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
-			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
 			return Value(std::make_shared<HexStringJump>());
 		})
 		;
 
 	_parser.rule("regexp") //shared_ptr<String>
 		.production("SLASH"/*SLASH changes state*/, "regexp_body", "SLASH", "suffix_mods", [&](auto&& args) -> Value {
-			//TODO
+			auto regexp_string = std::move(args[1].getYaramodString());
 			const auto& mods = args[3].getString();
 			if(mods != "")
-				//TODO
-				->setSuffixModifiers($suffix_mods)
+				std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(mods);
+			return Value(std::move(regexp_string));
 		})
 		;
 	_parser.rule("regexp_body") //shared_ptr<String>
-		.production("regexp_or", [&](auto&& args) -> Value { return std::make_shared<Regexp>(_driver.currentStream(), std::move(args[0].getRegexpUnit())); });
+		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(_driver.currentStream(), std::move(args[0].getRegexpUnit()))); });
 
 	_parser.rule("regexp_or") //shared_ptr<RegexpUnit>
-		.production("regexp_concat", [](auto&& args) -> Value { return std::make_shared<RegexpConcat>(std::move(args[0].getMultipleRegexpUnits())); })
-		.production("regexp_or", "REGEXP_OR", "regexp_concat" [](auto&& args){
+		.production("regexp_concat", [](auto&& args) -> Value { return Value(std::make_shared<RegexpConcat>(std::move(args[0].getMultipleRegexpUnits()))); })
+		.production("regexp_or", "REGEXP_OR", "regexp_concat", [](auto&& args) -> Value {
 			std::shared_ptr<RegexpUnit> arg = std::move(args[0].getRegexpUnit());
-			auto concat = std::make_shared<RegexpConcat>(args[2].getMultipleRegexpUnits());
-			return std::make_shared<RegexpOr>(std::move(args[1].getTokenIt()), std::move(concat));
+			std::shared_ptr<RegexpUnit> concat = std::make_shared<RegexpConcat>(args[2].getMultipleRegexpUnits());
+			return Value(std::make_shared<RegexpOr>(std::move(arg), std::move(concat)));
 		})
 		;
 	_parser.rule("regexp_concat") //vector<shared_ptr<RegexpUnit>>
 		.production("regexp_repeat", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<yaramod::RegexpUnit>> output;
 			output.push_back(std::move(args[0].getRegexpUnit()));
-			return std::move(output);
+			return Value(std::move(output));
 		})
-		.production("regexp_concat", "regexp_repeat"[](auto&& args) -> Value {
+		.production("regexp_concat", "regexp_repeat", [](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleRegexpUnits());
 			output.push_back(std::move(args[1].getRegexpUnit()));
-			return std::move(output);
+			return Value(std::move(output));
 		})
 		;
 	_parser.rule("regexp_repeat") //shared_ptr<RegexpUnit>
 		.production("regexp_single", "REGEXP_ITER", "regexp_greedy", [](auto&& args) -> Value {
-			return std::make_shared<RegexpIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool());
+			return Value(std::make_shared<RegexpIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
 		})
 		.production("regexp_single", "REGEXP_PITER", "regexp_greedy", [](auto&& args) -> Value {
-			return std::make_shared<RegexpPositiveIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool());
+			return Value(std::make_shared<RegexpPositiveIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
 		})
 		.production("regexp_single", "REGEXP_OPTIONAL", "regexp_greedy", [](auto&& args) -> Value {
-			return std::make_shared<RegexpOptional>(std::move(args[0].getRegexpUnit()), args[2].getBool());
+			return Value(std::make_shared<RegexpOptional>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
 		})
 		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [](auto&& args) -> Value {
-			return std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(args[1].getRegexpRangePair()), args[2].getBool());
+			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(args[1].getRegexpRangePair()), args[2].getBool()));
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
-			return std::move(args[0].getRegexpUnit());
+			return Value(std::move(args[0].getRegexpUnit()));
 		})
-		.production("REGEXP_WORD_BOUNDARY", [](auto&& args) -> Value {
-			return std::make_shared<RegexpWordBoundary>();
+		.production("REGEXP_WORD_BOUNDARY", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpWordBoundary>());
 		})
-		.production("REGEXP_WORD_BOUNDARY", [](auto&& args) -> Value {
-			return std::make_shared<RegexpNonWordBoundary>();
+		.production("REGEXP_WORD_BOUNDARY", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpNonWordBoundary>());
 		})
-		.production("REGEXP_START_OF_LINE", [](auto&& args) -> Value {
-			return std::make_shared<RegexpStartOfLine>();
+		.production("REGEXP_START_OF_LINE", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpStartOfLine>());
 		})
-		.production("REGEXP_END_OF_LINE", [](auto&& args) -> Value {
-			return std::make_shared<RegexpEndOfLine>();
+		.production("REGEXP_END_OF_LINE", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpEndOfLine>());
 		})
 		;
 	_parser.rule("regexp_greedy")
-		.production([](auto&& args) -> Value { return true; })
-		.production("REGEXP_OPTIONAL", [](auto&& args) -> Value { return false; })
+		.production([](auto&&) -> Value { return true; })
+		.production("REGEXP_OPTIONAL", [](auto&&) -> Value { return false; })
 		;
 
 	_parser.rule("regexp_single")
-		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit())); })
-		.production("REGEXP_ANY_CHAR", [](auto&& args) -> Value { return std::make_shared<RegexpAnyChar>(); })
-		.production("REGEXP_CHAR", [](auto&& args) -> Value { return std::make_shared<RegexpText>(std::move(args[0].getString())); })
-		.production("REGEXP_WORD_CHAR", [](auto&& args) -> Value { return std::make_shared<RegexpWordChar>(); })
-		.production("REGEXP_NON_WORD_CHAR", [](auto&& args) -> Value { return std::make_shared<RegexpNonWordChar>(); })
-		.production("REGEXP_SPACE", [](auto&& args) -> Value { return std::make_shared<RegexpSpace>(); })
-		.production("REGEXP_NON_SPACE", [](auto&& args) -> Value { return std::make_shared<RegexpNonSpace>(); })
-		.production("REGEXP_DIGIT", [](auto&& args) -> Value { return std::make_shared<RegexpDigit>(); })
-		.production("REGEXP_NON_DIGIT", [](auto&& args) -> Value { return std::make_shared<RegexpNonDigit>(); })
+		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return Value(std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit()))); })
+		.production("REGEXP_ANY_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpAnyChar>()); })
+		.production("REGEXP_CHAR", [](auto&& args) -> Value { return Value(std::make_shared<RegexpText>(std::move(args[0].getString()))); })
+		.production("REGEXP_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpWordChar>()); })
+		.production("REGEXP_NON_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonWordChar>()); })
+		.production("REGEXP_SPACE", [](auto&&) -> Value { return Value(std::make_shared<RegexpSpace>()); })
+		.production("REGEXP_NON_SPACE", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonSpace>()); })
+		.production("REGEXP_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpDigit>()); })
+		.production("REGEXP_NON_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonDigit>()); })
 		.production("REGEXP_CLASS", [](auto&& args) -> Value {
 			std::string c = args[0].getString();
 			if(c[0] == '^')
-				return std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true);
+				return Value(std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true));
 			else
-				return std::make_shared<RegexpClass>(std::move(c), false);
+				return Value(std::make_shared<RegexpClass>(std::move(c), false));
 		})
-
+		;
 	_parser.rule("condition")
 		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
 			std::cout << "Matched 'condition'" << std::endl;
@@ -657,6 +765,11 @@ bool PogParser::prepareParser()
 // {
 
 // }
+
+void PogParser::enter_state(const std::string& state)
+{
+	_parser.enter_tokenizer_state(state);
+}
 
 void PogParser::parse()
 {

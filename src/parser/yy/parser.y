@@ -1342,7 +1342,7 @@ hex_jump_lb
 hex_jump_rb
 	: RSQB { $$ = driver.currentStream()->emplace_back(TokenType::HEX_JUMP_RIGHT_BRACKET, "]"); }
 
-regexp
+regexp //shared_ptr<String>
 	: SLASH
 		{
 			driver.getLexer().switchToRegexpLexer();
@@ -1354,11 +1354,11 @@ regexp
 			driver.getLexer().switchToYaraLexer();
 		}
 
-regexp_body
+regexp_body //shared_ptr<String>
 	: regexp_or { $$ = std::make_shared<Regexp>(driver.currentStream(), std::move($regexp_or)); }
 	;
 
-regexp_or
+regexp_or //shared_ptr<RegexpUnit>
 	: regexp_concat { $$ = std::make_shared<RegexpConcat>(std::move($regexp_concat)); }
 	| regexp_or REGEXP_OR regexp_concat
 		{
@@ -1367,7 +1367,7 @@ regexp_or
 		}
 	;
 
-regexp_concat
+regexp_concat //std::vector<std::shared_ptr<yaramod::RegexpUnit>>
 	: regexp_repeat { $$.push_back(std::move($1)); }
 	| regexp_concat regexp_repeat
 		{
@@ -1376,7 +1376,7 @@ regexp_concat
 		}
 	;
 
-regexp_repeat
+regexp_repeat //std::shared_ptr<yaramod::RegexpUnit>
 	: regexp_single REGEXP_ITER regexp_greedy { $$ = std::make_shared<RegexpIteration>(std::move($regexp_single), $regexp_greedy); }
 	| regexp_single REGEXP_PITER regexp_greedy { $$ = std::make_shared<RegexpPositiveIteration>(std::move($regexp_single), $regexp_greedy); }
 	| regexp_single REGEXP_OPTIONAL regexp_greedy { $$ = std::make_shared<RegexpOptional>(std::move($regexp_single), $regexp_greedy); }
