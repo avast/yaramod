@@ -1191,7 +1191,7 @@ void PogParser::parse()
 	}
 	catch(const pog::SyntaxError& err)
 	{
-		std::cerr << err.what() << std::endl;
+		throw ParserError(err.what());
 	}
 }
 
