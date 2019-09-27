@@ -71,28 +71,42 @@ void PogParser::defineTokens()
 	_parser.token("[ \t\r]+"); // spaces, tabulators, carrige-returns
 
 	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { return emplace_back( RANGE, std::string{str} ); } );
-	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { return emplace_back( DOT, std::string{str} ); } );
-	_parser.token("<").symbol("LT").action( [&](std::string_view str) 				-> Value { return emplace_back( LT, std::string{str} ); } );
-	_parser.token(">").symbol("GT").action( [&](std::string_view str) 				-> Value { return emplace_back( GT, std::string{str} ); } );
-	_parser.token("<=").symbol("LE").action( [&](std::string_view str) 				-> Value { return emplace_back( LE, std::string{str} ); } );
-	_parser.token(">=").symbol("GE").action( [&](std::string_view str) 				-> Value { return emplace_back( GE, std::string{str} ); } );
-	_parser.token("==").symbol("EQ").action( [&](std::string_view str) 				-> Value { return emplace_back( EQ, std::string{str} ); } );
-	_parser.token("!=").symbol("NEQ").action( [&](std::string_view str) 				-> Value { return emplace_back( NEQ, std::string{str} ); } );
-	_parser.token("<<").symbol("SHIFT_LEFT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_LEFT, std::string{str} ); } );
-	_parser.token(">>").symbol("SHIFT_RIGHT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_RIGHT, std::string{str} ); } );
+	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { return emplace_back( DOT, std::string{str} ); } )
+		.precedence(13, pog::Associativity::Left);
+	_parser.token("<").symbol("LT").action( [&](std::string_view str) 				-> Value { return emplace_back( LT, std::string{str} ); } )
+		.precedence(8, pog::Associativity::Left);
+	_parser.token(">").symbol("GT").action( [&](std::string_view str) 				-> Value { return emplace_back( GT, std::string{str} ); } )
+		.precedence(8, pog::Associativity::Left);
+	_parser.token("<=").symbol("LE").action( [&](std::string_view str) 				-> Value { return emplace_back( LE, std::string{str} ); } )
+		.precedence(8, pog::Associativity::Left);
+	_parser.token(">=").symbol("GE").action( [&](std::string_view str) 				-> Value { return emplace_back( GE, std::string{str} ); } )
+		.precedence(8, pog::Associativity::Left);
+	_parser.token("==").symbol("EQ").action( [&](std::string_view str) 				-> Value { return emplace_back( EQ, std::string{str} ); } )
+		.precedence(7, pog::Associativity::Left);
+	_parser.token("!=").symbol("NEQ").action( [&](std::string_view str) 				-> Value { return emplace_back( NEQ, std::string{str} ); } )
+		.precedence(7, pog::Associativity::Left);
+	_parser.token("<<").symbol("SHIFT_LEFT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_LEFT, std::string{str} ); } )
+		.precedence(9, pog::Associativity::Left);
+	_parser.token(">>").symbol("SHIFT_RIGHT").action( [&](std::string_view str) 	-> Value { return emplace_back( SHIFT_RIGHT, std::string{str} ); } )
+		.precedence(9, pog::Associativity::Left);
 	_parser.token(R"(-)").symbol("MINUS").action( [&](std::string_view str) 		-> Value { return emplace_back(MINUS, std::string{str}); } )
-		.precedence(1, pog::Associativity::Left);
+		.precedence(10, pog::Associativity::Left);
 	_parser.token(R"(\+)").symbol("PLUS").action( [&](std::string_view str) 		-> Value { return emplace_back(PLUS, std::string{str}); } )
-		.precedence(1, pog::Associativity::Left);
+		.precedence(10, pog::Associativity::Left);
 	_parser.token(R"(\*)").symbol("MULTIPLY").action( [&](std::string_view str)	-> Value { return emplace_back(MULTIPLY, std::string{str}); } )
-		.precedence(2, pog::Associativity::Left);
+		.precedence(11, pog::Associativity::Left);
 	_parser.token(R"(\\)").symbol("DIVIDE").action( [&](std::string_view str) 		-> Value { return emplace_back(DIVIDE, std::string{str}); } )
-		.precedence(2, pog::Associativity::Left);
-	_parser.token(R"(\%)").symbol("MODULO").action( [&](std::string_view str) 		-> Value { return emplace_back(MODULO, std::string{str}); } );
-	_parser.token(R"(\^)").symbol("BITWISE_XOR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); } );
-	_parser.token(R"(\&)").symbol("BITWISE_AND").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); } );
-	_parser.token(R"(\|)").symbol("BITWISE_OR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); } );
-	_parser.token(R"(\~)").symbol("BITWISE_NOT").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); } );
+		.precedence(11, pog::Associativity::Left);
+	_parser.token(R"(\%)").symbol("MODULO").action( [&](std::string_view str) 		-> Value { return emplace_back(MODULO, std::string{str}); } )
+		.precedence(11, pog::Associativity::Left);
+	_parser.token(R"(\^)").symbol("BITWISE_XOR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); } )
+		.precedence(5, pog::Associativity::Left);
+	_parser.token(R"(\&)").symbol("BITWISE_AND").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); } )
+		.precedence(6, pog::Associativity::Left);
+	_parser.token(R"(\|)").symbol("BITWISE_OR").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); } )
+		.precedence(4, pog::Associativity::Left);
+	_parser.token(R"(\~)").symbol("BITWISE_NOT").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); } )
+		.precedence(12, pog::Associativity::Right);
 	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
 	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } );
 	// _parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
@@ -983,80 +997,80 @@ void PogParser::defineGrammar()
 			output->setType(type);
 			return Value(std::move(output));
 		})
-		// .production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '%' expects integer or float on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '%' expects integer or float on the right-hand side");
-		// 	auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("primary_expression", "BITWISE_XOR", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '^' expects integer or float on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '^' expects integer or float on the right-hand side");
-		// 	auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("primary_expression", "BITWISE_AND", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '&' expects integer or float on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '&' expects integer or float on the right-hand side");
-		// 	auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("primary_expression", "BITWISE_OR", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '|' expects integer or float on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '|' expects integer or float on the right-hand side");
-		// 	auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto right = args[1].getExpression();
-		// 	if(!right->isInt())
-		// 		error_handle("bitwise not expects integer");
-		// 	auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("primary_expression", "SHIFT_LEFT", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '<<' expects integer on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '<<' expects integer on the right-hand side");
-		// 	auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
-		// .production("primary_expression", "SHIFT_RIGHT", "primary_expression", [&](auto&& args) -> Value {
-		// 	auto left = args[0].getExpression();
-		// 	auto right = args[2].getExpression();
-		// 	if(!left->isInt() && !left->isFloat())
-		// 		error_handle("operator '>>' expects integer on the left-hand side");
-		// 	if(!right->isInt() && !right->isFloat())
-		// 		error_handle("operator '>>' expects integer on the right-hand side");
-		// 	auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
-		// 	output->setType(Expression::Type::Int);
-		// 	return Value(std::move(output));
-		// })
+		.production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '%' expects integer or float on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '%' expects integer or float on the right-hand side");
+			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_XOR", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '^' expects integer or float on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '^' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_AND", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '&' expects integer or float on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '&' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_OR", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '|' expects integer or float on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '|' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
+			auto right = args[1].getExpression();
+			if(!right->isInt())
+				error_handle("bitwise not expects integer");
+			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "SHIFT_LEFT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '<<' expects integer on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '<<' expects integer on the right-hand side");
+			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "SHIFT_RIGHT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if(!left->isInt() && !left->isFloat())
+				error_handle("operator '>>' expects integer on the left-hand side");
+			if(!right->isInt() && !right->isFloat())
+				error_handle("operator '>>' expects integer on the right-hand side");
+			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
 		.production("integer_function", "LP", "primary_expression", "RP", [&](auto&& args) -> Value {
 			if(!args[2].getExpression()->isInt())
 				error_handle("operator '" + args[0].getTokenIt()->getString() + "' expects integer");
