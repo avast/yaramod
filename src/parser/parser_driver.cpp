@@ -153,8 +153,8 @@ void PogParser::defineTokens()
 	_parser.token("them").symbol("THEM").action( [&](std::string_view str) -> Value { return emplace_back( THEM, std::string{str} ); } );
 	_parser.token("for").symbol("FOR").action( [&](std::string_view str) -> Value { return emplace_back( FOR, std::string{str} ); } );
 	_parser.token("entrypoint").symbol("ENTRYPOINT").action( [&](std::string_view str) -> Value { return emplace_back( ENTRYPOINT, std::string{str} ); } );
-	_parser.token("op_at").symbol("AT").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
-	_parser.token("op_in").symbol("IN").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
+	_parser.token("at").symbol("OP_AT").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
+	_parser.token("in").symbol("OP_IN").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
 	_parser.token("filesize").symbol("FILESIZE").action( [&](std::string_view str) -> Value { return emplace_back( FILESIZE, std::string{str} ); } );
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
@@ -206,7 +206,8 @@ void PogParser::defineTokens()
 	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").action([&](std::string_view str) -> Value { return emplace_back(STRING_COUNT, std::string{str}); });
 	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").action([&](std::string_view str) -> Value { return emplace_back(STRING_OFFSET, std::string{str}); });
 	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").action([&](std::string_view str) -> Value { return emplace_back(STRING_LENGTH, std::string{str}); });
-	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { print("ID", str); return emplace_back(ID, std::string{str}); });
+	//({letter}|_)({letter}|{digit}|_)*
 
 	_parser.token(R"(0x[0-9a-fA-F])").symbol("INTEGER").action([&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); });
 	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE, std::string{str}); });
@@ -807,9 +808,9 @@ void PogParser::defineGrammar()
 			return Value(std::move(output));
 		})
 		.production("string_id", [&](auto&& args) -> Value {
-			std::string id = std::move(args[0].getString());
-			if(!_driver.stringExists(id))
-				error_handle("Reference to undefined string '" + id + "'");
+			TokenIt id = args[0].getTokenIt();
+			if(!_driver.stringExists(id->getString()))
+				error_handle("Reference to undefined string '" + id->getString() + "'");
 			auto output = std::make_shared<StringExpression>(std::move(id));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
