@@ -732,8 +732,13 @@ void PogParser::defineGrammar()
 		.production("regexp_single", "REGEXP_OPTIONAL", "regexp_greedy", [](auto&& args) -> Value {
 			return Value(std::make_shared<RegexpOptional>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
 		})
-		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [](auto&& args) -> Value {
-			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(args[1].getRegexpRangePair()), args[2].getBool()));
+		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [&](auto&& args) -> Value {
+			auto pair = std::move(args[1].getRegexpRangePair());
+			if(!pair.first && !pair.second)
+				error_handle("Range in regular expression does not have defined lower bound nor higher bound");
+			if(pair.first && pair.second && pair.first.value() > pair.second.value())
+				error_handle("Range in regular expression has greater lower bound than higher bound");
+			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
 			return Value(std::move(args[0].getRegexpUnit()));
