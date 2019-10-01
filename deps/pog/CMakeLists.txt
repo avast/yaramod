@@ -15,8 +15,8 @@ set(POG_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/pog-install)
 set(POG_INCLUDE_DIR ${POG_INSTALL_DIR}/include)
 
 ExternalProject_Add(pog-project
-   URL https://github.com/metthal/pog/archive/v0.3.0.zip #v0.2.1.zip   ...   92b0ed8fcc3b6b5f3c6ccc4b6236154f1cac12d65285388eea95e8d8078e247d
-   URL_HASH SHA256=d0b90726a4958f140bfa58625800ebb023d6273a1e0228f30bf2bf2d106e54fd
+   URL https://github.com/metthal/pog/archive/v0.4.0.zip  #...
+   URL_HASH SHA256=9183b0ac1c867751446277a1e2f49bc70d22ac5ac5894bfc104e631b8c50f523
    DOWNLOAD_NAME pog.zip
    CMAKE_ARGS
       # This does not work on MSVC, but may be useful on Linux.
