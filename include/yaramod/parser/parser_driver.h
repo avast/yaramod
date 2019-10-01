@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #define FMT_HEADER_ONLY 1
+// #define POG_DEBUG 1
 #include <pog/pog.h>
 
 #include "yaramod/yaramod_error.h"
@@ -27,6 +28,7 @@ namespace yaramod {
 
 using RegexpRangePair = std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>;
 
+// Value is the type of all tokens produced by POG parser. Both token and rule actions return Value. The rule action parameters are also Values.
 class Value
 {
 public:
@@ -66,18 +68,15 @@ public:
 	Value( std::pair<std::uint32_t, std::vector<TokenIt>>&& v ) : _value(std::move(v)) {}
 	Value( Literal&& v ) : _value(std::move(v)) {}
 	Value( Expression::Ptr&& v ) : _value(std::move(v)) {}
+	Value( std::vector<Expression::Ptr>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<TokenIt>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<HexStringUnit>>&& v ) : _value(std::move(v)) {}
 	Value( std::shared_ptr<HexStringUnit>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
-	// Value( std::shared_ptr<String> v ) : _value(v) {}
 	Value( std::shared_ptr<String>&& v ) : _value(std::move(v)) {}
-	//Value( std::shared_ptr<RegexpUnit> v ) : _value(v) {}
 	Value( std::shared_ptr<RegexpUnit>&& v ) : _value(std::move(v)) {}
 	Value( std::vector<std::shared_ptr<RegexpUnit>>&& v) : _value(std::move(v)) {}
-	// Value(T&& v) : _value(std::forward<T>(v)) {}
 	Value( RegexpRangePair&& v ) : _value(std::move(v)) {}
-	// Value( Variant&& v ) : _value(std::move(v)) {}
 	Value() = default;
 	/// @}
 
