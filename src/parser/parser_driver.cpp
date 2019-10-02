@@ -226,7 +226,7 @@ void PogParser::defineTokens()
 	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)		-> Value {
 		std::uint64_t num = 0;
-		strToNum(std::string{str}, num, std::hex);
+		strToNum(std::string{str}.substr(2), num, std::hex);
 		_strLiteral += static_cast<char>(num);
 		return {};
 	});
