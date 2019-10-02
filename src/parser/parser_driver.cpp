@@ -265,9 +265,6 @@ void PogParser::defineTokens()
 	_parser.token(R"(/*//)").states("@hexstr_multiline_comment").enter_state("@hexstr");
 	_parser.token(R"({[ \v\r\t]}*)").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
-		_driver.tmp_counter++;
-		if(_driver.tmp_counter > 50)
-			assert(false);
 		return emplace_back(NEW_LINE, "\n");
 	});
 	_parser.token(R"(\s)").states("@hexstr", "@hexstr_jump");
