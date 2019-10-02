@@ -44,7 +44,6 @@ PogParser::PogParser(ParserDriver& driver)
 {
 	defineTokens();
 	defineGrammar();
-	// _parser.set_start_symbol("testing_delete_this");
 	_parser.set_start_symbol("rules");
 	bool prepared = prepareParser();
 	assert( prepared && "Parser initialization failed");
@@ -117,8 +116,6 @@ void PogParser::defineTokens()
 	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
 	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } )
 		.precedence(0, pog::Associativity::Left);
-	// _parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
-	// _parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value {
 		if(sectionStrings())
 			enter_state("@hexstr");
@@ -136,9 +133,6 @@ void PogParser::defineTokens()
 		enter_state("@regexp");
 		return std::string{str};
 	});
-	// _parser.token("/").states("@regexp").symbol("SLASH").enter_state("@default").action( [&](std::string_view str) -> Value {
-	// 	return std::string{str};
-	// });
 	_parser.token("global").symbol("GLOBAL").action( [&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); } );
 	_parser.token("private").symbol("PRIVATE").action( [&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); } );
 	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
@@ -175,7 +169,6 @@ void PogParser::defineTokens()
 	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, std::stol(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
 	});
-	// _parser.token(R"([0-9]+\.[0-9]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER, std::string{str}); } );
 	_parser.token(R"([0-9]+KB)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, 1000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
 	});
@@ -252,10 +245,8 @@ void PogParser::defineTokens()
 	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").action([&](std::string_view str) -> Value { return emplace_back(STRING_OFFSET, std::string{str}); });
 	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").action([&](std::string_view str) -> Value { return emplace_back(STRING_LENGTH, std::string{str}); });
 	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { print("ID", str); return emplace_back(ID, std::string{str}); });
-	//({letter}|_)({letter}|{digit}|_)*
 
 	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE, std::stod(std::string(str))); });
-	//_parser.token(R"()").symbol("INTEGER")???? my jsme KB a MB ohackovali vyse
 
 	// @hexstr
 	_parser.token(R"(\|)").states("@hexstr").symbol("HEX_OR").action([&](std::string_view str) -> Value { std::cout << "token HEX_OR" << std::endl; return emplace_back(HEX_ALT, std::string{str}); });
@@ -289,13 +280,11 @@ void PogParser::defineTokens()
 		return emplace_back(NEW_LINE, "\n");
 	});
 	_parser.token(R"(\s)").states("@hexstr", "@hexstr_jump");
-	// _parser.token(R"(.)").states("@hexstr", "@hexstr_jump").action([](std::string_view) -> Value { /*assert(false);*/ return {}; });
 	// @hexstr end
-	// _parser.token(R"(\"(\\.|[^\\"])*\")").states("@NEVER").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	// @regexp
 	_parser.token(R"(/i?s?)").states("@regexp").enter_state("@default").symbol("SLASH").action([&](std::string_view str) -> Value {
-		return std::string{str}; /*return emplace_back(SLASH, std::string{str});*/
+		return std::string{str};
 	});
 	_parser.token(R"(\()").states("@regexp").symbol("LP").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(LP, std::string{str});*/ });
 	_parser.token(R"(\))").states("@regexp").symbol("RP").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(RP, std::string{str});*/ });
@@ -546,9 +535,6 @@ void PogParser::defineGrammar()
 			return Value(std::move(string));
 		})
 		.production("LCB", [&](auto&& args) -> Value {
-				// std::cout << "found '{' of hexstring" << std::endl;
-				//enter_tokenizer_state("@hexstr");
-				// std::cerr << " -> switched to @hexstr state." << std::endl;
 				args[0].getTokenIt()->setType(HEX_START_BRACKET);
 				return {};
 			},
@@ -748,12 +734,9 @@ void PogParser::defineGrammar()
 		;
 
 	_parser.rule("regexp") //shared_ptr<String>
-		.production("SLASH"/*SLASH changes state*/, "regexp_body", "SLASH", [&](auto&& args) -> Value {
+		.production("SLASH", "regexp_body", "SLASH", [&](auto&& args) -> Value {
 			auto regexp_string = std::move(args[1].getYaramodString());
 			std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(args[2].getString().substr(1));
-			// const auto& mods = args[3].getString();
-			// if(mods.size() > 1)
-				// std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(mods);
 			return Value(std::move(regexp_string));
 		})
 		;
@@ -1297,10 +1280,8 @@ void PogParser::defineGrammar()
 			auto symbol = _driver.findSymbol(args[0].getTokenIt()->getString());
 			if(!symbol)
 				error_handle("Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
-			// TODO znovu tam chybne davame to samy - lepsi bude upravit ten uz vlozeny token ID
 			TokenIt symbol_token = args[0].getTokenIt();
 			symbol_token->setValue(symbol, symbol->getName());
-			// TokenIt symbol_token = emplace_back(ID, symbol, symbol->getName());
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
 			return Value(std::move(output));
@@ -1398,31 +1379,7 @@ void PogParser::defineGrammar()
 	_parser.rule("integer_token")
 		.production("INTEGER", [&](auto&& args) -> Value {
 			return std::move(args[0]);
-			// int multiplier = 1;
-			// std::string str = std::move(args[0].getString());
-			// if(str.size() >= 2)
-			// {
-			// 	if(std::toupper(str.back()) == 'B')
-			// 	{
-			// 		if(std::toupper(*(str.end()-2)) == 'K')
-	  //  		      multiplier = 1000;
-		 //         else if(std::toupper(*(str.end()-2)) == 'M')
-	  //  		      multiplier = 1000000;
-			// 	}
-			// }
-			// if(str.substr(0,2) == "0x" || str.substr(0,2) == "0X")
-			// 	return _driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol(str.substr(2), 0, 16) * multiplier, std::move(str));
-			// else if(multiplier != 1)
-			// 	return _driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol(std::move(str)) * multiplier, std::move(str));
-			// else
-			// 	return _driver.currentStream()->emplace_back(TokenType::INTEGER, std::stol(std::move(str)));
 		});
-
-	// _parser.rule("integer_function")
-	// 	.production("INTEGER_FUNCTION", [&](auto&& args) -> Value {
-	// 		return _driver.currentStream()->emplace_back(TokenType::INTEGER_FUNCTION, args[0].getString());
-	// 	})
-	// 	;
 	_parser.rule("range")
 		.production("LP", "primary_expression", "RANGE", "primary_expression", "RP", [&](auto&& args) -> Value {
 			std::cout << "HOHOH" << std::endl;
