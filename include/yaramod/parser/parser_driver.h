@@ -14,7 +14,10 @@
 #include <unordered_map>
 
 #define FMT_HEADER_ONLY 1
+
+// Uncomment for debugging
 // #define POG_DEBUG 1
+
 #include <pog/pog.h>
 
 #include "yaramod/yaramod_error.h"
