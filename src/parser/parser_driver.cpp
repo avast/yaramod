@@ -55,13 +55,13 @@ TokenIt PogParser::emplace_back(Args&&... args)
 	return _driver.currentStream()->emplace_back(args...);
 }
 
-void print(const std::string& symbol, const std::string_view& value)
+void print(const std::string& symbol, const std::string_view& value) //TODO: remove
 {
-	std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
+	//std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
 }
-void print(const std::string& symbol, const std::string& value)
+void print(const std::string& symbol, const std::string& value) //TODO: remove
 {
-	std::cerr << symbol << ": '" << value << "'" << std::endl;
+	//std::cerr << symbol << ": '" << value << "'" << std::endl;
 }
 
 void PogParser::defineTokens()
@@ -76,8 +76,8 @@ void PogParser::defineTokens()
 		return {};
 	});
 
-	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { print("RANGE", str); return emplace_back( RANGE, std::string{str} ); } );
-	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { print("\n\nDOT\n\n", str); return emplace_back( DOT, std::string{str} ); } )
+	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { return emplace_back( RANGE, std::string{str} ); } );
+	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { return emplace_back( DOT, std::string{str} ); } )
 		.precedence(15, pog::Associativity::Left);
 	_parser.token("<").symbol("LT").action( [&](std::string_view str) 				-> Value { return emplace_back( LT, std::string{str} ); } )
 		.precedence(10, pog::Associativity::Left);
@@ -121,7 +121,7 @@ void PogParser::defineTokens()
 			enter_state("@hexstr");
 		return emplace_back(LCB, std::string{str});
 	});
-	_parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { print("RCB", str); return emplace_back(RCB, std::string{str}); } );
+	_parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return emplace_back(RCB, std::string{str}); } );
 	_parser.token("\\[").symbol("LSQB").action( [&](std::string_view str) -> Value { return emplace_back( LSQB, std::string{str} ); } );
 	_parser.token("\\]").symbol("RSQB").action( [&](std::string_view str) -> Value { return emplace_back( RSQB, std::string{str} ); } );
 	_parser.token("=").symbol("ASSIGN").action( [&](std::string_view str) -> Value { return emplace_back( ASSIGN, std::string{str} ); } );
@@ -129,16 +129,15 @@ void PogParser::defineTokens()
 	_parser.token(",").symbol("COMMA").action( [&](std::string_view str) -> Value { return emplace_back( COMMA, std::string{str} ); } )
 		.precedence(1, pog::Associativity::Left);
 	_parser.token("/").states("@default").symbol("SLASH").action( [&](std::string_view str) -> Value {
-		print("first SLASH", str);
 		enter_state("@regexp");
 		return std::string{str};
 	});
 	_parser.token("global").symbol("GLOBAL").action( [&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); } );
 	_parser.token("private").symbol("PRIVATE").action( [&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); } );
-	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
-	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { sectionStrings(true, "strings:"); return emplace_back( STRINGS, std::string{str} ); } );
-	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { sectionStrings(false, "condition:"); print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
+	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { sectionStrings(true); return emplace_back( STRINGS, std::string{str} ); } );
+	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { sectionStrings(false); return emplace_back( CONDITION, std::string{str} ); } );
 	_parser.token("ascii").symbol("ASCII").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
 	_parser.token("nocase").symbol("NOCASE").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
 	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
@@ -237,7 +236,7 @@ void PogParser::defineTokens()
 	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").action([&](std::string_view str) -> Value { return emplace_back(STRING_COUNT, std::string{str}); });
 	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").action([&](std::string_view str) -> Value { return emplace_back(STRING_OFFSET, std::string{str}); });
 	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").action([&](std::string_view str) -> Value { return emplace_back(STRING_LENGTH, std::string{str}); });
-	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { print("ID", str); return emplace_back(ID, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").action([&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); });
 
 	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE, std::stod(std::string(str))); });
 
@@ -595,11 +594,11 @@ void PogParser::defineGrammar()
 		})
 		;
 	_parser.rule("hex_byte") //vector<shared_ptr<HexStringUnit>>
-		.production("INTEGER", [](auto&&) -> Value {
-			std::cerr << "Matched INTEGER, that is an ERROR: INTEGER should not be here. tokenizer switch state failed." << std::endl;
-			std::vector<std::shared_ptr<HexStringUnit>> output;
-			return std::move(output);
-		})
+		// .production("INTEGER", [](auto&&) -> Value {
+		// 	std::cerr << "Matched INTEGER, that is an ERROR: INTEGER should not be here. tokenizer switch state failed." << std::endl;
+		// 	std::vector<std::shared_ptr<HexStringUnit>> output;
+		// 	return std::move(output);
+		// })
 		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexStringUnit>> output;
 			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
