@@ -54,7 +54,6 @@ rule empty_rule {
 
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("empty_rule", rule->getName());
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
@@ -342,6 +341,37 @@ rule rule_with_plain_strings {
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isWide());
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isNocase());
 	EXPECT_TRUE(static_cast<const PlainString*>(byeWorld)->isFullword());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+HexStringWithPlainNibbleWorks) {
+	prepareInput(
+R"(
+rule hex_string_with_plain_nibble {
+	strings:
+		$1 = { 11 }
+	condition:
+		true
+}
+)");
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("hex_string_with_plain_nibble", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$1", hexString->getIdentifier());
+	EXPECT_EQ("{ 11 }", hexString->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
@@ -718,6 +748,60 @@ rule hex_string_with_jump_at_end {
 }
 
 TEST_F(ParserTests,
+MultipleRulesWithHexStrings) {
+	prepareInput(
+R"(
+rule rule_0 {
+	strings:
+		$1 = { ( 11 | 22 ) 33 44 ( 55 | 66 ) }
+	condition:
+		true
+}
+
+rule rule_1 {
+	strings:
+		$1 = { 01 23 ( AA DD | FF [5-7] FF ) 45 56 }
+	condition:
+		true
+}
+
+rule rule_2 {
+	strings:
+		$1 = { 01 [-] ( AA DD | EE ) }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(3u, driver.getParsedFile().getRules().size());
+
+	for(int i = 0; i < 3; ++i)
+	{
+		const auto& rule = driver.getParsedFile().getRules()[i];
+		std::stringstream name;
+		name << "rule_" << i;
+		EXPECT_EQ(name.str(), rule->getName());
+		EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+		auto strings = rule->getStrings();
+		ASSERT_EQ(1u, strings.size());
+		auto hexString = strings[0];
+		EXPECT_TRUE(hexString->isHex());
+		EXPECT_EQ("$1", hexString->getIdentifier());
+		if(i == 0)
+			EXPECT_EQ("{ ( 11 | 22 ) 33 44 ( 55 | 66 ) }", hexString->getText());
+		else if(i == 1)
+			EXPECT_EQ("{ 01 23 ( AA DD | FF [5-7] FF ) 45 56 }", hexString->getText());
+		else
+			EXPECT_EQ("{ 01 [-] ( AA DD | EE ) }", hexString->getText());
+	}
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 InvalidHexStringAtom1) {
 	prepareInput(
 R"(
@@ -804,7 +888,42 @@ RegexpWithJustCharsWorks) {
 R"(
 rule regexp_with_just_chars {
 	strings:
-		$1 = /abcd/
+		$1 = /ab/
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_with_just_chars", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings()
+;	ASSERT_EQ(1u, strings.size());
+
+	auto regexp0 = strings[0];
+	EXPECT_TRUE(regexp0->isRegexp());
+	EXPECT_EQ("$1", regexp0->getIdentifier());
+	EXPECT_EQ("/ab/", regexp0->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+MultipleRegexpsWithJustCharsWorks) {
+	prepareInput(
+R"(
+rule regexp_with_just_chars {
+	strings:
+		$1 = /a/
+		$2 = /ab/
+		$3 = /abc/
+		$4 = /abcd/
 	condition:
 		true
 }
@@ -820,12 +939,24 @@ rule regexp_with_just_chars {
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	auto strings = rule->getStrings();
-	ASSERT_EQ(1u, strings.size());
+	ASSERT_EQ(4u, strings.size());
 
-	auto regexp = strings[0];
-	EXPECT_TRUE(regexp->isRegexp());
-	EXPECT_EQ("$1", regexp->getIdentifier());
-	EXPECT_EQ("/abcd/", regexp->getText());
+	auto regexp0 = strings[0];
+	EXPECT_TRUE(regexp0->isRegexp());
+	EXPECT_EQ("$1", regexp0->getIdentifier());
+	EXPECT_EQ("/a/", regexp0->getText());
+	auto regexp1 = strings[1];
+	EXPECT_TRUE(regexp1->isRegexp());
+	EXPECT_EQ("$2", regexp1->getIdentifier());
+	EXPECT_EQ("/ab/", regexp1->getText());
+	auto regexp2 = strings[2];
+	EXPECT_TRUE(regexp2->isRegexp());
+	EXPECT_EQ("$3", regexp2->getIdentifier());
+	EXPECT_EQ("/abc/", regexp2->getText());
+	auto regexp3 = strings[3];
+	EXPECT_TRUE(regexp3->isRegexp());
+	EXPECT_EQ("$4", regexp3->getIdentifier());
+	EXPECT_EQ("/abcd/", regexp3->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
@@ -1237,6 +1368,7 @@ rule regexp_with_undefined_range {
 	try
 	{
 		driver.parse();
+ 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
 	{
@@ -1262,6 +1394,7 @@ rule regexp_with_invalid_range {
 	try
 	{
 		driver.parse();
+ 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
 	{
@@ -1653,7 +1786,6 @@ rule arithmetic_op_condition {
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
 
-
 TEST_F(ParserTests,
 ArithmeticOpConditionWorks) {
 	prepareInput(
@@ -1671,6 +1803,27 @@ rule arithmetic_op_condition {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((10 + 20 < 200 - 100) and (10 * 20 > 20 \ 10) and (10 % 2) and (-5))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+ArithmeticOpConditionWorks2) {
+	prepareInput(
+R"(
+rule rule_with_arithmetic_operations {
+	condition:
+		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"((entrypoint + 100 * 3) < (filesize - 100 \ 2))", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
@@ -2441,6 +2594,44 @@ rule rule_2 {
 		$abc = "no case full word" nocase fullword
 	condition:
 		elf.type == elf.ET_EXEC and $abc at elf.entry_point
+})", driver.getParsedFile().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+MultipleRulesWorks2) {
+	prepareInput(
+R"(
+rule rule_1 {
+	condition:
+		for any of them : ( $ at entrypoint )
+}
+
+rule rule2 {
+	meta:
+		valid = "ahoj"
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	condition:
+		for any of them : ( $ at entrypoint )
+}
+
+rule rule2 {
+	meta:
+		valid = "ahoj"
+	condition:
+		true
 })", driver.getParsedFile().getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
