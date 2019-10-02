@@ -595,11 +595,6 @@ void PogParser::defineGrammar()
 		})
 		;
 	_parser.rule("hex_byte") //vector<shared_ptr<HexStringUnit>>
-		// .production("INTEGER", [](auto&&) -> Value {
-		// 	std::cerr << "Matched INTEGER, that is an ERROR: INTEGER should not be here. tokenizer switch state failed." << std::endl;
-		// 	std::vector<std::shared_ptr<HexStringUnit>> output;
-		// 	return std::move(output);
-		// })
 		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexStringUnit>> output;
 			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
