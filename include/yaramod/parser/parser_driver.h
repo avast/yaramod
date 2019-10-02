@@ -228,11 +228,12 @@ private:
 
 	std::string _strLiteral; ///< Currently processed string literal.
 	std::string _indent;
+	std::string _comment;
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
 	std::istream* _input;
-	bool _stringFollows = false;
+	bool _sectionStrings = false;
 };
 
 /**
@@ -369,7 +370,7 @@ private:
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
 	std::vector<TokenIt> _comments;
-	std::string _tmp_comment;
+	std::string _tmp_comment; //TODO: deleto - only for lexer
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
