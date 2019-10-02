@@ -193,49 +193,53 @@ void PogParser::defineTokens()
 		return {};
 	});
 	// @multiline_comment
-	_parser.token(R"(/\*)").states("@default").enter_state("@multiline_comment").action( [&](std::string_view str) -> Value { _driver._tmp_comment.append(std::string{str}); });
+	_parser.token(R"(/\*)").states("@default").enter_state("@multiline_comment").action( [&](std::string_view str) -> Value {
+		std::cout << " -> @multiline_comment from @default" << std::endl;
+		_comment.append(std::string{str});
+		std::cout << "appended str" << std::endl;
+		return {};
+	});
 	_parser.token(R"(\*/)").states("@multiline_comment").enter_state("@default").action( [&](std::string_view str) -> Value {
-		_driver._tmp_comment.append(std::string{str});
-		std::cout << "Tokenized comment '" << _driver._tmp_comment << "'" << std::endl;
-		auto it = emplace_back(COMMENT, std::move(_driver._tmp_comment), _indent);
-		std::cout << "1 before addComment " << std::endl;
+		std::cout << " -> @default from @multiline_comment" << std::endl;
+		_comment.append(std::string{str});
+		std::cout << "Tokenized comment '" << _comment << "'" << std::endl;
+		auto it = emplace_back(COMMENT, _comment, _indent);
 		_driver.addComment(it);
-		std::cout << "1 after addComment " << std::endl;
 		_indent.clear();
-		std::cout << "1 after clear " << std::endl;
+		_comment.clear();
 		return {};
 	});
 	_parser.token(R"(\n)").states("@multiline_comment").action( [&](std::string_view str) -> Value {
 		//_driver.moveLineLocation();
-		_driver._tmp_comment.append(std::string{str});
+		_comment.append(std::string{str});
 		return {};
 	});
 	_parser.token(R"(.)").states("@multiline_comment").action( [&](std::string_view str) -> Value {
-		_driver._tmp_comment.append(std::string{str});
+		_comment.append(std::string{str});
 		return {};
 	});
 	// @multiline_comment end
-	// @str
 
-	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value {
+	// @str
+	_parser.token(R"(\")").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value {
 		std::cout << "--> @str" << std::endl;
 		_strLiteral.clear();
 		return {};
 	});
-	_parser.token("\t").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
-	_parser.token("\n").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
+	_parser.token(R"(\\t)").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\t'; return {}; } );
+	_parser.token(R"(\\n)").states("@str").action( [&](std::string_view) 									-> Value { _strLiteral += '\n'; return {}; } );
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("@str").action( [&](std::string_view str)		-> Value {
 		std::uint64_t num = 0;
 		strToNum(std::string{str}.substr(2), num, std::hex);
 		_strLiteral += static_cast<char>(num);
 		return {};
 	});
-	_parser.token("\\\"").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\"'; return {}; } );
-	_parser.token("\\\\").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
-	_parser.token("\\.").states("@str").action([&](std::string_view str)	-> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); });
-	_parser.token( R"(([^\\"])+)" ).states("@str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
-	_parser.token("\"").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value {
-		// stringFollows(false, "\"");
+	_parser.token(R"(\\\")").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\"'; return {}; } );
+	_parser.token(R"(\\\\)").states("@str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
+	_parser.token(R"(\\\.)").states("@str").action([&](std::string_view str)	-> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); return {}; });
+	_parser.token(R"(([^\\"])+)").states("@str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
+	_parser.token(R"(\")").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value {
+		stringFollows(false, "\"");
 		std::cout << "Created " << _strLiteral << "  --> @default" << std::endl;
 		return emplace_back(STRING_LITERAL, _strLiteral);
 	});
@@ -278,7 +282,13 @@ void PogParser::defineTokens()
 	_parser.token(R"(.)").states("@hexstr_multiline_comment");
 	_parser.token(R"(/*//)").states("@hexstr_multiline_comment").enter_state("@hexstr");
 	_parser.token(R"({[ \v\r\t]}*)").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
-	_parser.token(R"([\n]*)").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return emplace_back(NEW_LINE, "\n"); });
+	_parser.token(R"([\n]*)").states("@hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
+		_driver.tmp_counter++;
+		if(_driver.tmp_counter > 50)
+			assert(false);
+		std::cout << "OLALA" << std::endl;
+		return emplace_back(NEW_LINE, "\n");
+	});
 	_parser.token(R"(\s)").states("@hexstr", "@hexstr_jump");
 	// _parser.token(R"(.)").states("@hexstr", "@hexstr_jump").action([](std::string_view) -> Value { /*assert(false);*/ return {}; });
 	//TODO: rozmyslet jestli je v poradku ze pushujeme (narozdil od flex/bisonu) do tokenstreamu.
