@@ -67,8 +67,15 @@ void print(const std::string& symbol, const std::string& value)
 
 void PogParser::defineTokens()
 {
-	_parser.token("\n").action( [&](std::string_view str) -> Value { return emplace_back(NEW_LINE, std::string{str}); });
-	_parser.token("[ \t\r]+"); // spaces, tabulators, carrige-returns
+	_parser.token("\n").action( [&](std::string_view str) -> Value {
+		_indent.clear();
+		_driver.moveLineLocation();
+		return emplace_back(NEW_LINE, std::string{str});
+	});
+	_parser.token("[ \t\r]+").action( [&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
+		_indent += std::string{str};
+		return {};
+	});
 
 	_parser.token(R"(\.\.)").symbol("RANGE").action( [&](std::string_view str) 	-> Value { print("RANGE", str); return emplace_back( RANGE, std::string{str} ); } );
 	_parser.token(R"(\.)").symbol("DOT").action( [&](std::string_view str) 			-> Value { print("\n\nDOT\n\n", str); return emplace_back( DOT, std::string{str} ); } )
