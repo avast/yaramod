@@ -391,7 +391,7 @@ void PogParser::defineGrammar()
 				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
 				std::vector<Meta> metas = std::move(args[6].getMetas());
 				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[7].getStringsTrie());
-				Expression::Ptr condition = std::move(args[8].getExpression()); //TODO fill it
+				Expression::Ptr condition = std::move(args[8].getExpression());
 				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
 
 				_driver.addRule(Rule(_driver.currentStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
@@ -895,65 +895,65 @@ void PogParser::defineGrammar()
 		})
 		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt and_token = args[1].getTokenIt();
+			TokenIt and_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<AndExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<AndExpression>(std::move(left), and_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("expression", "OR", "expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt or_token = args[1].getTokenIt();
+			TokenIt or_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<OrExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<OrExpression>(std::move(left), or_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "LT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<LtExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<LtExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "GT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<GtExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<GtExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "LE", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<LeExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<LeExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "GE", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<GeExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<GeExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "EQ", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<EqExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<EqExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
 		.production("primary_expression", "NEQ", "primary_expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
-			// TokenIt op_token = args[1].getTokenIt();
+			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			auto output = std::make_shared<NeqExpression>(std::move(left), std::move(right));
+			auto output = std::make_shared<NeqExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
