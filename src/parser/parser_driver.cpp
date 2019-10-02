@@ -184,6 +184,7 @@ void PogParser::defineTokens()
 		return {};
 	});
 	// @multiline_comment
+	// Comment tokens are not delegated with return Value but stored in _comment
 	_parser.token(R"(/\*)").states("@default").enter_state("@multiline_comment").action( [&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
@@ -208,6 +209,7 @@ void PogParser::defineTokens()
 	// @multiline_comment end
 
 	// @str
+	// @str tokens are not delegated with return Value but stored in _strLiteral
 	_parser.token(R"(\")").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value {
 		_strLiteral.clear();
 		return {};
@@ -259,6 +261,8 @@ void PogParser::defineTokens()
 	});
 	_parser.token(R"(\-)").states("@hexstr_jump").symbol("DASH").action([&](std::string_view str) -> Value { return emplace_back(DASH, std::string{str}); });
 	_parser.token(R"(\])").states("@hexstr_jump").symbol("RSQB").enter_state("@hexstr").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_RIGHT_BRACKET, std::string{str}); });
+
+	// tokens are not delegated with return Value but created in grammar rules actions
 	_parser.token(R"(//[^\n]*)").states("@hexstr_jump").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(///*)").states("@hexstr").enter_state("@hexstr_multiline_comment");
 	_parser.token(R"(.)").states("@hexstr_multiline_comment");
@@ -271,6 +275,7 @@ void PogParser::defineTokens()
 	// @hexstr end
 
 	// @regexp
+	// @regexp tokens are delegated as strings and then emplaced to TokenStream in grammar rules actions
 	_parser.token(R"(/i?s?)").states("@regexp").enter_state("@default").symbol("SLASH").action([&](std::string_view str) -> Value {
 		return std::string{str};
 	});
@@ -361,9 +366,8 @@ void PogParser::defineTokens()
 void PogParser::defineGrammar()
 {
 	_parser.rule("rules")
-		.production("rules", "rule"/*, [](auto&& args) 	-> Value	{ return std::move(args[0]); }*/ )
-		.production("rules", "import"/*, [](auto&& args) 	-> Value { return std::move(args[0]); }*/ )
-		// .production("rules", "END"/*, [](auto&& args) 		-> Value { return std::move(args[0]); }*/ )
+		.production("rules", "rule")
+		.production("rules", "import")
 		.production()
 		;
 	_parser.rule("import")
