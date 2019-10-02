@@ -286,7 +286,7 @@ void PogParser::defineTokens()
 	// _parser.token(R"(\"(\\.|[^\\"])*\")").states("@NEVER").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	// @regexp
-	_parser.token("/").states("@regexp").enter_state("@default").symbol("SLASH").action([&](std::string_view str) -> Value {
+	_parser.token(R"(/i?s?)").states("@regexp").enter_state("@default").symbol("SLASH").action([&](std::string_view str) -> Value {
 		stringFollows(false, "/ last slash of regexp");
 		return std::string{str}; /*return emplace_back(SLASH, std::string{str});*/
 	});
@@ -744,10 +744,11 @@ void PogParser::defineGrammar()
 		;
 
 	_parser.rule("regexp") //shared_ptr<String>
-		.production("SLASH"/*SLASH changes state*/, "regexp_body", "SLASH"/*, "suffix_mods"*/, [&](auto&& args) -> Value {
+		.production("SLASH"/*SLASH changes state*/, "regexp_body", "SLASH", [&](auto&& args) -> Value {
 			auto regexp_string = std::move(args[1].getYaramodString());
+			std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(args[2].getString().substr(1));
 			// const auto& mods = args[3].getString();
-			// if(mods != "")
+			// if(mods.size() > 1)
 				// std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(mods);
 			return Value(std::move(regexp_string));
 		})
