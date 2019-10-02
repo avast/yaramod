@@ -179,11 +179,37 @@ void PogParser::defineTokens()
 		return emplace_back(INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str}));
 	});
 
-	// _parser.token("*/").enter_state("@multiline_comment").action( [&](std::string_view str) -> Value {
-
-	// });
-
+	_parser.token(R"(\/\/[^\n]*)").states("@default").action( [&](std::string_view str) -> Value {
+		auto it = emplace_back(ONELINE_COMMENT, std::string{str}, _indent);
+		_driver.addComment(it);
+		std::cout << "Tokenized comment '" << str << "'" << std::endl;
+		return {};
+	});
+	// @multiline_comment
+	_parser.token(R"(/\*)").states("@default").enter_state("@multiline_comment").action( [&](std::string_view str) -> Value { _driver._tmp_comment.append(std::string{str}); });
+	_parser.token(R"(\*/)").states("@multiline_comment").enter_state("@default").action( [&](std::string_view str) -> Value {
+		_driver._tmp_comment.append(std::string{str});
+		std::cout << "Tokenized comment '" << _driver._tmp_comment << "'" << std::endl;
+		auto it = emplace_back(COMMENT, std::move(_driver._tmp_comment), _indent);
+		std::cout << "1 before addComment " << std::endl;
+		_driver.addComment(it);
+		std::cout << "1 after addComment " << std::endl;
+		_indent.clear();
+		std::cout << "1 after clear " << std::endl;
+		return {};
+	});
+	_parser.token(R"(\n)").states("@multiline_comment").action( [&](std::string_view str) -> Value {
+		//_driver.moveLineLocation();
+		_driver._tmp_comment.append(std::string{str});
+		return {};
+	});
+	_parser.token(R"(.)").states("@multiline_comment").action( [&](std::string_view str) -> Value {
+		_driver._tmp_comment.append(std::string{str});
+		return {};
+	});
+	// @multiline_comment end
 	// @str
+
 	_parser.token("\"").states("@default").enter_state("@str").action( [&](std::string_view) 	-> Value {
 		std::cout << "--> @str" << std::endl;
 		_strLiteral.clear();
