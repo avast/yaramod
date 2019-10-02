@@ -115,7 +115,7 @@ void PogParser::defineTokens()
 		.precedence(14, pog::Associativity::Right);
 	_parser.token("\\(").symbol("LP").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
 	_parser.token("\\)").symbol("RP").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } )
-		.precedence(0, pog::Associativity::Left);
+		.precedence(1, pog::Associativity::Left);
 	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value {
 		if(sectionStrings())
 			enter_state("@hexstr");
@@ -982,7 +982,7 @@ void PogParser::defineGrammar()
 		})
 		.production("primary_expression", [&](auto&& args) -> Value {
 			return std::move(args[0]);
-		}).precedence(1, pog::Associativity::Left)
+		}).precedence(0, pog::Associativity::Left)
 		.production("LP", "expression", "RP", [&](auto&& args) -> Value {
 			auto expr = std::move(args[1].getExpression());
 			auto type = expr->getType();
