@@ -120,7 +120,7 @@ void PogParser::defineTokens()
 	// _parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	// _parser.token("\\}").symbol("RCB").action( [&](std::string_view str) -> Value { return std::string{str}; } );
 	_parser.token("\\{").symbol("LCB").action( [&](std::string_view str) -> Value {
-		if(stringFollows())
+		if(sectionStrings())
 			enter_state("@hexstr");
 		return emplace_back(LCB, std::string{str});
 	});
@@ -143,8 +143,8 @@ void PogParser::defineTokens()
 	_parser.token("private").symbol("PRIVATE").action( [&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); } );
 	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
-	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { stringFollows(true, "strings:"); return emplace_back( STRINGS, std::string{str} ); } );
-	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { stringFollows(false, "condition:"); print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
+	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { sectionStrings(true, "strings:"); return emplace_back( STRINGS, std::string{str} ); } );
+	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { sectionStrings(false, "condition:"); print("CONDITION", str); return emplace_back( CONDITION, std::string{str} ); } );
 	_parser.token("ascii").symbol("ASCII").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
 	_parser.token("nocase").symbol("NOCASE").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
 	_parser.token("wide").symbol("WIDE").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
@@ -239,7 +239,6 @@ void PogParser::defineTokens()
 	_parser.token(R"(\\\.)").states("@str").action([&](std::string_view str)	-> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); return {}; });
 	_parser.token(R"(([^\\"])+)").states("@str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("@str").symbol("STRING_LITERAL").enter_state("@default").action([&](std::string_view)	-> Value {
-		stringFollows(false, "\"");
 		std::cout << "Created " << _strLiteral << "  --> @default" << std::endl;
 		return emplace_back(STRING_LITERAL, _strLiteral);
 	});
@@ -291,13 +290,11 @@ void PogParser::defineTokens()
 	});
 	_parser.token(R"(\s)").states("@hexstr", "@hexstr_jump");
 	// _parser.token(R"(.)").states("@hexstr", "@hexstr_jump").action([](std::string_view) -> Value { /*assert(false);*/ return {}; });
-	//TODO: rozmyslet jestli je v poradku ze pushujeme (narozdil od flex/bisonu) do tokenstreamu.
 	// @hexstr end
 	// _parser.token(R"(\"(\\.|[^\\"])*\")").states("@NEVER").symbol("STRING_LITERAL").action( [&](std::string_view str) -> Value { return emplace_back(STRING_LITERAL, std::string{str}.substr(1, str.size()-2)); } );
 
 	// @regexp
 	_parser.token(R"(/i?s?)").states("@regexp").enter_state("@default").symbol("SLASH").action([&](std::string_view str) -> Value {
-		stringFollows(false, "/ last slash of regexp");
 		return std::string{str}; /*return emplace_back(SLASH, std::string{str});*/
 	});
 	_parser.token(R"(\()").states("@regexp").symbol("LP").action([&](std::string_view str) -> Value { return std::string{str}; /*return emplace_back(LP, std::string{str});*/ });
@@ -516,7 +513,6 @@ void PogParser::defineGrammar()
 	_parser.rule("strings_body")
 		.production(
 			"strings_body", "string_id", "ASSIGN", [&](auto&&) -> Value {
-				// stringFollows(true, "=");
 				return {};
 			},
 			"string", [&](auto&& args) -> Value {
@@ -541,10 +537,9 @@ void PogParser::defineGrammar()
 		;
 
 	_parser.rule("string_id")
-		.production("STRING_ID", [&](auto&& args) -> Value { stringFollows(true, "string_id_definition"); return std::move(args[0]); });
+		.production("STRING_ID", [&](auto&& args) -> Value { return std::move(args[0]); });
 	_parser.rule("string")
 		.production("STRING_LITERAL", "string_mods", [&](auto&& args) -> Value {
-			stringFollows(false, "end of plain string");
 			auto string = std::make_shared<PlainString>(_driver.currentStream(), std::move(args[0].getTokenIt()));
 			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
 			string->setModifiers(mods.first, std::move(mods.second));
@@ -554,7 +549,6 @@ void PogParser::defineGrammar()
 				// std::cout << "found '{' of hexstring" << std::endl;
 				//enter_tokenizer_state("@hexstr");
 				// std::cerr << " -> switched to @hexstr state." << std::endl;
-				stringFollows(false, "{ of hex string");
 				args[0].getTokenIt()->setType(HEX_START_BRACKET);
 				return {};
 			},
