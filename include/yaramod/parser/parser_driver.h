@@ -213,13 +213,13 @@ public:
 	bool prepareParser();
 	void includeFile();
 	void parse();
-	bool stringFollows() const { return _stringFollows; };
-	void stringFollows(bool new_value, const std::string& msg = "") {
-		if(new_value)
-			std::cerr << "Set string_follows=true, '" << msg << "'" << std::endl;
-		else
-			std::cerr << "Set string_follows=false, '" << msg << "'" << std::endl;
-		_stringFollows = new_value;
+	bool sectionStrings() const { return _sectionStrings; };
+	void sectionStrings(bool new_value/*, const std::string& msg = ""*/) {
+		// if(new_value)
+		// 	std::cerr << std::endl << "Set _sectionStrings=true, '" << msg << "'" << std::endl << std::endl;
+		// else
+		// 	std::cerr << std::endl << "Set _sectionStrings=false, '" << msg << "'" << std::endl << std::endl;
+		_sectionStrings = new_value;
 	};
 
 	void setInput(std::istream* input) { _input = input; };
