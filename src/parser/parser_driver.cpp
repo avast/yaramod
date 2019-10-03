@@ -163,7 +163,27 @@ void PogParser::defineTokens()
 	_parser.token("filesize").symbol("FILESIZE").action( [&](std::string_view str) -> Value { return emplace_back( FILESIZE, std::string{str} ); } );
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
-	_parser.token("include").symbol("INCLUDE_DIRECTIVE").action( [&](std::string_view str) -> Value { return emplace_back(INCLUDE_DIRECTIVE, std::string{str}); } );
+
+	// @include
+	_parser.token("include").symbol("INCLUDE_DIRECTIVE").enter_state("@include").action( [&](std::string_view str) -> Value {
+		std::cout << "Matched token INCLUDE_DIRECTIVE '" << str << "'" << std::endl;
+		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
+	});
+	_parser.token("\n").states("@include").action( [&](std::string_view str) -> Value { return Value(emplace_back(NEW_LINE, std::string{str})); });
+	_parser.token(R"([ \v\r\t])").states("@include");
+	_parser.token(R"(\"")").states("@include").enter_state("@include_state");
+	_parser.token(R"(.)").states("include").action( [&](std::string_view str) -> Value { assert(false && "Unexpected character after include directive."); return {}; });
+	//@include_file
+	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").states("@include_file").enter_state("@default").action( [&](std::string_view str) -> Value {
+		std::string filePath = std::string{str}.substr(str.size()-1);
+		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
+		includeToken->initializeSubstream();
+		auto substream = includeToken->getIncludeSubstream();
+		if (!_driver.includeFile(filePath, substream))
+			error_handle("Unable to include file '" + filePath + "'");
+		return Value(includeToken);
+	});
+	//@include_file end
 
 	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").action( [&](std::string_view str) -> Value {
 		return emplace_back(INTEGER, std::stol(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
@@ -375,6 +395,7 @@ void PogParser::defineGrammar()
 	_parser.rule("rules")
 		.production("rules", "rule")
 		.production("rules", "import")
+		.production("rules", "INCLUDE_DIRECTIVE")
 		.production()
 		;
 	_parser.rule("import") // {}
