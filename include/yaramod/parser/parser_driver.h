@@ -21,11 +21,21 @@
 #include <pog/pog.h>
 
 #include "yaramod/yaramod_error.h"
-#include "yaramod/parser/lexer.h"
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/yara_file.h"
-#include "yaramod/yy/yy_parser.hpp"
+
+//#include <iterator>
+
+#include "yaramod/types/expressions.h"
+#include "yaramod/types/hex_string.h"
+#include "yaramod/types/literal.h"
+#include "yaramod/types/meta.h"
+#include "yaramod/types/plain_string.h"
+#include "yaramod/types/regexp.h"
+#include "yaramod/types/rule.h"
+#include "yaramod/utils/trie.h"
+
 
 namespace yaramod {
 
@@ -264,8 +274,6 @@ enum class ParserMode
  */
 class ParserDriver
 {
-	friend class yy::Lexer;
-	friend class yy::Parser;
 	friend class PogParser;
 
 public:
@@ -283,9 +291,7 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	yy::Lexer& getLexer();
-	yy::Parser& getParser();
-	const yy::location& getLocation() const;
+	// const yy::location& getLocation() const;
 	YaraFile& getParsedFile();
 	const YaraFile& getParsedFile() const;
 	/// @}
@@ -363,10 +369,8 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	yy::Lexer _lexer; ///< Flex lexer
-	yy::Parser _parser; ///< Bison parser
 	PogParser _pog_parser; ///< pog parser
-	yy::location _loc; ///< Location
+	// yy::location _loc; ///< Location
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
 	std::vector<TokenIt> _comments;
@@ -374,7 +378,7 @@ private:
 
 	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
-	std::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
+	// zstd::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
 	std::unordered_set<std::string> _includedFilesCache; ///< Cache of already included files
 
 	bool _valid; ///< Validity
