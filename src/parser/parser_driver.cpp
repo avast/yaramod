@@ -158,8 +158,8 @@ void PogParser::defineTokens()
 	_parser.token("them").symbol("THEM").action( [&](std::string_view str) -> Value { return emplace_back( THEM, std::string{str} ); } );
 	_parser.token("for").symbol("FOR").action( [&](std::string_view str) -> Value { return emplace_back( FOR, std::string{str} ); } );
 	_parser.token("entrypoint").symbol("ENTRYPOINT").action( [&](std::string_view str) -> Value { return emplace_back( ENTRYPOINT, std::string{str} ); } );
-	_parser.token("at").symbol("OP_AT").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
-	_parser.token("in").symbol("OP_IN").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
+	_parser.token("at").symbol("AT").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
+	_parser.token("in").symbol("IN").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
 	_parser.token("filesize").symbol("FILESIZE").action( [&](std::string_view str) -> Value { return emplace_back( FILESIZE, std::string{str} ); } );
 	_parser.token("contains").symbol("CONTAINS").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
 	_parser.token("matches").symbol("MATCHES").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
@@ -754,7 +754,7 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
-			return Value(std::move(args[0].getRegexpUnit()));
+			return std::move(args[0]); //Value(std::move(args[0].getRegexpUnit()));
 		})
 		.production("REGEXP_WORD_BOUNDARY", [](auto&&) -> Value {
 			return Value(std::make_shared<RegexpWordBoundary>());
@@ -773,7 +773,7 @@ void PogParser::defineGrammar()
 		.production([](auto&&) -> Value { return true; })
 		.production("REGEXP_OPTIONAL", [](auto&&) -> Value { return false; })
 		;
-	_parser.rule("regexp_single") // shared_ptr<yaramod::String>
+	_parser.rule("regexp_single") // shared_ptr<yaramod::RegexpUnit>
 		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return Value(std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit()))); })
 		.production("REGEXP_ANY_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpAnyChar>()); })
 		.production("REGEXP_CHAR", [](auto&& args) -> Value { return Value(std::make_shared<RegexpText>(std::move(args[0].getString()))); })
@@ -811,7 +811,7 @@ void PogParser::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
-		.production("string_id", "OP_AT", "primary_expression", [&](auto&& args) -> Value {
+		.production("string_id", "AT", "primary_expression", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
 				error_handle("Reference to undefined string '" + id->getString() + "'");
@@ -823,7 +823,7 @@ void PogParser::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
-		.production("string_id", "OP_IN", "range", [&](auto&& args) -> Value {
+		.production("string_id", "IN", "range", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
 				error_handle("Reference to undefined string '" + id->getString() + "'");
@@ -841,7 +841,7 @@ void PogParser::defineGrammar()
 					error_handle("Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
-			"OP_IN", "integer_set", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+			"IN", "integer_set", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
 				TokenIt for_token = args[0].getTokenIt();
 				auto for_expr = std::move(args[1].getExpression());
 				TokenIt id = args[2].getTokenIt();
