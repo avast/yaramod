@@ -1481,8 +1481,8 @@ void PogParser::parse()
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this), _pog_parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _currentStrings(),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _pog_parser(*this),
+	/*_loc(nullptr), */_valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
@@ -1502,8 +1502,8 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this), _pog_parser(*this),
-	_loc(nullptr),  _valid(true), _filePath(), _inputFile(), _currentStrings(),
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _pog_parser(*this),
+	/*_loc(nullptr),  */_valid(true), _filePath(), _inputFile(), _currentStrings(),
 	_stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
@@ -1517,34 +1517,14 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(p
 }
 
 /**
- * Returns the lexer.
- *
- * @return Lexer.
- */
-yy::Lexer& ParserDriver::getLexer()
-{
-	return _lexer;
-}
-
-/**
- * Returns the parser.
- *
- * @return parser.
- */
-yy::Parser& ParserDriver::getParser()
-{
-	return _parser;
-}
-
-/**
  * Returns the location in the file.
  *
  * @return Location.
  */
-const yy::location& ParserDriver::getLocation() const
-{
-	return _loc;
-}
+// const yy::location& ParserDriver::getLocation() const
+// {
+// 	return _loc;
+// }
 
 /**
  * Returns the result of parsing. The parsed YARA file.
@@ -1576,8 +1556,6 @@ bool ParserDriver::parse()
 	if (!_valid)
 		return false;
 
-	//BISON:
-	//bool output = _parser.parse() == 0;
 	//POG:
 	_pog_parser.parse();
 	bool output = true;
@@ -1602,7 +1580,7 @@ bool ParserDriver::isValid() const
  */
 void ParserDriver::moveLineLocation()
 {
-	_loc.lines();
+	// _loc.lines();
 }
 
 /**
@@ -1612,8 +1590,8 @@ void ParserDriver::moveLineLocation()
  */
 void ParserDriver::moveLocation(std::uint64_t moveLength)
 {
-	_loc.step();
-	_loc += moveLength;
+	// _loc.step();
+	// _loc += moveLength;
 }
 
 /**
@@ -1655,11 +1633,12 @@ bool ParserDriver::includeEnd()
 		_tokenStreams.pop();
 		_includedFiles.pop_back();
 		_includedFileNames.pop_back();
-		_loc = _includedFileLocs.back();
-		_includedFileLocs.pop_back();
+		// _loc = _includedFileLocs.back();
+		// _includedFileLocs.pop_back();
 	}
 
-	return _lexer.includeEnd();
+	// return _lexer.includeEnd();
+	return true;
 }
 
 /**
@@ -1715,7 +1694,7 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
  */
 void ParserDriver::markStartOfRule()
 {
-	_startOfRule = getLocation().end.line;
+	// _startOfRule = getLocation().end.line;
 }
 
 /**
@@ -1880,19 +1859,19 @@ bool ParserDriver::includeFileImpl(const std::string& includePath, std::shared_p
 	if (!includedFile->is_open())
 		return false;
 
-	_lexer.includeFile(includedFile.get());
+	// _lexer.includeFile(includedFile.get());
 
 	_pog_parser.setInput(includedFile.get());
 
 	_tokenStreams.push(substream);
 	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
-	_includedFileLocs.push_back(_loc);
+	// _includedFileLocs.push_back(_loc);
 	_includedFilesCache.emplace(absolutePath(includePath));
 
 	// Reset location se we can keep track of line numbers in included files
-	_loc.begin.initialize(_loc.begin.filename, 1, 1);
-	_loc.end.initialize(_loc.end.filename, 1, 1);
+	// _loc.begin.initialize(_loc.begin.filename, 1, 1);
+	// _loc.end.initialize(_loc.end.filename, 1, 1);
 	return true;
 }
 
