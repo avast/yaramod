@@ -910,12 +910,12 @@ std::string TokenStream::getText(bool withIncludes)
          continue;
       else if(current == INCLUDE_PATH)
       {
-         assert(it->isIncludeToken());
-         if(withIncludes){
-            os << it->getIncludeSubstream()->getText(withIncludes);
-            continue;
-         }
-         else
+         // assert(it->isIncludeToken());
+         // if(withIncludes){
+         //    os << it->getSubTokenStream()->getText(withIncludes);
+         //    continue;
+         // }
+         // else
             os << *it;
       }
       else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
