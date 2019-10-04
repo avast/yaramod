@@ -337,7 +337,7 @@ public:
 
 	bool isIntegral() const { return _value->isIntegral(); }
 
-   bool isIncludeToken() const { return _includeSubstream != nullptr; }
+   bool isIncludeToken() const { return _subTokenStream != nullptr; }
    bool isLeftBracket() const
    {
       return _type == LP ||
@@ -391,18 +391,19 @@ public:
 
    /// @name Include substream handler methods
    /// @{
-   std::shared_ptr<TokenStream> getIncludeSubstream() const { return _includeSubstream; }
-   void initializeSubstream()
+   std::shared_ptr<TokenStream> getSubTokenStream() const { return _subTokenStream; }
+   std::shared_ptr<TokenStream> initializeSubTokenStream()
    {
-      assert(_includeSubstream == nullptr);
-      _includeSubstream = std::make_shared<TokenStream>();
+      assert(_subTokenStream == nullptr);
+      _subTokenStream = std::make_shared<TokenStream>();
+      return getSubTokenStream();
    }
    /// @}
 
 private:
    bool _flag = false; // used for '(' to determine it's sector and whether to put newlines
    TokenType _type;
-   std::shared_ptr< TokenStream > _includeSubstream = nullptr; // used only for INCLUDE_PATH tokens
+   std::shared_ptr< TokenStream > _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 };
 

@@ -16,7 +16,7 @@
 #define FMT_HEADER_ONLY 1
 
 // Uncomment for debugging
-// #define POG_DEBUG 1
+#define POG_DEBUG 1
 
 #include <pog/pog.h>
 
@@ -188,7 +188,7 @@ protected:
       catch (std::bad_variant_access& exp)
       {
          std::cerr << "Called Value.getValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         // std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
+         std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
@@ -202,7 +202,7 @@ protected:
       catch (std::bad_variant_access& exp)
       {
           std::cerr << "Called Value.moveValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         // std::cerr << __PRETTY_FUNCTION__ << std::endl;
+         std::cerr << __PRETTY_FUNCTION__ << std::endl;
          assert(false && "Called getValue<T>() with incompatible type T.");
       }
 	}
@@ -221,7 +221,6 @@ public:
 	void defineGrammar();
 	void enter_state(const std::string& state);
 	bool prepareParser();
-	void includeFile();
 	void parse();
 	bool sectionStrings() const { return _sectionStrings; };
 	void sectionStrings(bool new_value/*, const std::string& msg = ""*/) {
@@ -231,8 +230,13 @@ public:
 		// 	std::cerr << std::endl << "Set _sectionStrings=false, '" << msg << "'" << std::endl << std::endl;
 		_sectionStrings = new_value;
 	};
-
-	void setInput(std::istream* input) { _input = input; };
+	void push_input_stream(std::istream& input)
+	{
+		_parser.push_input_stream(input);
+	}
+	// void addInput(std::istream* input) { _inputs.push(input); }
+	// std::istream* currentInput() const { return _inputs.top(); }
+	// void endInput() { _inputs.pop(); }
 private:
 	template<typename... Args> TokenIt emplace_back(Args&&... args);
 
@@ -242,7 +246,7 @@ private:
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
-	std::istream* _input;
+	// std::stack<std::istream*> _inputs;
 	bool _sectionStrings = false;
 };
 
@@ -319,7 +323,8 @@ public:
 protected:
 	/// @name Methods for handling includes
 	/// @{
-	bool includeFile(const std::string& includePath, std::shared_ptr<TokenStream> substream);
+	bool includeFile(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/);
+	std::istream* currentInputStream();
 	bool includeEnd();
 	/// @}
 
@@ -359,13 +364,13 @@ protected:
 
 	/// @name Methods for handling token streams
 	/// @{
-	std::shared_ptr<TokenStream> currentStream() const { return _tokenStreams.top(); }
+	std::shared_ptr<TokenStream> currentTokenStream() const { return _tokenStreams.top(); }
 	/// @}
 
 private:
 	bool isAlreadyIncluded(const std::string& includePath);
 	bool hasRuleWithName(const std::string& name) const;
-	bool includeFileImpl(const std::string& includePath, std::shared_ptr<TokenStream> substream);
+	bool includeFileImpl(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/);
 
 	ParserMode _mode; ///< Parser mode.
 
@@ -376,14 +381,14 @@ private:
 	std::vector<TokenIt> _comments;
 	std::string _tmp_comment; //TODO: deleto - only for lexer
 
-	std::vector<std::unique_ptr<std::ifstream>> _includedFiles; ///< Stack of included files
+	std::vector<std::shared_ptr<std::istream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
-	// zstd::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
+	// std::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
 	std::unordered_set<std::string> _includedFilesCache; ///< Cache of already included files
+	std::istream* _optionalFirstInput; ///< Input file or stream
 
 	bool _valid; ///< Validity
 	std::string _filePath; ///< File path if parsing from file
-	std::ifstream _inputFile; ///< Input file or stream
 
 	YaraFile _file; ///< Parsed file
 	std::set<std::string> _parsed_rule_names;

@@ -52,16 +52,16 @@ PogParser::PogParser(ParserDriver& driver)
 template<typename... Args>
 TokenIt PogParser::emplace_back(Args&&... args)
 {
-	return _driver.currentStream()->emplace_back(args...);
+	return _driver.currentTokenStream()->emplace_back(args...);
 }
 
 void print(const std::string& symbol, const std::string_view& value) //TODO: remove
 {
-	//std::cerr << symbol << ": '" << std::string{value} << "'" << std::endl;
+	std::cerr << "Matched " << symbol << ": '" << std::string{value} << "'" << std::endl;
 }
 void print(const std::string& symbol, const std::string& value) //TODO: remove
 {
-	//std::cerr << symbol << ": '" << value << "'" << std::endl;
+	std::cerr << "Matched " << symbol << ": '" << value << "'" << std::endl;
 }
 
 void PogParser::defineTokens()
@@ -134,7 +134,7 @@ void PogParser::defineTokens()
 	});
 	_parser.token("global").symbol("GLOBAL").action( [&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); } );
 	_parser.token("private").symbol("PRIVATE").action( [&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); } );
-	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { print("RULE", str); _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
 	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { sectionStrings(true); return emplace_back( STRINGS, std::string{str} ); } );
 	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { sectionStrings(false); return emplace_back( CONDITION, std::string{str} ); } );
@@ -166,22 +166,21 @@ void PogParser::defineTokens()
 
 	// @include
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").enter_state("$include").action( [&](std::string_view str) -> Value {
-		std::cout << "Matched token INCLUDE_DIRECTIVE '" << str << "'" << std::endl;
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
 	_parser.token("\n").states("$include").action( [&](std::string_view str) -> Value { return Value(emplace_back(NEW_LINE, std::string{str})); });
-	_parser.token(R"([ \v\r\t])").states("$include");
-	_parser.token(R"(\"")").states("$include").enter_state("$include_state");
-	_parser.token(R"(.)").states("include").action( [&](std::string_view str) -> Value { assert(false && "Unexpected character after include directive."); return {}; });
+	_parser.token(R"([ \v\r\t])").states("$include");//.action( [&](std::string_view str) -> Value { return {}; });
+	_parser.token(R"(\")").states("$include").enter_state("$include_file");
+	//_parser.token(R"(.)").states("$include").action( [&](std::string_view str) -> Value { assert(false && "Unexpected character after include directive."); return {}; });
 	//@include_file
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").states("$include_file").enter_state("@default").action( [&](std::string_view str) -> Value {
-		std::string filePath = std::string{str}.substr(str.size()-1);
-		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
-		includeToken->initializeSubstream();
-		auto substream = includeToken->getIncludeSubstream();
-		if (!_driver.includeFile(filePath, substream))
-			error_handle("Unable to include file '" + filePath + "'");
-		return Value(includeToken);
+		 print("INCLUDE_FILE", str);
+		std::string filePath = std::string{str}.substr(0, str.size()-1);
+		if (!_driver.includeFile(filePath/*, subTokenStream*/))
+	 		error_handle("Unable to include file '" + filePath + "'");
+
+		push_input_stream(*_driver.currentInputStream());
+		return Value(emplace_back(INCLUDE_PATH, filePath));
 	});
 	//@include_file end
 
@@ -387,7 +386,11 @@ void PogParser::defineTokens()
 	_parser.token(R"([^]])").states("$regexp_class").action( [&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// @regexp end
 
-	_parser.end_token().action([](std::string_view str) -> Value { return {}; });
+	// _parser.end_token().action([](std::string_view str) -> Value { return {}; });
+	_parser.end_token().action([&](std::string_view) {
+  		_parser.pop_input_stream();
+  		return 0;
+	});
 }
 
 void PogParser::defineGrammar()
@@ -395,7 +398,7 @@ void PogParser::defineGrammar()
 	_parser.rule("rules")
 		.production("rules", "rule")
 		.production("rules", "import")
-		.production("rules", "INCLUDE_DIRECTIVE")
+		.production("rules", "include")
 		.production()
 		;
 	_parser.rule("import") // {}
@@ -404,6 +407,22 @@ void PogParser::defineGrammar()
 			import->setType(IMPORT_MODULE);
 			if(!_driver._file.addImport(import))
 				error_handle("Unrecognized module '" + import->getString() + "' imported");
+			return {};
+		});
+	_parser.rule("include")
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&& args) -> Value {
+			// TokenIt includeToken = args[1].getTokenIt();
+			// auto subTokenStream = includeToken->initializeSubTokenStream();
+			// const auto& filePath = includeToken->getString();
+
+			//adds new stream from filePath AND adds the subTokenStream
+			// parses with updated currentTokenStream and currentInputStream
+
+
+
+//			_driver.currentTokenStream()->move_append(subTokenStream.get());
+
+			// _driver.includeEnd();
 			return {};
 		});
 
@@ -422,7 +441,7 @@ void PogParser::defineGrammar()
 				Expression::Ptr condition = std::move(args[8].getExpression());
 				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
 
-				_driver.addRule(Rule(_driver.currentStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				_driver.addRule(Rule(_driver.currentTokenStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
 				return {};
 			});
 
@@ -538,7 +557,7 @@ void PogParser::defineGrammar()
 		.production("STRING_ID", [&](auto&& args) -> Value { return std::move(args[0]); });
 	_parser.rule("string")
 		.production("STRING_LITERAL", "string_mods", [&](auto&& args) -> Value {
-			auto string = std::make_shared<PlainString>(_driver.currentStream(), std::move(args[0].getTokenIt()));
+			auto string = std::make_shared<PlainString>(_driver.currentTokenStream(), std::move(args[0].getTokenIt()));
 			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
 			string->setModifiers(mods.first, std::move(mods.second));
 			return Value(std::move(string));
@@ -549,7 +568,7 @@ void PogParser::defineGrammar()
 			},
 		 	"hex_string", "RCB", [&](auto&& args) -> Value {
 				args[3].getTokenIt()->setType(HEX_END_BRACKET);
-			 	return Value(std::make_shared<HexString>(_driver.currentStream(), std::move(args[2].getMultipleHexUnits())));
+			 	return Value(std::make_shared<HexString>(_driver.currentTokenStream(), std::move(args[2].getMultipleHexUnits())));
 			}
 		)
 		.production("regexp", "string_mods", [&](auto&& args) -> Value {
@@ -692,13 +711,13 @@ void PogParser::defineGrammar()
 	_parser.rule("hex_or_body") // vector<shared_ptr<yaramod::String>>
 		.production("hex_string_body", [&](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexString>> output;
-			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[0].getMultipleHexUnits()));
+			auto hexStr = std::make_shared<HexString>(_driver.currentTokenStream(), std::move(args[0].getMultipleHexUnits()));
 			output.push_back(std::move(hexStr));
 			return std::move(output);
 		})
 		.production("hex_or_body", "HEX_OR", "hex_string_body", [&](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleHexStrings());
-			auto hexStr = std::make_shared<HexString>(_driver.currentStream(), std::move(args[2].getMultipleHexUnits()));
+			auto hexStr = std::make_shared<HexString>(_driver.currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
 			output.push_back(hexStr);
 			return std::move(output);
 		})
@@ -734,7 +753,7 @@ void PogParser::defineGrammar()
 		})
 		;
 	_parser.rule("regexp_body") // shared_ptr<yaramod::String>
-		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(_driver.currentStream(), std::move(args[0].getRegexpUnit()))); });
+		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(_driver.currentTokenStream(), std::move(args[0].getRegexpUnit()))); });
 
 	_parser.rule("regexp_or") // shared_ptr<RegexpUnit>
 		.production("regexp_concat", [](auto&& args) -> Value { return Value(std::make_shared<RegexpConcat>(std::move(args[0].getMultipleRegexpUnits()))); })
@@ -1469,11 +1488,6 @@ bool PogParser::prepareParser()
 	return true;
 }
 
-// void PogParser::includeFile(std::stringstream* input)
-// {
-
-// }
-
 void PogParser::enter_state(const std::string& state)
 {
 	_parser.enter_tokenizer_state(state);
@@ -1483,7 +1497,7 @@ void PogParser::parse()
 {
 	try
 	{
-		auto result = _parser.parse(*_input);
+		auto result = _parser.parse(*_driver.currentInputStream());
 		if (!result)
 	   {
 	      std::cerr << "Error" << std::endl;
@@ -1503,7 +1517,7 @@ void PogParser::parse()
  * @param parserMode Parsing mode.
  */
 ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _pog_parser(*this),
-	/*_loc(nullptr), */_valid(true), _filePath(), _inputFile(), _currentStrings(),
+	/*_loc(nullptr), */_valid(true), _filePath(), /*_inputFile(), */_currentStrings(),
 	_stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	// Uncomment for debugging
@@ -1512,9 +1526,12 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
 
 	// When creating ParserDriver from real file (not from some stringstream) we need to somehow tell lexer which file to process
 	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
-	if (!includeFileImpl(filePath, std::make_shared<TokenStream>()))
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	if (!includeFileImpl(filePath/*, std::make_shared<TokenStream>()*/))
 		_valid = false;
-	_file = std::move(YaraFile(_tokenStreams.top()));
+	std::cout << "1" << std::endl;
+	_file = std::move(YaraFile(currentTokenStream()));
+	std::cout << "1" << std::endl;
 }
 
 /**
@@ -1524,17 +1541,18 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param parserMode Parsing mode.
  */
 ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _pog_parser(*this),
-	/*_loc(nullptr),  */_valid(true), _filePath(), _inputFile(), _currentStrings(),
+	/*_loc(nullptr),  */_optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(),
 	_stringLoop(false), _localSymbols()
 {
 	// Uncomment for debugging
 	// See also occurrences of 'debugging' in parser.y to enable it
 	// _parser.set_debug_level(1);
 
-	_tokenStreams.push(std::make_shared<TokenStream>());
-	_file = YaraFile(_tokenStreams.top());
-
-	_pog_parser.setInput(&input);
+	std::cout << "2" << std::endl;
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	std::cout << "2" << std::endl;
+	_file = YaraFile(currentTokenStream());
+	std::cout << "2" << std::endl;
 }
 
 /**
@@ -1581,8 +1599,8 @@ bool ParserDriver::parse()
 	_pog_parser.parse();
 	bool output = true;
 
-	// std::cout << "TokenStream when getParsedFile(): " << std::endl;
-	// std::cout << *_file.getTokenStream() << "'" << std::endl;
+	std::cout << "TokenStream when getParsedFile(): " << std::endl;
+	std::cout << *_file.getTokenStream() << "'" << std::endl;
 	return output;
 }
 
@@ -1622,7 +1640,7 @@ void ParserDriver::moveLocation(std::uint64_t moveLength)
  *
  * @return @c true if include succeeded, otherwise @c false.
  */
-bool ParserDriver::includeFile(const std::string& includePath, std::shared_ptr<TokenStream> substream)
+bool ParserDriver::includeFile(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/)
 {
 	auto totalPath = includePath;
 	if (pathIsRelative(includePath))
@@ -1637,7 +1655,24 @@ bool ParserDriver::includeFile(const std::string& includePath, std::shared_ptr<T
 		totalPath = absolutePath(joinPaths(parentPath(_includedFileNames.back()), includePath));
 	}
 
-	return includeFileImpl(totalPath, substream);
+	return includeFileImpl(totalPath/*, substream*/);
+}
+
+/**
+ * Returns  the currently included file. This should normally happen when end-of-file is reached.
+ * End of include may fail if there are no more files to pop from include stack.
+ *
+ * @return @c true if end of include succeeded, otherwise @c false.
+ */
+std::istream* ParserDriver::currentInputStream()
+{
+	if(_includedFiles.empty())
+	{
+		assert(_optionalFirstInput);
+		return _optionalFirstInput;
+	}
+	else
+		return _includedFiles.back().get();
 }
 
 /**
@@ -1651,7 +1686,7 @@ bool ParserDriver::includeEnd()
 	if (!_includedFileNames.empty())
 	{
 		assert(!_tokenStreams.empty());
-		_tokenStreams.pop();
+		//_tokenStreams.pop();
 		_includedFiles.pop_back();
 		_includedFileNames.pop_back();
 		// _loc = _includedFileLocs.back();
@@ -1869,23 +1904,20 @@ bool ParserDriver::hasRuleWithName(const std::string& name) const
 	return _parsed_rule_names.count(name) != 0;
 }
 
-bool ParserDriver::includeFileImpl(const std::string& includePath, std::shared_ptr<TokenStream> substream)//TODO: upravit
+bool ParserDriver::includeFileImpl(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/)//TODO: upravit
 {
 	if (_mode == ParserMode::IncludeGuarded && isAlreadyIncluded(includePath))
 		return true;
 
 	// We need to allocate ifstreams dynamically because they are not copyable and we need to store them
 	// in vector to prolong their lifetime because of flex.
-	auto includedFile = std::make_unique<std::ifstream>(includePath);
-	if (!includedFile->is_open())
+	auto file_stream = std::make_shared<std::ifstream>(includePath);
+	if (!file_stream->is_open())
 		return false;
+	_pog_parser.push_input_stream(*file_stream);
+	_includedFiles.push_back(std::move(file_stream));
 
-	// _lexer.includeFile(includedFile.get());
-
-	_pog_parser.setInput(includedFile.get());
-
-	_tokenStreams.push(substream);
-	_includedFiles.push_back(std::move(includedFile));
+	//	_tokenStreams.push(substream);
 	_includedFileNames.push_back(includePath);
 	// _includedFileLocs.push_back(_loc);
 	_includedFilesCache.emplace(absolutePath(includePath));
