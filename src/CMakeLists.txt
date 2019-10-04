@@ -23,6 +23,7 @@ set(SOURCES
 	types/modules/math_module.cpp
 	types/modules/module.cpp
 	types/modules/pe_module.cpp
+	types/modules/phish_module.cpp
 	types/modules/time_module.cpp
 	types/plain_string.cpp
 	types/rule.cpp

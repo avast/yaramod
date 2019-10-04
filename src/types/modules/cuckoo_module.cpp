@@ -38,6 +38,9 @@ bool CuckooModule::initialize()
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("connection_ip", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("connection_country", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("irc_command", Type::Int, Type::Regexp, Type::Regexp));
 	cuckooStruct->addAttribute(networkStruct);
 
 	auto registryStruct = std::make_shared<StructureSymbol>("registry");
@@ -75,6 +78,7 @@ bool CuckooModule::initialize()
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_path", Type::Int, Type::Regexp));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_sha256", Type::Int, Type::String));
 	processStruct->addAttribute(std::make_shared<FunctionSymbol>("api_call", Type::Int, Type::Regexp));
+	processStruct->addAttribute(std::make_shared<FunctionSymbol>("modified_clipboard", Type::Int, Type::Regexp));
 	cuckooStruct->addAttribute(processStruct);
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");

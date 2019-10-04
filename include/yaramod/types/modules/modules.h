@@ -16,4 +16,5 @@
 #include "yaramod/types/modules/magic_module.h"
 #include "yaramod/types/modules/math_module.h"
 #include "yaramod/types/modules/pe_module.h"
+#include "yaramod/types/modules/phish_module.h"
 #include "yaramod/types/modules/time_module.h"

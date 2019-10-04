@@ -26,6 +26,7 @@ std::unordered_map<std::string, std::shared_ptr<Module>> knownModules =
 	{ "magic",      std::make_shared<MagicModule>()      },
 	{ "math",       std::make_shared<MathModule>()       },
 	{ "pe",         std::make_shared<PeModule>()         },
+	{ "phish",      std::make_shared<PhishModule>()      },
 	{ "time",       std::make_shared<TimeModule>()       }
 };
 
