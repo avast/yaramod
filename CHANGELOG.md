@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.11.0 (2019-10-04)
 
 * New: Added `cuckoo.process.modified_clipboard()`, `cuckoo.network.connection_ip()`, `cuckoo.network.connection_country()` and `cuckoo.network.irc_command()`.
 * New: Module `phish`.
