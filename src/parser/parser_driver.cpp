@@ -179,8 +179,11 @@ void PogParser::defineTokens()
 		if (!_driver.includeFile(filePath/*, subTokenStream*/))
 	 		error_handle("Unable to include file '" + filePath + "'");
 
-		push_input_stream(*_driver.currentInputStream());
-		return Value(emplace_back(INCLUDE_PATH, filePath));
+		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
+		auto ts = includeToken->initializeSubTokenStream();
+		_driver.pushTokenStream(ts);
+
+		return Value(includeToken);
 	});
 	//@include_file end
 
@@ -389,6 +392,8 @@ void PogParser::defineTokens()
 	// _parser.end_token().action([](std::string_view str) -> Value { return {}; });
 	_parser.end_token().action([&](std::string_view) {
   		_parser.pop_input_stream();
+  		if( _driver.currentTokenStreamCount() > 1 )
+			_driver.popTokenStream();
   		return 0;
 	});
 }
