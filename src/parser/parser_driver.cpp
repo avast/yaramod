@@ -11,27 +11,29 @@
 
 namespace yaramod {
 
-	void error_handle( const std::string& msg, std::size_t line, std::optional<std::size_t> byte = std::nullopt, std::optional<std::size_t> length = std::nullopt, bool except = true )
+	// void error_handle( const std::string& msg, std::size_t line, std::optional<std::size_t> byte = std::nullopt, std::optional<std::size_t> length = std::nullopt, bool except = true )
+	// {
+	// 	std::stringstream ss;
+	// 	ss << "Error at ";
+	// 	if( byte ) {
+	// 		ss << line << "." << byte.value() + 1;
+	// 		if( length )
+	// 			ss << "-" << byte.value() + length.value();
+	// 	}
+	// 	else
+	// 		ss << "line " << line;
+	// 	ss << ": " << msg;
+	// 	if( except )
+	// 		throw ParserError( ss.str() );
+	// 	else
+	// 		std::cerr << ss.str() << std::endl;
+	// }
+
+	void error_handle( const Location& location, const std::string& msg )
 	{
 		std::stringstream ss;
-		ss << "Error at ";
-		if( byte ) {
-			ss << line << "." << byte.value() + 1;
-			if( length )
-				ss << "-" << byte.value() + length.value();
-		}
-		else
-			ss << "line " << line;
-		ss << ": " << msg;
-		if( except )
-			throw ParserError( ss.str() );
-		else
-			std::cerr << ss.str() << std::endl;
-	}
-
-	void error_handle( const std::string& msg )
-	{
-		throw ParserError(msg);
+		ss << "Error at " << location.line() << "." << location.column() << ": " << msg;
+		throw ParserError(ss.str());
 	}
 
 /**
@@ -66,9 +68,15 @@ void print(const std::string& symbol, const std::string& value) //TODO: remove
 
 void PogParser::defineTokens()
 {
+	//define global action for counting the line/character position
+	_parser.global_tokenizer_action([&](std::string_view str) {
+		_location.addColumn(str.length());
+	});
+
+
 	_parser.token("\n").action( [&](std::string_view str) -> Value {
 		_indent.clear();
-		_driver.moveLineLocation();
+		_location.addLine();
 		return emplace_back(NEW_LINE, std::string{str});
 	});
 	_parser.token("[ \t\r]+").action( [&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
@@ -168,7 +176,10 @@ void PogParser::defineTokens()
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").enter_state("$include").action( [&](std::string_view str) -> Value {
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
-	_parser.token("\n").states("$include").action( [&](std::string_view str) -> Value { return Value(emplace_back(NEW_LINE, std::string{str})); });
+	_parser.token("\n").states("$include").action( [&](std::string_view str) -> Value {
+		_location.addLine();
+		return Value(emplace_back(NEW_LINE, std::string{str}));
+	});
 	_parser.token(R"([ \v\r\t])").states("$include");//.action( [&](std::string_view str) -> Value { return {}; });
 	_parser.token(R"(\")").states("$include").enter_state("$include_file");
 	//_parser.token(R"(.)").states("$include").action( [&](std::string_view str) -> Value { assert(false && "Unexpected character after include directive."); return {}; });
@@ -176,7 +187,7 @@ void PogParser::defineTokens()
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").states("$include_file").enter_state("@default").action( [&](std::string_view str) -> Value {
 		std::string filePath = std::string{str}.substr(0, str.size()-1);
 		if (!_driver.includeFile(filePath/*, subTokenStream*/))
-	 		error_handle("Unable to include file '" + filePath + "'");
+	 		error_handle(_location.previous(), "Unable to include file '" + filePath + "'");
 
 		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
 		auto ts = includeToken->initializeSubTokenStream();
@@ -219,7 +230,7 @@ void PogParser::defineTokens()
 		return {};
 	});
 	_parser.token(R"(\n)").states("$multiline_comment").action( [&](std::string_view str) -> Value {
-		_driver.moveLineLocation();
+		_location.addLine();
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -241,7 +252,7 @@ void PogParser::defineTokens()
 	});
 	_parser.token(R"(\\n)").states("$str").action( [&](std::string_view) -> Value {
 		_strLiteral += '\n';
-		_driver.moveLineLocation();
+		_location.addLine();
 		return {};
 	});
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action( [&](std::string_view str) -> Value {
@@ -297,6 +308,7 @@ void PogParser::defineTokens()
 	_parser.token(R"(/*//)").states("$hexstr_multiline_comment").enter_state("$hexstr");
 	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
+		_location.addLine();
 		return emplace_back(NEW_LINE, "\n");
 	});
 	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
@@ -410,7 +422,7 @@ void PogParser::defineGrammar()
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
 			if(!_driver._file.addImport(import))
-				error_handle("Unrecognized module '" + import->getString() + "' imported");
+				error_handle(_location.previous(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		});
 	_parser.rule("include") // {}
@@ -420,7 +432,7 @@ void PogParser::defineGrammar()
 		.production(
 			"rule_mod", "RULE", "rule_name", [&](auto&& args) -> Value {
 				if(_driver.ruleExists(args[2].getTokenIt()->getString()))
-					error_handle("Rule already exists");
+					error_handle(_location.previous(), "Rule already exists");
 				return {};
 			},
 			"tags", "rule_begin", "metas", "strings", "condition", "rule_end", [&](auto&& args) -> Value {
@@ -531,7 +543,7 @@ void PogParser::defineGrammar()
 				auto strings = std::move(args[0].getStringsTrie());
 				if(!strings->insert(trieId, std::move(string)))
 				{
-					error_handle("Redefinition of string '" + trieId + "'");
+					error_handle(_location.previous(), "Redefinition of string '" + trieId + "'");
 				}
 				return std::move(strings);
 			}
@@ -778,9 +790,9 @@ void PogParser::defineGrammar()
 		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [&](auto&& args) -> Value {
 			auto pair = std::move(args[1].getRegexpRangePair());
 			if(!pair.first && !pair.second)
-				error_handle("Range in regular expression does not have defined lower bound nor higher bound");
+				error_handle(_location.previous(), "Range in regular expression does not have defined lower bound nor higher bound");
 			if(pair.first && pair.second && pair.first.value() > pair.second.value())
-				error_handle("Range in regular expression has greater lower bound than higher bound");
+				error_handle(_location.previous(), "Range in regular expression has greater lower bound than higher bound");
 			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
@@ -836,7 +848,7 @@ void PogParser::defineGrammar()
 		.production("string_id", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
-				error_handle("Reference to undefined string '" + id->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
 			auto output = std::make_shared<StringExpression>(std::move(id));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
@@ -844,11 +856,11 @@ void PogParser::defineGrammar()
 		.production("string_id", "AT", "primary_expression", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
-				error_handle("Reference to undefined string '" + id->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr expr = args[2].getExpression();
 			if(!expr->isInt())
-				error_handle("Operator 'at' expects integer on the right-hand side of the expression");
+				error_handle(_location.previous(), "Operator 'at' expects integer on the right-hand side of the expression");
 			auto output = std::make_shared<StringAtExpression>(id, op, std::move(expr));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
@@ -856,7 +868,7 @@ void PogParser::defineGrammar()
 		.production("string_id", "IN", "range", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
-				error_handle("Reference to undefined string '" + id->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr range = args[2].getExpression();
 
@@ -868,7 +880,7 @@ void PogParser::defineGrammar()
 			"FOR", "for_expression", "ID", [&](auto&& args) -> Value {
 				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
 				if(!_driver.addLocalSymbol(symbol))
-					error_handle("Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
+					error_handle(_location.previous(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
 			"IN", "integer_set", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
@@ -893,7 +905,7 @@ void PogParser::defineGrammar()
 		.production(
 			"FOR", "for_expression", "OF", "string_set", [&](auto&& args) -> Value {
 				if(_driver.isInStringLoop())
-					error_handle("Nesting of for-loop over strings is not allowed");
+					error_handle(_location.previous(), "Nesting of for-loop over strings is not allowed");
 				_driver.stringLoopEnter();
 			},
 			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
@@ -998,9 +1010,9 @@ void PogParser::defineGrammar()
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
 			if(!left->isString())
-				error_handle("operator 'contains' expects string on the left-hand side of the expression");
+				error_handle(_location.previous(), "operator 'contains' expects string on the left-hand side of the expression");
 			if(!right->isString())
-				error_handle("operator 'contains' expects string on the right-hand side of the expression");
+				error_handle(_location.previous(), "operator 'contains' expects string on the right-hand side of the expression");
 			auto output = std::make_shared<ContainsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
@@ -1010,7 +1022,7 @@ void PogParser::defineGrammar()
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getYaramodString());
 			if(!left->isString())
-				error_handle("operator 'matches' expects string on the left-hand side of the expression");
+				error_handle(_location.previous(), "operator 'matches' expects string on the left-hand side of the expression");
 			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
 			output->setType(Expression::Type::Bool);
@@ -1066,7 +1078,7 @@ void PogParser::defineGrammar()
 			stringId[0] = '$';
 
 			if (!_driver.stringExists(stringId))
-				error_handle("Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 
 			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
@@ -1078,7 +1090,7 @@ void PogParser::defineGrammar()
 			stringId[0] = '$';
 
 			if (!_driver.stringExists(stringId))
-				error_handle("Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
@@ -1090,7 +1102,7 @@ void PogParser::defineGrammar()
 			stringId[0] = '$';
 
 			if (!_driver.stringExists(stringId))
-				error_handle("Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
@@ -1102,7 +1114,7 @@ void PogParser::defineGrammar()
 			stringId[0] = '$';
 
 			if (!_driver.stringExists(stringId))
-				error_handle("Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
@@ -1114,7 +1126,7 @@ void PogParser::defineGrammar()
 			stringId[0] = '$';
 
 			if (!_driver.stringExists(stringId))
-				error_handle("Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
@@ -1124,7 +1136,7 @@ void PogParser::defineGrammar()
 			auto right = args[1].getExpression();
 			if(!right->isInt() && !right->isFloat())
 			{
-				error_handle("unary minus expects integer or float type");
+				error_handle(_location.previous(), "unary minus expects integer or float type");
 			}
 			auto type = right->getType();
 			args[0].getTokenIt()->setType(UNARY_MINUS);
@@ -1136,9 +1148,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '+' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '+' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '+' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '+' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<PlusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1148,9 +1160,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '-' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '-' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '-' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '-' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MinusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1160,9 +1172,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '*' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '*' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '*' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '*' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MultiplyExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1172,9 +1184,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '\\' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '\\' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '\\' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '\\' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<DivideExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1184,9 +1196,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '%' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '%' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '%' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '%' expects integer or float on the right-hand side");
 			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1195,9 +1207,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '^' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '^' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '^' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '^' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1206,9 +1218,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '&' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '&' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '&' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '&' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1217,9 +1229,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '|' expects integer or float on the left-hand side");
+				error_handle(_location.previous(), "operator '|' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '|' expects integer or float on the right-hand side");
+				error_handle(_location.previous(), "operator '|' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1227,7 +1239,7 @@ void PogParser::defineGrammar()
 		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
 			auto right = args[1].getExpression();
 			if(!right->isInt())
-				error_handle("bitwise not expects integer");
+				error_handle(_location.previous(), "bitwise not expects integer");
 			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1236,9 +1248,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '<<' expects integer on the left-hand side");
+				error_handle(_location.previous(), "operator '<<' expects integer on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '<<' expects integer on the right-hand side");
+				error_handle(_location.previous(), "operator '<<' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1247,16 +1259,16 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle("operator '>>' expects integer on the left-hand side");
+				error_handle(_location.previous(), "operator '>>' expects integer on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle("operator '>>' expects integer on the right-hand side");
+				error_handle(_location.previous(), "operator '>>' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
 		})
 		.production("INTEGER_FUNCTION", "LP", "primary_expression", "RP", [&](auto&& args) -> Value {
 			if(!args[2].getExpression()->isInt())
-				error_handle("operator '" + args[0].getTokenIt()->getString() + "' expects integer");
+				error_handle(_location.previous(), "operator '" + args[0].getTokenIt()->getString() + "' expects integer");
 			auto output = std::make_shared<IntFunctionExpression>(std::move(args[0].getTokenIt()), std::move(args[1].getTokenIt()), std::move(args[2].getExpression()), std::move(args[3].getTokenIt()));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1275,7 +1287,7 @@ void PogParser::defineGrammar()
 		.production("ID", [&](auto&& args) -> Value {
 			auto symbol = _driver.findSymbol(args[0].getTokenIt()->getString());
 			if(!symbol)
-				error_handle("Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
+				error_handle(_location.previous(), "Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
 			TokenIt symbol_token = args[0].getTokenIt();
 			symbol_token->setValue(symbol, symbol->getName());
 			auto output = std::make_shared<IdExpression>(symbol_token);
@@ -1285,17 +1297,17 @@ void PogParser::defineGrammar()
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if(!expr->isObject())
-				error_handle("Identifier '" + expr->getText() + "' is not an object");
+				error_handle(_location.previous(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			if(!parentSymbol->isStructure())
-				error_handle("Identifier '" + parentSymbol->getName() + "' is not a structure");
+				error_handle(_location.previous(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
 			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
 
 			TokenIt symbol_token = args[2].getTokenIt();
 			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
 			if (!attr)
-				error_handle("Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+				error_handle(_location.previous(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
 
 			auto symbol = attr.value();
 			symbol_token->setValue(symbol, symbol->getName());
@@ -1307,11 +1319,11 @@ void PogParser::defineGrammar()
 		.production("identifier", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if(!expr->isObject())
-				error_handle("Identifier '" + expr->getText() + "' is not an object");
+				error_handle(_location.previous(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
-				error_handle("Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+				error_handle(_location.previous(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
 
 			auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
 			auto output = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move(expr), std::move(args[2].getExpression()));
@@ -1321,11 +1333,11 @@ void PogParser::defineGrammar()
 		.production("identifier", "LP", "arguments", "RP", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if (!expr->isObject())
-				error_handle("Identifier '" + expr->getText() + "' is not an object");
+				error_handle(_location.previous(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			if (!parentSymbol->isFunction())
-				error_handle("Identifier '" + parentSymbol->getName() + "' is not a function");
+				error_handle(_location.previous(), "Identifier '" + parentSymbol->getName() + "' is not a function");
 
 			auto funcParentSymbol = std::static_pointer_cast<const FunctionSymbol>(parentSymbol);
 
@@ -1347,7 +1359,7 @@ void PogParser::defineGrammar()
 						std::cerr << e->getTypeString() << " ";
 					});
 				std::cerr << ")" << std::endl;
-				error_handle("No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters");
+				error_handle(_location.previous(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters");
 			}
 
 			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
@@ -1380,9 +1392,9 @@ void PogParser::defineGrammar()
 			auto left = args[1].getExpression();
 			auto right = args[3].getExpression();
 			if(!left->isInt())
-				error_handle("operator '..' expects integer as lower bound of the interval");
+				error_handle(_location.previous(), "operator '..' expects integer as lower bound of the interval");
 			if(!right->isInt())
-				error_handle("operator '..' expects integer as upper bound of the interval");
+				error_handle(_location.previous(), "operator '..' expects integer as upper bound of the interval");
 			return Value(std::make_shared<RangeExpression>(args[0].getTokenIt(), std::move(left), args[2].getTokenIt(), std::move(right), args[4].getTokenIt()));
 		})
 		;
@@ -1408,13 +1420,13 @@ void PogParser::defineGrammar()
 		.production("primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[0].getExpression();
 			if(!expr->isInt())
-				error_handle("integer set expects integer type");
+				error_handle(_location.previous(), "integer set expects integer type");
 			return Value(std::vector<Expression::Ptr> {std::move(expr)});
 		})
 		.production("integer_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[2].getExpression();
 			if(!expr->isInt())
-				error_handle("integer set expects integer type");
+				error_handle(_location.previous(), "integer set expects integer type");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(expr));
 			return Value(std::move(output));
@@ -1436,19 +1448,19 @@ void PogParser::defineGrammar()
 		.production("string_id", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
-				error_handle("Reference to undefined string '" + id->getPureText() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + id->getPureText() + "'");
 			return std::vector<Expression::Ptr>{std::make_shared<StringExpression>(id)};
 		})
 		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
-				error_handle("No string matched with wildcard '" + id->getPureText() + "'");
+				error_handle(_location.previous(), "No string matched with wildcard '" + id->getPureText() + "'");
 			return std::vector<Expression::Ptr>{std::make_shared<StringWildcardExpression>(id)};
 		})
 		.production("string_enumeration", "COMMA", "string_id", [&](auto&& args) -> Value {
 			TokenIt id = args[2].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
-				error_handle("Reference to undefined string '" + id->getPureText() + "'");
+				error_handle(_location.previous(), "Reference to undefined string '" + id->getPureText() + "'");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::make_shared<StringExpression>(id));
 			return Value(std::move(output));
@@ -1456,7 +1468,7 @@ void PogParser::defineGrammar()
 		.production("string_enumeration", "COMMA", "STRING_ID_WILDCARD", [&](auto&& args) -> Value {
 			TokenIt id = args[2].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
-				error_handle("No string matched with wildcard '" + id->getPureText() + "'");
+				error_handle(_location.previous(), "No string matched with wildcard '" + id->getPureText() + "'");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::make_shared<StringWildcardExpression>(id));
 			return std::move(output);
@@ -1494,7 +1506,7 @@ bool PogParser::parse()
 	}
 	catch(const pog::SyntaxError& err)
 	{
-		throw ParserError(err.what());
+		error_handle(_location.previous(), err.what());
 	}
 }
 
@@ -1568,8 +1580,8 @@ bool ParserDriver::parse()
 
 	bool output = _pog_parser.parse();
 
-	std::cout << "TokenStream when getParsedFile(): " << std::endl;
-	std::cout << *_file.getTokenStream() << "'" << std::endl;
+	// std::cout << "TokenStream when getParsedFile(): " << std::endl;
+	// std::cout << *_file.getTokenStream() << "'" << std::endl;
 	return output;
 }
 
@@ -1581,25 +1593,6 @@ bool ParserDriver::parse()
 bool ParserDriver::isValid() const
 {
 	return _valid;
-}
-
-/**
- * Moves one line further and resets the counter of columns.
- */
-void ParserDriver::moveLineLocation()
-{
-	// _loc.lines();
-}
-
-/**
- * Moves given number of columns further.
- *
- * @param moveLength Number of columns to move.
- */
-void ParserDriver::moveLocation(std::uint64_t moveLength)
-{
-	// _loc.step();
-	// _loc += moveLength;
 }
 
 /**

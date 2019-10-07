@@ -211,6 +211,46 @@ private:
 	Variant _value;
 };
 
+class Location
+{
+public:
+	Location() = default;
+	Location(size_t line, size_t column) : _line(line), _column(column), _line_previous(line), _column_previous(column) {}
+
+	/// @name Modifiing methods
+   /// @{
+   void addLine(size_t count = 1)
+   {
+   	memorize();
+   	_line += count;
+   	_column = 0;
+   }
+	void addColumn(size_t count)
+	{
+		memorize();
+		_column += count;
+	}
+   /// @}
+
+	/// @name Getters
+   /// @{
+	size_t line() const { return _line; }
+	size_t column() const { return _column; }
+	Location previous() const { return Location(_line_previous, _column_previous); }
+   /// @}
+private:
+	void memorize()
+	{
+   	_line_previous = _line;
+   	_column_previous = _column;
+	}
+
+	size_t _line = 1;
+	size_t _line_previous = 1;
+	size_t _column = 0;
+	size_t _column_previous = 0;
+};
+
 class ParserDriver;
 
 class PogParser
@@ -237,6 +277,7 @@ private:
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
+	Location _location;
 	bool _sectionStrings = false;
 };
 
@@ -299,11 +340,6 @@ public:
 	/// @{
 	bool isValid() const;
 	/// @}
-
-	/// @name Methods for lexer
-	/// @{
-	void moveLineLocation();
-	void moveLocation(std::uint64_t moveLength);
 
 	/// @name Methods for handling comments
    /// @{
