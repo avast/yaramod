@@ -221,22 +221,13 @@ public:
 	void defineGrammar();
 	void enter_state(const std::string& state);
 	bool prepareParser();
-	void parse();
+	bool parse();
 	bool sectionStrings() const { return _sectionStrings; };
-	void sectionStrings(bool new_value/*, const std::string& msg = ""*/) {
-		// if(new_value)
-		// 	std::cerr << std::endl << "Set _sectionStrings=true, '" << msg << "'" << std::endl << std::endl;
-		// else
-		// 	std::cerr << std::endl << "Set _sectionStrings=false, '" << msg << "'" << std::endl << std::endl;
-		_sectionStrings = new_value;
-	};
+	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
 	void push_input_stream(std::istream& input)
 	{
 		_parser.push_input_stream(input);
 	}
-	// void addInput(std::istream* input) { _inputs.push(input); }
-	// std::istream* currentInput() const { return _inputs.top(); }
-	// void endInput() { _inputs.pop(); }
 private:
 	template<typename... Args> TokenIt emplace_back(Args&&... args);
 
@@ -246,7 +237,6 @@ private:
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
-	// std::stack<std::istream*> _inputs;
 	bool _sectionStrings = false;
 };
 
