@@ -16,7 +16,7 @@
 #define FMT_HEADER_ONLY 1
 
 // Uncomment for debugging
-#define POG_DEBUG 1
+// #define POG_DEBUG 1
 
 #include <pog/pog.h>
 
@@ -365,6 +365,11 @@ protected:
 	/// @name Methods for handling token streams
 	/// @{
 	std::shared_ptr<TokenStream> currentTokenStream() const { return _tokenStreams.top(); }
+	void pushTokenStream(std::shared_ptr<TokenStream> ts) { _tokenStreams.push(ts); }
+	size_t currentTokenStreamCount() const {
+		return _tokenStreams.size();
+	}
+	void popTokenStream() { _tokenStreams.pop(); }
 	/// @}
 
 private:
