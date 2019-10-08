@@ -298,7 +298,7 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	if (isString())
 	{
 		const std::string& output = getString();
-		if(pure || output == "")
+		if(pure)
 			return output;
 		else
 			return '"' + escapeString(output) + '"';

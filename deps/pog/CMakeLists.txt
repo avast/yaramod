@@ -16,7 +16,7 @@ set(POG_INCLUDE_DIR ${POG_INSTALL_DIR}/include)
 
 ExternalProject_Add(pog-project
    URL https://github.com/metthal/pog/archive/master.zip # v0.4.0.zip  #...
-   URL_HASH SHA256=1856efd94ee19a844abc766a1a6fe65fc0e591580b58d02c457ac8688ff05279 #9183b0ac1c867751446277a1e2f49bc70d22ac5ac5894bfc104e631b8c50f523
+   URL_HASH SHA256=728994267001b999dacf70eaf5ada46c790a50da5bc026942bd02a5be70c06e1 #9183b0ac1c867751446277a1e2f49bc70d22ac5ac5894bfc104e631b8c50f523
    DOWNLOAD_NAME pog.zip
    CMAKE_ARGS
       # This does not work on MSVC, but may be useful on Linux.

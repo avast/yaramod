@@ -717,7 +717,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.10: syntax error, unexpected hex string [, expecting ( or hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -743,7 +743,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.25: syntax error, unexpected }, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -823,7 +823,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.16: syntax error, unexpected end of file, expecting hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.15: Syntax error: Unknown symbol on input, expected one of hex string ?, hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -850,7 +850,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.17: syntax error, unexpected }, expecting hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.17: Syntax error: Unexpected }, expected one of hex string ?, hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -877,7 +877,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.15: syntax error, unexpected hex string |, expecting ( or hex string [ or hex string ? or hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 
 }
@@ -2191,6 +2191,85 @@ rule of_condition {
 }
 
 TEST_F(ParserTests,
+EmptyStringMetaValue) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_name
+{
+	meta:
+		author = ""
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isString());
+	EXPECT_EQ(R"("")", rule->getMetas()[0].getValue().getText());
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+EmptyPlainStringValue) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_name
+{
+	meta:
+		author = "Mr. Avastian"
+	strings:
+		$s1 = ""
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("$s1", rule->getStrings()[0]->getIdentifier());
+	EXPECT_EQ(R"("")", rule->getStrings()[0]->getText());
+	EXPECT_EQ("", rule->getStrings()[0]->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
+EmptyStringInConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_name
+{
+	meta:
+		author = "Mr. Avastian"
+	condition:
+		(pe.sections[0].name == "EmptyString" or pe.sections[0].name == "")
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("(pe.sections[0].name == \"EmptyString\" or pe.sections[0].name == \"\")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 StringsAndArithmeticOperationsForbidden) {
 	prepareInput(
 R"(
@@ -2210,7 +2289,7 @@ rule strings_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.1: operator '+' expects integer or float on the right-hand side", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.6: operator '+' expects integer or float on the right-hand side", err.getErrorMessage());
 	}
 }
 
@@ -2234,7 +2313,7 @@ rule bool_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.8-11: syntax error, unexpected true", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.8-11: Syntax error: Unexpected true, expected one of -, ~, (, /, entrypoint, filesize, integer, \", fixed-width integer function, string count, string offset, string length, identifier, float", err.getErrorMessage());
 	}
 }
 
@@ -2258,7 +2337,7 @@ rule contains_and_non_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.1: operator 'contains' expects string on the right-hand side of the expression", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.9-16: operator 'contains' expects string on the right-hand side of the expression", err.getErrorMessage());
 	}
 }
 
@@ -2284,7 +2363,7 @@ rule contains_and_non_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 7.1: Reference to undefined string '$2'", err.getErrorMessage());
+		EXPECT_EQ("Error at 6.3-4: Reference to undefined string '$2'", err.getErrorMessage());
 	}
 }
 
@@ -2760,6 +2839,44 @@ R"(rule rule_with_some_hex_string {
 }
 
 TEST_F(ParserTests,
+HexStringWithSpacesInJumpWorks) {
+	prepareInput(
+R"(rule rule_with_some_hex_string {
+	strings:
+		$hex = { A1 [8 - 123] A2 }
+	condition:
+		$hex
+}
+)");
+
+	ParserDriver driver(input);
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto string = strings[0];
+	ASSERT_TRUE(string->isHex());
+
+	EXPECT_EQ("$hex", string->getIdentifier());
+	EXPECT_EQ("{ A1 [8-123] A2 }", string->getText());
+
+	std::string expected =
+R"(rule rule_with_some_hex_string {
+	strings:
+		$hex = { A1 [8-123] A2 }
+	condition:
+		$hex
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 ComplicatedHexStringAlterationWorks) {
 	prepareInput(
 R"(rule rule_with_complicated_alteration_hex_string {
@@ -2943,7 +3060,7 @@ R"(rule rule_with_invalid_escape_sequence {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 3.13-14: Unknown escape sequence '\\r'", err.getErrorMessage());
+		EXPECT_EQ("Error at 3.13: Syntax error: Unknown symbol on input, expected one of {, /, \"", err.getErrorMessage());
 	}
 }
 
@@ -3002,7 +3119,7 @@ rule public_rule {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 1.12: syntax error, unexpected ;", err.getErrorMessage());
+		EXPECT_EQ("Error at 1.11: Syntax error: Unknown symbol on input, expected one of @end, global, private, rule, import, include", err.getErrorMessage());
 	}
 }
 
@@ -3148,6 +3265,52 @@ rule rule_2 {
 }
 
 TEST_F(ParserTests,
+CommentsInHexString) {
+	prepareInput(
+R"(
+rule rule_name {
+	strings:
+		$1 = { AB CD /* comment 1 */  01 }
+		$2 = { AB CD /* comment 2 */  }
+		$3 = { ( 01 | // COMMENT
+			02 ) }
+	condition:
+		true
+}
+)");
+
+	ParserDriver driver(input);
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_name {
+	strings:
+		$1 = { AB CD 01 }
+		$2 = { AB CD }
+		$3 = { ( 01 | 02 ) }
+	condition:
+		true
+})", driver.getParsedFile().getText());
+	std::string expected = R"(
+rule rule_name {
+	strings:
+		$1 = { AB CD /* comment 1 */  01 }
+		$2 = { AB CD /* comment 2 */  }
+		$3 = {
+			( 01 | // COMMENT
+			02 )
+		}
+	condition:
+		true
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTokenStream()->getText());
+}
+
+TEST_F(ParserTests,
 CommentsInCondition) {
 	prepareInput(
 R"(
@@ -3217,7 +3380,6 @@ rule rule_2 {
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTokenStream()->getText());
 }
-
 
 TEST_F(ParserTests,
 ForCycleMultipleRows)

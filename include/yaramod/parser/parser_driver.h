@@ -93,7 +93,6 @@ public:
 	Value() = default;
 	/// @}
 
-
 	/// @name Getter methods
 	/// @{
 	const std::string& getString() const
@@ -211,46 +210,6 @@ private:
 	Variant _value;
 };
 
-class Location
-{
-public:
-	Location() = default;
-	Location(size_t line, size_t column) : _line(line), _column(column), _line_previous(line), _column_previous(column) {}
-
-	/// @name Modifiing methods
-   /// @{
-   void addLine(size_t count = 1)
-   {
-   	memorize();
-   	_line += count;
-   	_column = 0;
-   }
-	void addColumn(size_t count)
-	{
-		memorize();
-		_column += count;
-	}
-   /// @}
-
-	/// @name Getters
-   /// @{
-	size_t line() const { return _line; }
-	size_t column() const { return _column; }
-	Location previous() const { return Location(_line_previous, _column_previous); }
-   /// @}
-private:
-	void memorize()
-	{
-   	_line_previous = _line;
-   	_column_previous = _column;
-	}
-
-	size_t _line = 1;
-	size_t _line_previous = 1;
-	size_t _column = 0;
-	size_t _column_previous = 0;
-};
-
 class ParserDriver;
 
 class PogParser
@@ -269,7 +228,7 @@ public:
 		_parser.push_input_stream(input);
 	}
 private:
-	template<typename... Args> TokenIt emplace_back(Args&&... args);
+	template<typename... Args> TokenIt emplace_back(const Location& location, Args&&... args);
 
 	std::string _strLiteral; ///< Currently processed string literal.
 	std::string _indent;
@@ -277,7 +236,6 @@ private:
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser;
 	ParserDriver& _driver;
-	Location _location;
 	bool _sectionStrings = false;
 };
 
@@ -359,7 +317,6 @@ protected:
 	bool ruleExists(const std::string& name) const;
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
-	void markStartOfRule();
 	/// @}
 
 	/// @name Methods for handling strings
@@ -392,10 +349,16 @@ protected:
 	/// @{
 	std::shared_ptr<TokenStream> currentTokenStream() const { return _tokenStreams.top(); }
 	void pushTokenStream(std::shared_ptr<TokenStream> ts) { _tokenStreams.push(ts); }
-	size_t currentTokenStreamCount() const {
-		return _tokenStreams.size();
-	}
+	size_t currentTokenStreamCount() const { return _tokenStreams.size(); }
 	void popTokenStream() { _tokenStreams.pop(); }
+	/// @}
+
+	/// @name Methods for handling locations
+	/// @{
+	void pushLocation() { _locations.emplace(); }
+	void popLocation() { _locations.pop(); }
+	Location& currentLocation() { assert(!_locations.empty()); return _locations.top(); }
+	size_t currentLocationCount() { return _locations.size(); }
 	/// @}
 
 private:
@@ -406,9 +369,9 @@ private:
 	ParserMode _mode; ///< Parser mode.
 
 	PogParser _pog_parser; ///< pog parser
-	// yy::location _loc; ///< Location
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
+	std::stack<Location> _locations;
 	std::vector<TokenIt> _comments;
 	std::string _tmp_comment; //TODO: deleto - only for lexer
 

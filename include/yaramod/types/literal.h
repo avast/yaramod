@@ -160,6 +160,43 @@ enum TokenType
    INCLUDE_PATH = 380,
 };
 
+class Location
+{
+public:
+   Location() : Location(1, 0) {}
+   Location(size_t line, size_t column) : _begin(line, column), _end(line, column) {}
+
+   /// @name Modifiing methods
+   /// @{
+   void addLine(size_t count = 1)
+   {
+      std::swap(_begin, _end);
+      _end.first = _begin.first + count; // line
+      _end.second = 0; // column
+   }
+   void addColumn(size_t count)
+   {
+      _begin.first = _end.first;
+      _begin.second = _end.second;
+      _end.second += count;
+   }
+   void reset()
+   {
+      _begin = {1, 0};
+      _end = {1, 0};
+   }
+   /// @}
+
+   /// @name Getters
+   /// @{
+   std::pair<size_t, size_t> begin() const { return std::make_pair(_begin.first, _begin.second + 1); }
+   const std::pair<size_t, size_t>& end() const { return _end; }
+   /// @}
+private:
+   std::pair<size_t, size_t> _begin; // (line, column)
+   std::pair<size_t, size_t> _end; // (line, column)
+};
+
 class Symbol;
 
 /**
@@ -288,12 +325,14 @@ public:
    Token(TokenType type, const Literal& value)
       : _type(type)
       , _value(std::make_shared < Literal >(value))
+      , _location()
    {
    }
 
    Token(TokenType type, Literal&& value)
       : _type(type)
       , _value(std::make_shared < Literal >(std::move(value)))
+      , _location()
    {
    }
 
@@ -323,6 +362,7 @@ public:
 
    void setType(TokenType type) { _type = type; }
    void setFlag(bool flag) { _flag = flag; }
+   void setLocation(const Location& location) { _location = location; }
    /// @}
 
    /// @name Detection methods
@@ -387,6 +427,7 @@ public:
    template<typename T>
    const T& getValue() const { return _value->getValue<T>(); }
    bool getFlag() const { return _flag; }
+   const Location& getLocation() const { return _location; }
    /// @}
 
    /// @name Include substream handler methods
@@ -405,6 +446,7 @@ private:
    TokenType _type;
    std::shared_ptr< TokenStream > _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
    std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
+   Location _location; // Location in source input is stored in Tokens for precise error outputs
 };
 
 using TokenIt = std::list< Token >::iterator;
@@ -416,7 +458,8 @@ class TokenStream
 {
 public:
 	TokenStream() = default;
-	/// @name Insertion methods
+
+   /// @name Insertion methods
 	/// @{
 	TokenIt emplace_back( TokenType type, char value );
 	TokenIt emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt );
@@ -463,7 +506,6 @@ public:
 	TokenItReversed rend();
 	TokenConstItReversed rbegin() const;
 	TokenConstItReversed rend() const;
-
 	/// @}
 
 	/// @name Capacity
@@ -485,8 +527,7 @@ public:
 
 	std::vector<std::string> getTokensAsText() const;
 
-
-	/// @name Reseting methods
+	/// @name Reseting method
 	void clear();
 	/// @}
 private:
