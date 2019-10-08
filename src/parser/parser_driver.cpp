@@ -142,7 +142,7 @@ void PogParser::defineTokens()
 	});
 	_parser.token("global").symbol("GLOBAL").action( [&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); } );
 	_parser.token("private").symbol("PRIVATE").action( [&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); } );
-	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { _driver.markStartOfRule(); return emplace_back( RULE, std::string{str} ); } );
+	_parser.token("rule").symbol("RULE").action( [&](std::string_view str) -> Value { return emplace_back( RULE, std::string{str} ); } );
 	_parser.token("meta").symbol("META").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
 	_parser.token("strings").symbol("STRINGS").action( [&](std::string_view str) -> Value { sectionStrings(true); return emplace_back( STRINGS, std::string{str} ); } );
 	_parser.token("condition").symbol("CONDITION").action( [&](std::string_view str) -> Value { sectionStrings(false); return emplace_back( CONDITION, std::string{str} ); } );
@@ -1009,9 +1009,9 @@ void PogParser::defineGrammar()
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
 			if(!left->isString())
-				error_handle(_location.previous(), "operator 'contains' expects string on the left-hand side of the expression");
+				error_handle(_location, "operator 'contains' expects string on the left-hand side of the expression");
 			if(!right->isString())
-				error_handle(_location.previous(), "operator 'contains' expects string on the right-hand side of the expression");
+				error_handle(_location, "operator 'contains' expects string on the right-hand side of the expression");
 			auto output = std::make_shared<ContainsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
@@ -1021,7 +1021,7 @@ void PogParser::defineGrammar()
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getYaramodString());
 			if(!left->isString())
-				error_handle(_location.previous(), "operator 'matches' expects string on the left-hand side of the expression");
+				error_handle(_location, "operator 'matches' expects string on the left-hand side of the expression");
 			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
 			output->setType(Expression::Type::Bool);
@@ -1135,7 +1135,7 @@ void PogParser::defineGrammar()
 			auto right = args[1].getExpression();
 			if(!right->isInt() && !right->isFloat())
 			{
-				error_handle(_location.previous(), "unary minus expects integer or float type");
+				error_handle(_location, "unary minus expects integer or float type");
 			}
 			auto type = right->getType();
 			args[0].getTokenIt()->setType(UNARY_MINUS);
@@ -1147,9 +1147,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '+' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '+' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '+' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '+' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<PlusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1159,9 +1159,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '-' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '-' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '-' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '-' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MinusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1171,9 +1171,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '*' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '*' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '*' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '*' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MultiplyExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1183,9 +1183,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '\\' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '\\' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '\\' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '\\' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<DivideExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
@@ -1195,9 +1195,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '%' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '%' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '%' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '%' expects integer or float on the right-hand side");
 			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1206,9 +1206,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '^' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '^' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '^' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '^' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1217,9 +1217,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '&' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '&' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '&' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '&' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1228,9 +1228,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '|' expects integer or float on the left-hand side");
+				error_handle(_location, "operator '|' expects integer or float on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '|' expects integer or float on the right-hand side");
+				error_handle(_location, "operator '|' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1238,7 +1238,7 @@ void PogParser::defineGrammar()
 		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
 			auto right = args[1].getExpression();
 			if(!right->isInt())
-				error_handle(_location.previous(), "bitwise not expects integer");
+				error_handle(_location, "bitwise not expects integer");
 			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1247,9 +1247,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '<<' expects integer on the left-hand side");
+				error_handle(_location, "operator '<<' expects integer on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '<<' expects integer on the right-hand side");
+				error_handle(_location, "operator '<<' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1258,9 +1258,9 @@ void PogParser::defineGrammar()
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if(!left->isInt() && !left->isFloat())
-				error_handle(_location.previous(), "operator '>>' expects integer on the left-hand side");
+				error_handle(_location, "operator '>>' expects integer on the left-hand side");
 			if(!right->isInt() && !right->isFloat())
-				error_handle(_location.previous(), "operator '>>' expects integer on the right-hand side");
+				error_handle(_location, "operator '>>' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1696,24 +1696,18 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = _parsed_rule_names.insert(rule->getName()).second;
 	if(!success)
-		throw ParserError(std::string("Error at <TODO>: Redefinition of rule "+rule->getName()));
+		throw ParserError(std::string("Redefinition of rule "+rule->getName()));
 	else
 		_file.addRule(std::move(rule));
 }
 
-// void ParserDriver::finishRule()
-// {
-//    std::unique_ptr<Rule> rule = builder.get();
-//    addRule(std::move(rule));
-// }
-
 /**
  * Marks the line number where the rule starts.
  */
-void ParserDriver::markStartOfRule()
-{
-	// _startOfRule = getLocation().end.line;
-}
+// void ParserDriver::markStartOfRule()
+// {
+// 	// _startOfRule = getLocation().end.line;
+// }
 
 /**
  * Returns whether string with given identifier already exists in the current rule context.
