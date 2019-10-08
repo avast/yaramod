@@ -417,6 +417,7 @@ void PogParser::defineGrammar()
 		.production("rules", "include")
 		.production()
 		;
+
 	_parser.rule("import") // {}
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
@@ -424,24 +425,30 @@ void PogParser::defineGrammar()
 			if(!_driver._file.addImport(import))
 				error_handle(_location.previous(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
-		});
+		})
+		;
+
 	_parser.rule("include") // {}
-		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&& args) -> Value { return {}; });
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&& args) -> Value { return {}; })
+		;
 
 	_parser.rule("rule") // {}
 		.production(
-			"rule_mod", "RULE", "rule_name", [&](auto&& args) -> Value {
+			"rule_mod", "RULE", "ID", [&](auto&& args) -> Value {
+				args[2].getTokenIt()->setType(RULE_NAME);
 				if(_driver.ruleExists(args[2].getTokenIt()->getString()))
-					error_handle(_location.previous(), "Rule already exists");
+					error_handle(_location.previous(), "Redefinition of rule '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
-			"tags", "rule_begin", "metas", "strings", "condition", "rule_end", [&](auto&& args) -> Value {
-				TokenIt name = args[2].getTokenIt();
+			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
 				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
+				TokenIt name = args[2].getTokenIt();
+				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
+				args[5].getTokenIt()->setType(RULE_BEGIN);
 				std::vector<Meta> metas = std::move(args[6].getMetas());
 				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[7].getStringsTrie());
 				Expression::Ptr condition = std::move(args[8].getExpression());
-				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
+				args[9].getTokenIt()->setType(RULE_END);
 
 				_driver.addRule(Rule(_driver.currentTokenStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
 				return {};
@@ -452,19 +459,12 @@ void PogParser::defineGrammar()
 		.production("PRIVATE", [&](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
 		.production([&](auto&&) -> Value { return Value(std::nullopt); })
 		;
-	_parser.rule("rule_name") // TokenIt
-		.production("ID", [&](auto&& args) -> Value {
-			args[0].getTokenIt()->setType(RULE_NAME);
-			return args[0];
-		});
+
 	_parser.rule("tags") // vector<TokenIt>
-		.production("COLON", "tag_list", [](auto&& args) -> Value {
-			return std::move(args[1]);
-		})
-		.production([](auto&&) -> Value {
-			return std::vector<TokenIt>();
-		})
+		.production("COLON", "tag_list", [](auto&& args) -> Value {	return std::move(args[1]); })
+		.production([](auto&&) -> Value { return std::vector<TokenIt>(); })
 		;
+
 	_parser.rule("tag_list") // vector<TokenIt>
 		.production("tag_list", "ID", [&](auto&& args) -> Value {
 			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
@@ -481,18 +481,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(tags));
 		})
 		;
-	_parser.rule("rule_begin") // TokenIt
-		.production("LCB", [&](auto&& args) -> Value {
-			args[0].getTokenIt()->setType(RULE_BEGIN);
-			return args[0];
-		})
-		;
-	_parser.rule("rule_end") // TokenIt
-		.production("RCB", [&](auto&& args) -> Value {
-			args[0].getTokenIt()->setType(RULE_END);
-			return args[0];
-		})
-		;
+
 	_parser.rule("metas") // vector<Meta>
 		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
 		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
@@ -530,9 +519,10 @@ void PogParser::defineGrammar()
 			return std::move(strings);
 		})
 		;
+
 	_parser.rule("strings_body") // shared_ptr<StringsTrie>
 		.production(
-			"strings_body", "string_id", "ASSIGN", [&](auto&&) -> Value {
+			"strings_body", "STRING_ID", "ASSIGN", [&](auto&&) -> Value {
 				return {};
 			},
 			"string", [&](auto&& args) -> Value {
@@ -555,8 +545,6 @@ void PogParser::defineGrammar()
 		})
 		;
 
-	_parser.rule("string_id") // TokenIt
-		.production("STRING_ID", [&](auto&& args) -> Value { return std::move(args[0]); });
 	_parser.rule("string")
 		.production("STRING_LITERAL", "string_mods", [&](auto&& args) -> Value {
 			auto string = std::make_shared<PlainString>(_driver.currentTokenStream(), std::move(args[0].getTokenIt()));
@@ -642,6 +630,7 @@ void PogParser::defineGrammar()
 			return std::move(units);
 		})
 		;
+
 	_parser.rule("hex_byte") // vector<shared_ptr<HexStringUnit>>
 		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexStringUnit>> output;
@@ -684,6 +673,7 @@ void PogParser::defineGrammar()
 			return std::move(output);
 		})
 		;
+
 	_parser.rule("hex_string_body") // vector<shared_ptr<HexStringUnit>>
 		.production("hex_string_body", "hex_byte", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
@@ -703,6 +693,7 @@ void PogParser::defineGrammar()
 		})
 		.production([](auto&&) -> Value { return std::vector<std::shared_ptr<HexStringUnit>>(); })
 		;
+
 	_parser.rule("hex_or") // shared_ptr<HexStringUnit>
 		.production("LP", "hex_or_body", "RP", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_ALT_LEFT_BRACKET);
@@ -710,6 +701,7 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<HexStringOr>(std::move(args[1].getMultipleHexStrings())));
 		})
 		;
+
 	_parser.rule("hex_or_body") // vector<shared_ptr<yaramod::String>>
 		.production("hex_string_body", [&](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexString>> output;
@@ -724,6 +716,7 @@ void PogParser::defineGrammar()
 			return std::move(output);
 		})
 		;
+
 	_parser.rule("hex_jump") // shared_ptr<HexStringUnit>
 		.production("LSQB", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
@@ -754,6 +747,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(regexp_string));
 		})
 		;
+
 	_parser.rule("regexp_body") // shared_ptr<yaramod::String>
 		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(_driver.currentTokenStream(), std::move(args[0].getRegexpUnit()))); });
 
@@ -765,6 +759,7 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<RegexpOr>(std::move(arg), std::move(concat)));
 		})
 		;
+
 	_parser.rule("regexp_concat") // vector<shared_ptr<RegexpUnit>>
 		.production("regexp_repeat", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<yaramod::RegexpUnit>> output;
@@ -777,6 +772,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(output));
 		})
 		;
+
 	_parser.rule("regexp_repeat") // shared_ptr<RegexpUnit>
 		.production("regexp_single", "REGEXP_ITER", "regexp_greedy", [](auto&& args) -> Value {
 			return Value(std::make_shared<RegexpIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
@@ -811,10 +807,12 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<RegexpEndOfLine>());
 		})
 		;
+
 	_parser.rule("regexp_greedy") // bool
 		.production([](auto&&) -> Value { return true; })
 		.production("REGEXP_OPTIONAL", [](auto&&) -> Value { return false; })
 		;
+
 	_parser.rule("regexp_single") // shared_ptr<yaramod::RegexpUnit>
 		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return Value(std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit()))); })
 		.production("REGEXP_ANY_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpAnyChar>()); })
@@ -839,13 +837,14 @@ void PogParser::defineGrammar()
 			return std::move(args[2]);
 		})
 		;
+
 	_parser.rule("expression") // Expression::Ptr
 		.production("boolean", [&](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
-		.production("string_id", [&](auto&& args) -> Value {
+		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
 				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
@@ -853,7 +852,7 @@ void PogParser::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
-		.production("string_id", "AT", "primary_expression", [&](auto&& args) -> Value {
+		.production("STRING_ID", "AT", "primary_expression", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
 				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
@@ -865,7 +864,7 @@ void PogParser::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return Value(std::move(output));
 		})
-		.production("string_id", "IN", "range", [&](auto&& args) -> Value {
+		.production("STRING_ID", "IN", "range", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getString()))
 				error_handle(_location.previous(), "Reference to undefined string '" + id->getString() + "'");
@@ -1057,7 +1056,7 @@ void PogParser::defineGrammar()
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
 		})
-		.production("integer_token", [&](auto&& args) -> Value {
+		.production("INTEGER", [&](auto&& args) -> Value {
 			auto output = std::make_shared<IntLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
@@ -1367,6 +1366,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(output));
 		})
 		;
+
 	_parser.rule("arguments") // vector<Expression::Ptr>
 		.production("arguments", "COMMA", "expression", [&](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleExpressions());
@@ -1383,10 +1383,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(output));
 		})
 		;
-	_parser.rule("integer_token") // TokenIt
-		.production("INTEGER", [&](auto&& args) -> Value {
-			return std::move(args[0]);
-		});
+
 	_parser.rule("range") // Expression::Ptr
 		.production("LP", "primary_expression", "RANGE", "primary_expression", "RP", [&](auto&& args) -> Value {
 			auto left = args[1].getExpression();
@@ -1398,12 +1395,12 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<RangeExpression>(args[0].getTokenIt(), std::move(left), args[2].getTokenIt(), std::move(right), args[4].getTokenIt()));
 		})
 		;
+
 	_parser.rule("for_expression") // Expression::Ptr
 		.production("primary_expression", [](auto&& args) -> Value { return std::move(args[0]); })
 		.production("ALL", [](auto&& args) -> Value { return Value(std::make_shared<AllExpression>(args[0].getTokenIt())); })
 		.production("ANY", [](auto&& args) -> Value { return Value(std::make_shared<AnyExpression>(args[0].getTokenIt())); })
 		;
-
 	_parser.rule("integer_set") // Expression::Ptr
 		.production("LP", "integer_enumeration", "RP", [&](auto&& args) -> Value {
 			auto lp = args[0].getTokenIt();
@@ -1416,6 +1413,7 @@ void PogParser::defineGrammar()
 			return std::move(args[0]);
 		})
 		;
+
 	_parser.rule("integer_enumeration") // vector<Expression::Ptr>
 		.production("primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[0].getExpression();
@@ -1432,6 +1430,7 @@ void PogParser::defineGrammar()
 			return Value(std::move(output));
 		})
 		;
+
 	_parser.rule("string_set") // Expression::Ptr
 		.production("LP", "string_enumeration", "RP", [&](auto&& args) -> Value {
 			TokenIt lp = args[0].getTokenIt();
@@ -1444,8 +1443,9 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<ThemExpression>(args[0].getTokenIt()));
 		})
 		;
+
 	_parser.rule("string_enumeration") // vector<Expression::Ptr>
-		.production("string_id", [&](auto&& args) -> Value {
+		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
 				error_handle(_location.previous(), "Reference to undefined string '" + id->getPureText() + "'");
@@ -1457,7 +1457,7 @@ void PogParser::defineGrammar()
 				error_handle(_location.previous(), "No string matched with wildcard '" + id->getPureText() + "'");
 			return std::vector<Expression::Ptr>{std::make_shared<StringWildcardExpression>(id)};
 		})
-		.production("string_enumeration", "COMMA", "string_id", [&](auto&& args) -> Value {
+		.production("string_enumeration", "COMMA", "STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[2].getTokenIt();
 			if(!_driver.stringExists(id->getPureText()))
 				error_handle(_location.previous(), "Reference to undefined string '" + id->getPureText() + "'");
