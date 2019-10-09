@@ -13,8 +13,6 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/literal.h"
 
-
-
 namespace yaramod {
 
 /**
@@ -36,7 +34,7 @@ public:
 	YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit);
 	YaraHexStringBuilder(const std::vector<std::shared_ptr<HexStringUnit>>& units);
 	YaraHexStringBuilder(std::vector<std::shared_ptr<HexStringUnit>>&& units);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts) : _tokenStream(ts) {}
+	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts);
 	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::uint8_t byte);
 	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes);
 	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit);
@@ -49,7 +47,7 @@ public:
 
 	/// @name Build method
 	/// @{
-	std::shared_ptr<HexString> get(std::shared_ptr<TokenStream> acceptor = nullptr) const;
+	std::shared_ptr<HexString> get(std::shared_ptr<TokenStream> acceptor = nullptr, bool addHexParentheses = true) const;
 	/// @}
 
 	/// @name Building methods
@@ -137,7 +135,9 @@ YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shar
 template <typename... Args>
 YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit, const Args&... args)
 {
-	const auto& hexString = unit.get(ts);
+   if(hexStrings.size() == 0)
+      ts->emplace_back(HEX_ALT_LEFT_BRACKET, "(");
+	const auto& hexString = unit.get(ts, false);
 	hexStrings.push_back(hexString);
 	ts->emplace_back(HEX_ALT, "|");
 	return _alt(ts, hexStrings, args...);

@@ -68,11 +68,6 @@ void addEnums(py::module& module)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
-	// py::enum_<Literal::Type>(module, "LiteralType")
-	// 	.value("String", Literal::Type::String)
-	// 	.value("Int", Literal::Type::Int)
-	// 	.value("Bool", Literal::Type::Bool);
-
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
@@ -111,10 +106,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text", &YaraFile::getText)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
-		.def("text_tokenized", &YaraFile::getTextTokenized, py::arg("with_includes") = false)
-		// .def("text_tokenized", [](const YaraFile& self, bool withIncludes) {
-		// 		return self.getTextTokenized(withIncludes);
-		// 	}, py::arg("with_includes") = false)
+		.def_property_readonly("text_formatted", [](const YaraFile& self) { return self.getTextFormatted(); })
 		.def("find_symbol", &YaraFile::findSymbol)
 		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
@@ -131,7 +123,7 @@ void addBasicClasses(py::module& module)
 		.def_property("metas", py::overload_cast<>(&Rule::getMetas), &Rule::setMetas, py::return_value_policy::reference)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
 		.def_property("tags", &Rule::getTags, &Rule::setTags)
-		.def_property_readonly("modifier", &Rule::getModifier) //staci getter
+		.def_property_readonly("modifier", &Rule::getModifier)
 		.def_property_readonly("is_private", &Rule::isPrivate)
 		.def_property_readonly("is_global", &Rule::isGlobal)
 		.def_property_readonly("location", &Rule::getLocation)
@@ -434,7 +426,9 @@ void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
 		.def(py::init<>())
-		.def("get", &YaraFileBuilder::get, py::arg("recheck") = false)
+		.def("get", [](YaraFileBuilder& self, bool recheck) {
+				return self.get(recheck, nullptr);
+			}, py::arg("recheck") = true)
 		.def("with_module", &YaraFileBuilder::withModule)
 		.def("with_rule", [](YaraFileBuilder& self, const Rule& rule) {
 				return self.withRule(Rule{rule});
@@ -449,6 +443,7 @@ void addBuilderClasses(py::module& module)
 		.def("with_name", &YaraRuleBuilder::withName)
 		.def("with_modifier", &YaraRuleBuilder::withModifier)
 		.def("with_tag", &YaraRuleBuilder::withTag)
+		.def("with_comment", &YaraRuleBuilder::withComment, py::arg("comment"), py::arg("multiline") = true)
 		.def("with_string_meta", &YaraRuleBuilder::withStringMeta)
 		.def("with_int_meta", &YaraRuleBuilder::withIntMeta)
 		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
@@ -541,6 +536,8 @@ void addBuilderClasses(py::module& module)
 
 	module.def("conjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&conjunction), py::arg("terms"), py::arg("linebreaks") = false);
 	module.def("disjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&disjunction), py::arg("terms"), py::arg("linebreaks") = false);
+	module.def("conjunction", py::overload_cast<const std::vector<std::pair<YaraExpressionBuilder, std::string>>&>(&conjunction), py::arg("terms"));
+	module.def("disjunction", py::overload_cast<const std::vector<std::pair<YaraExpressionBuilder, std::string>>&>(&disjunction), py::arg("terms"));
 
 	module.def("filesize", &filesize);
 	module.def("entrypoint", &entrypoint);
@@ -575,13 +572,14 @@ void addBuilderClasses(py::module& module)
 	module.def("alt", &alt<std::vector<YaraHexStringBuilder>>);
 }
 
-void addMainFunctions(py::module& module)
+void addMainClass(py::module& module)
 {
-	module.def("parse_file", &parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular);
-	module.def("parse_string",
-			[](const std::string& str, ParserMode parserMode) {
+	py::class_<Yaramod>(module, "Yaramod")
+		.def(py::init<>())
+		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
+		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);
-				return parseStream(stream, parserMode);
+				return self.parseStream(stream, parserMode);
 			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular);
 }
 
@@ -605,7 +603,7 @@ PYBIND11_MODULE(yaramod, module)
 	addEnums(module);
 	addBasicClasses(module);
 	addExpressionClasses(module);
-	addMainFunctions(module);
+	addMainClass(module);
 	addVisitorClasses(module);
 	addRegexpVisitorClasses(module);
 	addBuilderClasses(module);

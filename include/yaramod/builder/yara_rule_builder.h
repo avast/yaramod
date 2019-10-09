@@ -50,6 +50,7 @@ public:
 	YaraRuleBuilder& withName(const std::string& name);
 	YaraRuleBuilder& withModifier(Rule::Modifier mod);
 	YaraRuleBuilder& withTag(const std::string& tag);
+	YaraRuleBuilder& withComment(const std::string& comment, bool multiline = false);
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
 	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value);
@@ -67,13 +68,23 @@ public:
 	/// @}
 
 private:
+	void resetTokens();
+	void initializeStrings();
+
 	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
-	std::optional<TokenIt> _name; ///< Name
 	std::optional<TokenIt> _mod; ///< Modifier
 	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
+
+	TokenIt _rule_it; ///< iterator pointing at 'rule' token
+	TokenIt _name_it; ///< iterator pointing at name token
+	TokenIt _lcb; ///< iterator pointing at '{' token
+	std::optional<TokenIt> _strings_it; ///< iterator pointing at 'strings' token
+	TokenIt _condition_it; ///< iterator pointing at 'condition' token
+	TokenIt _colon_it; ///< iterator pointing at ':' token
+	TokenIt _rcb; ///< iterator pointing at '}' token
 };
 
 }

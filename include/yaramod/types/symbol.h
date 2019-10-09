@@ -32,7 +32,7 @@ public:
 		Array,
 		Dictionary,
 		Function,
-		Structure
+		Structure,
 	};
 
 	/// @name Destructor
@@ -53,6 +53,7 @@ public:
 			case Type::Dictionary : return DICTIONARY_SYMBOL;
 			case Type::Function : return FUNCTION_SYMBOL;
 			case Type::Structure : return STRUCTURE_SYMBOL;
+			default: return INVALID;
 		}
 	}
 	/// @}

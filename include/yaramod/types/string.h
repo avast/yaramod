@@ -149,15 +149,12 @@ public:
 		if(!id->isString())
 			throw YaramodError("String class identifier type must be string");
 		if(_id && _id.value() != id)
-		{
 			_tokenStream->erase(_id.value());
-//			_tokenStream->erase(_equal_sign.value());
-		}
 		_id = id;
 	}
 
 	// use only when not care about the order of mods in tokenstream
-	void setModifiers(std::uint32_t mods)
+	void setModifiers(std::uint32_t mods, bool avoidSingleAscii = false)
 	{
 		if(_mods != mods)
 		{
@@ -171,29 +168,19 @@ public:
 			_mods_strings = std::vector<TokenIt>();
 			if (_mods & Modifiers::Ascii)
 			{
-				auto it = _tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "ascii" );
-				_mods_strings.push_back(it);
+				if(_mods == Modifiers::Ascii && avoidSingleAscii)
+					return;
+				else
+					_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "ascii" ));
 			}
 			if (_mods & Modifiers::Wide)
-			{
-				auto it = _tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "wide" );
-				_mods_strings.push_back(it);
-			}
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "wide" ));
 			if (_mods & Modifiers::Nocase)
-			{
-				auto it = _tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "nocase" );
-				_mods_strings.push_back(it);
-			}
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "nocase" ));
 			if (_mods & Modifiers::Fullword)
-			{
-				auto it = _tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "fullword" );
-				_mods_strings.push_back(it);
-			}
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "fullword" ));
 			if (_mods & Modifiers::Xor)
-			{
-				auto it = _tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "xor" );
-				_mods_strings.push_back(it);
-			}
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "xor" ));
 		}
 	}
 

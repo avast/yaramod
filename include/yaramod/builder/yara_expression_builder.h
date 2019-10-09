@@ -66,10 +66,14 @@ public:
 		, _expr()
 	{
 	}
-	template<typename ExpPtr>
-	YaraExpressionBuilder(ExpPtr&& expr)
+	YaraExpressionBuilder(const Expression::Ptr& expr)
 		: _tokenStream( std::make_shared<TokenStream>() )
-		, _expr(std::forward<ExpPtr>(expr))
+		, _expr(expr)
+	{
+	}
+	YaraExpressionBuilder(Expression::Ptr&& expr)
+		: _tokenStream( std::make_shared<TokenStream>() )
+		, _expr(std::move(expr))
 	{
 	}
 	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
@@ -103,7 +107,7 @@ public:
 		setType(type);
 	}
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
-	YaraExpressionBuilder(YaraExpressionBuilder& builder) : YaraExpressionBuilder(std::as_const(builder)) {}
+	//YaraExpressionBuilder(YaraExpressionBuilder& builder) : YaraExpressionBuilder(std::as_const(builder)) {}
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
 
@@ -134,6 +138,7 @@ public:
 	/// @name Builder method
 	/// @{
 	Expression::Ptr get() const;
+	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	/// @}
 
 	/// @name Building methods
@@ -163,6 +168,7 @@ public:
 	YaraExpressionBuilder& operator<<(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& operator>>(const YaraExpressionBuilder& other);
 
+	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = "\t\t");
 	YaraExpressionBuilder& call(const std::vector<YaraExpressionBuilder>& args);
 	/**
 	 * Calls function from an expression
@@ -208,6 +214,8 @@ protected:
 	}
 
 private:
+	YaraExpressionBuilder& readIntegerFunction(const std::string& function_name);
+
 	std::shared_ptr<TokenStream> _tokenStream;
 	Expression::Ptr _expr;
 };
@@ -246,8 +254,8 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak = false);
 YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
 YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
-// YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, Comment>>& terms, bool linebreaks = false);
-// YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, Comment>>& terms, bool linebreaks = false);
+YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms);
+YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms);
 
 YaraExpressionBuilder filesize();
 YaraExpressionBuilder entrypoint();

@@ -13,10 +13,11 @@ namespace yaramod {
  * Returns the built YARA file and resets the builder back to default state.
  *
  * @param recheck @c true if generated file should be rechecked by parser.
+ * @param driver optional driver to be used to recheck. The driver will be RESET!
  *
  * @return Built YARA file.
  */
-std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
+std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
 	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
 	yaraFile->addImports(_modules);
@@ -33,19 +34,36 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
 	{
 		// Recheck the file by parsing it again
 		// We are not able to perform all semantic checks while building so we need to do this
-		ParserDriver driver(ss);
-
-		try
+		std::unique_ptr<ParserDriver> driver;
+		if(external_driver)
 		{
-			driver.parse();
+			external_driver->reset();
+			external_driver->setInput(ss);
+			try
+			{
+				external_driver->parse();
+			}
+			catch (const ParserError& err)
+			{
+				std::cerr << "Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl;
+				std::cerr << err.what();
+				return nullptr;
+			}
 		}
-		catch (const ParserError&)
+		else
 		{
-			std::cerr << "Recheck failed: parser error, parsing '" << yaraFile->getText() << "'" << std::endl;
-			return nullptr;
+			ParserDriver driver(ss);
+			try
+			{
+				driver.parse();
+			}
+			catch (const ParserError& err)
+			{
+				std::cerr << "Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl;
+				std::cerr << err.what();
+				return nullptr;
+			}
 		}
-
-		return std::make_unique<YaraFile>(std::move(driver.getParsedFile()));
 	}
 
 	return yaraFile;
@@ -60,9 +78,16 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck)
  */
 YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 {
-	_tokenStream->emplace_back(TokenType::IMPORT_MODULE, "import");
-	TokenIt moduleToken = _tokenStream->emplace_back(TokenType::MODULE_NAME, moduleName);
+	if(!_modules.empty())
+	{
+		if(!_lastAddedWasImport)
+			_tokenStream->emplace_back(NEW_LINE, "\n");
+	}
+	_tokenStream->emplace_back(TokenType::IMPORT_KEYWORD, "import");
+	TokenIt moduleToken = _tokenStream->emplace_back(TokenType::IMPORT_MODULE, moduleName);
+	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_modules.push_back(moduleToken);
+	_lastAddedWasImport = true;
 	return *this;
 }
 
@@ -75,7 +100,6 @@ YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
 {
-	_tokenStream->move_append(rule._tokenStream.get());
 	withRule(std::make_unique<Rule>(std::move(rule)));
 	return *this;
 }
@@ -89,8 +113,16 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
+	//_tokenStream->emplace_back(COMMENT, "/*new rule appears*/");
+	if(!_rules.empty() || _lastAddedWasImport)
+	{
+		_tokenStream->emplace_back(NEW_LINE, "\n");
+	}
 	_tokenStream->move_append(rule->_tokenStream.get());
+	_tokenStream->emplace_back(NEW_LINE, "\n");
+
 	_rules.emplace_back(std::move(rule));
+	_lastAddedWasImport = false;
 	return *this;
 }
 
@@ -103,8 +135,14 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
+	if(!_rules.empty() || _lastAddedWasImport)
+	{
+		_tokenStream->emplace_back(NEW_LINE, "\n");
+	}
 	_tokenStream->move_append(rule->_tokenStream.get());
+	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_rules.emplace_back(rule);
+	_lastAddedWasImport = false;
 	return *this;
 }
 

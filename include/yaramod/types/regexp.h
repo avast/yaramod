@@ -46,7 +46,6 @@ protected:
 class RegexpClass : public RegexpUnit
 {
 public:
-//	RegexpClass(std::string&& characters, bool negative = false) : _characters(characters), _negative(negative) {}
 	RegexpClass(const std::string& characters, bool negative = false)
 	{
 		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
@@ -108,10 +107,6 @@ private:
 class RegexpText : public RegexpUnit
 {
 public:
-	// RegexpText(const std::string& text)
-	// 	: _text(text)
-	// {
-	// }
 	RegexpText(const std::string& text, bool storeAsOne = false)
 	{
 		if(storeAsOne)

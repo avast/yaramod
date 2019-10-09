@@ -22,7 +22,9 @@ int main(int argc, char* argv[])
 
 	BoolSimplifier simplifier;
 
-	auto yaraFile = yaramod::parseFile(args[0]);
+	yaramod::Yaramod yaramod;
+
+	auto yaraFile = yaramod.parseFile(args[0]);
 	for (auto& rule : yaraFile->getRules())
 	{
 		std::cout << "==== RULE: " << rule->getName() << std::endl;

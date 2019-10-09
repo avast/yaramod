@@ -8,48 +8,26 @@
 
 namespace yaramod {
 
-namespace {
-
-template <typename Input>
-std::unique_ptr<YaraFile> parseImpl(Input&& input, ParserMode parserMode)
+std::unique_ptr<YaraFile> Yaramod::parseFile(const std::string& filePath, ParserMode parserMode)
 {
-	ParserDriver driver(std::forward<Input>(input), parserMode);
-	if (!driver.isValid())
-		return nullptr;
-
-	std::unique_ptr<YaraFile> result;
-	if (driver.parse())
-		result = std::make_unique<YaraFile>(std::move(driver.getParsedFile()));
-
-	return result;
+   _driver.reset(parserMode);
+   _driver.setInput(filePath);
+   if(!_driver.isValid())
+      return nullptr;
+   std::unique_ptr<YaraFile> result;
+   if(_driver.parse())
+      result = std::make_unique<YaraFile>(std::move(_driver.getParsedFile()));
+   return result;
 }
 
-}
-
-/**
- * Parses file at given path.
- *
- * @param filePath Path to the file.
- * @param parserMode Parsing mode.
- *
- * @return Valid @c YaraFile instance if parsing succeeded, otherwise @c nullptr.
- */
-std::unique_ptr<YaraFile> parseFile(const std::string& filePath, ParserMode parserMode)
+std::unique_ptr<YaraFile> Yaramod::parseStream(std::istream& inputStream, ParserMode parserMode)
 {
-	return parseImpl(filePath, parserMode);
-}
-
-/**
- * Parses input stream.
- *
- * @param inputStream Input stream.
- * @param parserMode Parsing mode.
- *
- * @return Valid @c YaraFile instance if parsing succeeded, otherwise @c nullptr.
- */
-std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parserMode)
-{
-	return parseImpl(inputStream, parserMode);
+   _driver.reset(parserMode);
+   _driver.setInput(inputStream);
+   std::unique_ptr<YaraFile> result;
+   if(_driver.parse())
+      result = std::make_unique<YaraFile>(std::move(_driver.getParsedFile()));
+   return result;
 }
 
 }

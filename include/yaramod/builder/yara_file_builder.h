@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "yaramod/parser/parser_driver.h"
 #include "yaramod/types/yara_file.h"
 
 namespace yaramod {
@@ -33,7 +34,7 @@ public:
 
 	/// @name Build method
 	/// @{
-	std::unique_ptr<YaraFile> get(bool recheck = true);
+	std::unique_ptr<YaraFile> get(bool recheck = true, ParserDriver* external_driver = nullptr);
 	/// @}
 
 	/// @name Building methods
@@ -45,6 +46,7 @@ public:
 	/// @}
 
 private:
+   bool _lastAddedWasImport = false;
 	std::shared_ptr<TokenStream> _tokenStream;
 	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules

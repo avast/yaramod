@@ -20,22 +20,18 @@
 
 #include <pog/pog.h>
 
-#include "yaramod/yaramod_error.h"
-#include "yaramod/types/hex_string.h"
-#include "yaramod/types/symbol.h"
-#include "yaramod/types/yara_file.h"
-
-//#include <iterator>
-
+#include "yaramod/utils/trie.h"
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/hex_string.h"
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/literal.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/types/rule.h"
-#include "yaramod/utils/trie.h"
-
+#include "yaramod/types/symbol.h"
+#include "yaramod/types/yara_file.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -107,7 +103,8 @@ public:
 	{
 		return getValue<bool>();
 	}
-	TokenIt getTokenIt() const {
+	TokenIt getTokenIt() const
+	{
 		return getValue<TokenIt>();
 	}
 	std::optional<TokenIt> getOptionalTokenIt() const
@@ -181,29 +178,31 @@ protected:
 	const T& getValue() const
 	{
 		try
-      {
-         return std::get<T>(_value);
-      }
-      catch (std::bad_variant_access& exp)
-      {
-         std::cerr << "Called Value.getValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
-         assert(false && "Called getValue<T>() with incompatible type T.");
-      }
+		{
+			return std::get<T>(_value);
+		}
+		catch (std::bad_variant_access& exp)
+		{
+			// Uncomment for debugging
+			// std::cerr << "Called Value.getValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
+			// std::cerr << "Call: '" << __PRETTY_FUNCTION__ << "'" << std::endl;
+			throw YaramodError("Called getValue<T>() with incompatible type T.", exp.what());
+		}
 	}
 	template< typename T>
 	T&& moveValue()
 	{
 		try
-      {
-         return std::move(std::get<T>(std::move(_value)));
-      }
-      catch (std::bad_variant_access& exp)
-      {
-          std::cerr << "Called Value.moveValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
-         std::cerr << __PRETTY_FUNCTION__ << std::endl;
-         assert(false && "Called getValue<T>() with incompatible type T.");
-      }
+		{
+			return std::move(std::get<T>(std::move(_value)));
+		}
+		catch (std::bad_variant_access& exp)
+		{
+			// Uncomment for debugging
+			// std::cerr << "Called Value.moveValue() with incompatible type. Actual index is '" << _value.index() << "'" << std::endl << exp.what() << std::endl;
+			// std::cerr << __PRETTY_FUNCTION__ << std::endl;
+			throw YaramodError("Called getValue<T>() with incompatible type T.", exp.what());
+		}
 	}
 
 private:
@@ -221,6 +220,7 @@ public:
 	void enter_state(const std::string& state);
 	bool prepareParser();
 	bool parse();
+	void reset();
 	bool sectionStrings() const { return _sectionStrings; };
 	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
 	void push_input_stream(std::istream& input)
@@ -231,12 +231,12 @@ private:
 	template<typename... Args> TokenIt emplace_back(const Location& location, Args&&... args);
 
 	std::string _strLiteral; ///< Currently processed string literal.
-	std::string _indent;
-	std::string _comment;
+	std::string _indent; ///< Variable storing current indentation
+	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.
-	pog::Parser<Value> _parser;
-	ParserDriver& _driver;
-	bool _sectionStrings = false;
+	pog::Parser<Value> _parser; ///< used pog parser
+	ParserDriver& _driver; ///< associated ParserDriver
+	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 };
 
 /**
@@ -262,8 +262,16 @@ enum class ParserMode
 };
 
 /**
- * Class representing handler of parser and communication channel between lexer and parser.
+ * Class representing handler of pog parser.
  * It also serves as context storage for parsing.
+ *
+ * ParserDriver driver(ParserMode::Regular);
+ *	for(input : inputs) {
+ *		driver.setInput(input);
+ * 	driver.parse();
+ * 	result = driver.getParsedFile();
+ * 	driver.reset();
+ * }
  */
 class ParserDriver
 {
@@ -272,7 +280,8 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-  	ParserDriver() = delete;
+	ParserDriver() = delete;
+  	ParserDriver(ParserMode parserMode);
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
 	/// @}
@@ -284,7 +293,6 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	// const yy::location& getLocation() const;
 	YaraFile& getParsedFile();
 	const YaraFile& getParsedFile() const;
 	/// @}
@@ -292,6 +300,9 @@ public:
 	/// @name Parsing methods
 	/// @{
 	bool parse();
+	void reset(ParserMode parserMode = ParserMode::Regular);
+	void setInput(std::istream& input);
+	void setInput(const std::string& filePath);
 	/// @}
 
 	/// @name Detection methods
@@ -300,14 +311,14 @@ public:
 	/// @}
 
 	/// @name Methods for handling comments
-   /// @{
-   void addComment(TokenIt comment);
-   /// @}
+	/// @{
+	void addComment(TokenIt comment);
+	/// @}
 
 protected:
 	/// @name Methods for handling includes
 	/// @{
-	bool includeFile(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/);
+	bool includeFile(const std::string& includePath);
 	std::istream* currentInputStream();
 	bool includeEnd();
 	/// @}
@@ -332,12 +343,12 @@ protected:
 	void stringLoopLeave();
 	/// @}
 
-   /// @name Methods for handling symbols
-   /// @{
-   std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
-   bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
-   void removeLocalSymbol(const std::string& name);
-   /// @}
+	/// @name Methods for handling symbols
+	/// @{
+	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
+	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
+	void removeLocalSymbol(const std::string& name);
+	/// @}
 
 	/// @name Methods for handling anonymous strings
 	/// @{
@@ -364,20 +375,18 @@ protected:
 private:
 	bool isAlreadyIncluded(const std::string& includePath);
 	bool hasRuleWithName(const std::string& name) const;
-	bool includeFileImpl(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/);
+	bool includeFileImpl(const std::string& includePath);
 
 	ParserMode _mode; ///< Parser mode.
 
 	PogParser _pog_parser; ///< pog parser
 
-	std::stack<std::shared_ptr<TokenStream>> _tokenStreams;
-	std::stack<Location> _locations;
-	std::vector<TokenIt> _comments;
-	std::string _tmp_comment; //TODO: deleto - only for lexer
+	std::stack<std::shared_ptr<TokenStream>> _tokenStreams; ///< _tokenStream contains all parsed tokens
+	std::stack<Location> _locations; ///< the top location tracks position of currently parsed token within current input file
+	std::vector<TokenIt> _comments; ///< Tokens of parsed comments
 
 	std::vector<std::shared_ptr<std::istream>> _includedFiles; ///< Stack of included files
 	std::vector<std::string> _includedFileNames; ///< Stack of included file names
-	// std::vector<yy::location> _includedFileLocs; ///< Stack of included file locations
 	std::unordered_set<std::string> _includedFilesCache; ///< Cache of already included files
 	std::istream* _optionalFirstInput; ///< Input file or stream
 

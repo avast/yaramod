@@ -26,7 +26,34 @@
 
 namespace yaramod {
 
-std::unique_ptr<YaraFile> parseFile(const std::string& filePath, ParserMode parseMode = ParserMode::Regular);
-std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parseMode = ParserMode::Regular);
+class Yaramod{
+public:
+   /*
+    * @param ParserMode
+    * Regular -- regular YARA parser
+    * IncludeGuarded -- protection against inclusion of the same file multiple times
+    */
+   Yaramod() : _driver(ParserMode::Regular) {}
+   /**
+    * Parses file at given path.
+    *
+    * @param filePath Path to the file.
+    * @param parserMode Parsing mode.
+    *
+    * @return Valid @c YaraFile instance if parsing succeeded, otherwise @c nullptr.
+    */
+   std::unique_ptr<YaraFile> parseFile(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
+   /**
+    * Parses input stream.
+    *
+    * @param inputStream Input stream.
+    * @param parserMode Parsing mode.
+    *
+    * @return Valid @c YaraFile instance if parsing succeeded, otherwise @c nullptr.
+    */
+   std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parserMode = ParserMode::Regular);
+private:
+   ParserDriver _driver;
+};
 
 }

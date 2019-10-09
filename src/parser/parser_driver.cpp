@@ -33,7 +33,8 @@ PogParser::PogParser(ParserDriver& driver)
 	defineGrammar();
 	_parser.set_start_symbol("rules");
 	bool prepared = prepareParser();
-	assert( prepared && "Parser initialization failed");
+	if(!prepared)
+		throw YaramodError("Parser initialization failed");
 }
 
 template<typename... Args>
@@ -44,22 +45,12 @@ TokenIt PogParser::emplace_back(const Location& location, Args&&... args)
 	return tokenIt;
 }
 
-void print(const std::string& symbol, const std::string_view& value) //TODO: remove
-{
-	std::cerr << "Matched " << symbol << ": '" << std::string{value} << "'" << std::endl;
-}
-void print(const std::string& symbol, const std::string& value) //TODO: remove
-{
-	std::cerr << "Matched " << symbol << ": '" << value << "'" << std::endl;
-}
-
 void PogParser::defineTokens()
 {
 	//define global action for counting the line/character position
 	_parser.global_tokenizer_action([&](std::string_view str) {
 		_driver.currentLocation().addColumn(str.length());
 	});
-
 
 	_parser.token("\n").action( [&](std::string_view str) -> Value {
 		TokenIt t = emplace_back(_driver.currentLocation(), NEW_LINE, std::string{str});
@@ -168,12 +159,12 @@ void PogParser::defineTokens()
 		_driver.currentLocation().addLine();
 		return Value(emplace_back(_driver.currentLocation(), NEW_LINE, std::string{str}));
 	});
-	_parser.token(R"([ \v\r\t])").states("$include").description("whitespace");//.action( [&](std::string_view str) -> Value { return {}; });
+	_parser.token(R"([ \v\r\t])").states("$include").description("whitespace");
 	_parser.token(R"(\")").states("$include").enter_state("$include_file").description("\"");
 	//$include_file
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").states("$include_file").enter_state("@default").description("include path").action( [&](std::string_view str) -> Value {
 		std::string filePath = std::string{str}.substr(0, str.size()-1);
-		if (!_driver.includeFile(filePath/*, subTokenStream*/))
+		if (!_driver.includeFile(filePath))
 	 		error_handle(_driver.currentLocation(), "Unable to include file '" + filePath + "'");
 
 		TokenIt includeToken = emplace_back(_driver.currentLocation(), INCLUDE_PATH, filePath);
@@ -251,7 +242,7 @@ void PogParser::defineTokens()
 	});
 	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += '\"'; return {}; } );
 	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
-	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { throw ParserError(std::string("Error at <TODO>: Unknown escape sequence \'" + std::string{str} + "\'")); return {}; });
+	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { error_handle(_driver.currentLocation(), "Unknown escape sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").enter_state("@default").description("\"").action([&](std::string_view) -> Value {
 		return emplace_back(_driver.currentLocation(), STRING_LITERAL, _strLiteral);
@@ -294,6 +285,7 @@ void PogParser::defineTokens()
 	// $hexstr multiline comment
 	_parser.token(R"(/\*)").states("$hexstr").enter_state("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
+		return {};
 	});
 	_parser.token(R"(\*/)").states("$hexstr_multiline_comment").enter_state("$hexstr").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
@@ -301,13 +293,16 @@ void PogParser::defineTokens()
 		_driver.addComment(it);
 		_indent.clear();
 		_comment.clear();
+		return {};
 	});
 	_parser.token(R"(\n)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
 		_driver.currentLocation().addLine();
 		_comment.append(std::string{str});
+		return {};
 	});
 	_parser.token(R"(.)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
+		return {};
 	});
 	// $hexstr multiline comment end
 
@@ -362,7 +357,7 @@ void PogParser::defineTokens()
 		return std::make_pair(range, range);
 	});
 	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action( [&](std::string_view str) -> Value {
-		return std::string(1, str[0]);
+		return std::string{str};
 	});
 	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action( [&](std::string_view) -> Value { return {};} );
 	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action( [&](std::string_view) -> Value { return {};} );
@@ -394,18 +389,17 @@ void PogParser::defineTokens()
 	_parser.token(R"(\])").states("$regexp_class").symbol("REGEXP_CLASS").enter_state("$regexp").description("regexp class").action([&](std::string_view) -> Value {
 		return _regexpClass;
 	});
-	_parser.token(R"(\\w)").states("$regexp_class").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action( [&](std::string_view) -> Value { _regexpClass += "\\w"; return {};} );
-	_parser.token(R"(\\W)").states("$regexp_class").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action( [&](std::string_view) -> Value { _regexpClass += "\\W"; return {};} );
-	_parser.token(R"(\\s)").states("$regexp_class").symbol("REGEXP_SPACE").description("regexp \\s").action( [&](std::string_view) -> Value { _regexpClass += "\\s"; return {};} );
-	_parser.token(R"(\\S)").states("$regexp_class").symbol("REGEXP_NON_SPACE").description("regexp \\S").action( [&](std::string_view) -> Value { _regexpClass += "\\S"; return {};} );
-	_parser.token(R"(\\d)").states("$regexp_class").symbol("REGEXP_DIGIT").description("regexp \\d").action( [&](std::string_view) -> Value { _regexpClass += "\\d"; return {};} );
-	_parser.token(R"(\\D)").states("$regexp_class").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action( [&](std::string_view) -> Value { _regexpClass += "\\D"; return {};} );
-	_parser.token(R"(\\b)").states("$regexp_class").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action( [&](std::string_view) -> Value { _regexpClass += "\\b"; return {};} );
-	_parser.token(R"(\\B)").states("$regexp_class").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action( [&](std::string_view) -> Value { _regexpClass += "\\B"; return {};} );
+	_parser.token(R"(\\w)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\w"; return {};} );
+	_parser.token(R"(\\W)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\W"; return {};} );
+	_parser.token(R"(\\s)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\s"; return {};} );
+	_parser.token(R"(\\S)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\S"; return {};} );
+	_parser.token(R"(\\d)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\d"; return {};} );
+	_parser.token(R"(\\D)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\D"; return {};} );
+	_parser.token(R"(\\b)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\b"; return {};} );
+	_parser.token(R"(\\B)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\B"; return {};} );
 	_parser.token(R"([^]])").states("$regexp_class").action( [&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
-	// _parser.end_token().description("").action([](std::string_view str) -> Value { return {}; });
 	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").description("").action([&](std::string_view) {
   		_parser.pop_input_stream();
   		if( _driver.currentTokenStreamCount() > 1 )
@@ -436,7 +430,7 @@ void PogParser::defineGrammar()
 		;
 
 	_parser.rule("include") // {}
-		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&& args) -> Value { return {}; })
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&&) -> Value { return {}; })
 		;
 
 	_parser.rule("rule") // {}
@@ -799,7 +793,7 @@ void PogParser::defineGrammar()
 			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
-			return std::move(args[0]); //Value(std::move(args[0].getRegexpUnit()));
+			return std::move(args[0]);
 		})
 		.production("REGEXP_WORD_BOUNDARY", [](auto&&) -> Value {
 			return Value(std::make_shared<RegexpWordBoundary>());
@@ -893,7 +887,7 @@ void PogParser::defineGrammar()
 				TokenIt for_token = args[0].getTokenIt();
 				auto for_expr = std::move(args[1].getExpression());
 				TokenIt id = args[2].getTokenIt();
-				//
+
 				TokenIt op_in = args[4].getTokenIt();
 				auto set = std::move(args[5].getExpression());
 				TokenIt lp = args[7].getTokenIt();
@@ -903,7 +897,7 @@ void PogParser::defineGrammar()
 				_driver.removeLocalSymbol(id->getString());
 				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
 				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForIntExpression>(std::move(for_expr), id, std::move(set), std::move(expr), for_token, op_in, lp, rp);
+				auto output = std::make_shared<ForIntExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				return Value(std::move(output));
 			}
@@ -913,13 +907,14 @@ void PogParser::defineGrammar()
 				if(_driver.isInStringLoop())
 					error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
 				_driver.stringLoopEnter();
+				return {};
 			},
 			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
 				TokenIt for_token = args[0].getTokenIt();
 				auto for_expr = std::move(args[1].getExpression());
 				TokenIt of = args[2].getTokenIt();
 				auto set = std::move(args[3].getExpression());
-				//
+
 				TokenIt lp = args[6].getTokenIt();
 				auto expr = args[7].getExpression();
 				TokenIt rp = args[8].getTokenIt();
@@ -1332,6 +1327,7 @@ void PogParser::defineGrammar()
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
 
 			auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
+
 			auto output = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move(expr), std::move(args[2].getExpression()));
 			output->setType(iterParentSymbol->getElementType());
 			return Value(std::move(output));
@@ -1509,13 +1505,33 @@ bool PogParser::parse()
 	{
 		auto result = _parser.parse(*_driver.currentInputStream());
 		if (!result)
-	      std::cerr << "Error" << std::endl;
-   	return result.has_value();
+			std::cerr << "Error" << std::endl;
+		return result.has_value();
 	}
 	catch(const pog::SyntaxError& err)
 	{
 		error_handle(_driver.currentLocation(), err.what());
+		return false;
 	}
+}
+
+void PogParser::reset()
+{
+	_strLiteral.clear();
+	_indent.clear();
+	_comment.clear();
+	_regexpClass.clear();
+	_sectionStrings = false;
+}
+
+/**
+ * Constructor.
+ *
+ * @param parserMode Parsing mode.
+ */
+ParserDriver::ParserDriver(ParserMode parserMode) : _pog_parser(*this)
+{
+	reset(parserMode);
 }
 
 /**
@@ -1531,7 +1547,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
 	_locations.emplace();
 	if (!includeFileImpl(filePath))
 		_valid = false;
-	_file = std::move(YaraFile(currentTokenStream()));
+	_file = YaraFile(currentTokenStream());
 }
 
 /**
@@ -1578,11 +1594,42 @@ bool ParserDriver::parse()
 	if (!_valid)
 		return false;
 
-	bool output = _pog_parser.parse();
+	return _pog_parser.parse();
+}
 
-	// std::cout << "TokenStream when getParsedFile(): " << std::endl;
-	// std::cout << *_file.getTokenStream() << "'" << std::endl;
-	return output;
+void ParserDriver::reset(ParserMode parserMode)
+{
+	_mode = parserMode;
+	_pog_parser.reset();
+	_tokenStreams = std::stack<std::shared_ptr<TokenStream>>();
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	_locations = std::stack<Location>();
+	_locations.emplace();
+	_comments.clear();
+	_includedFiles.clear();
+	_includedFileNames.clear();
+	_includedFilesCache.clear();
+	_optionalFirstInput = nullptr;
+	_valid = true;
+	_filePath.clear();
+	_file = YaraFile(currentTokenStream());
+	_parsed_rule_names.clear();
+	_currentStrings = std::weak_ptr<Rule::StringsTrie>();
+	_stringLoop = false;
+	_localSymbols.clear();
+	_startOfRule = 0;
+	_anonStringCounter = 0;
+}
+
+void ParserDriver::setInput(std::istream& input)
+{
+	_optionalFirstInput = &input;
+}
+
+void ParserDriver::setInput(const std::string& filePath)
+{
+	if (!includeFileImpl(filePath))
+		_valid = false;
 }
 
 /**
@@ -1848,7 +1895,7 @@ bool ParserDriver::hasRuleWithName(const std::string& name) const
 	return _parsed_rule_names.count(name) != 0;
 }
 
-bool ParserDriver::includeFileImpl(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/)//TODO: upravit
+bool ParserDriver::includeFileImpl(const std::string& includePath)
 {
 	if (_mode == ParserMode::IncludeGuarded && isAlreadyIncluded(includePath))
 		return true;

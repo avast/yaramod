@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cctype>
 #include <sstream>
 #include <string>
 
@@ -43,14 +44,22 @@ bool startsWith(const std::string& str, const T& withWhat)
  * @return Number converted to string.
  */
 template <typename T>
-std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false)
+std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false)
 {
 	std::ostringstream os;
 	if (showbase)
 		os << format << std::showbase << num;
 	else
 		os << format << num;
-	return os.str();
+	if(!toUpper)
+		return os.str();
+	else
+	{
+		std::string output;
+		for(char c : os.str())
+			output += std::toupper(c);
+		return output;
+	}
 }
 
 /**

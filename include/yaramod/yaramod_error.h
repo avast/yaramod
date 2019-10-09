@@ -14,6 +14,10 @@ class YaramodError : public std::exception
 {
 public:
    YaramodError(const std::string& errorMsg) : _errorMsg(errorMsg) {}
+   YaramodError(const std::string& errorMsg1, const std::string& errorMsg2) : _errorMsg(errorMsg1)
+   {
+      _errorMsg.append(", ").append(errorMsg2);
+   }
    YaramodError(const YaramodError&) = default;
 
    const std::string& getErrorMessage() const noexcept

@@ -83,6 +83,10 @@ public:
 	{
 		return _tokenStream.get();
 	}
+	void setTokenStream(const std::shared_ptr<TokenStream>& ts)
+	{
+		_tokenStream = ts;
+	}
 	/// @}
 
 	/// @name Setter methods

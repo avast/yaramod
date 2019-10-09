@@ -22,7 +22,7 @@ namespace yaramod {
  */
 Literal::Literal(const std::string& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value(value)
-   , _formated_value( formated_value )
+	, _formated_value( formated_value )
 {
 }
 
@@ -34,7 +34,7 @@ Literal::Literal(const std::string& value, const std::optional<std::string>& for
  */
 Literal::Literal(const char* value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value(std::string(value))
-   , _formated_value( formated_value )
+	, _formated_value( formated_value )
 {
 }
 
@@ -45,8 +45,8 @@ Literal::Literal(const char* value, const std::optional<std::string>& formated_v
  * @param formated_value formatted value of the literal.
  */
 Literal::Literal(std::string&& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
-   : _value(std::move(value))
-   , _formated_value( formated_value )
+	: _value(std::move(value))
+	, _formated_value( formated_value )
 {
 }
 
@@ -57,7 +57,7 @@ Literal::Literal(std::string&& value, const std::optional<std::string>& formated
  */
 Literal::Literal( bool value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
 	: _value( value )
-   , _formated_value( formated_value )
+	, _formated_value( formated_value )
 {
 }
 
@@ -68,8 +68,8 @@ Literal::Literal( bool value, const std::optional<std::string>& formated_value/*
  * @param integral_formated_value formatted value of the integral literal.
  */
 Literal::Literal( int value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-   : _value( value )
-   , _formated_value( integral_formated_value )
+	: _value( value )
+	, _formated_value( integral_formated_value )
 {
 }
 
@@ -80,8 +80,8 @@ Literal::Literal( int value, const std::optional<std::string>& integral_formated
  * @param integral_formated_value formatted value of the integral literal.
  */
 Literal::Literal( int64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-   : _value( value )
-   , _formated_value( integral_formated_value )
+	: _value( value )
+	, _formated_value( integral_formated_value )
 {
 }
 
@@ -92,8 +92,8 @@ Literal::Literal( int64_t value, const std::optional<std::string>& integral_form
  * @param integral_formated_value formatted value of the integral literal.
  */
 Literal::Literal( uint64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-   : _value( value )
-   , _formated_value( integral_formated_value )
+	: _value( value )
+	, _formated_value( integral_formated_value )
 {
 }
 
@@ -104,8 +104,8 @@ Literal::Literal( uint64_t value, const std::optional<std::string>& integral_for
  * @param integral_formated_value formatted value of the integral literal.
  */
 Literal::Literal( double value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
-   : _value( value )
-   , _formated_value( integral_formated_value )
+	: _value( value )
+	, _formated_value( integral_formated_value )
 {
 }
 
@@ -116,8 +116,8 @@ Literal::Literal( double value, const std::optional< std::string >& integral_for
  * @param name formatted value of the literal.
  */
 Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name )
-   : _value( value )
-   , _formated_value(name)
+	: _value( value )
+	, _formated_value(name)
 {
 }
 
@@ -128,8 +128,8 @@ Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name 
  * @param name formatted value of the literal.
  */
 Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
-   : _value( std::move(value) )
-   , _formated_value(name)
+	: _value( std::move(value) )
+	, _formated_value(name)
 {
 }
 
@@ -194,98 +194,98 @@ void Literal::setValue( std::shared_ptr<Symbol>&& s, std::string&& symbol_name )
  */
 const std::string& Literal::getString() const
 {
-   try
-   {
-      return std::get<std::string>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getString() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getString() of non-string TokenValue");
-   }
+	try
+	{
+		return std::get<std::string>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getString() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getString() of non-string TokenValue");
+	}
 }
 
 bool Literal::getBool() const
 {
-   try
-   {
-      return std::get<bool>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getBool() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getBool() of non-bool TokenValue");
-   }
+	try
+	{
+		return std::get<bool>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getBool() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getBool() of non-bool TokenValue");
+	}
 }
 
 int Literal::getInt() const
 {
-   try
-   {
-      return std::get<int>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getInt() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getInt() of non-integer TokenValue");
-   }
+	try
+	{
+		return std::get<int>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getInt() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getInt() of non-integer TokenValue");
+	}
 }
 
 int64_t Literal::getInt64_t() const
 {
-   try
-   {
-      return std::get<int64_t>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getInt64_t() of non-integer TokenValue");
-   }
+	try
+	{
+		return std::get<int64_t>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getInt64_t() of non-integer TokenValue");
+	}
 }
 
 uint64_t Literal::getUInt64_t() const
 {
-   try
-   {
-      return std::get<uint64_t>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getUInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getUInt64_t() of non-integer TokenValue");
-   }
+	try
+	{
+		return std::get<uint64_t>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getUInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getUInt64_t() of non-integer TokenValue");
+	}
 }
 
 double Literal::getDouble() const
 {
-   try
-   {
-      return std::get<double>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getDouble() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getDouble() of non-double TokenValue");
-   }
+	try
+	{
+		return std::get<double>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getDouble() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getDouble() of non-double TokenValue");
+	}
 }
 
 const std::shared_ptr<Symbol>& Literal::getSymbol() const
 {
-   try
-   {
-      return std::get<std::shared_ptr<Symbol>>(_value);
-   }
-   catch (std::bad_variant_access& exp)
-   {
-      std::cerr << "Called getSymbol() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-      assert(false && "Called getSymbol() of non-double TokenValue");
-   }
+	try
+	{
+		return std::get<std::shared_ptr<Symbol>>(_value);
+	}
+	catch (std::bad_variant_access& exp)
+	{
+		std::cerr << "Called getSymbol() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
+		throw YaramodError("Called getSymbol() of non-double TokenValue");
+	}
 }
 
 std::string Literal::getFormattedValue() const
 {
-   return _formated_value.value_or(std::string());
+	return _formated_value.value_or(std::string());
 }
 
 /**
@@ -305,8 +305,8 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	}
 	else if (isBool())
 	{
-      if(_formated_value.has_value())
-         return _formated_value.value();
+		if(_formated_value.has_value())
+			return _formated_value.value();
 		std::ostringstream ss;
 		ss << std::boolalpha << getBool();
 		return ss.str();
@@ -347,7 +347,7 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
 	std::cerr << "Value:" << *this << std::endl;
 	assert(false);
-   return std::string();
+	return std::string();
 }
 
 /**
@@ -403,8 +403,8 @@ bool Literal::isIntegral() const
 
 const Literal& Token::getLiteral() const
 {
-      assert(_value);
-      return *_value;
+	assert(_value);
+	return *_value;
 }
 
 const std::string& Token::getString() const
@@ -648,6 +648,11 @@ void TokenStream::move_append( TokenStream* donor )
 	_tokens.splice(_tokens.end(), donor->_tokens);
 }
 
+void TokenStream::move_append( TokenStream* donor, TokenIt before )
+{
+	_tokens.splice(before, donor->_tokens);
+}
+
 TokenIt TokenStream::begin()
 {
 	return _tokens.begin();
@@ -760,306 +765,316 @@ void TokenStream::clear()
 
 class LeftBracketEntry {
 public:
-   LeftBracketEntry(int line, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
+	LeftBracketEntry(int line, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
 
-   int getLine() const { return _line; }
-   int getTabulator() const { return _tabulator; }
-   bool putNewLines() const { return _put_new_lines; }
+	int getLine() const { return _line; }
+	int getTabulator() const { return _tabulator; }
+	bool putNewLines() const { return _put_new_lines; }
 private:
-   bool _put_new_lines;
-   int _tabulator;
-   int _line;
+	bool _put_new_lines;
+	int _tabulator;
+	int _line;
 };
 
 
 class BracketStack {
 public:
-   void addLeftBracket(int line, bool put_new_lines)
-   {
+	void addLeftBracket(int line, bool put_new_lines)
+	{
 
-      if( _brackets.empty() )
-         _brackets.emplace_back(line, 1, put_new_lines);
-      else
-      {
-         const auto& previous = _brackets.back();
-         int tabulator = previous.getTabulator();
-         if(line != previous.getLine())
-            ++tabulator;
-         _brackets.emplace_back(line, tabulator, put_new_lines);
-      }
-   }
+		if( _brackets.empty() )
+			_brackets.emplace_back(line, 1, put_new_lines);
+		else
+		{
+			const auto& previous = _brackets.back();
+			int tabulator = previous.getTabulator();
+			if(line != previous.getLine())
+				++tabulator;
+			_brackets.emplace_back(line, tabulator, put_new_lines);
+		}
+	}
 
-   void addRightBracket()
-   {
-      assert(!_brackets.empty());
-      _brackets.pop_back();
-   }
+	void addRightBracket()
+	{
+		assert(!_brackets.empty());
+		_brackets.pop_back();
+	}
 
-   /// @name Observe methods
-   /// @{
-   bool putNewlineInCurrentSector() const
-   {
-      if(_brackets.empty())
-         return false;
-      return _brackets.back().putNewLines();
-   }
+	/// @name Observe methods
+	/// @{
+	bool putNewlineInCurrentSector() const
+	{
+		if(_brackets.empty())
+			return false;
+		return _brackets.back().putNewLines();
+	}
 
-   uint getTabulatorCount() const
-   {
-      if(_brackets.empty())
-         return 0;
-      return _brackets.back().getTabulator();
-   }
+	// uint getTabulatorCount() const
+	// {
+	// 	if(_brackets.empty())
+	// 		return 0;
+	// 	return _brackets.back().getTabulator();
+	// }
 
-   friend std::ostream& operator<<(std::ostream& os, const BracketStack& stack) {
-      os << "Stack:" << std::endl;
-      for(const auto& entry : stack._brackets)
-         os << "(line: " << entry.getLine() << ", tabulator: " << entry.getTabulator() << ")" << std::endl;
-      return os;
-   }
+	std::string getTabulators() const
+	{
+		if(_brackets.empty())
+			return std::string{};
+		return std::string(_brackets.back().getTabulator(), '\t');
+	}
+	/// @}
 
-   std::string getTabulators() const { return std::string(getTabulatorCount(), '\t'); }
-   /// @}
+	friend std::ostream& operator<<(std::ostream& os, const BracketStack& stack) {
+		os << "Stack:" << std::endl;
+		for(const auto& entry : stack._brackets)
+			os << "(line: " << entry.getLine() << ", tabulator: " << entry.getTabulator() << ")" << std::endl;
+		return os;
+	}
 private:
-   std::vector<LeftBracketEntry> _brackets;
+	std::vector<LeftBracketEntry> _brackets;
 };
 
 
 void TokenStream::determineNewlineSectors()
 {
-   std::stack<TokenIt> leftBrackets;
-   for(auto it = begin(); it != end(); ++it)
-   {
-      auto current = it->getType();
-      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
-         leftBrackets.push(it);
-      else if(current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
-      {
-         if(leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
-            it->setFlag(true);
-         leftBrackets.pop();
-      }
-      else if(current == NEW_LINE && !leftBrackets.empty())
-         leftBrackets.top()->setFlag(true);
-   }
+	std::stack<TokenIt> leftBrackets;
+	for(auto it = begin(); it != end(); ++it)
+	{
+		auto current = it->getType();
+		if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+			leftBrackets.push(it);
+		else if(current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
+		{
+			if(leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
+				it->setFlag(true);
+			leftBrackets.pop();
+		}
+		else if(current == NEW_LINE && !leftBrackets.empty())
+			leftBrackets.top()->setFlag(true);
+	}
 }
 
 void TokenStream::addMissingNewLines()
 {
-   BracketStack brackets;
-   uint lineCounter = 0;
-   for(auto it = begin(); it != end(); ++it)
-   {
-      auto current = it->getType();
-      auto nextIt = std::next(it);
-      if(nextIt == end())
-          break;
-      auto next = nextIt->getType();
-      if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
-      {
-         brackets.addLeftBracket(lineCounter, it->getFlag());
-         if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
-         {
-            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
-            next = nextIt->getType();
-         }
-      }
-      if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
-      {
-         if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
-         {
-            nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
-            next = nextIt->getType();
-         }
-         else
-            brackets.addRightBracket();
-      }
-      if(current == NEW_LINE)
-      {
-         ++lineCounter;
-      }
-   }
+	BracketStack brackets;
+	size_t lineCounter = 0;
+	for(auto it = begin(); it != end(); ++it)
+	{
+		auto current = it->getType();
+		auto nextIt = std::next(it);
+		if(nextIt == end())
+			 break;
+		auto next = nextIt->getType();
+		if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+		{
+			brackets.addLeftBracket(lineCounter, it->getFlag());
+			if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
+			{
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+				next = nextIt->getType();
+			}
+		}
+		if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+		{
+			if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
+			{
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+				next = nextIt->getType();
+			}
+			else
+				brackets.addRightBracket();
+		}
+		if(current == NEW_LINE)
+		{
+			++lineCounter;
+		}
+	}
 }
 
 void TokenStream::autoformat()
 {
-   determineNewlineSectors();
-   addMissingNewLines();
-   formatted = true;
+	determineNewlineSectors();
+	addMissingNewLines();
+	formatted = true;
+}
+
+void TokenStream::printComment(std::stringstream& ss, TokenIt it) const
+{
+	auto prevIt = std::prev(it);
+	const std::string& indent = it->getLiteral().getFormattedValue(); //indention
+	if( prevIt->getType() == NEW_LINE)
+		ss << indent;
+	for(const auto& c : it->getPureText())
+		ss << c;
 }
 
 std::string TokenStream::getText(bool withIncludes)
 {
-   if(!formatted)
-      autoformat();
-   BracketStack brackets;
-   uint lineCounter = 0;
-   int current_line_tabs = 0;
-   std::stringstream os;
-   bool inside_rule = false;
-   bool inside_hex_string = false;
-   bool inside_hex_jump = false;
-   bool inside_regexp = false;
-   bool inside_enumeration_brackets = false;
-   bool second_nibble = true;
-   for(auto it = begin(); it != end(); ++it)
-   {
-      auto current = it->getType();
+	if(!formatted)
+		autoformat();
+	BracketStack brackets;
+	size_t lineCounter = 0;
+	int current_line_tabs = 0;
+	std::stringstream os;
+	bool inside_rule = false;
+	bool inside_hex_string = false;
+	bool inside_hex_jump = false;
+	bool inside_regexp = false;
+	bool inside_enumeration_brackets = false;
+	bool second_nibble = true;
+	for(auto it = begin(); it != end(); ++it)
+	{
+		auto current = it->getType();
 
-      if(current == INCLUDE_DIRECTIVE && withIncludes)
-         continue;
-      else if(current == INCLUDE_PATH)
-      {
-         assert(it->isIncludeToken());
-         if(withIncludes){
-            os << it->getSubTokenStream()->getText(withIncludes);
-            continue;
-         }
-         else
-            os << *it;
-      }
-      else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
-      {
-         auto prevIt = std::prev(it);
-         if( prevIt->getType() == NEW_LINE)
-            os << it->getLiteral().getFormattedValue() << *it; //indention
-         else if( prevIt->isLeftBracket() || prevIt->isRightBracket() || std::next(it)->getType() == COMMA  || std::next(it)->getType() == NEW_LINE )
-            os << *it;
-         else
-            os << *it << " ";
-      }
-      else
-         os << *it;
+		if(current == INCLUDE_DIRECTIVE && withIncludes)
+			continue;
+		else if(current == INCLUDE_PATH)
+		{
+			assert(it->isIncludeToken());
+			if(withIncludes){
+				os << it->getSubTokenStream()->getText(withIncludes);
+				continue;
+			}
+			else
+				os << *it;
+		}
+		else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
+			printComment(os, it);
+		else
+			os << *it;
 
-      auto nextIt = std::next(it);
-      if(nextIt == end())
-          break;
-      auto next = nextIt->getType();
-      if(current == RULE_BEGIN)
-         inside_rule = true;
-      else if(current == RULE_END)
-         inside_rule = false;
-      else if(current == HEX_START_BRACKET)
-         inside_hex_string = true;
-      else if(current == HEX_END_BRACKET)
-         inside_hex_string = false;
-      else if(current == HEX_JUMP_LEFT_BRACKET)
-         inside_hex_jump = true;
-      else if(current == HEX_JUMP_RIGHT_BRACKET)
-         inside_hex_jump = false;
-      else if(current == REGEXP_START_SLASH)
-         inside_regexp = true;
-      else if(current == REGEXP_END_SLASH)
-         inside_regexp = false;
-      else if(current == LP_ENUMERATION)
-         inside_enumeration_brackets = true;
-      else if(current == RP_ENUMERATION)
-         inside_enumeration_brackets = false;
+		auto nextIt = std::next(it);
+		if(nextIt == end())
+			 break;
+		auto next = nextIt->getType();
+		if(current == RULE_BEGIN)
+			inside_rule = true;
+		else if(current == RULE_END)
+			inside_rule = false;
+		else if(current == HEX_START_BRACKET)
+			inside_hex_string = true;
+		else if(current == HEX_END_BRACKET)
+			inside_hex_string = false;
+		else if(current == HEX_JUMP_LEFT_BRACKET)
+			inside_hex_jump = true;
+		else if(current == HEX_JUMP_RIGHT_BRACKET)
+			inside_hex_jump = false;
+		else if(current == REGEXP_START_SLASH)
+			inside_regexp = true;
+		else if(current == REGEXP_END_SLASH)
+			inside_regexp = false;
+		else if(current == LP_ENUMERATION)
+			inside_enumeration_brackets = true;
+		else if(current == RP_ENUMERATION)
+			inside_enumeration_brackets = false;
 
-      if(it->isLeftBracket())
-      {
-         brackets.addLeftBracket(lineCounter, it->getFlag());
-         if(it->getFlag())
-            ++current_line_tabs;
-      }
-      if(it->isRightBracket())
-      {
-         brackets.addRightBracket();
-      }
-      if(current == NEW_LINE)
-      {
-         ++lineCounter;
-         if(inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
-         {
-            if(next == META
-               || next == STRINGS
-               || next == CONDITION)
-            {
-               os << "\t";
-            }
-            else if(next != RULE_END)
-            {
-               if(nextIt->isRightBracket() && nextIt->getFlag())
-                  --current_line_tabs;
-               os << std::string( 2 + current_line_tabs, '\t');
-            }
-         }
-      }
-      else if(inside_hex_string)
-      {
-         switch(current)
-         {
-            case HEX_NIBBLE:
-            case HEX_WILDCARD_LOW:
-            case HEX_WILDCARD_HIGH:
-               second_nibble = !second_nibble;
-               break;
-            case HEX_ALT:
-            case HEX_JUMP_FIXED:
-            case HEX_JUMP_VARYING:
-            case HEX_JUMP_VARYING_RANGE:
-            case HEX_JUMP_RIGHT_BRACKET:
-            case HEX_START_BRACKET:
-               second_nibble = true;
-               break;
-            default:
-               break;
-         }
-         if(!inside_hex_jump && next != NEW_LINE)
-         {
-            if(second_nibble && next != COMMA)
-               os << " ";
-         }
-      }
-      else if(!inside_regexp && !inside_enumeration_brackets)
-      {
-         switch(current)
-         {
-            case NULLSYMBOL:
-            case META:
-            case STRINGS:
-            case CONDITION:
-            case UNARY_MINUS:
-            case BITWISE_NOT:
-            case INTEGER_FUNCTION:
-            case FUNCTION_SYMBOL:
-            case ARRAY_SYMBOL:
-            case LSQB:
-            case DOT:
-               break;
-            case LP:
-               if(next == COMMENT || next == ONELINE_COMMENT)
-                  os << " ";
-               break;
-            default:
-               switch(next)
-               {
-                  case RP:
-                  case RSQB:
-                  case DOT:
-                  case NEW_LINE:
-                  case COMMA:
-                  case LSQB:
-                     break;
-                  case REGEXP_MODIFIERS:
-                     if(current != REGEXP_MODIFIERS)
-                        break;
-                     [[fallthrough]];
-                  default:
-                     if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH))
-                        os << " ";
-               }
-         }
-      }
-      else if(inside_enumeration_brackets)
-      {
-         if(current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
-            os << " ";
-      }
-      else if(current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
-         os << " ";
-   }
-   return os.str();
+		if(it->isLeftBracket())
+		{
+			brackets.addLeftBracket(lineCounter, it->getFlag());
+			if(it->getFlag())
+				++current_line_tabs;
+		}
+		if(it->isRightBracket())
+		{
+			brackets.addRightBracket();
+		}
+		if(current == NEW_LINE)
+		{
+			++lineCounter;
+			if(inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
+			{
+				if(next == META
+					|| next == STRINGS
+					|| next == CONDITION)
+				{
+					os << "\t";
+				}
+				else if(next != RULE_END)
+				{
+					if(nextIt->isRightBracket() && nextIt->getFlag())
+						--current_line_tabs;
+					os << std::string( 2 + current_line_tabs, '\t');
+				}
+			}
+		}
+		else if(inside_hex_string)
+		{
+			switch(current)
+			{
+				case HEX_NIBBLE:
+				case HEX_WILDCARD_LOW:
+				case HEX_WILDCARD_HIGH:
+					second_nibble = !second_nibble;
+					break;
+				case HEX_ALT:
+				case HEX_JUMP_FIXED:
+				case HEX_JUMP_VARYING:
+				case HEX_JUMP_VARYING_RANGE:
+				case HEX_JUMP_RIGHT_BRACKET:
+				case HEX_START_BRACKET:
+					second_nibble = true;
+					break;
+				default:
+					break;
+			}
+			if(!inside_hex_jump && next != NEW_LINE)
+			{
+				if(second_nibble && next != COMMA)
+					os << " ";
+			}
+		}
+		else if(!inside_regexp && !inside_enumeration_brackets)
+		{
+			switch(current)
+			{
+				case NULLSYMBOL:
+				case META:
+				case STRINGS:
+				case CONDITION:
+				case UNARY_MINUS:
+				case BITWISE_NOT:
+				case INTEGER_FUNCTION:
+				case FUNCTION_SYMBOL:
+				case ARRAY_SYMBOL:
+				case LSQB:
+				case DOT:
+				case FUNCTION_CALL_LP:
+					break;
+				case LP:
+					if(next == COMMENT || next == ONELINE_COMMENT)
+						os << " ";
+					break;
+				default:
+					switch(next)
+					{
+						case RP:
+						case RSQB:
+						case DOT:
+						case NEW_LINE:
+						case COMMA:
+						case LSQB:
+						case FUNCTION_CALL_LP:
+						case FUNCTION_CALL_RP:
+							break;
+						case REGEXP_MODIFIERS:
+							if(current != REGEXP_MODIFIERS)
+								break;
+							[[fallthrough]];
+						default:
+							if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH))
+								os << " ";
+					}
+			}
+		}
+		else if(inside_enumeration_brackets)
+		{
+			if(current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
+				os << " ";
+		}
+		else if(current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
+			os << " ";
+	}
+	return os.str();
 }
 
 } //namespace yaramod

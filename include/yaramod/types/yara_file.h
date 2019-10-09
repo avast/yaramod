@@ -32,7 +32,7 @@ public:
 	/// @name String representation
 	/// @{
 	std::string getText() const;
-	std::string getTextTokenized(bool withIncludes = false) const;
+	std::string getTextFormatted(bool withIncludes = false) const;
 	/// @}
 
 	/// @name Addition methods

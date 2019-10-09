@@ -7,11 +7,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-// #include "yaramod/builder/yara_expression_builder.h"
-// #include "yaramod/builder/yara_file_builder.h"
-// #include "yaramod/builder/yara_hex_string_builder.h"
-// #include "yaramod/builder/yara_rule_builder.h"
-// #include "yaramod/types/expressions.h"
 #include "yaramod/types/literal.h"
 #include "yaramod/types/meta.h"
 

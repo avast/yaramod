@@ -148,7 +148,7 @@ std::string YaraFile::getText() const
 	return trim(ss.str());
 }
 
-std::string YaraFile::getTextTokenized(bool withIncludes) const
+std::string YaraFile::getTextFormatted(bool withIncludes) const
 {
 	return getTokenStream()->getText(withIncludes);
 }
@@ -322,30 +322,6 @@ std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 
 	return nullptr;
 }
-
-// std::shared_ptr<Symbol> YaraFile::findImport(const std::string& name) const
-// {
-// 	for (const auto& import : _imports)
-// 		if (import->getName() == name)
-// 			return import->getStructure();
-// 	return nullptr;
-// }
-
-// std::shared_ptr<Symbol> YaraFile::findRule(const std::string& name) const
-// {
-// 	for (const auto& rule : _rules)
-// 		if (rule->getName() == name)
-// 			return rule->getSymbol();
-// 	return nullptr;
-// }
-
-// std::shared_ptr<Symbol> YaraFile::findGlobalVariable(const std::string& name) const
-// {
-// 	for (const auto& globalVar : YaraFile::globalVariables)
-// 		if (globalVar->getName() == name)
-// 			return globalVar;
-// 	return nullptr;
-// }
 
 /**
  * Returns whether the YARA file contains any imported modules.
