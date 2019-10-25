@@ -4,21 +4,13 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-      dist: xenial
-      compiler: gcc-7
+      dist: bionic
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
           packages:
             - build-essential
             - coreutils
-            - gcc-7
-            - g++-7
             - pandoc
-            - python3.5
-            - python3.5-venv
-            - cmake
             - flex
             - bison
       env:
@@ -43,8 +35,8 @@ before_script:
 script:
   - ./setup_env.sh
   - source env/bin/activate
-  - python setup.py build --with-unit-tests
-  - python setup.py install
+  - python3 setup.py build --with-unit-tests
+  - python3 setup.py install
   - build/tests/cpp/yaramod_tests
   - pytest -v tests/python
 
