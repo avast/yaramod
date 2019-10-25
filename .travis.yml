@@ -22,10 +22,10 @@ matrix:
             - flex
             - bison
       env:
-        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && NPROC=$(nproc)"
+        - MATRIX_EVAL="NPROC=$(nproc)"
         - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build.
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env:
         - MATRIX_EVAL="NPROC=$(sysctl -n hw.physicalcpu)"
 
