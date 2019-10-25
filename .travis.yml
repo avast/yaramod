@@ -11,6 +11,7 @@ matrix:
             - build-essential
             - coreutils
             - python3-venv
+            - libfl-dev
             - pandoc
             - flex
             - bison
