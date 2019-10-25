@@ -35,12 +35,6 @@ struct visit_helper<std::variant>
 };
 
 /**
- * This type caster allows us to use `std::optional<T>` in python bindings.
- */
-//template <typename T>
-//struct type_caster<std::optional<T>> : optional_caster<std::optional<T>> {};
-
-/**
  * This type caster allows us to use `std::vector<const yaramod::String*>` with `return_value_policy:reference`.
  * Originally, return value policy influenced just the vector itself but not its content. This overrides the return value policy
  * of the content.
