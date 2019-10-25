@@ -10,6 +10,7 @@ matrix:
           packages:
             - build-essential
             - coreutils
+            - python3-venv
             - pandoc
             - flex
             - bison
