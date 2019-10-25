@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v2.12.0 (2019-10-25)
 
 * Enhancement: Bump the required C++ standard from 14 to 17.
 
