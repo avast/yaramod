@@ -7,13 +7,12 @@
 #pragma once
 
 #include <optional>
+#include <variant>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <yaramod/yaramod.h>
-
-#include <variant/variant.hpp>
 
 /**
  * Always include this file before anything else in `src/python` folder.
@@ -23,22 +22,15 @@
 namespace pybind11 { namespace detail {
 
 /**
- * Type caster which allows us to use `mpark::variant<Ts...>` in Python. In Python, the variable
- * is always going to have set its proper type. No visit is required.
- */
-template <typename... Ts>
-struct type_caster<mpark::variant<Ts...>> : variant_caster<mpark::variant<Ts...>> {};
-
-/**
- * Helper for type caster of `mpark::variant` to inspect values of variant.
+ * Helper for type caster of `std::variant` to inspect values of variant.
  */
 template <>
-struct visit_helper<mpark::variant>
+struct visit_helper<std::variant>
 {
 	template <typename... Args>
-	static auto call(Args&&... args) -> decltype(mpark::visit(args...))
+	static auto call(Args&&... args) -> decltype(std::visit(args...))
 	{
-		return mpark::visit(args...);
+		return std::visit(args...);
 	}
 };
 

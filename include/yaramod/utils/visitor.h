@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <variant/variant.hpp>
+#include <variant>
 
 #include "yaramod/utils/visitor_result.h"
 
