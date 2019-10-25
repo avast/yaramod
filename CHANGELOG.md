@@ -4,6 +4,7 @@
 
 * Enhancement: Bump the required C++ standard from 14 to 17.
 * Enhancement: Replace uses of `nonstd::optional` from `dep/optional_lite` with standard C++17 `std::optional`. Remove the `optional_lite` dependency.
+* Enhancement: Replace uses of `mpark::variant` from `dep/variant` with standard C++17 `std::variant`. Remove the `variant` dependency.
 
 # v2.11.0 (2019-10-04)
 
