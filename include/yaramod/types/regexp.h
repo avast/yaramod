@@ -7,11 +7,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <utility>
 #include <vector>
-
-#include <optional_lite/optional.hpp>
 
 #include "yaramod/types/string.h"
 #include "yaramod/utils/visitor.h"
@@ -332,7 +331,7 @@ public:
 class RegexpRange : public RegexpOperation
 {
 public:
-	RegexpRange(std::shared_ptr<RegexpUnit>&& operand, std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>&& range, bool greedy)
+	RegexpRange(std::shared_ptr<RegexpUnit>&& operand, std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>&& range, bool greedy)
 		: RegexpOperation(' ', std::move(operand), greedy), _range(std::move(range)) {}
 
 	virtual std::string getText() const override
@@ -369,13 +368,13 @@ public:
 		return v->visit(this);
 	}
 
-	const std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>>& getRange() const
+	const std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>& getRange() const
 	{
 		return _range;
 	}
 
 private:
-	std::pair<nonstd::optional<std::uint64_t>, nonstd::optional<std::uint64_t>> _range; ///< Lower and higher bound of the range
+	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> _range; ///< Lower and higher bound of the range
 };
 
 /**

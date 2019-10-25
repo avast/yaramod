@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <optional_lite/optional.hpp>
+#include <optional>
 
 #include "yaramod/types/symbol.h"
 
@@ -144,7 +144,7 @@ class StructureSymbol : public Symbol
 public:
 	StructureSymbol(const std::string& name) : Symbol(Symbol::Type::Structure, name, Expression::Type::Object) {}
 
-	nonstd::optional<std::shared_ptr<Symbol>> getAttribute(const std::string& name) const
+	std::optional<std::shared_ptr<Symbol>> getAttribute(const std::string& name) const
 	{
 		auto itr = _attributes.find(name);
 		if (itr == _attributes.end())

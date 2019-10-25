@@ -9,10 +9,9 @@
 #include <cassert>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <vector>
-
-#include <optional_lite/optional.hpp>
 
 #include "yaramod/types/string.h"
 
@@ -212,12 +211,12 @@ public:
 
 	/// @name Getters
 	/// @{
-	nonstd::optional<std::uint64_t> getLow() const { return _low; }
-	nonstd::optional<std::uint64_t> getHigh() const { return _low; }
+	std::optional<std::uint64_t> getLow() const { return _low; }
+	std::optional<std::uint64_t> getHigh() const { return _low; }
 	/// @}
 
 private:
-	nonstd::optional<std::uint64_t> _low, _high; ///< Low and high bounds of the jump.
+	std::optional<std::uint64_t> _low, _high; ///< Low and high bounds of the jump.
 };
 
 /**

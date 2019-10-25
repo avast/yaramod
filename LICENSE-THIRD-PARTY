@@ -6,9 +6,8 @@ please bring it to our attention by contacting the repository owner.
 
 yaramod uses the following third-party libraries or other resources:
 1) Google Test: https://github.com/google/googletest
-2) optional_lite: https://github.com/martinmoene/optional-lite
-3) pybind11: https://github.com/pybind/pybind11
-4) variant: https://github.com/mpark/variant
+2) pybind11: https://github.com/pybind/pybind11
+3) variant: https://github.com/mpark/variant
 
 These third-party libraries or other resources are licensed under the
 following licenses:
@@ -47,33 +46,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ===============================================================================
-2) optional_lite
-===============================================================================
-
-MIT License
-
-Copyright (c) 2016 Martin Moene
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-===============================================================================
-3) pybind11
+2) pybind11
 ===============================================================================
 
 Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
@@ -107,7 +80,7 @@ Please also refer to the file CONTRIBUTING.md, which clarifies licensing of
 external contributions to this project including patches, pull requests, etc.
 
 ===============================================================================
-4) variant
+3) variant
 ===============================================================================
 
 Boost Software License - Version 1.0 - August 17th, 2003

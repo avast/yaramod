@@ -6,12 +6,13 @@
 
 #pragma once
 
+#include <optional>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <yaramod/yaramod.h>
 
-#include <optional_lite/optional.hpp>
 #include <variant/variant.hpp>
 
 /**
@@ -42,10 +43,10 @@ struct visit_helper<mpark::variant>
 };
 
 /**
- * This type caster allows us to use `nonstd::optional<T>` in python bindings.
+ * This type caster allows us to use `std::optional<T>` in python bindings.
  */
-template <typename T>
-struct type_caster<nonstd::optional<T>> : optional_caster<nonstd::optional<T>> {};
+//template <typename T>
+//struct type_caster<std::optional<T>> : optional_caster<std::optional<T>> {};
 
 /**
  * This type caster allows us to use `std::vector<const yaramod::String*>` with `return_value_policy:reference`.

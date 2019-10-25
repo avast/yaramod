@@ -9,8 +9,6 @@
 #include <memory>
 #include <vector>
 
-#include <optional_lite/optional.hpp>
-
 #include "yaramod/types/expression.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/string.h"
