@@ -17,14 +17,14 @@ public:
 		auto retRight = expr->getRightOperand()->accept(this);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = mpark::get_if<yaramod::Expression::Ptr>(&retLeft))
+		if (auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft))
 		{
 			if (*leftExpr)
 				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = mpark::get_if<yaramod::Expression::Ptr>(&retRight))
+		if (auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight))
 		{
 			if (*rightExpr)
 				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
@@ -69,14 +69,14 @@ public:
 		auto retRight = expr->getRightOperand()->accept(this);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = mpark::get_if<yaramod::Expression::Ptr>(&retLeft))
+		if (auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft))
 		{
 			if (*leftExpr)
 				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 		}
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = mpark::get_if<yaramod::Expression::Ptr>(&retRight))
+		if (auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight))
 		{
 			if (*rightExpr)
 				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
@@ -120,7 +120,7 @@ public:
 		auto ret = expr->getOperand()->accept(this);
 
 		// Negate the value of boolean constant
-		if (auto newExpr = mpark::get_if<yaramod::Expression::Ptr>(&ret))
+		if (auto newExpr = std::get_if<yaramod::Expression::Ptr>(&ret))
 		{
 			auto boolVal = *newExpr ? (*newExpr)->as<yaramod::BoolLiteralExpression>() : nullptr;
 			if (boolVal)
@@ -135,7 +135,7 @@ public:
 		auto ret = expr->getEnclosedExpression()->accept(this);
 
 		// Remove parentheses around boolean constants and lift their value up
-		if (auto newExpr = mpark::get_if<yaramod::Expression::Ptr>(&ret))
+		if (auto newExpr = std::get_if<yaramod::Expression::Ptr>(&ret))
 		{
 			auto boolVal = *newExpr ? (*newExpr)->as<yaramod::BoolLiteralExpression>() : nullptr;
 			if (boolVal)

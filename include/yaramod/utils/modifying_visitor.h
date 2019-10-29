@@ -42,7 +42,7 @@ public:
 	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
 		auto result = expr->accept(this);
-		if (auto newExpr = mpark::get_if<Expression::Ptr>(&result))
+		if (auto newExpr = std::get_if<Expression::Ptr>(&result))
 			return *newExpr ? *newExpr : expr;
 		else
 			return whenDeleted;
@@ -300,7 +300,7 @@ public:
 	/// @{
 	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
 	{
-		if (auto atExpr = mpark::get_if<Expression::Ptr>(&atExprRet))
+		if (auto atExpr = std::get_if<Expression::Ptr>(&atExprRet))
 		{
 			if (*atExpr)
 				expr->setAtExpression(*atExpr);
@@ -316,7 +316,7 @@ public:
 
 	VisitResult defaultHandler(StringInRangeExpression* expr, const VisitResult& rangeExprRet)
 	{
-		if (auto rangeExpr = mpark::get_if<Expression::Ptr>(&rangeExprRet))
+		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeExprRet))
 		{
 			if (*rangeExpr)
 				expr->setRangeExpression(*rangeExpr);
@@ -334,7 +334,7 @@ public:
 	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& indexExprRet)
 	{
-		if (auto indexExpr = mpark::get_if<Expression::Ptr>(&indexExprRet))
+		if (auto indexExpr = std::get_if<Expression::Ptr>(&indexExprRet))
 		{
 			if (*indexExpr)
 				expr->setIndexExpression(*indexExpr);
@@ -349,7 +349,7 @@ public:
 	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& operandRet)
 	{
-		if (auto operand = mpark::get_if<Expression::Ptr>(&operandRet))
+		if (auto operand = std::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
 				expr->setOperand(*operand);
@@ -364,7 +364,7 @@ public:
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
-		if (auto left = mpark::get_if<Expression::Ptr>(&leftRet))
+		if (auto left = std::get_if<Expression::Ptr>(&leftRet))
 		{
 			if (*left)
 				expr->setLeftOperand(*left);
@@ -372,7 +372,7 @@ public:
 		else
 			expr->setLeftOperand(nullptr);
 
-		if (auto right = mpark::get_if<Expression::Ptr>(&rightRet))
+		if (auto right = std::get_if<Expression::Ptr>(&rightRet))
 		{
 			if (*right)
 				expr->setRightOperand(*right);
@@ -394,7 +394,7 @@ public:
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
 	{
-		if (auto var = mpark::get_if<Expression::Ptr>(&varRet))
+		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
 			if (*var)
 				expr->setVariable(*var);
@@ -402,7 +402,7 @@ public:
 		else
 			expr->setVariable(nullptr);
 
-		if (auto iteratedSet = mpark::get_if<Expression::Ptr>(&iteratedSetRet))
+		if (auto iteratedSet = std::get_if<Expression::Ptr>(&iteratedSetRet))
 		{
 			if (*iteratedSet)
 				expr->setIteratedSet(*iteratedSet);
@@ -411,7 +411,7 @@ public:
 			expr->setIteratedSet(nullptr);
 
 		auto oldBody = expr->getBody();
-		if (auto body = mpark::get_if<Expression::Ptr>(&bodyRet))
+		if (auto body = std::get_if<Expression::Ptr>(&bodyRet))
 		{
 			if (*body)
 				expr->setBody(*body);
@@ -432,7 +432,7 @@ public:
 
 		if (std::all_of(elementsRet.begin(), elementsRet.end(),
 				[](const auto& element) {
-					auto e = mpark::get_if<Expression::Ptr>(&element);
+					auto e = std::get_if<Expression::Ptr>(&element);
 					return e && (*e == nullptr);
 				}))
 		{
@@ -442,7 +442,7 @@ public:
 		std::vector<Expression::Ptr> newElements;
 		for (std::size_t i = 0, end = elementsRet.size(); i < end; ++i)
 		{
-			if (auto element = mpark::get_if<Expression::Ptr>(&elementsRet[i]))
+			if (auto element = std::get_if<Expression::Ptr>(&elementsRet[i]))
 			{
 				if (*element)
 					newElements.push_back(*element);
@@ -460,7 +460,7 @@ public:
 
 	VisitResult defaultHandler(RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
 	{
-		if (auto low = mpark::get_if<Expression::Ptr>(&lowRet))
+		if (auto low = std::get_if<Expression::Ptr>(&lowRet))
 		{
 			if (*low)
 				expr->setLow(*low);
@@ -468,7 +468,7 @@ public:
 		else
 			expr->setLow(nullptr);
 
-		if (auto high = mpark::get_if<Expression::Ptr>(&highRet))
+		if (auto high = std::get_if<Expression::Ptr>(&highRet))
 		{
 			if (*high)
 				expr->setHigh(*high);
@@ -484,7 +484,7 @@ public:
 
 	VisitResult defaultHandler(StructAccessExpression* expr, const VisitResult& structureRet)
 	{
-		if (auto structure = mpark::get_if<Expression::Ptr>(&structureRet))
+		if (auto structure = std::get_if<Expression::Ptr>(&structureRet))
 		{
 			if (*structure)
 				expr->setStructure(*structure);
@@ -497,7 +497,7 @@ public:
 
 	VisitResult defaultHandler(ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
 	{
-		if (auto array = mpark::get_if<Expression::Ptr>(&arrayRet))
+		if (auto array = std::get_if<Expression::Ptr>(&arrayRet))
 		{
 			if (*array)
 				expr->setArray(*array);
@@ -505,7 +505,7 @@ public:
 		else
 			expr->setArray(nullptr);
 
-		if (auto accessor = mpark::get_if<Expression::Ptr>(&accessorRet))
+		if (auto accessor = std::get_if<Expression::Ptr>(&accessorRet))
 		{
 			if (*accessor)
 				expr->setAccessor(*accessor);
@@ -521,7 +521,7 @@ public:
 
 	VisitResult defaultHandler(FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
 	{
-		if (auto function = mpark::get_if<Expression::Ptr>(&functionRet))
+		if (auto function = std::get_if<Expression::Ptr>(&functionRet))
 		{
 			if (*function)
 				expr->setFunction(*function);
@@ -531,7 +531,7 @@ public:
 
 		if (std::all_of(argumentsRet.begin(), argumentsRet.end(),
 				[](const auto& arg) {
-					auto a = mpark::get_if<Expression::Ptr>(&arg);
+					auto a = std::get_if<Expression::Ptr>(&arg);
 					return a && (*a == nullptr);
 				}))
 		{
@@ -541,7 +541,7 @@ public:
 		std::vector<Expression::Ptr> newArguments;
 		for (std::size_t i = 0, end = argumentsRet.size(); i < end; ++i)
 		{
-			if (auto arg = mpark::get_if<Expression::Ptr>(&argumentsRet[i]))
+			if (auto arg = std::get_if<Expression::Ptr>(&argumentsRet[i]))
 			{
 				if (*arg)
 					newArguments.push_back(*arg);
@@ -556,7 +556,7 @@ public:
 
 	VisitResult defaultHandler(ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
 	{
-		if (auto enclosedExpr = mpark::get_if<Expression::Ptr>(&enclosedExprRet))
+		if (auto enclosedExpr = std::get_if<Expression::Ptr>(&enclosedExprRet))
 		{
 			if (*enclosedExpr)
 				expr->setEnclosedExpression(*enclosedExpr);
@@ -572,7 +572,7 @@ public:
 
 	VisitResult defaultHandler(IntFunctionExpression* expr, const VisitResult& argumentRet)
 	{
-		if (auto argument = mpark::get_if<Expression::Ptr>(&argumentRet))
+		if (auto argument = std::get_if<Expression::Ptr>(&argumentRet))
 		{
 			if (*argument)
 				expr->setArgument(*argument);

@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include <variant/variant.hpp>
+#include <variant>
 
 namespace yaramod {
 
@@ -23,7 +23,7 @@ enum class VisitAction
 	Delete
 };
 
-using VisitResult = mpark::variant<std::shared_ptr<Expression>, VisitAction>;
-using RegexpVisitResult = mpark::variant<std::shared_ptr<RegexpUnit>, double>;
+using VisitResult = std::variant<std::shared_ptr<Expression>, VisitAction>;
+using RegexpVisitResult = std::variant<std::shared_ptr<RegexpUnit>, double>;
 
 }
