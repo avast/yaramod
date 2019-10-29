@@ -33,6 +33,11 @@ set(SOURCES
 	yaramod.cpp
 )
 
+## Compile parser_driver.cpp with /bigobj because it generates too many sections
+if(MSVC)
+	set_source_files_properties(parser/parser_driver.cpp PROPERTIES COMPILE_FLAGS /bigobj)
+endif()
+
 if(NOT TARGET yaramod)
 	# Library.
 	add_library(yaramod ${SOURCES})
