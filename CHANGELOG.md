@@ -1,5 +1,15 @@
 # Changelog
 
+# v2.12.1 (2019-10-29)
+
+* Re-release of v2.12.0 because it was broken on git
+
+# v2.12.0 (2019-10-25)
+
+* Enhancement: Bump the required C++ standard from 14 to 17.
+* Enhancement: Replace uses of `nonstd::optional` from `dep/optional_lite` with standard C++17 `std::optional`. Remove the `optional_lite` dependency.
+* Enhancement: Replace uses of `mpark::variant` from `dep/variant` with standard C++17 `std::variant`. Remove the `variant` dependency.
+
 # v2.11.0 (2019-10-04)
 
 * New: Added `cuckoo.process.modified_clipboard()`, `cuckoo.network.connection_ip()`, `cuckoo.network.connection_country()` and `cuckoo.network.irc_command()`.

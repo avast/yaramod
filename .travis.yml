@@ -4,34 +4,28 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-      dist: xenial
-      compiler: gcc-7
+      dist: bionic
       addons:
         apt:
-          sources:
-            - ubuntu-toolchain-r-test
           packages:
             - build-essential
             - coreutils
-            - gcc-7
-            - g++-7
+            - python3-venv
+            - libfl-dev
             - pandoc
-            - python3.5
-            - python3.5-venv
-            - cmake
             - flex
             - bison
       env:
-        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && NPROC=$(nproc)"
+        - MATRIX_EVAL="NPROC=$(nproc)"
         - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build.
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env:
         - MATRIX_EVAL="NPROC=$(sysctl -n hw.physicalcpu)"
 
 install:
   # We need to install newer versions of Flex and Bison on MacOS X.
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison gnu-sed && brew upgrade python; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex bison gnu-sed; fi
 
 before_script:
   - eval "${MATRIX_EVAL}"
@@ -43,8 +37,8 @@ before_script:
 script:
   - ./setup_env.sh
   - source env/bin/activate
-  - python setup.py build --with-unit-tests
-  - python setup.py install
+  - python3 setup.py build --with-unit-tests
+  - python3 setup.py install
   - build/tests/cpp/yaramod_tests
   - pytest -v tests/python
 
