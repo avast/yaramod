@@ -9,8 +9,6 @@
 #include <memory>
 #include <variant>
 
-#include <variant>
-
 namespace yaramod {
 
 class Expression;

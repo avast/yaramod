@@ -61,8 +61,7 @@ public:
 	 */
 	YaraHexStringBuilder& add(const YaraHexStringBuilder& unit)
 	{
-		auto tmp = unit._tokenStream.get();
-		_tokenStream->move_append(tmp);
+		_tokenStream->move_append(unit._tokenStream.get());
 		std::copy(unit.getUnits().begin(), unit.getUnits().end(), std::back_inserter(_units));
 		return *this;
 	}
@@ -122,7 +121,7 @@ YaraHexStringBuilder jumpRange(std::uint64_t low, std::uint64_t high);
 template <typename... Args>
 YaraHexStringBuilder alt(const Args&... args)
 {
-	auto ts = std::make_shared<TokenStream>(); // A large tokenStream consisting of all TokenStreams of arguments
+	auto ts = std::make_shared<TokenStream>(); // A large tokenStream compounding all TokenStreams of arguments args
 	std::vector<std::shared_ptr<HexString>> hexStrings;
 	return _alt(ts, hexStrings, args...);
 }

@@ -107,7 +107,6 @@ public:
 		setType(type);
 	}
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
-	//YaraExpressionBuilder(YaraExpressionBuilder& builder) : YaraExpressionBuilder(std::as_const(builder)) {}
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
 
@@ -129,10 +128,7 @@ public:
 
 	/// @name Detection methods
 	/// @{
-	bool canBeBool() const
-	{
-		return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isUndefined();
-	}
+	bool canBeBool() const { return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isUndefined(); }
 	/// @}
 
 	/// @name Builder method

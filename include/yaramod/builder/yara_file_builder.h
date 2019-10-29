@@ -46,8 +46,8 @@ public:
 	/// @}
 
 private:
-   bool _lastAddedWasImport = false;
-	std::shared_ptr<TokenStream> _tokenStream;
+	bool _lastAddedWasImport = false; ///< Flag to determine newlines
+	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
 	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 };
