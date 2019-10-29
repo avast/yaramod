@@ -8,7 +8,7 @@ environment:
   PYPI_PASSWORD:
     secure: rqIEDKQDpYkovDQpxHABjjAXnULbrLiwEWa1mwYWKis=
   matrix:
-    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python38-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       DEPLOY_TO_PYPI: true
@@ -16,10 +16,13 @@ environment:
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       DEPLOY_TO_PYPI: true
-    - PYTHON: "C:\\Python36"
-      CMAKE_GENERATOR: Visual Studio 15 2017
+    - PYTHON: "C:\\Python36-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       DEPLOY_TO_PYPI: true
+    - PYTHON: "C:\\Python38"
+      CMAKE_GENERATOR: Visual Studio 15 2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - PYTHON: "C:\\Python37"
       CMAKE_GENERATOR: Visual Studio 15 2017
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
