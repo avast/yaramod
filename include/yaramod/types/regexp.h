@@ -55,7 +55,7 @@ public:
 		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
 
-	virtual std::string getText() const
+	virtual std::string getText() const override
 	{
 		std::ostringstream ss;
 		ss << _leftRectBracket->getPureText();

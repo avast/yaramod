@@ -218,6 +218,7 @@ public:
 			else if( mod & Modifiers::Xor )
 				it = _tokenStream->emplace_back(TokenType::MODIFIER, "xor");
 			_mods_strings.push_back(it);
+			return true;
 		}
 	}
 	/// @}
