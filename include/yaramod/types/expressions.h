@@ -1434,7 +1434,7 @@ public:
 	LiteralType getValue() const
 	{
 		assert( _value.has_value() );
-		return (*_value)->getValue<LiteralType>();
+		return (*_value)->template getValue<LiteralType>();
 	}
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override

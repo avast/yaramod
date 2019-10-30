@@ -177,16 +177,16 @@ void PogParser::defineTokens()
 	//$include_file end
 
 	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(_driver.currentLocation(), INTEGER, std::stol(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
+		return emplace_back(_driver.currentLocation(), INTEGER, std::stoi(std::string{str}.substr(2), 0, 16), std::make_optional(std::string{str}) );
 	});
 	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(_driver.currentLocation(), INTEGER, 1000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
+		return emplace_back(_driver.currentLocation(), INTEGER, 1000 * std::stoi(std::string{str}), std::make_optional(std::string{str}));
 	});
 	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(_driver.currentLocation(), INTEGER, 1000000 * std::stol(std::string{str}), std::make_optional(std::string{str}));
+		return emplace_back(_driver.currentLocation(), INTEGER, 1000000 * std::stoi(std::string{str}), std::make_optional(std::string{str}));
 	});
 	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(_driver.currentLocation(), INTEGER, std::stol(std::string{str}), std::make_optional(std::string{str}));
+		return emplace_back(_driver.currentLocation(), INTEGER, std::stoi(std::string{str}), std::make_optional(std::string{str}));
 	});
 
 	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action( [&](std::string_view str) -> Value {
