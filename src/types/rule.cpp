@@ -345,13 +345,10 @@ bool Rule::isPrivate() const
 void Rule::addMeta(const std::string& name, const Literal& value)
 {
 	// first we need to find a proper placing for the meta within the tokenstream:
-	auto metaIt = _tokenStream->find(TokenType::META_END);
-	if( metaIt == _tokenStream->end() )
-	{
-		metaIt = _tokenStream->find(TokenType::LCB);
-		assert(metaIt != _tokenStream->end() && "Called addMeta on rule that does not contain '{' tor the meta to be placed in");
-		++metaIt;
-	}
+	auto metaIt = _tokenStream->find(TokenType::LCB);
+	assert(metaIt != _tokenStream->end() && "Called addMeta on rule that does not contain '{' for the meta to be placed in");
+	++metaIt;
+
 	auto itKey = _tokenStream->insert(metaIt, TokenType::META_KEY, Literal(name) );
 	_tokenStream->insert( metaIt, TokenType::EQ, Literal(" = ") );
 	auto itValue = _tokenStream->insert( metaIt, TokenType::META_VALUE, value );
