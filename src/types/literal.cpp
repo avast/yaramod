@@ -765,21 +765,21 @@ void TokenStream::clear()
 
 class LeftBracketEntry {
 public:
-	LeftBracketEntry(int line, int tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
+	LeftBracketEntry(size_t line, size_t tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
 
-	int getLine() const { return _line; }
-	int getTabulator() const { return _tabulator; }
+	size_t getLine() const { return _line; }
+	size_t getTabulator() const { return _tabulator; }
 	bool putNewLines() const { return _put_new_lines; }
 private:
 	bool _put_new_lines;
-	int _tabulator;
-	int _line;
+	size_t _tabulator;
+	size_t _line;
 };
 
 
 class BracketStack {
 public:
-	void addLeftBracket(int line, bool put_new_lines)
+	void addLeftBracket(size_t line, bool put_new_lines)
 	{
 
 		if( _brackets.empty() )
@@ -787,7 +787,7 @@ public:
 		else
 		{
 			const auto& previous = _brackets.back();
-			int tabulator = previous.getTabulator();
+			size_t tabulator = previous.getTabulator();
 			if(line != previous.getLine())
 				++tabulator;
 			_brackets.emplace_back(line, tabulator, put_new_lines);
@@ -808,13 +808,6 @@ public:
 			return false;
 		return _brackets.back().putNewLines();
 	}
-
-	// uint getTabulatorCount() const
-	// {
-	// 	if(_brackets.empty())
-	// 		return 0;
-	// 	return _brackets.back().getTabulator();
-	// }
 
 	std::string getTabulators() const
 	{

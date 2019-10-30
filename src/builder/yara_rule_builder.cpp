@@ -340,10 +340,11 @@ YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const s
 	auto temporary = std::make_shared<TokenStream>();
 	auto plainString = std::make_shared<PlainString>(temporary, value);
 	plainString->setModifiers(mods, true);
+	plainString->setIdentifier(id_token);
+	
 	_tokenStream->move_append(temporary.get(), _condition_it);
 	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 
-	plainString->setIdentifier(id_token);
 	_strings->insert(id, std::static_pointer_cast<String>(plainString));
 	return *this;
 }
@@ -394,12 +395,12 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
 
 	auto temporary = std::make_shared<TokenStream>();
 	auto regexp = std::make_shared<Regexp>(temporary, std::make_shared<RegexpText>(value));
-	_tokenStream->move_append(temporary.get(), _condition_it);
-	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
-
 	regexp->setIdentifier(id);
 	regexp->setModifiers(mods, true);
 	regexp->setSuffixModifiers(suffixMods);
+
+	_tokenStream->move_append(temporary.get(), _condition_it);
+	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 	_strings->insert(id, std::static_pointer_cast<String>(regexp));
 	return *this;
 }
