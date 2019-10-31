@@ -63,7 +63,7 @@ void PogParser::defineTokens()
 		return {};
 	});
 
-	_parser.token(R"(\.\.)").symbol("RANGE").description("integer range").action( [&](std::string_view str) -> Value { return emplace_back( _driver.currentLocation(), RANGE, std::string{str} ); } );
+	_parser.token(R"(\.\.)").symbol("RANGE").description("integer range").action( [&](std::string_view str) -> Value { return emplace_back( _driver.currentLocation(), DOUBLE_DOT, std::string{str} ); } );
 	_parser.token(R"(\.)").symbol("DOT").description(".").action( [&](std::string_view str) -> Value { return emplace_back( _driver.currentLocation(), DOT, std::string{str} ); } )
 		.precedence(15, pog::Associativity::Left);
 	_parser.token("<").symbol("LT").description("<").action( [&](std::string_view str) -> Value { return emplace_back( _driver.currentLocation(), LT, std::string{str} ); } )
@@ -1313,7 +1313,7 @@ void PogParser::defineGrammar()
 			auto symbol = attr.value();
 			symbol_token->setValue(symbol, symbol->getName());
 			symbol_token->setType(symbol->getTokenType());
-			auto output = std::make_shared<StructAccessExpression>(symbol_token, std::move(expr), args[1].getTokenIt());
+			auto output = std::make_shared<StructAccessExpression>(std::move(expr), args[1].getTokenIt(), symbol_token);
 			output->setType(symbol->getDataType());
 			return Value(std::move(output));
 		})

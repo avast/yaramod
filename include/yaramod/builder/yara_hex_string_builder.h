@@ -134,8 +134,8 @@ YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shar
 template <typename... Args>
 YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit, const Args&... args)
 {
-   if(hexStrings.size() == 0)
-      ts->emplace_back(HEX_ALT_LEFT_BRACKET, "(");
+	if(hexStrings.size() == 0)
+		ts->emplace_back(HEX_ALT_LEFT_BRACKET, "(");
 	const auto& hexString = unit.get(ts, false);
 	hexStrings.push_back(hexString);
 	ts->emplace_back(HEX_ALT, "|");

@@ -362,7 +362,6 @@ std::string Literal::getPureText() const
 
 bool Literal::isString() const
 {
-	// return std::is_same_v< decltype(_value), std::string& >;
 	return _value.index() == 0;
 }
 
@@ -1001,8 +1000,6 @@ std::string TokenStream::getText(bool withIncludes)
 					break;
 				case HEX_ALT:
 				case HEX_JUMP_FIXED:
-				// case HEX_JUMP_VARYING:
-				// case HEX_JUMP_VARYING_RANGE:
 				case HEX_JUMP_RIGHT_BRACKET:
 				case HEX_START_BRACKET:
 					second_nibble = true;

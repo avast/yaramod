@@ -60,14 +60,14 @@ public:
 		, _mods(Modifiers::None)
 	{
 		assert(_tokenStream);
-		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
-		_equal_sign = _tokenStream->emplace_back(TokenType::EQ, "=");
+		_id = _tokenStream->emplace_back(STRING_KEY, id);
+		_assign_token = _tokenStream->emplace_back(ASSIGN, "=");
 	}
-	explicit String(std::shared_ptr<TokenStream> ts, Type type, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings)
+	explicit String(std::shared_ptr<TokenStream> ts, Type type, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings)
 		: _tokenStream(ts)
 		, _type(type)
 		, _id(id)
-		, _equal_sign(equal_sign)
+		, _assign_token(assign_token)
 		, _mods(mods)
 		, _mods_strings(mods_strings)
 	{
@@ -133,15 +133,15 @@ public:
 		else
 		{
 			auto first = getFirstTokenIt();
-			_id = _tokenStream->emplace(first, TokenType::STRING_KEY, std::forward<Str>(id));
-			_equal_sign = _tokenStream->emplace(first, TokenType::EQ, "=");
+			_id = _tokenStream->emplace(first, STRING_KEY, std::forward<Str>(id));
+			_assign_token = _tokenStream->emplace(first, ASSIGN, "=");
 		}
 	}
 
-	void setIdentifier(TokenIt id, TokenIt equal_sign)
+	void setIdentifier(TokenIt id, TokenIt assign_token)
 	{
 		setIdentifier(id);
-		_equal_sign = equal_sign;
+		_assign_token = assign_token;
 	}
 
 	void setIdentifier(TokenIt id)
@@ -171,16 +171,16 @@ public:
 				if(_mods == Modifiers::Ascii && avoidSingleAscii)
 					return;
 				else
-					_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "ascii" ));
+					_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "ascii" ));
 			}
 			if (_mods & Modifiers::Wide)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "wide" ));
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "wide" ));
 			if (_mods & Modifiers::Nocase)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "nocase" ));
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "nocase" ));
 			if (_mods & Modifiers::Fullword)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "fullword" ));
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "fullword" ));
 			if (_mods & Modifiers::Xor)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, TokenType::MODIFIER, "xor" ));
+				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "xor" ));
 		}
 	}
 
@@ -198,7 +198,7 @@ public:
 		}
 	}
 	// Adds modifier only when not present. Otherwise false is returned.
-	// !!! The mod's token is emplaced at the end of the tokenStream (that is needed if we want to put a comment in between modifiers)
+	// The mod's token is emplaced at the end of the tokenStream (that is needed if we want to put a comment in between modifiers)
 	bool addModifier(String::Modifiers mod)
 	{
 		if(_mods && mod) //mod already present
@@ -208,15 +208,15 @@ public:
 			_mods += mod;
 			TokenIt it;
 			if( mod & Modifiers::Ascii )
-				it = _tokenStream->emplace_back(TokenType::MODIFIER, "ascii");
+				it = _tokenStream->emplace_back(MODIFIER, "ascii");
 			else if( mod & Modifiers::Wide )
-				it = _tokenStream->emplace_back(TokenType::MODIFIER, "wide");
+				it = _tokenStream->emplace_back(MODIFIER, "wide");
 			else if( mod & Modifiers::Nocase )
-				it = _tokenStream->emplace_back(TokenType::MODIFIER, "nocase");
+				it = _tokenStream->emplace_back(MODIFIER, "nocase");
 			else if( mod & Modifiers::Fullword )
-				it = _tokenStream->emplace_back(TokenType::MODIFIER, "fullword");
+				it = _tokenStream->emplace_back(MODIFIER, "fullword");
 			else if( mod & Modifiers::Xor )
-				it = _tokenStream->emplace_back(TokenType::MODIFIER, "xor");
+				it = _tokenStream->emplace_back(MODIFIER, "xor");
 			_mods_strings.push_back(it);
 			return true;
 		}
@@ -240,7 +240,7 @@ protected:
 	std::shared_ptr<TokenStream> _tokenStream; ///< shared_pointer to the TokenStream in which the data is stored
 	Type _type; ///< Type of string //no need to store type of string in tokenstream - we just store the '"' or '/' characters
 	std::optional<TokenIt> _id; ///< Identifier //string
-	std::optional<TokenIt> _equal_sign;
+	std::optional<TokenIt> _assign_token; ///< Identifier //string
 	std::uint32_t _mods; ///< String modifiers //std::uint32_t
 	std::vector<TokenIt> _mods_strings; //This is ambiguous with _mods, but for performance. This class alone is responsible for coherent representation of _mods.
 };

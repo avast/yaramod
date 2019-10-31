@@ -15,9 +15,9 @@ namespace yaramod {
  * @param text Text of the plain string.
  */
 PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& text)
-   : String(ts, String::Type::Plain)
+	: String(ts, String::Type::Plain)
 {
-   _text = ts->emplace_back(TokenType::STRING_LITERAL, text);
+	_text = ts->emplace_back(TokenType::STRING_LITERAL, text);
 }
 
 /**
@@ -26,9 +26,9 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& tex
  * @param text Text of the plain string.
  */
 PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
-   : String(ts, String::Type::Plain)
+	: String(ts, String::Type::Plain)
 {
-   _text = ts->emplace_back(TokenType::STRING_LITERAL, std::move(text));
+	_text = ts->emplace_back(TokenType::STRING_LITERAL, std::move(text));
 }
 
 /**
@@ -37,17 +37,17 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
  * @param text Text of the plain string.
  */
 PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt text)
-   : String(ts, String::Type::Plain)
-   , _text(text)
+	: String(ts, String::Type::Plain)
+	, _text(text)
 {
-   if(!text->isString())
-      throw YaramodError("String class identifier must be string.");
-   assert(text->getType() == TokenType::STRING_LITERAL);
+	if(!text->isString())
+		throw YaramodError("String class identifier must be string.");
+	assert(text->getType() == TokenType::STRING_LITERAL);
 }
 
-PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
-      : String(ts, String::Type::Plain, id, equal_sign, mods, mods_strings)
-      , _text(text)
+PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
+		: String(ts, String::Type::Plain, id, assign_token, mods, mods_strings)
+		, _text(text)
 {
 }
 
@@ -73,12 +73,12 @@ std::string PlainString::getPureText() const
 
 TokenIt PlainString::getFirstTokenIt() const
 {
-   if(_id)
-      return _id.value();
-   else if(_equal_sign)
-      return _equal_sign.value();
-   else
-      return _text;
+	if(_id)
+		return _id.value();
+	else if(_assign_token)
+		return _assign_token.value();
+	else
+		return _text;
 }
 
 }

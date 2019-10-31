@@ -394,7 +394,7 @@ private:
  * !(@str > 10)
  * @endcode
  */
-class NotExpression : public UnaryOpExpression //odpovida not v condition
+class NotExpression : public UnaryOpExpression
 {
 public:
 	template<typename ExpPtr>
@@ -954,15 +954,6 @@ protected:
 class ForIntExpression : public ForExpression
 {
 public:
-	// template<typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	// ForIntExpression(ExpPtr1&& forExpr, TokenIt id, ExpPtr2&& set, ExpPtr3&& expr, TokenIt for_token, TokenIt in, TokenIt left_bracket, TokenIt right_bracket)
-	// 	: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
-	// 	, _id(id)
-	// 	, _for(for_token)
-	// 	, _left_bracket(left_bracket)
-	// 	, _right_bracket(right_bracket)
-	// {
-	// }
 	template<typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
 	ForIntExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id, TokenIt in, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
@@ -1026,7 +1017,7 @@ public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
 		std::stringstream ss;
-		ss << _for->getString() << " " << _forExpr->getText(indent) << " "
+		ss	<< _for->getString() << " " << _forExpr->getText(indent) << " "
 			<< _of_in->getString() + " " << _set->getText(indent) << " : "
 			<< _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
@@ -1253,7 +1244,7 @@ class StructAccessExpression : public IdExpression
 {
 public:
 	template<typename ExpPtr>
-	StructAccessExpression(TokenIt symbol, ExpPtr&& structure, TokenIt dot) //structure.symbol
+	StructAccessExpression(ExpPtr&& structure, TokenIt dot, TokenIt symbol)
 		: IdExpression(symbol)
 		, _structure(std::forward<ExpPtr>(structure))
 		, _dot(dot)
@@ -1301,7 +1292,6 @@ public:
 		, _array(std::forward<ExpPtr1>(array))
 		, _accessor(std::forward<ExpPtr2>(accessor))
 	{
-		// _tokenStream->emplace_back(DOT, ".");
 		_tokenStream->move_append(_array->getTokenStream());
 		_left_bracket = _tokenStream->emplace_back(LSQB, "[");
 		_tokenStream->move_append(_accessor->getTokenStream());
@@ -1559,7 +1549,7 @@ public:
 class DoubleLiteralExpression : public LiteralExpression<double>
 {
 public:
-	DoubleLiteralExpression(TokenIt value) // parser uses this
+	DoubleLiteralExpression(TokenIt value)
 		: LiteralExpression<double>(value)
 	{
 	}
@@ -1823,8 +1813,8 @@ public:
 private:
 	TokenIt _func; ///< Function identifier
 	Expression::Ptr _expr; ///< Function argument
-	TokenIt _left_bracket;
-	TokenIt _right_bracket;
+	TokenIt _left_bracket; ///< left parentheses token
+	TokenIt _right_bracket; ///< right parentheses token
 };
 
 /**

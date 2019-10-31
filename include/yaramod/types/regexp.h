@@ -95,10 +95,10 @@ public:
 	bool isNegative() const { return _negative->getBool(); }
 
 private:
-	TokenIt _leftRectBracket;
+	TokenIt _leftRectBracket; ///< '[' token
 	std::vector<TokenIt> _characters; ///< Characters in the class
 	TokenIt _negative; ///< Negative class
-	TokenIt _rightRectBracket;
+	TokenIt _rightRectBracket; ///< ']' token
 };
 
 /**
@@ -398,7 +398,7 @@ public:
 	{
 		assert(operand);
 		_operand = std::move(operand);
-		///     {   left   ','   right   }
+		///  '{'  left  ','  right  '}'
 		_tokenStream = std::move(_operand->getTokenStream());
 		_leftBracket = _tokenStream->emplace_back(TokenType::LCB, '{');
 
@@ -463,10 +463,10 @@ public:
 	}
 
 private:
-	TokenIt _leftBracket;
-	std::optional<TokenIt> _first;
-	std::optional<TokenIt> _second; ///< Lower and higher bound of the range
-	TokenIt _rightBracket;
+	TokenIt _leftBracket; ///< '{' token
+	std::optional<TokenIt> _first; ///< Lower bound of the range
+	std::optional<TokenIt> _second; ///< Higher bound of the range
+	TokenIt _rightBracket; ///< '}' token
 };
 
 /**
@@ -532,9 +532,9 @@ public:
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
 
 private:
-	TokenIt _left_bracket;
+	TokenIt _left_bracket; ///< '(' token
 	std::shared_ptr<RegexpUnit> _unit; ///< Grouped units
-	TokenIt _right_bracket;
+	TokenIt _right_bracket; ///< ')' token
 };
 
 /**
@@ -627,8 +627,8 @@ public:
 	{
 		if(_id)
 			return _id.value();
-		else if(_equal_sign)
-			return _equal_sign.value();
+		else if(_assign_token)
+			return _assign_token.value();
 		else
 			return _leftSlash;
 	}
@@ -687,9 +687,9 @@ public:
 	}
 
 private:
-	TokenIt _leftSlash;
+	TokenIt _leftSlash; ///< right '/' token
 	std::shared_ptr<RegexpUnit> _unit; ///< Unit defining other units in regular expression
-	TokenIt _rightSlash;
+	TokenIt _rightSlash; ///< left '/' token
 	std::optional<TokenIt> _suffixMods; ///< Regular expression suffix modifiers, std::string
 };
 

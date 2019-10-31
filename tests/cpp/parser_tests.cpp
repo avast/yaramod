@@ -345,7 +345,6 @@ rule hex_string_with_plain_nibble {
 		true
 }
 )");
-	// ParserDriver driver(input);
 
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
@@ -376,7 +375,6 @@ rule hex_string_with_plain_nibbles {
 		true
 }
 )");
-	// ParserDriver driver(input);
 
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());

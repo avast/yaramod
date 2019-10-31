@@ -149,8 +149,6 @@ RegexpGroup) {
 
    auto ts = group.getTokenStream();
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "(", "^", ")" }));
-
-   //TODO: implement interface to add comments in between '(' and '.'. Then test the interface here.
 }
 
 TEST_F(RepresentationTests,

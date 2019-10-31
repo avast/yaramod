@@ -543,7 +543,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
 	auto symbolName = symbol->getName();
 	TokenIt symbolIt = _tokenStream->emplace_back(ID, std::move(symbol), symbolName);
 
-	_expr = std::make_shared<StructAccessExpression>(symbolIt, std::move(_expr), dotIt); //TODO: Change this StructAccessExpression's constructor parameter order...
+	_expr = std::make_shared<StructAccessExpression>(std::move(_expr), dotIt, symbolIt);
 	setType(type);
 	return *this;
 }
@@ -738,8 +738,7 @@ YaraExpressionBuilder stringVal(const std::string& value)
 
 /**
  * Creates the boolean expression:
- *    - TokenStream is created and given into the expression
- *
+ * 
  * @param value Boolean value.
  *
  * @return Builder.
@@ -939,7 +938,7 @@ YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt id_token = ts->emplace_back(STRING_ID, id);
-   TokenIt at_symbol = ts->emplace_back(OP_AT, "at");
+	TokenIt at_symbol = ts->emplace_back(OP_AT, "at");
 
 	auto other_expression = other.get();
 	ts->move_append(other_expression->getTokenStream());
@@ -960,7 +959,7 @@ YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBu
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt id_token = ts->emplace_back(STRING_ID, id);
-   TokenIt in_symbol = ts->emplace_back(OP_IN, "in");
+	TokenIt in_symbol = ts->emplace_back(OP_IN, "in");
 
 	auto other_expression = other.get();
 	ts->move_append(other_expression->getTokenStream());

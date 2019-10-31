@@ -15,8 +15,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <optional>
-
 namespace yaramod {
 
 template <typename T>

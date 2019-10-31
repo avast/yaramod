@@ -74,8 +74,8 @@ TokenIt HexString::getFirstTokenIt() const
 {
    if(_id)
       return _id.value();
-   else if(_equal_sign)
-      return _equal_sign.value();
+   else if(_assign_token)
+      return _assign_token.value();
    else
       return _tokenStream->begin();
 }

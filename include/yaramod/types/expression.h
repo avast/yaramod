@@ -69,12 +69,12 @@ public:
 	{
 		switch(_type)
 		{
-			case Expression::Type::Bool:      return "bool";
-			case Expression::Type::Int:       return "int";
-			case Expression::Type::String:    return "string";
-			case Expression::Type::Regexp:    return "regexp";
-			case Expression::Type::Object:    return "object";
-			case Expression::Type::Float:     return "float";
+			case Expression::Type::Bool: return "bool";
+			case Expression::Type::Int: return "int";
+			case Expression::Type::String: return "string";
+			case Expression::Type::Regexp: return "regexp";
+			case Expression::Type::Object: return "object";
+			case Expression::Type::Float: return "float";
 			case Expression::Type::Undefined: return "undefined";
 			default: return "Error - unknown type";
 		}

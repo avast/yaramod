@@ -113,7 +113,6 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
-	//_tokenStream->emplace_back(COMMENT, "/*new rule appears*/");
 	if(!_rules.empty() || _lastAddedWasImport)
 	{
 		_tokenStream->emplace_back(NEW_LINE, "\n");

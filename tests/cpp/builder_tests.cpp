@@ -1196,7 +1196,7 @@ RuleWithDisjunctionWithLinebreaksInConditionWorks) {
 
 TEST_F(BuilderTests,
 RuleWithCommentedConjunctionInConditionWorks) {
-	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;// = { {stringRef("$1"), "comment1"}, {paren(matchOffset("$1") < intVal(100)), "comment2"}, {paren(entrypoint() == intVal(100)), "comment3" } };
+	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;
 	terms.emplace_back(std::make_pair(stringRef("$1"), "comment1"));
 	terms.emplace_back(std::make_pair(paren(matchOffset("$1") < intVal(100)), "comment2"));
 	terms.emplace_back(std::make_pair(paren(entrypoint() == intVal(100)), "comment3"));
@@ -1241,7 +1241,7 @@ RuleWithCommentedConjunctionInConditionWorks) {
 
 TEST_F(BuilderTests,
 RuleWithCommentedDisjunctionInConditionWorks) {
-	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;// = { {stringRef("$1"), "Hello must be present"}, {stringRef("$2"), "World must be present"}, {paren(entrypoint() == intVal(100)), "entrypoint is 100" } };
+	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;
 	terms.emplace_back(std::make_pair(stringRef("$1"), "Hello must be present"));
 	terms.emplace_back(std::make_pair(stringRef("$2"), "World must be present"));
 	terms.emplace_back(std::make_pair(paren(entrypoint() == intVal(100)), "entrypoint is 100"));
