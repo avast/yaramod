@@ -540,7 +540,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
 	TokenIt dotIt = _tokenStream->emplace_back(DOT, ".");
 	auto symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
 	Expression::Type type = symbol->getDataType();
-	TokenIt symbolIt = _tokenStream->emplace_back(ID, std::move(symbol), symbol->getName());
+	auto symbolName = symbol->getName();
+	TokenIt symbolIt = _tokenStream->emplace_back(ID, std::move(symbol), symbolName);
 
 	_expr = std::make_shared<StructAccessExpression>(symbolIt, std::move(_expr), dotIt); //TODO: Change this StructAccessExpression's constructor parameter order...
 	setType(type);
