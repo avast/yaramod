@@ -3341,7 +3341,7 @@ import "cuckoo"
 
 rule public_rule {
 	condition:
-		for 2 i in (1 .. 4) : (
+		for 2 i in (1..4) : (
 			i == 4 and (
 				true or
 				false
