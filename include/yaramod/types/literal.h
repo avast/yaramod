@@ -319,6 +319,7 @@ public:
 		: _type(type)
 		, _value(std::make_shared < Literal >(value))
 		, _location()
+		, _wanted_column(0)
 	{
 	}
 
@@ -326,6 +327,7 @@ public:
 		: _type(type)
 		, _value(std::make_shared < Literal >(std::move(value)))
 		, _location()
+		, _wanted_column(0)
 	{
 	}
 
@@ -356,6 +358,7 @@ public:
 	void setType(TokenType type) { _type = type; }
 	void setFlag(bool flag) { _flag = flag; }
 	void setLocation(const Location& location) { _location = location; }
+	void setIndentation(size_t wanted_column) { _wanted_column = wanted_column; }
 	/// @}
 
 	/// @name Detection methods
@@ -421,6 +424,7 @@ public:
 	const T& getValue() const { return _value->getValue<T>(); }
 	bool getFlag() const { return _flag; }
 	const Location& getLocation() const { return _location; }
+	size_t getIndentation() const { return _wanted_column; }
 	/// @}
 
 	/// @name Include substream handler methods
@@ -440,6 +444,7 @@ private:
 	std::shared_ptr< TokenStream > _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
 	std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 	Location _location; // Location in source input is stored in Tokens for precise error outputs
+	size_t _wanted_column; // Wanted column where this Literal should be printed. Used for one-line comments.
 };
 
 using TokenIt = std::list< Token >::iterator;
@@ -450,6 +455,24 @@ using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
 class TokenStream
 {
 public:
+	class PrintHelper
+	{
+	public:
+		size_t getCurrentLine() const { return lineCounter; }
+		const std::vector<TokenIt>& getCommentPool() const { return commentPool; }
+
+		size_t insertIntoStream(std::stringstream* ss, char what);
+		size_t insertIntoStream(std::stringstream* ss, const std::string& what, size_t length = 0);
+		size_t insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what);
+		size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment);
+	private:
+		size_t lineCounter = 0;
+		size_t columnCounter = 0;
+		bool commentOnThisLine = false;
+		size_t maximalCommentColumn = 0;
+		std::vector<TokenIt> commentPool;
+	};
+
 	TokenStream() = default;
 
 	/// @name Insertion methods
@@ -508,27 +531,34 @@ public:
 	bool empty() const;
 	/// @}
 
+	/// @name Lookaround methods
+	/// @{
 	TokenIt find( TokenType type );
 	TokenIt find( TokenType type, TokenIt from );
 	TokenIt find( TokenType type, TokenIt from, TokenIt to );
 	TokenIt findBackwards(TokenType type);
 	TokenIt findBackwards(TokenType type, TokenIt to);
 	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
+	std::optional<TokenIt> predecessor(TokenIt it);
+	/// @}
 
+	/// @name Text representation
+	/// @{
 	friend std::ostream& operator<<(std::ostream& os, TokenStream& ts) { return os << ts.getText(false); }
-
-	std::string getText(bool withIncludes = false);
-
+	std::string getText(bool withIncludes = false, bool alignComments = true);
 	std::vector<std::string> getTokensAsText() const;
+	/// @}
 
 	/// @name Reseting method
 	void clear();
 	/// @}
-private:
+protected:
+	void computeCommentAlignment(bool withIncludes);
+	void getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments);
 	void autoformat();
 	void determineNewlineSectors();
 	void addMissingNewLines();
-	void printComment(std::stringstream& ss, TokenIt comment) const;
+private:
 	std::list< Token > _tokens; ///< All tokens off the rule
 	bool formatted = false; ///< The flag is set once autoformat has been called
 };

@@ -14,6 +14,8 @@
 
 namespace yaramod {
 
+#define TABULATOR_LENGTH 8
+
 /**
  * Constructor.
  *
@@ -692,6 +694,14 @@ std::reverse_iterator<TokenConstIt> TokenStream::rend() const
 	return _tokens.rend();
 }
 
+std::optional<TokenIt> TokenStream::predecessor( TokenIt it )
+{
+	if(it == begin())
+		return std::nullopt;
+	else
+		return std::prev(it);
+}
+
 size_t TokenStream::size() const
 {
 	return _tokens.size();
@@ -877,9 +887,7 @@ void TokenStream::addMissingNewLines()
 				brackets.addRightBracket();
 		}
 		if(current == NEW_LINE)
-		{
 			++lineCounter;
-		}
 	}
 }
 
@@ -890,24 +898,102 @@ void TokenStream::autoformat()
 	formatted = true;
 }
 
-void TokenStream::printComment(std::stringstream& ss, TokenIt it) const
+size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char what)
 {
-	auto prevIt = std::prev(it);
-	const std::string& indent = it->getLiteral().getFormattedValue(); //indention
-	if( prevIt->getType() == NEW_LINE)
-		ss << indent;
-	for(const auto& c : it->getPureText())
-		ss << c;
+	columnCounter += 1;
+	if(ss)
+		*ss << what;
+	return columnCounter;
 }
 
-std::string TokenStream::getText(bool withIncludes)
+size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, const std::string& what, size_t length)
+{
+	if(length != 0)
+		columnCounter += length;
+	else
+		columnCounter += what.length();
+	if(ss)
+		*ss << what;
+	return columnCounter;
+}
+
+// NEW_LINE, returns current column
+size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what)
+{
+	std::stringstream tmp;
+	tmp << *what;
+	const std::string& appendee = tmp.str();
+	assert(what->getType() != ONELINE_COMMENT);
+	auto prevIt = ts->predecessor(what);
+	if(what->getType() == NEW_LINE)
+	{
+		if(!commentOnThisLine || ( prevIt && (*prevIt)->getType() == COLON ) )
+		{
+			if(commentPool.size() >= 2)
+				for(auto comment : commentPool)
+					comment->setIndentation(maximalCommentColumn);
+			commentPool.clear();
+			maximalCommentColumn = 0;
+		}
+		++lineCounter;
+		commentOnThisLine = false;
+		columnCounter = 0;
+	}
+	else
+	{
+		columnCounter += appendee.length();
+		if(columnCounter > maximalCommentColumn)
+			maximalCommentColumn = columnCounter;
+	}
+
+	if(ss)
+		*ss << appendee;
+	return columnCounter;
+}
+
+size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment)
+{
+	auto prevIt = ts->predecessor(it);
+
+	const std::string& indent = it->getLiteral().getFormattedValue();
+	// print indent part 1
+	if( prevIt && (*prevIt)->getType() == NEW_LINE)
+	{
+		if(ss)
+			*ss << indent;
+	}// print indent part 2
+	else if( ss && alignComment && columnCounter < it->getIndentation() && ( !prevIt || (*prevIt)->getType() != COLON ) )
+		*ss << std::string(it->getIndentation() - columnCounter + 1, ' ');
+	// remember oneline comments
+	if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON) )
+	{
+		commentOnThisLine = true;
+		commentPool.push_back(it);
+	}
+
+	if(ss)
+		for(const auto& c : it->getPureText())
+			*ss << c;
+	return columnCounter;
+}
+
+std::string TokenStream::getText(bool withIncludes, bool alignComments)
+{
+	PrintHelper helper;
+	if(alignComments)
+		getTextProcedure(helper, nullptr, withIncludes, alignComments); // First call determines alignment of comments
+
+	std::stringstream os;
+	getTextProcedure(helper, &os, withIncludes, alignComments); // Second call constructs the text
+	return os.str();
+}
+
+void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
 	if(!formatted)
 		autoformat();
 	BracketStack brackets;
-	size_t lineCounter = 0;
 	int current_line_tabs = 0;
-	std::stringstream os;
 	bool inside_rule = false;
 	bool inside_hex_string = false;
 	bool inside_hex_jump = false;
@@ -923,17 +1009,19 @@ std::string TokenStream::getText(bool withIncludes)
 		else if(current == INCLUDE_PATH)
 		{
 			assert(it->isIncludeToken());
-			if(withIncludes){
-				os << it->getSubTokenStream()->getText(withIncludes);
+			if(withIncludes)
+			{
+				const std::string& text = it->getSubTokenStream()->getText(withIncludes);
+				helper.insertIntoStream(os, text);
 				continue;
 			}
 			else
-				os << *it;
+				helper.insertIntoStream(os, this, it);
 		}
-		else if((current == ONELINE_COMMENT || current == COMMENT) && it != begin())
-			printComment(os, it);
+		else if((current == ONELINE_COMMENT || current == COMMENT))
+			helper.printComment(os, this, it, alignComments);
 		else
-			os << *it;
+			helper.insertIntoStream(os, this, it);
 
 		auto nextIt = std::next(it);
 		if(nextIt == end())
@@ -962,7 +1050,7 @@ std::string TokenStream::getText(bool withIncludes)
 
 		if(it->isLeftBracket())
 		{
-			brackets.addLeftBracket(lineCounter, it->getFlag());
+			brackets.addLeftBracket(helper.getCurrentLine(), it->getFlag());
 			if(it->getFlag())
 				++current_line_tabs;
 		}
@@ -972,20 +1060,19 @@ std::string TokenStream::getText(bool withIncludes)
 		}
 		if(current == NEW_LINE)
 		{
-			++lineCounter;
 			if(inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
 			{
 				if(next == META
 					|| next == STRINGS
 					|| next == CONDITION)
 				{
-					os << "\t";
+					helper.insertIntoStream(os, "\t", TABULATOR_LENGTH);
 				}
 				else if(next != RULE_END)
 				{
 					if(nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
-					os << std::string( 2 + current_line_tabs, '\t');
+					helper.insertIntoStream(os, std::string( 2 + current_line_tabs, '\t'), (2 + current_line_tabs) * TABULATOR_LENGTH);
 				}
 			}
 		}
@@ -1010,7 +1097,7 @@ std::string TokenStream::getText(bool withIncludes)
 			if(!inside_hex_jump && next != NEW_LINE)
 			{
 				if(second_nibble && next != COMMA)
-					os << " ";
+					helper.insertIntoStream(os, ' ');
 			}
 		}
 		else if(!inside_regexp && !inside_enumeration_brackets)
@@ -1031,7 +1118,7 @@ std::string TokenStream::getText(bool withIncludes)
 					break;
 				case LP:
 					if(next == COMMENT || next == ONELINE_COMMENT)
-						os << " ";
+						helper.insertIntoStream(os, ' ');
 					break;
 				default:
 					switch(next)
@@ -1051,19 +1138,18 @@ std::string TokenStream::getText(bool withIncludes)
 							[[fallthrough]];
 						default:
 							if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH))
-								os << " ";
+								helper.insertIntoStream(os, ' ');
 					}
 			}
 		}
 		else if(inside_enumeration_brackets)
 		{
 			if(current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
-				os << " ";
+				helper.insertIntoStream(os, ' ');
 		}
 		else if(current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
-			os << " ";
+			helper.insertIntoStream(os, ' ');
 	}
-	return os.str();
 }
 
 } //namespace yaramod
