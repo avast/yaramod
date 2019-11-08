@@ -184,7 +184,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 
 	auto itKey = _tokenStream->emplace( insert_before, TokenType::META_KEY, key );
 	_tokenStream->emplace( insert_before, TokenType::ASSIGN, "=");
-	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, value );
+	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, escapeString(value) );
 	_tokenStream->emplace( insert_before, TokenType::NEW_LINE, "\n" );
 
 	_metas.emplace_back(itKey, itValue);
@@ -338,10 +338,10 @@ YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const s
 	_tokenStream->emplace(_condition_it, TokenType::ASSIGN, "=");
 
 	auto temporary = std::make_shared<TokenStream>();
-	auto plainString = std::make_shared<PlainString>(temporary, value);
+	auto plainString = std::make_shared<PlainString>(temporary, escapeString(value));
 	plainString->setModifiers(mods, true);
 	plainString->setIdentifier(id_token);
-	
+
 	_tokenStream->move_append(temporary.get(), _condition_it);
 	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 

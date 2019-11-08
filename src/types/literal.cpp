@@ -291,19 +291,19 @@ std::string Literal::getFormattedValue() const
 }
 
 /**
- * Returns the string representation of the literal.
+ * Returns the string representation of the literal in the form it was created in, enclosed in double quotes.
  *
  * @return String representation.
  */
-std::string Literal::getText( bool pure /*= false*/ ) const
+std::string Literal::getText( bool pure ) const
 {
 	if (isString())
 	{
 		const std::string& output = getString();
 		if(pure)
-			return output;
+			return unescapeString(output);
 		else
-			return '"' + escapeString(output) + '"';
+			return '"' + output + '"';
 	}
 	else if (isBool())
 	{
@@ -346,14 +346,14 @@ std::string Literal::getText( bool pure /*= false*/ ) const
 		assert(_formated_value);
 		return _formated_value.value();
 	}
-	std::cerr << "Unexpected index: '" << _value.index() << "'"<< std::endl;
+	std::cerr << "Unexpected index: '" << _value.index() << "'" << std::endl;
 	std::cerr << "Value:" << *this << std::endl;
 	assert(false);
 	return std::string();
 }
 
 /**
- * Returns the string representation but string literals are not enclosed in double quotes.
+ * Returns the string representation readable, so instead of '\x40' prints '@', instead of '\x0a' or '\n' prints new line.
  *
  * @return String representation.
  */

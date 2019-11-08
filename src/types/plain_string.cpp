@@ -58,7 +58,7 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt as
  */
 std::string PlainString::getText() const
 {
-	return '"' + escapeString(getPureText()) + '"' + getModifiersText();
+	return '"' + _text->getString() + '"' + getModifiersText();
 }
 
 /**
@@ -68,7 +68,7 @@ std::string PlainString::getText() const
  */
 std::string PlainString::getPureText() const
 {
-	return _text->getString();
+	return unescapeString(_text->getString());
 }
 
 TokenIt PlainString::getFirstTokenIt() const

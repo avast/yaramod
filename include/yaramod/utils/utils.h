@@ -14,6 +14,7 @@ namespace yaramod {
 
 bool isValidIdentifier(const std::string& id);
 std::string escapeString(const std::string& str);
+std::string unescapeString(std::string_view str);
 
 bool endsWith(const std::string& str, const std::string& withWhat);
 bool endsWith(const std::string& str, char withWhat);

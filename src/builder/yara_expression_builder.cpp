@@ -731,14 +731,14 @@ YaraExpressionBuilder doubleVal(double value)
 YaraExpressionBuilder stringVal(const std::string& value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back( STRING_LITERAL, value );
+	TokenIt token = ts->emplace_back( STRING_LITERAL, escapeString(value) );
 	auto expression = std::make_shared<StringLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::String);
 }
 
 /**
  * Creates the boolean expression:
- * 
+ *
  * @param value Boolean value.
  *
  * @return Builder.

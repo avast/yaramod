@@ -226,22 +226,21 @@ void PogParser::defineTokens()
 		return {};
 	});
 	_parser.token(R"(\\t)").states("$str").action( [&](std::string_view) -> Value {
-		_strLiteral += '\t';
+		_strLiteral += "\\t";
 		return {};
 	});
 	_parser.token(R"(\\n)").states("$str").action( [&](std::string_view) -> Value {
-		_strLiteral += '\n';
+		_strLiteral += "\\n";
 		_driver.currentLocation().addLine();
 		return {};
 	});
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action( [&](std::string_view str) -> Value {
-		std::uint64_t num = 0;
-		strToNum(std::string{str}.substr(2), num, std::hex);
-		_strLiteral += static_cast<char>(num);
+		_strLiteral += "\\x";
+		_strLiteral += std::string{str}.substr(2);
 		return {};
 	});
-	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += '\"'; return {}; } );
-	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += '\\'; return {}; } );
+	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\""; return {}; } );
+	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\\"; return {}; } );
 	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { error_handle(_driver.currentLocation(), "Unknown escape sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {

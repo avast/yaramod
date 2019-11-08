@@ -2812,6 +2812,42 @@ rule rule_with_hex_escaped_works {
 }
 
 TEST_F(ParserTests,
+EscapedSequencesInMetaWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule rule_with_escaped_meta_works {
+	meta:
+		str_meta_1 = "Here are a\x40t"
+		str_meta_2 = "Here are \"\x40t"
+	condition:
+		true
+}
+)");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strMeta1 = rule->getMetaWithName("str_meta_1");
+	auto strMeta2 = rule->getMetaWithName("str_meta_2");
+	ASSERT_NE(strMeta1, nullptr);
+	EXPECT_EQ(R"("Here are a\x40t")", strMeta1->getValue().getText());
+	EXPECT_EQ( R"(Here are a@t)", strMeta1->getValue().getPureText());
+	EXPECT_EQ(   "Here are a\x40t", strMeta1->getValue().getPureText());
+
+	ASSERT_NE(strMeta2, nullptr);
+	EXPECT_EQ(R"("Here are \"\x40t")", strMeta2->getValue().getText());
+	EXPECT_EQ( R"(Here are "@t)", strMeta2->getValue().getPureText());
+	EXPECT_EQ(   "Here are \"\x40t", strMeta2->getValue().getPureText());
+
+	EXPECT_EQ("true", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 EscapedSequencesWorks) {
 	prepareInput(
 R"(
@@ -2833,20 +2869,21 @@ rule rule_with_escaped_double_quotes_works {
 
 	auto strMeta = rule->getMetaWithName("str_meta");
 	ASSERT_NE(strMeta, nullptr);
-	auto expected = R"("Here are \"\t\n\\\x01\xff")";
-	EXPECT_EQ(expected, strMeta->getValue().getText());
-	EXPECT_EQ("Here are \"\t\n\\\x01\xff", strMeta->getValue().getPureText());
+
+
+	EXPECT_EQ(R"("Here are \"\t\n\\\x01\xff")", strMeta->getValue().getText());
+	EXPECT_EQ("Here are \"\t\n\\\x01""\xff", strMeta->getValue().getPureText());
 
 	auto strings = rule->getStrings();
 	ASSERT_EQ(1u, strings.size());
 
 	auto str = strings[0];
 	ASSERT_TRUE(str->isPlain());
-	expected = R"("Another \"\t\n\\\x01\xff")";
-	EXPECT_EQ(expected, str->getText());
+
+	EXPECT_EQ(R"("Another \"\t\n\\\x01\xff")", str->getText());
 	EXPECT_EQ("Another \"\t\n\\\x01\xff", str->getPureText());
 
-	expected = R"(pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff")";
+	std::string expected = R"(pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff")";
 	EXPECT_EQ(expected, rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
@@ -3376,7 +3413,7 @@ rule nonutf_meta
 
 	EXPECT_TRUE(rule->getMetas()[0].getValue().isString());
 	EXPECT_EQ(R"(내)", rule->getMetas()[0].getValue().getPureText());
-	EXPECT_EQ(R"("\xeb\x82\xb4")", rule->getMetas()[0].getValue().getText());
+	EXPECT_EQ(R"("내")", rule->getMetas()[0].getValue().getText());
 
 	std::string expected =
 R"(
