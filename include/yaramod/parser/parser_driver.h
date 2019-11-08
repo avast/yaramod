@@ -209,36 +209,6 @@ private:
 	Variant _value;
 };
 
-class ParserDriver;
-
-class PogParser
-{
-public:
-	PogParser(ParserDriver& driver);
-	void defineTokens();
-	void defineGrammar();
-	void enter_state(const std::string& state);
-	bool prepareParser();
-	bool parse();
-	void reset();
-	bool sectionStrings() const { return _sectionStrings; };
-	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
-	void push_input_stream(std::istream& input)
-	{
-		_parser.push_input_stream(input);
-	}
-private:
-	template<typename... Args> TokenIt emplace_back(const Location& location, Args&&... args);
-
-	std::string _strLiteral; ///< Currently processed string literal.
-	std::string _indent; ///< Variable storing current indentation
-	std::string _comment; ///< For incremental construction of parsed comments
-	std::string _regexpClass; ///< Currently processed regular expression class.
-	pog::Parser<Value> _parser; ///< used pog parser
-	ParserDriver& _driver; ///< associated ParserDriver
-	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
-};
-
 /**
  * Represents error during parsing.
  */
@@ -275,8 +245,6 @@ enum class ParserMode
  */
 class ParserDriver
 {
-	friend class PogParser;
-
 public:
 	/// @name Constructors
 	/// @{
@@ -284,6 +252,7 @@ public:
   	ParserDriver(ParserMode parserMode);
 	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
 	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
+	void initialize();
 	/// @}
 
 	/// @name Destructor
@@ -319,6 +288,8 @@ protected:
 	/// @name Methods for handling includes
 	/// @{
 	bool includeFile(const std::string& includePath);
+	bool includeFileImpl(const std::string& includePath);
+	bool isAlreadyIncluded(const std::string& includePath);
 	std::istream* currentInputStream();
 	bool includeEnd();
 	/// @}
@@ -334,6 +305,18 @@ protected:
 	/// @{
 	bool stringExists(const std::string& id) const;
 	void setCurrentStrings(const std::shared_ptr<Rule::StringsTrie>& currentStrings);
+	bool sectionStrings() const { return _sectionStrings; };
+	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
+	/// @}
+
+	/// @name Methods for parser maintainance
+	/// @{
+	void defineTokens();
+	void defineGrammar();
+	bool prepareParser();
+	template<typename... Args> TokenIt emplace_back(Args&&... args);
+	void enter_state(const std::string& state);
+	void push_input_stream(std::istream& input) { _parser.push_input_stream(input); }
 	/// @}
 
 	/// @name Methods for handling for loops
@@ -373,13 +356,15 @@ protected:
 	/// @}
 
 private:
-	bool isAlreadyIncluded(const std::string& includePath);
-	bool hasRuleWithName(const std::string& name) const;
-	bool includeFileImpl(const std::string& includePath);
+
+	std::string _strLiteral; ///< Currently processed string literal.
+	std::string _indent; ///< Variable storing current indentation
+	std::string _comment; ///< For incremental construction of parsed comments
+	std::string _regexpClass; ///< Currently processed regular expression class.
+	pog::Parser<Value> _parser; ///< used pog parser
+	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 
 	ParserMode _mode; ///< Parser mode.
-
-	PogParser _pog_parser; ///< pog parser
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams; ///< _tokenStream contains all parsed tokens
 	std::stack<Location> _locations; ///< the top location tracks position of currently parsed token within current input file
@@ -394,7 +379,6 @@ private:
 	std::string _filePath; ///< File path if parsing from file
 
 	YaraFile _file; ///< Parsed file
-	std::set<std::string> _parsed_rule_names;
 
 	std::weak_ptr<Rule::StringsTrie> _currentStrings; ///< Context storage of current strings trie
 	bool _stringLoop; ///< Context storage of for loop indicator
