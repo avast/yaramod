@@ -2820,7 +2820,7 @@ import "pe"
 rule rule_with_escaped_meta_works {
 	meta:
 		str_meta_1 = "Here are a\x40t"
-		str_meta_2 = "Here are \"\x40t"
+		str_meta_2 = "Here are \\,\x0A"
 	condition:
 		true
 }
@@ -2838,9 +2838,10 @@ rule rule_with_escaped_meta_works {
 	EXPECT_EQ(   "Here are a\x40t", strMeta1->getValue().getPureText());
 
 	ASSERT_NE(strMeta2, nullptr);
-	EXPECT_EQ(R"("Here are \"\x40t")", strMeta2->getValue().getText());
-	EXPECT_EQ( R"(Here are "@t)", strMeta2->getValue().getPureText());
-	EXPECT_EQ(   "Here are \"\x40t", strMeta2->getValue().getPureText());
+	EXPECT_EQ(R"("Here are \\,\x0A")", strMeta2->getValue().getText());
+	EXPECT_EQ( R"(Here are \,
+)", strMeta2->getValue().getPureText());
+	EXPECT_EQ(   "Here are \\,\x0A", strMeta2->getValue().getPureText());
 
 	EXPECT_EQ("true", rule->getCondition()->getText());
 
@@ -2855,11 +2856,11 @@ import "pe"
 
 rule rule_with_escaped_double_quotes_works {
 	meta:
-		str_meta = "Here are \"\t\n\\\x01\xff"
+		str_meta = "Here are \t\n\\\x01\xff"
 	strings:
-		$str = "Another \"\t\n\\\x01\xff"
+		$str = "Another \t\n\\\x01\xff"
 	condition:
-		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
+		pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff"
 }
 )");
 	EXPECT_TRUE(driver.parse());
@@ -2871,8 +2872,8 @@ rule rule_with_escaped_double_quotes_works {
 	ASSERT_NE(strMeta, nullptr);
 
 
-	EXPECT_EQ(R"("Here are \"\t\n\\\x01\xff")", strMeta->getValue().getText());
-	EXPECT_EQ("Here are \"\t\n\\\x01""\xff", strMeta->getValue().getPureText());
+	EXPECT_EQ(R"("Here are \t\n\\\x01\xff")", strMeta->getValue().getText());
+	EXPECT_EQ("Here are \t\n\\\x01""\xff", strMeta->getValue().getPureText());
 
 	auto strings = rule->getStrings();
 	ASSERT_EQ(1u, strings.size());
@@ -2880,10 +2881,10 @@ rule rule_with_escaped_double_quotes_works {
 	auto str = strings[0];
 	ASSERT_TRUE(str->isPlain());
 
-	EXPECT_EQ(R"("Another \"\t\n\\\x01\xff")", str->getText());
-	EXPECT_EQ("Another \"\t\n\\\x01\xff", str->getPureText());
+	EXPECT_EQ(R"("Another \t\n\\\x01\xff")", str->getText());
+	EXPECT_EQ("Another \t\n\\\x01\xff", str->getPureText());
 
-	std::string expected = R"(pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff")";
+	std::string expected = R"(pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff")";
 	EXPECT_EQ(expected, rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
