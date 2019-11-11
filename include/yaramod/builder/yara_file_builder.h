@@ -15,6 +15,19 @@
 namespace yaramod {
 
 /**
+ * Represents error during parsing.
+ */
+class YaraFileBuilderError : public YaramodError
+{
+public:
+	YaraFileBuilderError(const std::string& errorMsg)
+		: YaramodError(std::string("YaraExpressionBuilder error: ") + errorMsg)
+	{
+	}
+	YaraFileBuilderError(const YaraFileBuilderError&) = default;
+};
+
+/**
  * Class representing builder of YARA files. You use this builder
  * to specify what you want in your YARA file and then you can obtain
  * your YARA file by calling method @c get. As soon as @c get is called,

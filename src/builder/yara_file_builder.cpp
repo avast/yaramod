@@ -45,9 +45,9 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 			}
 			catch (const ParserError& err)
 			{
-				std::cerr << "Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl;
-				std::cerr << err.what();
-				return nullptr;
+				std::stringstream ss;
+				ss << "Error: Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl << err.what() << std::endl;
+				throw YaraFileBuilderError(ss.str());
 			}
 		}
 		else
@@ -59,9 +59,9 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 			}
 			catch (const ParserError& err)
 			{
-				std::cerr << "Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl;
-				std::cerr << err.what();
-				return nullptr;
+				std::stringstream ss;
+				ss << "Error: Recheck failed: parser error, parsing \n'" << yaraFile->getText() << "'" << std::endl << err.what() << std::endl;
+				throw YaraFileBuilderError(ss.str());
 			}
 		}
 	}

@@ -41,7 +41,9 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 {
 	if (!isValidIdentifier(_name_it->getPureText()))
 	{
-		std::cerr << "Invalid name identifier '" << _name_it->getPureText() << "'" << std::endl;
+		std::stringstream err;
+		err << "Invalid name identifier '" << _name_it->getPureText() << "'" << std::endl;
+		throw RuleBuilderError("Error: " + err.str());
 		return nullptr;
 	}
 
@@ -51,8 +53,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 					return !isValidIdentifier(meta.getKey());
 				}))
 	{
-		std::cerr << "Invalid key identifier" << std::endl;
-		return nullptr;
+		throw RuleBuilderError("Error: Invalid key identifier");
 	}
 
 	if(!_condition)

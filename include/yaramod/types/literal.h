@@ -256,8 +256,9 @@ public:
 		}
 		catch (std::bad_variant_access& exp)
 		{
-			std::cerr << "Called getValue<T>() with incompatible type T. TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-			throw YaramodError("Called getValue<T>() with incompatible type T.");
+			std::stringstream ss;
+			ss << "Called getValue<T>() with incompatible type T. The Literal value contains '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+			throw YaramodError(ss.str());
 		}
 	}
 	std::string getFormattedValue() const;

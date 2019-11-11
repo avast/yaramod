@@ -13,12 +13,12 @@ namespace yaramod {
 
 void error_handle(const Location& location, const std::string& msg)
 {
-	std::stringstream ss;
+	std::stringstream err;
 	if(location.begin().second < location.end().second)
-		ss << "Error at " << location.begin().first << "." << location.begin().second << "-" << location.end().second << ": " << msg;
+		err << "Error at " << location.begin().first << "." << location.begin().second << "-" << location.end().second << ": " << msg;
 	else
-		ss << "Error at " << location.begin().first << "." << location.begin().second << ": " << msg;
-	throw ParserError(ss.str());
+		err << "Error at " << location.begin().first << "." << location.begin().second << ": " << msg;
+	throw ParserError(err.str());
 }
 
 template<typename... Args>
@@ -1337,14 +1337,15 @@ void ParserDriver::defineGrammar()
 
 			if (!funcParentSymbol->overloadExists(argTypes))
 			{
-				std::cerr << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
+				std::stringstream ss;
+				ss << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
 				std::for_each(arguments.begin(), arguments.end(),
-					[](const Expression::Ptr& e)
+					[&ss](const Expression::Ptr& e)
 					{
-						std::cerr << e->getTypeString() << " ";
+						ss << e->getTypeString() << " ";
 					});
-				std::cerr << ")" << std::endl;
-				error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters");
+				ss << ")" << std::endl;
+				error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters:\n" + ss.str());
 			}
 
 			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
@@ -1470,8 +1471,9 @@ bool ParserDriver::prepareParser()
 	// html.save("html_index.html");
 	if(!report)
 	{
-		std::cerr << "Parser initialization failed" << std::endl;
-		fmt::print("{}\n", report.to_string());
+		// Uncomment for debugging:
+		// fmt::print("{}\n", report.to_string());
+		throw YaramodError("Error: Parser initialization failed");
 		return false;
 	}
 	return true;
@@ -1489,7 +1491,7 @@ void ParserDriver::initialize()
 	_parser.set_start_symbol("rules");
 	bool prepared = prepareParser();
 	if(!prepared)
-		throw YaramodError("Parser initialization failed");
+		throw YaramodError("Error: Parser initialization failed");
 }
 
 /**
@@ -1568,7 +1570,7 @@ bool ParserDriver::parse()
 	{
 		auto result = _parser.parse(*currentInputStream());
 		if (!result)
-			std::cerr << "Error" << std::endl;
+			throw YaramodError("Error: Parser failed to parse input.");
 		return result.has_value();
 	}
 	catch(const pog::SyntaxError& err)
@@ -1725,7 +1727,7 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = !ruleExists(rule->getName());
 	if(!success)
-		throw ParserError(std::string("Redefinition of rule "+rule->getName()));
+		throw ParserError(std::string("Error: Redefinition of rule "+rule->getName()));
 	else
 		_file.addRule(std::move(rule));
 }

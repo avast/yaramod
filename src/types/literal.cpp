@@ -202,8 +202,9 @@ const std::string& Literal::getString() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getString() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getString() of non-string TokenValue");
+		std::stringstream err;
+		err << "Called getString() of a non-string TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -215,8 +216,9 @@ bool Literal::getBool() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getBool() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getBool() of non-bool TokenValue");
+		std::stringstream err;
+		err << "Called getBool() of a non-bool TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -228,8 +230,9 @@ int Literal::getInt() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getInt() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getInt() of non-integer TokenValue");
+		std::stringstream err;
+		err << "Called getInt() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -241,8 +244,9 @@ int64_t Literal::getInt64_t() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getInt64_t() of non-integer TokenValue");
+		std::stringstream err;
+		err << "Called getInt64_t() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -254,8 +258,9 @@ uint64_t Literal::getUInt64_t() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getUInt64_t() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getUInt64_t() of non-integer TokenValue");
+		std::stringstream err;
+		err << "Called getUInt64_t() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -267,8 +272,9 @@ double Literal::getDouble() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getDouble() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getDouble() of non-double TokenValue");
+		std::stringstream err;
+		err << "Called getDouble() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -280,8 +286,9 @@ const std::shared_ptr<Symbol>& Literal::getSymbol() const
 	}
 	catch (std::bad_variant_access& exp)
 	{
-		std::cerr << "Called getSymbol() of a TokenValue which holds " << *this << ". Index = " << _value.index() << std::endl << exp.what() << std::endl;
-		throw YaramodError("Called getSymbol() of non-double TokenValue");
+		std::stringstream err;
+		err << "Called getSymbol() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+		throw YaramodError(err.str());
 	}
 }
 
@@ -346,9 +353,12 @@ std::string Literal::getText(bool pure) const
 		assert(_formated_value);
 		return _formated_value.value();
 	}
-	std::cerr << "Unexpected index: '" << _value.index() << "'" << std::endl;
-	std::cerr << "Value:" << *this << std::endl;
-	assert(false);
+	else
+	{
+		std::stringstream err;
+		err << "Error: Unexpected index of TokenValue class '" << *this << "'. Index: " << _value.index() << std::endl;
+		throw YaramodError(err.str());
+	}
 	return std::string();
 }
 
@@ -826,12 +836,6 @@ public:
 	}
 	/// @}
 
-	friend std::ostream& operator<<(std::ostream& os, const BracketStack& stack) {
-		os << "Stack:" << std::endl;
-		for(const auto& entry : stack._brackets)
-			os << "(line: " << entry.getLine() << ", tabulator: " << entry.getTabulator() << ")" << std::endl;
-		return os;
-	}
 private:
 	std::vector<LeftBracketEntry> _brackets;
 };

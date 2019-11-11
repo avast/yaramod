@@ -115,8 +115,6 @@ std::optional<std::uint8_t> nibbleToByte(char nibble)
  */
 std::string unescapeString(std::string_view str)
 {
-	// Based on
-	// https://git.int.avast.com/tis/yaragen/blob/master/src/lib/utils/string.cpp
 	if (str.length() < 2)
 		return std::string{str.data(), str.length()};
 
