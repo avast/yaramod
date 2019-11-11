@@ -434,7 +434,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpressionBuilder>& args)
 {
 	TokenIt lb = _tokenStream->emplace_back(FUNCTION_CALL_LP, "(");
-	for(size_t i = 0; i < args.size(); ++i)
+	for(std::size_t i = 0; i < args.size(); ++i)
 	{
 		_tokenStream->move_append(args[i].getTokenStream());
 		if(i < args.size() - 1)
@@ -1050,7 +1050,7 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt lb = ts->emplace_back(LP, "(");
-	for(size_t i = 0; i < elements.size(); ++i)
+	for(std::size_t i = 0; i < elements.size(); ++i)
 	{
 		ts->move_append(elements[i].getTokenStream());
 		if(i < elements.size() - 1)

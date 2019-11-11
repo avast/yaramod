@@ -157,17 +157,17 @@ class Location
 {
 public:
 	Location() : Location(1, 0) {}
-	Location(size_t line, size_t column) : _begin(line, column), _end(line, column) {}
+	Location(std::size_t line, std::size_t column) : _begin(line, column), _end(line, column) {}
 
 	/// @name Modifiing methods
 	/// @{
-	void addLine(size_t count = 1)
+	void addLine(std::size_t count = 1)
 	{
 		std::swap(_begin, _end);
 		_end.first = _begin.first + count; // line
 		_end.second = 0; // column
 	}
-	void addColumn(size_t count)
+	void addColumn(std::size_t count)
 	{
 		_begin.first = _end.first;
 		_begin.second = _end.second;
@@ -182,12 +182,12 @@ public:
 
 	/// @name Getters
 	/// @{
-	std::pair<size_t, size_t> begin() const { return std::make_pair(_begin.first, _begin.second + 1); }
-	const std::pair<size_t, size_t>& end() const { return _end; }
+	std::pair<std::size_t, std::size_t> begin() const { return std::make_pair(_begin.first, _begin.second + 1); }
+	const std::pair<std::size_t, std::size_t>& end() const { return _end; }
 	/// @}
 private:
-	std::pair<size_t, size_t> _begin; // (line, column)
-	std::pair<size_t, size_t> _end; // (line, column)
+	std::pair<std::size_t, std::size_t> _begin; // (line, column)
+	std::pair<std::size_t, std::size_t> _end; // (line, column)
 };
 
 class Symbol;
@@ -359,7 +359,7 @@ public:
 	void setType(TokenType type) { _type = type; }
 	void setFlag(bool flag) { _flag = flag; }
 	void setLocation(const Location& location) { _location = location; }
-	void setIndentation(size_t wanted_column) { _wanted_column = wanted_column; }
+	void setIndentation(std::size_t wanted_column) { _wanted_column = wanted_column; }
 	/// @}
 
 	/// @name Detection methods
@@ -425,7 +425,7 @@ public:
 	const T& getValue() const { return _value->getValue<T>(); }
 	bool getFlag() const { return _flag; }
 	const Location& getLocation() const { return _location; }
-	size_t getIndentation() const { return _wanted_column; }
+	std::size_t getIndentation() const { return _wanted_column; }
 	/// @}
 
 	/// @name Include substream handler methods
@@ -445,7 +445,7 @@ private:
 	std::shared_ptr< TokenStream > _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
 	std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
 	Location _location; // Location in source input is stored in Tokens for precise error outputs
-	size_t _wanted_column; // Wanted column where this Literal should be printed. Used for one-line comments.
+	std::size_t _wanted_column; // Wanted column where this Literal should be printed. Used for one-line comments.
 };
 
 using TokenIt = std::list< Token >::iterator;
@@ -459,18 +459,18 @@ public:
 	class PrintHelper
 	{
 	public:
-		size_t getCurrentLine() const { return lineCounter; }
+		std::size_t getCurrentLine() const { return lineCounter; }
 		const std::vector<TokenIt>& getCommentPool() const { return commentPool; }
 
-		size_t insertIntoStream(std::stringstream* ss, char what);
-		size_t insertIntoStream(std::stringstream* ss, const std::string& what, size_t length = 0);
-		size_t insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what);
-		size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment);
+		std::size_t insertIntoStream(std::stringstream* ss, char what);
+		std::size_t insertIntoStream(std::stringstream* ss, const std::string& what, std::size_t length = 0);
+		std::size_t insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what);
+		std::size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment);
 	private:
-		size_t lineCounter = 0;
-		size_t columnCounter = 0;
+		std::size_t lineCounter = 0;
+		std::size_t columnCounter = 0;
 		bool commentOnThisLine = false;
-		size_t maximalCommentColumn = 0;
+		std::size_t maximalCommentColumn = 0;
 		std::vector<TokenIt> commentPool;
 	};
 
@@ -528,7 +528,7 @@ public:
 
 	/// @name Capacity
 	/// @{
-	size_t size() const;
+	std::size_t size() const;
 	bool empty() const;
 	/// @}
 

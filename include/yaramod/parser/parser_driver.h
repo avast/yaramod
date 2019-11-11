@@ -362,7 +362,7 @@ protected:
 	/// @{
 	const std::shared_ptr<TokenStream>& currentTokenStream() const { return _tokenStreams.top(); }
 	void pushTokenStream(const std::shared_ptr<TokenStream>& ts) { _tokenStreams.push(ts); }
-	size_t currentTokenStreamCount() const { return _tokenStreams.size(); }
+	std::size_t currentTokenStreamCount() const { return _tokenStreams.size(); }
 	void popTokenStream() { _tokenStreams.pop(); }
 	/// @}
 
@@ -371,7 +371,7 @@ protected:
 	void pushLocation() { _locations.emplace(); }
 	void popLocation() { _locations.pop(); }
 	Location& currentLocation() { assert(!_locations.empty()); return _locations.top(); }
-	size_t currentLocationCount() { return _locations.size(); }
+	std::size_t currentLocationCount() { return _locations.size(); }
 	/// @}
 
 private:

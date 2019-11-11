@@ -712,7 +712,7 @@ std::optional<TokenIt> TokenStream::predecessor(TokenIt it)
 		return std::prev(it);
 }
 
-size_t TokenStream::size() const
+std::size_t TokenStream::size() const
 {
 	return _tokens.size();
 }
@@ -784,21 +784,21 @@ void TokenStream::clear()
 
 class LeftBracketEntry {
 public:
-	LeftBracketEntry(size_t line, size_t tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
+	LeftBracketEntry(std::size_t line, std::size_t tabulator, bool put_new_lines) : _put_new_lines(put_new_lines), _tabulator(tabulator), _line(line) {}
 
-	size_t getLine() const { return _line; }
-	size_t getTabulator() const { return _tabulator; }
+	std::size_t getLine() const { return _line; }
+	std::size_t getTabulator() const { return _tabulator; }
 	bool putNewLines() const { return _put_new_lines; }
 private:
 	bool _put_new_lines;
-	size_t _tabulator;
-	size_t _line;
+	std::size_t _tabulator;
+	std::size_t _line;
 };
 
 
 class BracketStack {
 public:
-	void addLeftBracket(size_t line, bool put_new_lines)
+	void addLeftBracket(std::size_t line, bool put_new_lines)
 	{
 
 		if(_brackets.empty())
@@ -806,7 +806,7 @@ public:
 		else
 		{
 			const auto& previous = _brackets.back();
-			size_t tabulator = previous.getTabulator();
+			std::size_t tabulator = previous.getTabulator();
 			if(line != previous.getLine())
 				++tabulator;
 			_brackets.emplace_back(line, tabulator, put_new_lines);
@@ -863,7 +863,7 @@ void TokenStream::determineNewlineSectors()
 void TokenStream::addMissingNewLines()
 {
 	BracketStack brackets;
-	size_t lineCounter = 0;
+	std::size_t lineCounter = 0;
 	for(auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
@@ -902,7 +902,7 @@ void TokenStream::autoformat()
 	formatted = true;
 }
 
-size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char what)
+std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char what)
 {
 	columnCounter += 1;
 	if(ss)
@@ -910,7 +910,7 @@ size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char wh
 	return columnCounter;
 }
 
-size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, const std::string& what, size_t length)
+std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, const std::string& what, std::size_t length)
 {
 	if(length != 0)
 		columnCounter += length;
@@ -922,7 +922,7 @@ size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, const s
 }
 
 // NEW_LINE, returns current column
-size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what)
+std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what)
 {
 	std::stringstream tmp;
 	tmp << *what;
@@ -955,7 +955,7 @@ size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, TokenSt
 	return columnCounter;
 }
 
-size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment)
+std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment)
 {
 	auto prevIt = ts->predecessor(it);
 
