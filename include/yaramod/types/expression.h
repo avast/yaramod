@@ -94,8 +94,6 @@ public:
 	void setType(Expression::Type type) { _type = type; }
 	/// @}
 
-	// virtual void clear() = 0;
-
 	/// @name Detection methods
 	/// @{
 	bool isBool() const { return _type == Expression::Type::Bool; }
@@ -118,6 +116,7 @@ public:
 
 protected:
 	std::shared_ptr<TokenStream> _tokenStream;
+
 private:
 	Type _type; ///< Type of the expression
 };

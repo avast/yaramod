@@ -366,7 +366,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 		initializeStrings();
 
 	hexString->setIdentifier(id);
-	_tokenStream->move_append(hexString->_tokenStream.get(), _condition_it);
+	_tokenStream->move_append(hexString->getTokenStream().get(), _condition_it);
 	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));

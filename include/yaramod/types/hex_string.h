@@ -73,7 +73,6 @@ class YaraRuleBuilder;
  */
 class HexString : public String
 {
-	friend YaraRuleBuilder;
 public:
 	/// @name Constructors
 	/// @{
