@@ -247,7 +247,7 @@ public:
 	double getDouble() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 
-	template<typename T>
+	template <typename T>
 	const T& getValue() const
 	{
 		try
@@ -257,7 +257,7 @@ public:
 		catch (std::bad_variant_access& exp)
 		{
 			std::stringstream ss;
-			ss << "Called getValue<T>() with incompatible type T. The Literal value contains '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+			ss << "Error: Called getValue<T>() with incompatible type T. The Literal value contains '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
 			throw YaramodError(ss.str());
 		}
 	}
@@ -421,7 +421,7 @@ public:
 	uint64_t getUInt64_t() const;
 	double getDouble() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
-	template<typename T>
+	template <typename T>
 	const T& getValue() const { return _value->getValue<T>(); }
 	bool getFlag() const { return _flag; }
 	const Location& getLocation() const { return _location; }

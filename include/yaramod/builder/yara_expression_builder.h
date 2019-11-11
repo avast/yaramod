@@ -94,13 +94,13 @@ public:
 		, _expr()
 	{
 	}
-	template<typename ExpPtr>
+	template <typename ExpPtr>
 	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr)
 		: _tokenStream(ts)
 		, _expr(std::forward<ExpPtr>(expr))
 	{
 	}
-	template<typename ExpPtr>
+	template <typename ExpPtr>
 	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr, const Expression::Type& type)
 		: _tokenStream(ts)
 		, _expr(std::forward<ExpPtr>(expr))

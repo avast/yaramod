@@ -95,78 +95,97 @@ public:
 	{
 		return getValue<std::string>();
 	}
+
 	int getInt() const
 	{
 		return getValue<int>();
 	}
+
 	bool getBool() const
 	{
 		return getValue<bool>();
 	}
+
 	TokenIt getTokenIt() const
 	{
 		return getValue<TokenIt>();
 	}
+
 	std::optional<TokenIt> getOptionalTokenIt() const
 	{
 		return getValue<std::optional<TokenIt>>();
 	}
+
 	const Rule& getRule() const
 	{
 		return getValue<Rule>();
 	}
+
 	std::vector<Meta>&& getMetas()
 	{
 		return std::move(moveValue<std::vector<Meta>>());
 	}
+
 	std::shared_ptr<Rule::StringsTrie>&& getStringsTrie()
 	{
 		return std::move(moveValue<std::shared_ptr<Rule::StringsTrie>>());
 	}
+
 	std::pair<std::uint32_t, std::vector<TokenIt>>&& getStringMods()
 	{
 		return std::move(moveValue<std::pair<std::uint32_t, std::vector<TokenIt>>>());
 	}
+
 	const Literal& getLiteral() const
 	{
 		return getValue<Literal>();
 	}
+
 	Expression::Ptr getExpression() const
 	{
 		return getValue<Expression::Ptr>();
 	}
+
 	std::vector<Expression::Ptr>&& getMultipleExpressions()
 	{
 		return std::move(moveValue<std::vector<Expression::Ptr>>());
 	}
+
 	std::vector<TokenIt>&& getMultipleTokenIt()
 	{
 		return std::move(moveValue<std::vector<TokenIt>>());
 	}
+
 	std::vector<std::shared_ptr<HexStringUnit>>&& getMultipleHexUnits()
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<HexStringUnit>>>());
 	}
+
 	std::shared_ptr<HexStringUnit>&& getHexUnit()
 	{
 		return std::move(moveValue<std::shared_ptr<HexStringUnit>>());
 	}
+
 	std::vector<std::shared_ptr<HexString>>&& getMultipleHexStrings()
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<HexString>>>());
 	}
+
 	std::shared_ptr<String>&& getYaramodString()
 	{
 		return std::move(moveValue<std::shared_ptr<String>>());
 	}
+
 	std::shared_ptr<RegexpUnit>&& getRegexpUnit()
 	{
 		return std::move(moveValue<std::shared_ptr<RegexpUnit>>());
 	}
+
 	std::vector<std::shared_ptr<RegexpUnit>>&& getMultipleRegexpUnits()
 	{
 		return std::move(moveValue<std::vector<std::shared_ptr<RegexpUnit>>>());
 	}
+
 	RegexpRangePair&& getRegexpRangePair()
 	{
 		return std::move(moveValue<RegexpRangePair>());
@@ -174,7 +193,7 @@ public:
 	/// @}
 
 protected:
-	template<typename T>
+	template <typename T>
 	const T& getValue() const
 	{
 		try
@@ -189,7 +208,7 @@ protected:
 			throw YaramodError("Called getValue<T>() with incompatible type T.", exp.what());
 		}
 	}
-	template< typename T>
+	template < typename T>
 	T&& moveValue()
 	{
 		try
@@ -314,7 +333,7 @@ protected:
 	void defineTokens();
 	void defineGrammar();
 	bool prepareParser();
-	template<typename... Args> TokenIt emplace_back(Args&&... args);
+	template <typename... Args> TokenIt emplace_back(Args&&... args);
 	void enter_state(const std::string& state);
 	void push_input_stream(std::istream& input) { _parser.push_input_stream(input); }
 	/// @}

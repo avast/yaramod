@@ -21,7 +21,7 @@ void error_handle(const Location& location, const std::string& msg)
 	throw ParserError(err.str());
 }
 
-template<typename... Args>
+template <typename... Args>
 TokenIt ParserDriver::emplace_back(Args&&... args)
 {
 	TokenIt tokenIt = currentTokenStream()->emplace_back(args...);

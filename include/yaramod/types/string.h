@@ -125,7 +125,7 @@ public:
 
 	/// @name Setter methods
 	/// @{
-	template<typename Str>
+	template <typename Str>
 	void setIdentifier(Str&& id)
 	{
 		if(_id)
