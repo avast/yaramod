@@ -74,7 +74,7 @@ public:
 
 	void addCharacters(const std::string& text)
 	{
-		for( char c : text )
+		for(char c : text)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
 	}
 
@@ -132,7 +132,7 @@ public:
 
 	void addCharacters(const std::string& text)
 	{
-		for( char c : text )
+		for(char c : text)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
 	}
 
@@ -430,7 +430,7 @@ public:
 		ss << _operand->getText();
 		ss << _leftBracket->getPureText();
 
-		if( _first && _first == _second)
+		if(_first && _first == _second)
 			ss << (*_first)->getPureText();
 		else
 		{
@@ -515,7 +515,7 @@ public:
 		: _unit(std::move(unit))
 	{
 		_left_bracket = _tokenStream->emplace_back(TokenType::LP, "(");
-		_tokenStream->move_append( _unit->getTokenStream().get() );
+		_tokenStream->move_append(_unit->getTokenStream().get());
 		_right_bracket = _tokenStream->emplace_back(TokenType::RP, ")");
 	}
 
@@ -660,7 +660,7 @@ public:
 			if(_suffixMods.has_value())
 				(*_suffixMods)->setValue(suffixMods);
 			else
-				_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods );
+				_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods);
 		}
 	}
 

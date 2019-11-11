@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include <climits>
 #include <fstream>
-#include <limits.h>
 #include <memory>
 #include <set>
 #include <stack>
@@ -66,26 +66,26 @@ public:
 
 	/// @name Constructors
 	/// @{
-	Value( const std::string& v ) : _value(v) {}
-	Value( std::string&& v ) : _value( std::move(v) ) {}
-	Value( int v ) : _value(v) {}
-	Value( bool v ) : _value(v) {}
-	Value( std::optional<TokenIt> v ) : _value(v) {}
-	Value( TokenIt v ) : _value(v) {}
-	Value( std::vector<Meta>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<Rule::StringsTrie>&& v ) : _value(std::move(v)) {}
-	Value( std::pair<std::uint32_t, std::vector<TokenIt>>&& v ) : _value(std::move(v)) {}
-	Value( Literal&& v ) : _value(std::move(v)) {}
-	Value( Expression::Ptr&& v ) : _value(std::move(v)) {}
-	Value( std::vector<Expression::Ptr>&& v ) : _value(std::move(v)) {}
-	Value( std::vector<TokenIt>&& v ) : _value(std::move(v)) {}
-	Value( std::vector<std::shared_ptr<HexStringUnit>>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<HexStringUnit>&& v ) : _value(std::move(v)) {}
-	Value( std::vector<std::shared_ptr<HexString>>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<String>&& v ) : _value(std::move(v)) {}
-	Value( std::shared_ptr<RegexpUnit>&& v ) : _value(std::move(v)) {}
-	Value( std::vector<std::shared_ptr<RegexpUnit>>&& v) : _value(std::move(v)) {}
-	Value( RegexpRangePair&& v ) : _value(std::move(v)) {}
+	Value(const std::string& v) : _value(v) {}
+	Value(std::string&& v) : _value(std::move(v)) {}
+	Value(int v) : _value(v) {}
+	Value(bool v) : _value(v) {}
+	Value(std::optional<TokenIt> v) : _value(v) {}
+	Value(TokenIt v) : _value(v) {}
+	Value(std::vector<Meta>&& v) : _value(std::move(v)) {}
+	Value(std::shared_ptr<Rule::StringsTrie>&& v) : _value(std::move(v)) {}
+	Value(std::pair<std::uint32_t, std::vector<TokenIt>>&& v) : _value(std::move(v)) {}
+	Value(Literal&& v) : _value(std::move(v)) {}
+	Value(Expression::Ptr&& v) : _value(std::move(v)) {}
+	Value(std::vector<Expression::Ptr>&& v) : _value(std::move(v)) {}
+	Value(std::vector<TokenIt>&& v) : _value(std::move(v)) {}
+	Value(std::vector<std::shared_ptr<HexStringUnit>>&& v) : _value(std::move(v)) {}
+	Value(std::shared_ptr<HexStringUnit>&& v) : _value(std::move(v)) {}
+	Value(std::vector<std::shared_ptr<HexString>>&& v) : _value(std::move(v)) {}
+	Value(std::shared_ptr<String>&& v) : _value(std::move(v)) {}
+	Value(std::shared_ptr<RegexpUnit>&& v) : _value(std::move(v)) {}
+	Value(std::vector<std::shared_ptr<RegexpUnit>>&& v) : _value(std::move(v)) {}
+	Value(RegexpRangePair&& v) : _value(std::move(v)) {}
 	Value() = default;
 	/// @}
 

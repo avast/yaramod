@@ -179,13 +179,13 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 	{
 		_tokenStream->emplace(insert_before, META, "meta");
 		_tokenStream->emplace(insert_before, COLON, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
-	auto itKey = _tokenStream->emplace( insert_before, TokenType::META_KEY, key );
-	_tokenStream->emplace( insert_before, TokenType::ASSIGN, "=");
-	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, escapeString(value) );
-	_tokenStream->emplace( insert_before, TokenType::NEW_LINE, "\n" );
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, escapeString(value));
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);
 
@@ -211,13 +211,13 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
 	{
 		_tokenStream->emplace(insert_before, META, "meta");
 		_tokenStream->emplace(insert_before, COLON, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
-	auto itKey = _tokenStream->emplace( insert_before, TokenType::META_KEY, key );
-	_tokenStream->emplace( insert_before, TokenType::EQ, Literal("=") );
-	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, value);
-	_tokenStream->emplace( insert_before, TokenType::NEW_LINE, "\n" );
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -242,13 +242,13 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
 	{
 		_tokenStream->emplace(insert_before, META, "meta");
 		_tokenStream->emplace(insert_before, COLON, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
-	auto itKey = _tokenStream->emplace( insert_before, TokenType::META_KEY, key );
-	_tokenStream->emplace( insert_before, TokenType::EQ, Literal("=") );
-	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, value);
-	_tokenStream->emplace( insert_before, TokenType::NEW_LINE, "\n" );
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -273,13 +273,13 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
 	{
 		_tokenStream->emplace(insert_before, META, "meta");
 		_tokenStream->emplace(insert_before, COLON, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
-	auto itKey = _tokenStream->emplace( insert_before, TokenType::META_KEY, key );
-	_tokenStream->emplace( insert_before, TokenType::EQ, Literal("=") );
-	auto itValue = _tokenStream->emplace( insert_before, TokenType::META_VALUE, value, std::make_optional<std::string>(numToStr(value, std::hex, true)) );
-	_tokenStream->emplace( insert_before, TokenType::NEW_LINE, "\n" );
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value, std::make_optional<std::string>(numToStr(value, std::hex, true)));
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;
@@ -304,13 +304,13 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 	{
 		_tokenStream->emplace(insert_before, META, "meta");
 		_tokenStream->emplace(insert_before, COLON, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value);
-	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n" );
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);
 	return *this;

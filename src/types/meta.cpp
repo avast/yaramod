@@ -45,7 +45,7 @@ const Literal& Meta::getValue() const
  */
 void Meta::setKey(const std::string& key)
 {
-	_key->setValue( key );
+	_key->setValue(key);
 }
 
 /**
@@ -55,7 +55,7 @@ void Meta::setKey(const std::string& key)
  */
 void Meta::setValue(const Literal& value)
 {
-	_value->setValue( value );
+	_value->setValue(value);
 }
 
 }

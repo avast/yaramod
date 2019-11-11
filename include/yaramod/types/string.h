@@ -171,16 +171,16 @@ public:
 				if(_mods == Modifiers::Ascii && avoidSingleAscii)
 					return;
 				else
-					_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "ascii" ));
+					_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "ascii"));
 			}
 			if (_mods & Modifiers::Wide)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "wide" ));
+				_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "wide"));
 			if (_mods & Modifiers::Nocase)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "nocase" ));
+				_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "nocase"));
 			if (_mods & Modifiers::Fullword)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "fullword" ));
+				_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "fullword"));
 			if (_mods & Modifiers::Xor)
-				_mods_strings.push_back(_tokenStream->emplace( behind_last_erased, MODIFIER, "xor" ));
+				_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "xor"));
 		}
 	}
 
@@ -207,15 +207,15 @@ public:
 		{
 			_mods += mod;
 			TokenIt it;
-			if( mod & Modifiers::Ascii )
+			if(mod & Modifiers::Ascii)
 				it = _tokenStream->emplace_back(MODIFIER, "ascii");
-			else if( mod & Modifiers::Wide )
+			else if(mod & Modifiers::Wide)
 				it = _tokenStream->emplace_back(MODIFIER, "wide");
-			else if( mod & Modifiers::Nocase )
+			else if(mod & Modifiers::Nocase)
 				it = _tokenStream->emplace_back(MODIFIER, "nocase");
-			else if( mod & Modifiers::Fullword )
+			else if(mod & Modifiers::Fullword)
 				it = _tokenStream->emplace_back(MODIFIER, "fullword");
-			else if( mod & Modifiers::Xor )
+			else if(mod & Modifiers::Xor)
 				it = _tokenStream->emplace_back(MODIFIER, "xor");
 			_mods_strings.push_back(it);
 			return true;

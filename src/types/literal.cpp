@@ -22,9 +22,9 @@ namespace yaramod {
  * @param value String value of the literal.
  * @param formated_value formatted value of the literal.
  */
-Literal::Literal(const std::string& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+Literal::Literal(const std::string& value, const std::optional<std::string>& formated_value/* = std::nullopt*/)
 	: _value(value)
-	, _formated_value( formated_value )
+	, _formated_value(formated_value)
 {
 }
 
@@ -34,9 +34,9 @@ Literal::Literal(const std::string& value, const std::optional<std::string>& for
  * @param value String value of the literal.
  * @param formated_value formatted value of the literal.
  */
-Literal::Literal(const char* value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+Literal::Literal(const char* value, const std::optional<std::string>& formated_value/* = std::nullopt*/)
 	: _value(std::string(value))
-	, _formated_value( formated_value )
+	, _formated_value(formated_value)
 {
 }
 
@@ -46,9 +46,9 @@ Literal::Literal(const char* value, const std::optional<std::string>& formated_v
  * @param value String value of the literal.
  * @param formated_value formatted value of the literal.
  */
-Literal::Literal(std::string&& value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
+Literal::Literal(std::string&& value, const std::optional<std::string>& formated_value/* = std::nullopt*/)
 	: _value(std::move(value))
-	, _formated_value( formated_value )
+	, _formated_value(formated_value)
 {
 }
 
@@ -57,9 +57,9 @@ Literal::Literal(std::string&& value, const std::optional<std::string>& formated
  *
  * @param value Bool value of the literal.
  */
-Literal::Literal( bool value, const std::optional<std::string>& formated_value/* = std::nullopt*/ )
-	: _value( value )
-	, _formated_value( formated_value )
+Literal::Literal(bool value, const std::optional<std::string>& formated_value/* = std::nullopt*/)
+	: _value(value)
+	, _formated_value(formated_value)
 {
 }
 
@@ -69,9 +69,9 @@ Literal::Literal( bool value, const std::optional<std::string>& formated_value/*
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( int value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-	: _value( value )
-	, _formated_value( integral_formated_value )
+Literal::Literal(int value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
+	: _value(value)
+	, _formated_value(integral_formated_value)
 {
 }
 
@@ -81,9 +81,9 @@ Literal::Literal( int value, const std::optional<std::string>& integral_formated
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( int64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-	: _value( value )
-	, _formated_value( integral_formated_value )
+Literal::Literal(int64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
+	: _value(value)
+	, _formated_value(integral_formated_value)
 {
 }
 
@@ -93,9 +93,9 @@ Literal::Literal( int64_t value, const std::optional<std::string>& integral_form
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( uint64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
-	: _value( value )
-	, _formated_value( integral_formated_value )
+Literal::Literal(uint64_t value, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
+	: _value(value)
+	, _formated_value(integral_formated_value)
 {
 }
 
@@ -105,9 +105,9 @@ Literal::Literal( uint64_t value, const std::optional<std::string>& integral_for
  * @param value integral value of the literal.
  * @param integral_formated_value formatted value of the integral literal.
  */
-Literal::Literal( double value, const std::optional< std::string >& integral_formated_value /*= std::nullopt*/ )
-	: _value( value )
-	, _formated_value( integral_formated_value )
+Literal::Literal(double value, const std::optional< std::string >& integral_formated_value/*= std::nullopt*/)
+	: _value(value)
+	, _formated_value(integral_formated_value)
 {
 }
 
@@ -117,8 +117,8 @@ Literal::Literal( double value, const std::optional< std::string >& integral_for
  * @param value Symbol value of the literal.
  * @param name formatted value of the literal.
  */
-Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name )
-	: _value( value )
+Literal::Literal(const std::shared_ptr<Symbol>& value, const std::string& name)
+	: _value(value)
 	, _formated_value(name)
 {
 }
@@ -129,8 +129,8 @@ Literal::Literal( const std::shared_ptr<Symbol>& value, const std::string& name 
  * @param value Symbol value of the literal.
  * @param name formatted value of the literal.
  */
-Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
-	: _value( std::move(value) )
+Literal::Literal(std::shared_ptr<Symbol>&& value, const std::string& name)
+	: _value(std::move(value))
 	, _formated_value(name)
 {
 }
@@ -139,52 +139,52 @@ Literal::Literal( std::shared_ptr<Symbol>&& value, const std::string& name )
  * Setter methods
  *
  */
-void Literal::setValue( const std::string& s )
+void Literal::setValue(const std::string& s)
 {
 	_value = s;
 }
 
-void Literal::setValue( std::string&& s )
+void Literal::setValue(std::string&& s)
 {
 	_value = std::move(s);
 }
 
-void Literal::setValue( bool b )
+void Literal::setValue(bool b)
 {
 	_value = b;
 }
 
-void Literal::setValue( int i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
+void Literal::setValue(int i, const std::optional<std::string>& integral_formated_value/*= std::nullopt*/)
 {
 	_value = i;
 	_formated_value = integral_formated_value;
 }
 
-void Literal::setValue( int64_t i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
+void Literal::setValue(int64_t i, const std::optional<std::string>& integral_formated_value/*= std::nullopt*/)
 {
 	_value = i;
 	_formated_value = integral_formated_value;
 }
 
-void Literal::setValue( uint64_t i, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
+void Literal::setValue(uint64_t i, const std::optional<std::string>& integral_formated_value/*= std::nullopt*/)
 {
 	_value = i;
 	_formated_value = integral_formated_value;
 }
 
-void Literal::setValue( double f, const std::optional<std::string>& integral_formated_value /*= std::nullopt*/ )
+void Literal::setValue(double f, const std::optional<std::string>& integral_formated_value/*= std::nullopt*/)
 {
 	_value = f;
 	_formated_value = integral_formated_value;
 }
 
 
-void Literal::setValue( const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
+void Literal::setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name)
 {
 	_value = s;
 	_formated_value = symbol_name;
 }
-void Literal::setValue( std::shared_ptr<Symbol>&& s, std::string&& symbol_name )
+void Literal::setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name)
 {
 	_value = std::move(s);
 	_formated_value = std::move(symbol_name);
@@ -295,7 +295,7 @@ std::string Literal::getFormattedValue() const
  *
  * @return String representation.
  */
-std::string Literal::getText( bool pure ) const
+std::string Literal::getText(bool pure) const
 {
 	if (isString())
 	{
@@ -318,28 +318,28 @@ std::string Literal::getText( bool pure ) const
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<int>( getInt() );
+			return numToStr<int>(getInt());
 	}
 	else if (isInt64_t())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<int64_t>( getInt64_t() );
+			return numToStr<int64_t>(getInt64_t());
 	}
 	else if (isUInt64_t())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<uint64_t>( getUInt64_t() );
+			return numToStr<uint64_t>(getUInt64_t());
 	}
 	else if (isDouble())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<double>( getDouble() );
+			return numToStr<double>(getDouble());
 	}
 	else if (isSymbol())
 	{
@@ -443,213 +443,213 @@ const std::shared_ptr<Symbol>& Token::getSymbol() const
 	return _value->getSymbol();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, char value )
+TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
 	_tokens.emplace_back(type, std::move(Literal(std::string() + value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value )
+TokenIt TokenStream::emplace_back(TokenType type, const char* value, const std::optional<std::string>& formatted_value)
 {
 	_tokens.emplace_back(type, std::move(Literal(value, formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const std::string& value, const std::optional<std::string>& formatted_value )
+TokenIt TokenStream::emplace_back(TokenType type, const std::string& value, const std::optional<std::string>& formatted_value)
 {
 	_tokens.emplace_back(type, std::move(Literal(value, formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, std::string&& value, const std::optional<std::string>& formatted_value )
+TokenIt TokenStream::emplace_back(TokenType type, std::string&& value, const std::optional<std::string>& formatted_value)
 {
 	_tokens.emplace_back(type, std::move(Literal(std::move(value), formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, bool b, const std::optional<std::string>& formatted_value )
+TokenIt TokenStream::emplace_back(TokenType type, bool b, const std::optional<std::string>& formatted_value)
 {
 	_tokens.emplace_back(type, std::move(Literal(b, formatted_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace_back(TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace_back(TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace_back(TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace_back(TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace_back(type, std::move(Literal(i, integral_formated_value)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
+TokenIt TokenStream::emplace_back(TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name)
 {
 	_tokens.emplace_back(type, std::move(Literal(s, symbol_name)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name )
+TokenIt TokenStream::emplace_back(TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name)
 {
 	_tokens.emplace_back(type, std::move(Literal(std::move(s), symbol_name)));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, const Literal& literal )
+TokenIt TokenStream::emplace_back(TokenType type, const Literal& literal)
 {
 	_tokens.emplace_back(type, literal);
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace_back( TokenType type, Literal&& literal )
+TokenIt TokenStream::emplace_back(TokenType type, Literal&& literal)
 {
 	_tokens.emplace_back(type, std::move(literal));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, char value )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, char value)
 {
 	_tokens.emplace(before, type, std::move(Literal(std::string() + value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const char* value )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const char* value)
 {
 	_tokens.emplace(before, type, std::move(Literal(value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const std::string& value )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const std::string& value)
 {
 	_tokens.emplace(before, type, std::move(Literal(value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, std::string&& value )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, std::string&& value)
 {
 	_tokens.emplace(before, type, std::move(Literal(std::move(value))));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, bool b )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, bool b)
 {
 	_tokens.emplace(before, type, std::move(Literal(b)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/ )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value/* = std::nullopt*/)
 {
 	_tokens.emplace(before, type, std::move(Literal(i, integral_formated_value)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name)
 {
 	_tokens.emplace(before, type, std::move(Literal(s, symbol_name)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name)
 {
 	_tokens.emplace(before, type, std::move(Literal(std::move(s), symbol_name)));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, const Literal& literal )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const Literal& literal)
 {
 	_tokens.emplace(before, type, literal);
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::emplace( const TokenIt& before, TokenType type, Literal&& literal )
+TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, Literal&& literal)
 {
 	_tokens.emplace(before, type, std::move(literal));
 	auto output = before;
 	return --output;
 }
 
-TokenIt TokenStream::push_back( const Token& t )
+TokenIt TokenStream::push_back(const Token& t)
 {
 	_tokens.push_back(t);
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::push_back( Token&& t )
+TokenIt TokenStream::push_back(Token&& t)
 {
 	_tokens.push_back(std::move(t));
 	return --_tokens.end();
 }
 
-TokenIt TokenStream::insert( TokenIt before, TokenType type, const Literal& literal)
+TokenIt TokenStream::insert(TokenIt before, TokenType type, const Literal& literal)
 {
 	return _tokens.insert(before, std::move(Token(type, literal)));
 }
 
-TokenIt TokenStream::insert( TokenIt before, TokenType type, Literal&& literal)
+TokenIt TokenStream::insert(TokenIt before, TokenType type, Literal&& literal)
 {
 	return _tokens.insert(before, std::move(Token(type, std::move(literal))));
 }
 
-TokenIt TokenStream::erase( TokenIt element )
+TokenIt TokenStream::erase(TokenIt element)
 {
 	return _tokens.erase(element);
 }
 
-TokenIt TokenStream::erase( TokenIt first, TokenIt last )
+TokenIt TokenStream::erase(TokenIt first, TokenIt last)
 {
 	return _tokens.erase(first, last);
 }
 
-void TokenStream::move_append( TokenStream* donor )
+void TokenStream::move_append(TokenStream* donor)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens);
 }
 
-void TokenStream::move_append( TokenStream* donor, TokenIt before )
+void TokenStream::move_append(TokenStream* donor, TokenIt before)
 {
 	_tokens.splice(before, donor->_tokens);
 }
@@ -694,7 +694,7 @@ std::reverse_iterator<TokenConstIt> TokenStream::rend() const
 	return _tokens.rend();
 }
 
-std::optional<TokenIt> TokenStream::predecessor( TokenIt it )
+std::optional<TokenIt> TokenStream::predecessor(TokenIt it)
 {
 	if(it == begin())
 		return std::nullopt;
@@ -712,17 +712,17 @@ bool TokenStream::empty() const
 	return _tokens.empty();
 }
 
-TokenIt TokenStream::find( TokenType type )
+TokenIt TokenStream::find(TokenType type)
 {
 	return find(type, begin(), end());
 }
 
-TokenIt TokenStream::find( TokenType type, TokenIt from )
+TokenIt TokenStream::find(TokenType type, TokenIt from)
 {
 	return find(type, from, end());
 }
 
-TokenIt TokenStream::find( TokenType type, TokenIt from, TokenIt to )
+TokenIt TokenStream::find(TokenType type, TokenIt from, TokenIt to)
 {
 	return std::find_if(
 		from,
@@ -731,17 +731,17 @@ TokenIt TokenStream::find( TokenType type, TokenIt from, TokenIt to )
 	);
 }
 
-TokenIt TokenStream::findBackwards( TokenType type )
+TokenIt TokenStream::findBackwards(TokenType type)
 {
 	return findBackwards(type, begin(), end());
 }
 
-TokenIt TokenStream::findBackwards( TokenType type, TokenIt to )
+TokenIt TokenStream::findBackwards(TokenType type, TokenIt to)
 {
 	return findBackwards(type, begin(), to);
 }
 
-TokenIt TokenStream::findBackwards( TokenType type, TokenIt from, TokenIt to )
+TokenIt TokenStream::findBackwards(TokenType type, TokenIt from, TokenIt to)
 {
 	if(from == to)
 		return to;
@@ -791,7 +791,7 @@ public:
 	void addLeftBracket(size_t line, bool put_new_lines)
 	{
 
-		if( _brackets.empty() )
+		if(_brackets.empty())
 			_brackets.emplace_back(line, 1, put_new_lines);
 		else
 		{
@@ -927,7 +927,7 @@ size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, TokenSt
 	auto prevIt = ts->predecessor(what);
 	if(what->getType() == NEW_LINE)
 	{
-		if(!commentOnThisLine || ( prevIt && (*prevIt)->getType() == COLON ) )
+		if(!commentOnThisLine || (prevIt && (*prevIt)->getType() == COLON))
 		{
 			if(commentPool.size() >= 2)
 				for(auto comment : commentPool)
@@ -957,15 +957,15 @@ size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream
 
 	const std::string& indent = it->getLiteral().getFormattedValue();
 	// print indent part 1
-	if( prevIt && (*prevIt)->getType() == NEW_LINE)
+	if(prevIt && (*prevIt)->getType() == NEW_LINE)
 	{
 		if(ss)
 			*ss << indent;
 	}// print indent part 2
-	else if( ss && alignComment && columnCounter < it->getIndentation() && ( !prevIt || (*prevIt)->getType() != COLON ) )
+	else if(ss && alignComment && columnCounter < it->getIndentation() && (!prevIt || (*prevIt)->getType() != COLON))
 		*ss << std::string(it->getIndentation() - columnCounter + 1, ' ');
 	// remember oneline comments
-	if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON) )
+	if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;
 		commentPool.push_back(it);
@@ -1072,7 +1072,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 				{
 					if(nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
-					helper.insertIntoStream(os, std::string( 2 + current_line_tabs, '\t'), (2 + current_line_tabs) * TABULATOR_LENGTH);
+					helper.insertIntoStream(os, std::string(2 + current_line_tabs, '\t'), (2 + current_line_tabs) * TABULATOR_LENGTH);
 				}
 			}
 		}
@@ -1137,7 +1137,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 								break;
 							[[fallthrough]];
 						default:
-							if(next != LSQB || ( current != STRING_OFFSET && current != STRING_LENGTH))
+							if(next != LSQB || (current != STRING_OFFSET && current != STRING_LENGTH))
 								helper.insertIntoStream(os, ' ');
 					}
 			}

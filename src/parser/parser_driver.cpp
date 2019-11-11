@@ -11,7 +11,7 @@
 
 namespace yaramod {
 
-void error_handle( const Location& location, const std::string& msg )
+void error_handle(const Location& location, const std::string& msg)
 {
 	std::stringstream ss;
 	if(location.begin().second < location.end().second)
@@ -36,117 +36,117 @@ void ParserDriver::defineTokens()
 		currentLocation().addColumn(str.length());
 	});
 
-	_parser.token("\n").action( [&](std::string_view str) -> Value {
+	_parser.token("\n").action([&](std::string_view str) -> Value {
 		TokenIt t = emplace_back(NEW_LINE, std::string{str});
 		_indent.clear();
 		currentLocation().addLine();
 		return t;
 	});
-	_parser.token("[ \t\r]+").states("@default", "$hexstr_jump", "$hexstr").action( [&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
+	_parser.token("[ \t\r]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
 		_indent += std::string{str};
 		return {};
 	});
 
-	_parser.token(R"(\.\.)").symbol("RANGE").description("integer range").action( [&](std::string_view str) -> Value { return emplace_back( DOUBLE_DOT, std::string{str} ); } );
-	_parser.token(R"(\.)").symbol("DOT").description(".").action( [&](std::string_view str) -> Value { return emplace_back(DOT, std::string{str} ); } )
+	_parser.token(R"(\.\.)").symbol("RANGE").description("integer range").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE_DOT, std::string{str}); });
+	_parser.token(R"(\.)").symbol("DOT").description(".").action([&](std::string_view str) -> Value { return emplace_back(DOT, std::string{str}); })
 		.precedence(15, pog::Associativity::Left);
-	_parser.token("<").symbol("LT").description("<").action( [&](std::string_view str) -> Value { return emplace_back(LT, std::string{str} ); } )
+	_parser.token("<").symbol("LT").description("<").action([&](std::string_view str) -> Value { return emplace_back(LT, std::string{str}); })
 		.precedence(10, pog::Associativity::Left);
-	_parser.token(">").symbol("GT").description(">").action( [&](std::string_view str) -> Value { return emplace_back(GT, std::string{str} ); } )
+	_parser.token(">").symbol("GT").description(">").action([&](std::string_view str) -> Value { return emplace_back(GT, std::string{str}); })
 		.precedence(10, pog::Associativity::Left);
-	_parser.token("<=").symbol("LE").description("<=").action( [&](std::string_view str) -> Value { return emplace_back(LE, std::string{str} ); } )
+	_parser.token("<=").symbol("LE").description("<=").action([&](std::string_view str) -> Value { return emplace_back(LE, std::string{str}); })
 		.precedence(10, pog::Associativity::Left);
-	_parser.token(">=").symbol("GE").description(">=").action( [&](std::string_view str) -> Value { return emplace_back(GE, std::string{str} ); } )
+	_parser.token(">=").symbol("GE").description(">=").action([&](std::string_view str) -> Value { return emplace_back(GE, std::string{str}); })
 		.precedence(10, pog::Associativity::Left);
-	_parser.token("==").symbol("EQ").description("==").action( [&](std::string_view str) -> Value { return emplace_back(EQ, std::string{str} ); } )
+	_parser.token("==").symbol("EQ").description("==").action([&](std::string_view str) -> Value { return emplace_back(EQ, std::string{str}); })
 		.precedence(9, pog::Associativity::Left);
-	_parser.token("!=").symbol("NEQ").description("!=").action( [&](std::string_view str) -> Value { return emplace_back(NEQ, std::string{str} ); } )
+	_parser.token("!=").symbol("NEQ").description("!=").action([&](std::string_view str) -> Value { return emplace_back(NEQ, std::string{str}); })
 		.precedence(9, pog::Associativity::Left);
-	_parser.token("<<").symbol("SHIFT_LEFT").description("<<").action( [&](std::string_view str) -> Value { return emplace_back(SHIFT_LEFT, std::string{str} ); } )
+	_parser.token("<<").symbol("SHIFT_LEFT").description("<<").action([&](std::string_view str) -> Value { return emplace_back(SHIFT_LEFT, std::string{str}); })
 		.precedence(11, pog::Associativity::Left);
-	_parser.token(">>").symbol("SHIFT_RIGHT").description(">>").action( [&](std::string_view str) -> Value { return emplace_back(SHIFT_RIGHT, std::string{str} ); } )
+	_parser.token(">>").symbol("SHIFT_RIGHT").description(">>").action([&](std::string_view str) -> Value { return emplace_back(SHIFT_RIGHT, std::string{str}); })
 		.precedence(11, pog::Associativity::Left);
-	_parser.token(R"(-)").symbol("MINUS").description("-").action( [&](std::string_view str) -> Value { return emplace_back(MINUS, std::string{str}); } )
+	_parser.token(R"(-)").symbol("MINUS").description("-").action([&](std::string_view str) -> Value { return emplace_back(MINUS, std::string{str}); })
 		.precedence(12, pog::Associativity::Left);
-	_parser.token(R"(\+)").symbol("PLUS").description("+").action( [&](std::string_view str) -> Value { return emplace_back(PLUS, std::string{str}); } )
+	_parser.token(R"(\+)").symbol("PLUS").description("+").action([&](std::string_view str) -> Value { return emplace_back(PLUS, std::string{str}); })
 		.precedence(12, pog::Associativity::Left);
-	_parser.token(R"(\*)").symbol("MULTIPLY").description("*").action( [&](std::string_view str) -> Value { return emplace_back(MULTIPLY, std::string{str}); } )
+	_parser.token(R"(\*)").symbol("MULTIPLY").description("*").action([&](std::string_view str) -> Value { return emplace_back(MULTIPLY, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
-	_parser.token(R"(\\)").symbol("DIVIDE").description("\\").action( [&](std::string_view str) -> Value { return emplace_back(DIVIDE, std::string{str}); } )
+	_parser.token(R"(\\)").symbol("DIVIDE").description("\\").action([&](std::string_view str) -> Value { return emplace_back(DIVIDE, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
-	_parser.token(R"(\%)").symbol("MODULO").description("%").action( [&](std::string_view str) -> Value { return emplace_back(MODULO, std::string{str}); } )
+	_parser.token(R"(\%)").symbol("MODULO").description("%").action([&](std::string_view str) -> Value { return emplace_back(MODULO, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
-	_parser.token(R"(\^)").symbol("BITWISE_XOR").description("^").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); } )
+	_parser.token(R"(\^)").symbol("BITWISE_XOR").description("^").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); })
 		.precedence(7, pog::Associativity::Left);
-	_parser.token(R"(\&)").symbol("BITWISE_AND").description("&").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); } )
+	_parser.token(R"(\&)").symbol("BITWISE_AND").description("&").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); })
 		.precedence(8, pog::Associativity::Left);
-	_parser.token(R"(\|)").symbol("BITWISE_OR").description("|").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); } )
+	_parser.token(R"(\|)").symbol("BITWISE_OR").description("|").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); })
 		.precedence(6, pog::Associativity::Left);
-	_parser.token(R"(\~)").symbol("BITWISE_NOT").description("~").action( [&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); } )
+	_parser.token(R"(\~)").symbol("BITWISE_NOT").description("~").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); })
 		.precedence(14, pog::Associativity::Right);
-	_parser.token("\\(").symbol("LP").description("(").action( [&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); } );
-	_parser.token("\\)").symbol("RP").description(")").action( [&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); } )
+	_parser.token("\\(").symbol("LP").description("(").action([&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); });
+	_parser.token("\\)").symbol("RP").description(")").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); })
 		.precedence(1, pog::Associativity::Left);
-	_parser.token("\\{").symbol("LCB").description("{").action( [&](std::string_view str) -> Value {
+	_parser.token("\\{").symbol("LCB").description("{").action([&](std::string_view str) -> Value {
 		if(sectionStrings())
 			enter_state("$hexstr");
 		return emplace_back(LCB, std::string{str});
 	});
-	_parser.token("\\}").symbol("RCB").description("}").action( [&](std::string_view str) -> Value { return emplace_back( RCB, std::string{str}); } );
-	_parser.token("\\[").symbol("LSQB").description("[").action( [&](std::string_view str) -> Value { return emplace_back( LSQB, std::string{str} ); } );
-	_parser.token("\\]").symbol("RSQB").description("]").action( [&](std::string_view str) -> Value { return emplace_back( RSQB, std::string{str} ); } );
-	_parser.token("=").symbol("ASSIGN").description("=").action( [&](std::string_view str) -> Value { return emplace_back( ASSIGN, std::string{str} ); } );
-	_parser.token(":").symbol("COLON").description(":").action( [&](std::string_view str) -> Value { return emplace_back( COLON, std::string{str} ); } );
-	_parser.token(",").symbol("COMMA").description(",").action( [&](std::string_view str) -> Value { return emplace_back( COMMA, std::string{str} ); } )
+	_parser.token("\\}").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(RCB, std::string{str}); });
+	_parser.token("\\[").symbol("LSQB").description("[").action([&](std::string_view str) -> Value { return emplace_back(LSQB, std::string{str}); });
+	_parser.token("\\]").symbol("RSQB").description("]").action([&](std::string_view str) -> Value { return emplace_back(RSQB, std::string{str}); });
+	_parser.token("=").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(ASSIGN, std::string{str}); });
+	_parser.token(":").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(COLON, std::string{str}); });
+	_parser.token(",").symbol("COMMA").description(",").action([&](std::string_view str) -> Value { return emplace_back(COMMA, std::string{str}); })
 		.precedence(1, pog::Associativity::Left);
-	_parser.token("/").states("@default").symbol("SLASH").description("/").action( [&](std::string_view str) -> Value {
+	_parser.token("/").states("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
 		enter_state("$regexp");
 		return std::string{str};
 	});
-	_parser.token("global").symbol("GLOBAL").description("global").action( [&](std::string_view str) -> Value { return emplace_back( GLOBAL, std::string{str} ); } );
-	_parser.token("private").symbol("PRIVATE").description("private").action( [&](std::string_view str) -> Value { return emplace_back( PRIVATE, std::string{str} ); } );
-	_parser.token("rule").symbol("RULE").description("rule").action( [&](std::string_view str) -> Value { return emplace_back( RULE, std::string{str} ); } );
-	_parser.token("meta").symbol("META").description("meta").action( [&](std::string_view str) -> Value { return emplace_back( META, std::string{str} ); } );
-	_parser.token("strings").symbol("STRINGS").description("strings").action( [&](std::string_view str) -> Value { sectionStrings(true); return emplace_back( STRINGS, std::string{str} ); } );
-	_parser.token("condition").symbol("CONDITION").description("condition").action( [&](std::string_view str) -> Value { sectionStrings(false); return emplace_back( CONDITION, std::string{str} ); } );
-	_parser.token("ascii").symbol("ASCII").description("ascii").action( [&](std::string_view str) -> Value { return emplace_back( ASCII, std::string{str} ); } );
-	_parser.token("nocase").symbol("NOCASE").description("nocase").action( [&](std::string_view str) -> Value { return emplace_back( NOCASE, std::string{str} ); } );
-	_parser.token("wide").symbol("WIDE").description("wide").action( [&](std::string_view str) -> Value { return emplace_back( WIDE, std::string{str} ); } );
-	_parser.token("fullword").symbol("FULLWORD").description("fullword").action( [&](std::string_view str) -> Value { return emplace_back( FULLWORD, std::string{str} ); } );
-	_parser.token("xor").symbol("XOR").description("xor").action( [&](std::string_view str) -> Value { return emplace_back( XOR, std::string{str} ); } );
-	_parser.token("true").symbol("BOOL_TRUE").description("true").action( [&](std::string_view) -> Value { return emplace_back( BOOL_TRUE, true ); } );
-	_parser.token("false").symbol("BOOL_FALSE").description("false").action( [&](std::string_view) -> Value { return emplace_back( BOOL_FALSE, false ); } );
-	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action( [&](std::string_view str) -> Value { return emplace_back( IMPORT_KEYWORD, std::string{str} ); } );
-	_parser.token("not").symbol("NOT").description("not").action( [&](std::string_view str) -> Value { return emplace_back( NOT, std::string{str} ); } )
+	_parser.token("global").symbol("GLOBAL").description("global").action([&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); });
+	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); });
+	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(RULE, std::string{str}); });
+	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(META, std::string{str}); });
+	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(STRINGS, std::string{str}); });
+	_parser.token("condition").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(CONDITION, std::string{str}); });
+	_parser.token("ascii").symbol("ASCII").description("ascii").action([&](std::string_view str) -> Value { return emplace_back(ASCII, std::string{str}); });
+	_parser.token("nocase").symbol("NOCASE").description("nocase").action([&](std::string_view str) -> Value { return emplace_back(NOCASE, std::string{str}); });
+	_parser.token("wide").symbol("WIDE").description("wide").action([&](std::string_view str) -> Value { return emplace_back(WIDE, std::string{str}); });
+	_parser.token("fullword").symbol("FULLWORD").description("fullword").action([&](std::string_view str) -> Value { return emplace_back(FULLWORD, std::string{str}); });
+	_parser.token("xor").symbol("XOR").description("xor").action([&](std::string_view str) -> Value { return emplace_back(XOR, std::string{str}); });
+	_parser.token("true").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(BOOL_TRUE, true); });
+	_parser.token("false").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(BOOL_FALSE, false); });
+	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(IMPORT_KEYWORD, std::string{str}); });
+	_parser.token("not").symbol("NOT").description("not").action([&](std::string_view str) -> Value { return emplace_back(NOT, std::string{str}); })
 		.precedence(14, pog::Associativity::Right);
-	_parser.token("and").symbol("AND").description("and").action( [&](std::string_view str) -> Value { return emplace_back( AND, std::string{str} ); } )
+	_parser.token("and").symbol("AND").description("and").action([&](std::string_view str) -> Value { return emplace_back(AND, std::string{str}); })
 		.precedence(5, pog::Associativity::Left);
-	_parser.token("or").symbol("OR").description("or").action( [&](std::string_view str) -> Value { return emplace_back( OR, std::string{str} ); } )
+	_parser.token("or").symbol("OR").description("or").action([&](std::string_view str) -> Value { return emplace_back(OR, std::string{str}); })
 		.precedence(4, pog::Associativity::Left);
-	_parser.token("all").symbol("ALL").description("all").action( [&](std::string_view str) -> Value { return emplace_back( ALL, std::string{str} ); } );
-	_parser.token("any").symbol("ANY").description("any").action( [&](std::string_view str) -> Value { return emplace_back( ANY, std::string{str} ); } );
-	_parser.token("of").symbol("OF").description("of").action( [&](std::string_view str) -> Value { return emplace_back( OF, std::string{str} ); } );
-	_parser.token("them").symbol("THEM").description("them").action( [&](std::string_view str) -> Value { return emplace_back( THEM, std::string{str} ); } );
-	_parser.token("for").symbol("FOR").description("for").action( [&](std::string_view str) -> Value { return emplace_back( FOR, std::string{str} ); } );
-	_parser.token("entrypoint").symbol("ENTRYPOINT").description("entrypoint").action( [&](std::string_view str) -> Value { return emplace_back( ENTRYPOINT, std::string{str} ); } );
-	_parser.token("at").symbol("AT").description("at").action( [&](std::string_view str) -> Value { return emplace_back( OP_AT, std::string{str} ); } );
-	_parser.token("in").symbol("IN").description("in").action( [&](std::string_view str) -> Value { return emplace_back( OP_IN, std::string{str} ); } );
-	_parser.token("filesize").symbol("FILESIZE").description("filesize").action( [&](std::string_view str) -> Value { return emplace_back( FILESIZE, std::string{str} ); } );
-	_parser.token("contains").symbol("CONTAINS").description("contains").action( [&](std::string_view str) -> Value { return emplace_back( CONTAINS, std::string{str} ); } );
-	_parser.token("matches").symbol("MATCHES").description("matches").action( [&](std::string_view str) -> Value { return emplace_back( MATCHES, std::string{str} ); } );
+	_parser.token("all").symbol("ALL").description("all").action([&](std::string_view str) -> Value { return emplace_back(ALL, std::string{str}); });
+	_parser.token("any").symbol("ANY").description("any").action([&](std::string_view str) -> Value { return emplace_back(ANY, std::string{str}); });
+	_parser.token("of").symbol("OF").description("of").action([&](std::string_view str) -> Value { return emplace_back(OF, std::string{str}); });
+	_parser.token("them").symbol("THEM").description("them").action([&](std::string_view str) -> Value { return emplace_back(THEM, std::string{str}); });
+	_parser.token("for").symbol("FOR").description("for").action([&](std::string_view str) -> Value { return emplace_back(FOR, std::string{str}); });
+	_parser.token("entrypoint").symbol("ENTRYPOINT").description("entrypoint").action([&](std::string_view str) -> Value { return emplace_back(ENTRYPOINT, std::string{str}); });
+	_parser.token("at").symbol("AT").description("at").action([&](std::string_view str) -> Value { return emplace_back(OP_AT, std::string{str}); });
+	_parser.token("in").symbol("IN").description("in").action([&](std::string_view str) -> Value { return emplace_back(OP_IN, std::string{str}); });
+	_parser.token("filesize").symbol("FILESIZE").description("filesize").action([&](std::string_view str) -> Value { return emplace_back(FILESIZE, std::string{str}); });
+	_parser.token("contains").symbol("CONTAINS").description("contains").action([&](std::string_view str) -> Value { return emplace_back(CONTAINS, std::string{str}); });
+	_parser.token("matches").symbol("MATCHES").description("matches").action([&](std::string_view str) -> Value { return emplace_back(MATCHES, std::string{str}); });
 
 	// $include
-	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action( [&](std::string_view str) -> Value {
+	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
-	_parser.token("\n").states("$include").action( [&](std::string_view str) -> Value {
+	_parser.token("\n").states("$include").action([&](std::string_view str) -> Value {
 		currentLocation().addLine();
 		return Value(emplace_back(NEW_LINE, std::string{str}));
 	});
 	_parser.token(R"([ \v\r\t])").states("$include");
 	_parser.token(R"(\")").states("$include").enter_state("$include_file");
 	//$include_file
-	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action( [&](std::string_view str) -> Value {
+	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action([&](std::string_view str) -> Value {
 		std::string filePath = std::string{str}.substr(0, str.size()-1);
 		if (!includeFile(filePath))
 	 		error_handle(currentLocation(), "Unable to include file '" + filePath + "'");
@@ -160,31 +160,31 @@ void ParserDriver::defineTokens()
 	});
 	//$include_file end
 
-	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(INTEGER, static_cast<int64_t>( std::stol(std::string{str}.substr(2), 0, 16) ), std::make_optional(std::string{str}) );
+	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, static_cast<int64_t>(std::stol(std::string{str}.substr(2), 0, 16)), std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(INTEGER, 1000 * static_cast<int64_t>( std::stol(std::string{str}) ), std::make_optional(std::string{str}));
+	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000 * static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(INTEGER, 1000000 * static_cast<int64_t>( std::stol(std::string{str}) ), std::make_optional(std::string{str}));
+	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000000 * static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action( [&](std::string_view str) -> Value {
-		return emplace_back(INTEGER, static_cast<int64_t>( std::stol(std::string{str}) ), std::make_optional(std::string{str}));
+	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
 	});
 
-	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
 		auto it = emplace_back(ONELINE_COMMENT, std::string{str}, _indent);
 		addComment(it);
 		return {};
 	});
 	// $multiline_comment
 	// Comment tokens are not delegated with return Value but stored in _comment
-	_parser.token(R"(/\*)").states("@default").enter_state("$multiline_comment").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(/\*)").states("@default").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
-	_parser.token(R"(\*/)").states("$multiline_comment").enter_state("@default").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\*/)").states("$multiline_comment").enter_state("@default").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		auto it = emplace_back(COMMENT, _comment, _indent);
 		addComment(it);
@@ -192,12 +192,12 @@ void ParserDriver::defineTokens()
 		_comment.clear();
 		return {};
 	});
-	_parser.token(R"(\n)").states("$multiline_comment").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\n)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		currentLocation().addLine();
 		_comment.append(std::string{str});
 		return {};
 	});
-	_parser.token(R"(.)").states("$multiline_comment").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(.)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -205,26 +205,26 @@ void ParserDriver::defineTokens()
 
 	// $str
 	// $str tokens are not delegated with return Value but stored in _strLiteral
-	_parser.token(R"(\")").states("@default").enter_state("$str").action( [&](std::string_view) -> Value {
+	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
 		_strLiteral.clear();
 		return {};
 	});
-	_parser.token(R"(\\t)").states("$str").action( [&](std::string_view) -> Value {
+	_parser.token(R"(\\t)").states("$str").action([&](std::string_view) -> Value {
 		_strLiteral += "\\t";
 		return {};
 	});
-	_parser.token(R"(\\n)").states("$str").action( [&](std::string_view) -> Value {
+	_parser.token(R"(\\n)").states("$str").action([&](std::string_view) -> Value {
 		_strLiteral += "\\n";
 		currentLocation().addLine();
 		return {};
 	});
-	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action([&](std::string_view str) -> Value {
 		_strLiteral += "\\x";
 		_strLiteral += std::string{str}.substr(2);
 		return {};
 	});
-	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\""; return {}; } );
-	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\\"; return {}; } );
+	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\""; return {}; });
+	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\\"; return {}; });
 	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { error_handle(currentLocation(), "Unknown escape sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
@@ -232,7 +232,7 @@ void ParserDriver::defineTokens()
 	});
 	// $str end
 
-	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").description("fixed-width integer function").action( [&](std::string_view str) -> Value { return emplace_back(INTEGER_FUNCTION, std::string{str}); } );
+	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").description("fixed-width integer function").action([&](std::string_view str) -> Value { return emplace_back(INTEGER_FUNCTION, std::string{str}); });
 	_parser.token(R"(\$[0-9a-zA-Z_]*)").symbol("STRING_ID").description("string identifier").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID, std::string{str}); });
 
 	_parser.token(R"(\$[0-9a-zA-Z_]*\*)").symbol("STRING_ID_WILDCARD").description("string wildcard").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID_WILDCARD, std::string{str}); });
@@ -311,7 +311,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([&](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([&](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
 		std::string rangeStr = std::string{str};
 		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
 		std::string highStr = rangeStr.substr(rangeStr.find(',') + 1);
@@ -329,7 +329,7 @@ void ParserDriver::defineTokens()
 
 		return std::make_pair(low, high);
 	});
-	_parser.token(R"({[0-9]+})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action( [&](std::string_view str) -> Value {
+	_parser.token(R"({[0-9]+})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
 		std::string numStr = std::string(str.substr(1, str.size()-2));
 
 		std::optional<std::uint64_t> range;
@@ -339,18 +339,18 @@ void ParserDriver::defineTokens()
 
 		return std::make_pair(range, range);
 	});
-	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action( [&](std::string_view str) -> Value {
+	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([&](std::string_view str) -> Value {
 		return std::string{str};
 	});
-	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\S)").states("$regexp").symbol("REGEXP_NON_SPACE").description("regexp \\S").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\d)").states("$regexp").symbol("REGEXP_DIGIT").description("regexp \\d").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action( [&](std::string_view) -> Value { return {};} );
-	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action( [&](std::string_view str) -> Value {
+	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\S)").states("$regexp").symbol("REGEXP_NON_SPACE").description("regexp \\S").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\d)").states("$regexp").symbol("REGEXP_DIGIT").description("regexp \\d").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([&](std::string_view str) -> Value {
 		return std::string{str};
 	});
 	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
@@ -372,22 +372,22 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\])").states("$regexp_class").symbol("REGEXP_CLASS").description("regexp class").enter_state("$regexp").action([&](std::string_view) -> Value {
 		return _regexpClass;
 	});
-	_parser.token(R"(\\w)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\w"; return {};} );
-	_parser.token(R"(\\W)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\W"; return {};} );
-	_parser.token(R"(\\s)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\s"; return {};} );
-	_parser.token(R"(\\S)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\S"; return {};} );
-	_parser.token(R"(\\d)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\d"; return {};} );
-	_parser.token(R"(\\D)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\D"; return {};} );
-	_parser.token(R"(\\b)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\b"; return {};} );
-	_parser.token(R"(\\B)").states("$regexp_class").action( [&](std::string_view) -> Value { _regexpClass += "\\B"; return {};} );
-	_parser.token(R"([^]])").states("$regexp_class").action( [&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
+	_parser.token(R"(\\w)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\w"; return {};});
+	_parser.token(R"(\\W)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\W"; return {};});
+	_parser.token(R"(\\s)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\s"; return {};});
+	_parser.token(R"(\\S)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\S"; return {};});
+	_parser.token(R"(\\d)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\d"; return {};});
+	_parser.token(R"(\\D)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\D"; return {};});
+	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
+	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
+	_parser.token(R"([^]])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
 	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) {
   		_parser.pop_input_stream();
-  		if( currentTokenStreamCount() > 1 )
+  		if(currentTokenStreamCount() > 1)
 			popTokenStream();
-		if( currentLocationCount() > 1 )
+		if(currentLocationCount() > 1)
 			popLocation();
   		return 0;
 	});

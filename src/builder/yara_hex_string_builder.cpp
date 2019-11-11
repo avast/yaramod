@@ -397,21 +397,21 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	hexStrings.reserve(units.size());
 
 	auto ts = std::make_shared<TokenStream>();
-	for( size_t i = 0; i < units.size(); ++i )
+	for(size_t i = 0; i < units.size(); ++i)
 	{
-		hexStrings.push_back( units[i].get(ts, false) ); //filling up ts while getting the hexStrings
+		hexStrings.push_back(units[i].get(ts, false)); //filling up ts while getting the hexStrings
 		if(i + 1 < units.size()) {
-			ts->emplace_back( HEX_ALT, "|" ); // add '|' in between the hexStrings
+			ts->emplace_back(HEX_ALT, "|"); // add '|' in between the hexStrings
 		}
 	}
-	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
+	return YaraHexStringBuilder(ts, std::make_shared< HexStringOr >(hexStrings));
 }
 
 YaraHexStringBuilder _alt(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
 {
 	hexStrings.push_back(unit.get(ts, false));
 	ts->emplace_back(HEX_ALT_RIGHT_BRACKET, ")");
-	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
+	return YaraHexStringBuilder(ts, std::make_shared< HexStringOr >(hexStrings));
 }
 
 }

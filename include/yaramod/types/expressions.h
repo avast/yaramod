@@ -523,7 +523,7 @@ class OrExpression : public BinaryOpExpression
 {
 public:
 	template<typename ExpPtr1, typename ExpPtr2>
-	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression( std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
+	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1423,7 +1423,7 @@ public:
 
 	LiteralType getValue() const
 	{
-		assert( _value.has_value() );
+		assert(_value.has_value());
 		return (*_value)->template getValue<LiteralType>();
 	}
 

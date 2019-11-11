@@ -44,11 +44,11 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 	auto formula = op(terms[0], terms[1]);
 	for (std::size_t i = 2; i < terms.size(); ++i)
 	{
-		if( !terms[i].canBeBool() ){
+		if(!terms[i].canBeBool()) {
 			const auto& expr = terms[i].get();
-			error_handle( "Expected boolean, got '" + expr->getText() + "' of type " + expr->getTypeString() );
+			error_handle("Expected boolean, got '" + expr->getText() + "' of type " + expr->getTypeString());
 		}
-		if( i>=2 )
+		if(i>=2)
 			formula = op(formula, terms[i]);
 	}
 
@@ -258,7 +258,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuil
 	_tokenStream->move_append(other.getTokenStream());
 
 	_expr = std::make_shared<PlusExpression>(std::move(_expr), token, other.get());
-	setType( will_be_float ? Expression::Type::Float : Expression::Type::Int );
+	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
 	return *this;
 }
 
@@ -277,7 +277,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuil
 	_tokenStream->move_append(other.getTokenStream());
 
 	_expr = std::make_shared<MinusExpression>(std::move(_expr), token, other.get());
-	setType( will_be_float ? Expression::Type::Float : Expression::Type::Int );
+	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
 	return *this;
 }
 
@@ -296,7 +296,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuil
 	_tokenStream->move_append(other.getTokenStream());
 
 	_expr = std::make_shared<MultiplyExpression>(std::move(_expr), token, other.get());
-	setType( will_be_float ? Expression::Type::Float : Expression::Type::Int );
+	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
 	return *this;
 }
 
@@ -315,7 +315,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuil
 	_tokenStream->move_append(other.getTokenStream());
 
 	_expr = std::make_shared<DivideExpression>(std::move(_expr), token, other.get());
-	setType( will_be_float ? Expression::Type::Float : Expression::Type::Int );
+	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
 	return *this;
 }
 
@@ -334,7 +334,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
 	_tokenStream->move_append(other.getTokenStream());
 
 	_expr = std::make_shared<ModuloExpression>(std::move(_expr), token, other.get());
-	setType( will_be_float ? Expression::Type::Float : Expression::Type::Int );
+	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
 	return *this;
 }
 
@@ -673,7 +673,7 @@ YaraExpressionBuilder intVal(std::int64_t value, IntMultiplier mult)
 			break;
 	}
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back( INTEGER, value, std::move(strValue) );
+	TokenIt token = ts->emplace_back(INTEGER, value, std::move(strValue));
 	auto expression = std::make_shared<IntLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Int);
 }
@@ -701,7 +701,7 @@ YaraExpressionBuilder uintVal(std::uint64_t value, IntMultiplier mult)
 YaraExpressionBuilder hexIntVal(std::uint64_t value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back( INTEGER, value, numToStr(value, std::hex, true) );
+	TokenIt token = ts->emplace_back(INTEGER, value, numToStr(value, std::hex, true));
 	auto expression = std::make_shared<IntLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Int);
 }
@@ -716,7 +716,7 @@ YaraExpressionBuilder hexIntVal(std::uint64_t value)
 YaraExpressionBuilder doubleVal(double value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back( DOUBLE, value, numToStr(value) );
+	TokenIt token = ts->emplace_back(DOUBLE, value, numToStr(value));
 	auto expression = std::make_shared<DoubleLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Float);
 }
@@ -731,7 +731,7 @@ YaraExpressionBuilder doubleVal(double value)
 YaraExpressionBuilder stringVal(const std::string& value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back( STRING_LITERAL, escapeString(value) );
+	TokenIt token = ts->emplace_back(STRING_LITERAL, escapeString(value));
 	auto expression = std::make_shared<StringLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::String);
 }
@@ -763,7 +763,7 @@ YaraExpressionBuilder id(const std::string& id)
 	auto ts = std::make_shared<TokenStream>();
 	auto symbol = std::make_shared<ValueSymbol>(id, Expression::Type::Object);
 	TokenIt token = ts->emplace_back(ID, std::move(symbol), id);
-	auto expression = std::make_shared<IdExpression>( token );
+	auto expression = std::make_shared<IdExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression));
 }
 
@@ -991,7 +991,7 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::s
 	ts->move_append(expr.getTokenStream());
 	auto rb = ts->emplace_back(RP_WITH_SPACE_BEFORE, ")");
 
-	auto expression = std::make_shared<ForIntExpression>( forToken, forExpr.get(), idToken, inToken, set.get(), lb, expr.get(), rb );
+	auto expression = std::make_shared<ForIntExpression>(forToken, forExpr.get(), idToken, inToken, set.get(), lb, expr.get(), rb);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
 }
 
@@ -1050,7 +1050,7 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt lb = ts->emplace_back(LP, "(");
-	for(size_t i = 0; i < elements.size(); ++i )
+	for(size_t i = 0; i < elements.size(); ++i)
 	{
 		ts->move_append(elements[i].getTokenStream());
 		if(i < elements.size() - 1)
@@ -1076,9 +1076,9 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
  */
 YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	if( !lhs.canBeBool() )
+	if(!lhs.canBeBool())
 		error_handle(ArgType::Left, "and", "bool", rhs.get());
-	else if( !rhs.canBeBool() )
+	else if(!rhs.canBeBool())
 		error_handle(ArgType::Right, "and", "bool", lhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
@@ -1103,9 +1103,9 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
  */
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	if( !lhs.canBeBool() )
+	if(!lhs.canBeBool())
 		error_handle(ArgType::Left, "or", "bool", lhs.get());
-	else if( !rhs.canBeBool() )
+	else if(!rhs.canBeBool())
 		error_handle(ArgType::Right, "or", "bool", rhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
@@ -1129,7 +1129,7 @@ YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraEx
  */
 YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks)
 {
-	for( const auto& bld : terms )
+	for(const auto& bld : terms)
 		if(!bld.canBeBool())
 			error_handle(ArgType::Single, "and", "bool", bld.get());
 	return logicalFormula(terms, [linebreaks](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return conjunction(term1, term2, linebreaks); });
@@ -1145,7 +1145,7 @@ YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& term
  */
 YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks)
 {
-	for( const auto& bld : terms )
+	for(const auto& bld : terms)
 		if(!bld.canBeBool())
 			error_handle(ArgType::Single, "or", "bool", bld.get());
 	return logicalFormula(terms, [linebreaks](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return disjunction(term1, term2, linebreaks); });
@@ -1162,7 +1162,7 @@ YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& term
 YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms)
 {
 	std::vector<YaraExpressionBuilder> commented_terms;
-	for( const auto& pair : terms )
+	for(const auto& pair : terms)
 	{
 		if(!pair.first.canBeBool())
 			error_handle(ArgType::Single, "and", "bool", pair.first.get());
@@ -1183,7 +1183,7 @@ YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuil
 YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms)
 {
 	std::vector<YaraExpressionBuilder> commented_terms;
-	for( const auto& pair : terms )
+	for(const auto& pair : terms)
 	{
 		if(!pair.first.canBeBool())
 			error_handle(ArgType::Single, "or", "bool", pair.first.get());

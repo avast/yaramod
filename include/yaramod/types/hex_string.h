@@ -223,12 +223,12 @@ public:
 	std::optional<std::uint64_t> getLow() const
 	{
 		if(_low.has_value())
-			return std::make_optional( _low.value()->getUInt64_t() );
+			return std::make_optional(_low.value()->getUInt64_t());
 		return std::nullopt;
 	}
 	std::optional<std::uint64_t> getHigh() const {
 		if(_high.has_value())
-			return std::make_optional( _high.value()->getUInt64_t() );
+			return std::make_optional(_high.value()->getUInt64_t());
 		return std::nullopt;
    }
 	/// @}

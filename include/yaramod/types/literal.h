@@ -265,7 +265,7 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText( bool pure = false ) const;
+	std::string getText(bool pure = false) const;
 	std::string getPureText() const;
 	/// @}
 
@@ -283,7 +283,7 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
-		if( literal._formated_value.has_value() )
+		if(literal._formated_value.has_value())
 			os << literal._formated_value.value();
 		else if(literal.isBool()){
 			os << (literal.getBool() ? "true" : "false");
@@ -477,40 +477,40 @@ public:
 
 	/// @name Insertion methods
 	/// @{
-	TokenIt emplace_back( TokenType type, char value );
-	TokenIt emplace_back( TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, bool b, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace_back( TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name );
-	TokenIt emplace_back( TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name );
-	TokenIt emplace_back( TokenType type, const Literal& literal );
-	TokenIt emplace_back( TokenType type, Literal&& literal );
-	TokenIt emplace( const TokenIt& before, TokenType type, char value );
-	TokenIt emplace( const TokenIt& before, TokenType type, const char* value );
-	TokenIt emplace( const TokenIt& before, TokenType type, const std::string& value );
-	TokenIt emplace( const TokenIt& before, TokenType type, std::string&& value );
-	TokenIt emplace( const TokenIt& before, TokenType type, bool b );
-	TokenIt emplace( const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name );
-	TokenIt emplace( const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name );
-	TokenIt emplace( const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt );
-	TokenIt emplace( const TokenIt& before, TokenType type, const Literal& literal );
-	TokenIt emplace( const TokenIt& before, TokenType type, Literal&& literal );
-	TokenIt push_back( const Token& t );
-	TokenIt push_back( Token&& t );
-	TokenIt insert( TokenIt before, TokenType type, const Literal& literal);
-	TokenIt insert( TokenIt before, TokenType type, Literal&& literal);
-	TokenIt erase( TokenIt element );
-	TokenIt erase( TokenIt first, TokenIt last );
-	void move_append( TokenStream* donor );
-	void move_append( TokenStream* donor, TokenIt before );
+	TokenIt emplace_back(TokenType type, char value);
+	TokenIt emplace_back(TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, bool b, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace_back(TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
+	TokenIt emplace_back(TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
+	TokenIt emplace_back(TokenType type, const Literal& literal);
+	TokenIt emplace_back(TokenType type, Literal&& literal);
+	TokenIt emplace(const TokenIt& before, TokenType type, char value);
+	TokenIt emplace(const TokenIt& before, TokenType type, const char* value);
+	TokenIt emplace(const TokenIt& before, TokenType type, const std::string& value);
+	TokenIt emplace(const TokenIt& before, TokenType type, std::string&& value);
+	TokenIt emplace(const TokenIt& before, TokenType type, bool b);
+	TokenIt emplace(const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace(const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace(const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace(const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
+	TokenIt emplace(const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
+	TokenIt emplace(const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	TokenIt emplace(const TokenIt& before, TokenType type, const Literal& literal);
+	TokenIt emplace(const TokenIt& before, TokenType type, Literal&& literal);
+	TokenIt push_back(const Token& t);
+	TokenIt push_back(Token&& t);
+	TokenIt insert(TokenIt before, TokenType type, const Literal& literal);
+	TokenIt insert(TokenIt before, TokenType type, Literal&& literal);
+	TokenIt erase(TokenIt element);
+	TokenIt erase(TokenIt first, TokenIt last);
+	void move_append(TokenStream* donor);
+	void move_append(TokenStream* donor, TokenIt before);
 	/// @}
 
 	/// @name Iterators
@@ -533,9 +533,9 @@ public:
 
 	/// @name Lookaround methods
 	/// @{
-	TokenIt find( TokenType type );
-	TokenIt find( TokenType type, TokenIt from );
-	TokenIt find( TokenType type, TokenIt from, TokenIt to );
+	TokenIt find(TokenType type);
+	TokenIt find(TokenType type, TokenIt from);
+	TokenIt find(TokenType type, TokenIt from, TokenIt to);
 	TokenIt findBackwards(TokenType type);
 	TokenIt findBackwards(TokenType type, TokenIt to);
 	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
