@@ -25,10 +25,10 @@ class PlainString : public String
 public:
 	/// @name Constructors
 	/// @{
-	explicit PlainString(std::shared_ptr<TokenStream> ts, const std::string& text);
-	explicit PlainString(std::shared_ptr<TokenStream> ts, std::string&& text);
-	explicit PlainString(std::shared_ptr<TokenStream> ts, TokenIt text);
-	explicit PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, const std::string& text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, std::string&& text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text);
 	~PlainString() = default;
 	/// @}
 

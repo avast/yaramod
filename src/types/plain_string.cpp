@@ -14,7 +14,7 @@ namespace yaramod {
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& text)
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, const std::string& text)
 	: String(ts, String::Type::Plain)
 {
 	_text = ts->emplace_back(TokenType::STRING_LITERAL, text);
@@ -25,7 +25,7 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, const std::string& tex
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, std::string&& text)
 	: String(ts, String::Type::Plain)
 {
 	_text = ts->emplace_back(TokenType::STRING_LITERAL, std::move(text));
@@ -36,7 +36,7 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, std::string&& text)
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt text)
+PlainString::PlainString(const std::shared_ptr<TokenStream>&  ts, TokenIt text)
 	: String(ts, String::Type::Plain)
 	, _text(text)
 {
@@ -45,7 +45,7 @@ PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt text)
 	assert(text->getType() == TokenType::STRING_LITERAL);
 }
 
-PlainString::PlainString(std::shared_ptr<TokenStream> ts, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
 		: String(ts, String::Type::Plain, id, assign_token, mods, mods_strings)
 		, _text(text)
 {

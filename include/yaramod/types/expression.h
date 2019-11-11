@@ -46,7 +46,7 @@ public:
 		, _type(Expression::Type::Undefined)
 	{
 	}
-	Expression(std::shared_ptr<TokenStream> ts)
+	Expression(const std::shared_ptr<TokenStream>& ts)
 		: _tokenStream(ts)
 		, _type(Expression::Type::Undefined)
 	{

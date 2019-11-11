@@ -24,7 +24,7 @@ YaraRuleBuilder::YaraRuleBuilder()
  * Constructor.
  * @param tokenStream: Already existing TokenStream
  */
-YaraRuleBuilder::YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream)
+YaraRuleBuilder::YaraRuleBuilder(const std::shared_ptr<TokenStream>& tokenStream)
 	: _tokenStream(tokenStream)
 	, _mod(std::nullopt)
 	, _strings(std::make_shared<Rule::StringsTrie>())

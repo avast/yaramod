@@ -34,20 +34,20 @@ public:
 	YaraHexStringBuilder(std::shared_ptr<HexStringUnit>&& unit);
 	YaraHexStringBuilder(const std::vector<std::shared_ptr<HexStringUnit>>& units);
 	YaraHexStringBuilder(std::vector<std::shared_ptr<HexStringUnit>>&& units);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::uint8_t byte);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::shared_ptr<HexStringUnit>&& unit);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
-	YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::uint8_t byte);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<HexStringUnit>&& unit);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
+	YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
 	YaraHexStringBuilder(const YaraHexStringBuilder&) = default;
 	YaraHexStringBuilder(YaraHexStringBuilder&&) = default;
 	/// @}
 
 	/// @name Build method
 	/// @{
-	std::shared_ptr<HexString> get(std::shared_ptr<TokenStream> acceptor = nullptr, bool addHexParentheses = true) const;
+	std::shared_ptr<HexString> get(const std::shared_ptr<TokenStream>& acceptor = nullptr, bool addHexParentheses = true) const;
 	/// @}
 
 	/// @name Building methods
@@ -129,10 +129,10 @@ YaraHexStringBuilder alt(const Args&... args)
 template <>
 YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units);
 
-YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit);
+YaraHexStringBuilder _alt(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit);
 
 template <typename... Args>
-YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit, const Args&... args)
+YaraHexStringBuilder _alt(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit, const Args&... args)
 {
 	if(hexStrings.size() == 0)
 		ts->emplace_back(HEX_ALT_LEFT_BRACKET, "(");

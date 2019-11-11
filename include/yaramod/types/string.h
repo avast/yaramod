@@ -47,14 +47,14 @@ public:
 		: String(std::make_shared<TokenStream>(), type)
 	{
 	}
-	explicit String(std::shared_ptr<TokenStream> ts, Type type)
+	explicit String(const std::shared_ptr<TokenStream>& ts, Type type)
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods(Modifiers::None)
 	{
 		assert(_tokenStream);
 	}
-	explicit String(std::shared_ptr<TokenStream> ts, Type type, const std::string& id)
+	explicit String(const std::shared_ptr<TokenStream>& ts, Type type, const std::string& id)
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods(Modifiers::None)
@@ -63,7 +63,7 @@ public:
 		_id = _tokenStream->emplace_back(STRING_KEY, id);
 		_assign_token = _tokenStream->emplace_back(ASSIGN, "=");
 	}
-	explicit String(std::shared_ptr<TokenStream> ts, Type type, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings)
+	explicit String(const std::shared_ptr<TokenStream>& ts, Type type, TokenIt id, TokenIt assign_token, uint32_t mods, std::vector<TokenIt> mods_strings)
 		: _tokenStream(ts)
 		, _type(type)
 		, _id(id)

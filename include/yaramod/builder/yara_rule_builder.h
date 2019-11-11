@@ -37,7 +37,7 @@ public:
 	/// @name Constructor
 	/// @{
 	YaraRuleBuilder();
-	YaraRuleBuilder(std::shared_ptr<TokenStream> tokenStream);
+	YaraRuleBuilder(const std::shared_ptr<TokenStream>& tokenStream);
 	/// @}
 
 	/// @name Build method

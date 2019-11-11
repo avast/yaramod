@@ -594,7 +594,7 @@ private:
 class Regexp : public String
 {
 public:
-	Regexp(std::shared_ptr<TokenStream> ts, std::shared_ptr<RegexpUnit>&& unit)
+	Regexp(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& unit)
 		: String(ts, String::Type::Regexp)
 		, _unit(std::move(unit))
 	{
@@ -603,7 +603,7 @@ public:
 		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
 
-	Regexp(std::shared_ptr<TokenStream> ts, std::shared_ptr<RegexpUnit>&& unit, const std::string& id)
+	Regexp(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& unit, const std::string& id)
 		: String(ts, String::Type::Regexp, id)
 		, _unit(std::move(unit))
 	{

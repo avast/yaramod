@@ -152,7 +152,7 @@ void ParserDriver::defineTokens()
 	 		error_handle(currentLocation(), "Unable to include file '" + filePath + "'");
 
 		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
-		auto ts = includeToken->initializeSubTokenStream();
+		const auto& ts = includeToken->initializeSubTokenStream();
 		pushTokenStream(ts);
 		pushLocation();
 
@@ -1635,7 +1635,7 @@ bool ParserDriver::isValid() const
  *
  * @return @c true if include succeeded, otherwise @c false.
  */
-bool ParserDriver::includeFile(const std::string& includePath/*, std::shared_ptr<TokenStream> substream*/)
+bool ParserDriver::includeFile(const std::string& includePath)
 {
 	auto totalPath = includePath;
 	if (pathIsRelative(includePath))
@@ -1650,7 +1650,7 @@ bool ParserDriver::includeFile(const std::string& includePath/*, std::shared_ptr
 		totalPath = absolutePath(joinPaths(parentPath(_includedFileNames.back()), includePath));
 	}
 
-	return includeFileImpl(totalPath/*, substream*/);
+	return includeFileImpl(totalPath);
 }
 
 /**

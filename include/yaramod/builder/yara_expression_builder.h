@@ -39,7 +39,8 @@ enum class IntFunctionEndianness
 /**
  * Represents error during parsing.
  */
-class YaraExpressionBuilderError : public YaramodError{
+class YaraExpressionBuilderError : public YaramodError
+{
 public:
 	YaraExpressionBuilderError(const std::string& errorMsg)
 		: YaramodError(std::string("YaraExpressionBuilder error: ") + errorMsg)
@@ -62,46 +63,46 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraExpressionBuilder()
-		: _tokenStream( std::make_shared<TokenStream>() )
+		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr()
 	{
 	}
 	YaraExpressionBuilder(const Expression::Ptr& expr)
-		: _tokenStream( std::make_shared<TokenStream>() )
+		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr)
-		: _tokenStream( std::make_shared<TokenStream>() )
+		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
 	}
 	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
-		: _tokenStream( std::make_shared<TokenStream>() )
+		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
 		setType(type);
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
-		: _tokenStream( std::make_shared<TokenStream>() )
+		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
 		setType(type);
 	}
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts)
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts)
 		: _tokenStream(ts)
 		, _expr()
 	{
 	}
 	template<typename ExpPtr>
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr)
-		: _tokenStream( ts )
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr)
+		: _tokenStream(ts)
 		, _expr(std::forward<ExpPtr>(expr))
 	{
 	}
 	template<typename ExpPtr>
-	YaraExpressionBuilder(std::shared_ptr<TokenStream> ts, ExpPtr&& expr, const Expression::Type& type)
-		: _tokenStream( ts )
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr, const Expression::Type& type)
+		: _tokenStream(ts)
 		, _expr(std::forward<ExpPtr>(expr))
 	{
 		setType(type);

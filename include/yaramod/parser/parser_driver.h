@@ -341,8 +341,8 @@ protected:
 
 	/// @name Methods for handling token streams
 	/// @{
-	std::shared_ptr<TokenStream> currentTokenStream() const { return _tokenStreams.top(); }
-	void pushTokenStream(std::shared_ptr<TokenStream> ts) { _tokenStreams.push(ts); }
+	const std::shared_ptr<TokenStream>& currentTokenStream() const { return _tokenStreams.top(); }
+	void pushTokenStream(const std::shared_ptr<TokenStream>& ts) { _tokenStreams.push(ts); }
 	size_t currentTokenStreamCount() const { return _tokenStreams.size(); }
 	void popTokenStream() { _tokenStreams.pop(); }
 	/// @}

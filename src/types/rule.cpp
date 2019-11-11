@@ -53,9 +53,9 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 		_mod = _tokenStream->emplace_back( TokenType::NONE, "");
 }
 
-Rule::Rule(std::shared_ptr<TokenStream> tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
-	: _tokenStream(std::move(tokenStream))
+	: _tokenStream(tokenStream)
 	, _name(name)
 	, _mod(mod)
 	, _metas(std::move(metas))

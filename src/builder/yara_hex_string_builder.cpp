@@ -100,7 +100,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::vector<std::shared_ptr<HexString
  *
  * @param ts TokenStream.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts)
 	: _tokenStream(ts)
 {
 }
@@ -111,7 +111,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts)
  * @param ts TokenStream.
  * @param byte Byte.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::uint8_t byte)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::uint8_t byte)
 	: _tokenStream(ts)
 	, _units()
 {
@@ -129,7 +129,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std
  * @param ts TokenStream.
  * @param bytes Bytes.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::vector<std::uint8_t>& bytes)
 	: _tokenStream(ts)
 	, _units()
 {
@@ -151,7 +151,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, con
  * @param ts TokenStream.
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::shared_ptr<HexStringUnit>& unit)
 	: _tokenStream(ts)
 	, _units()
 {
@@ -164,7 +164,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, con
  * @param ts TokenStream.
  * @param unit Hex string unit.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::shared_ptr<HexStringUnit>&& unit)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<HexStringUnit>&& unit)
 	: _tokenStream(ts)
 	, _units()
 {
@@ -177,7 +177,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std
  * @param ts TokenStream.
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
 	: _tokenStream(ts)
 	, _units(units)
 {
@@ -189,7 +189,7 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, con
  * @param ts TokenStream.
  * @param units Hex string units.
  */
-YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
+YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
 	: _tokenStream(ts)
 	, _units(std::move(units))
 {
@@ -198,10 +198,10 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::shared_ptr<TokenStream>& ts, std
 /**
  * Returns the built hex string and resets the builder back to default state.
  *
- * @param acceptor TokenStream to move-append all our tokens
+ * @param acceptor TokenStream to move-append all our tokens.
  * @return Built hex string.
  */
-std::shared_ptr<HexString> YaraHexStringBuilder::get(std::shared_ptr<TokenStream> acceptor /*= nullptr*/, bool addHexParentheses /*= true*/) const
+std::shared_ptr<HexString> YaraHexStringBuilder::get(const std::shared_ptr<TokenStream>& acceptor /*= nullptr*/, bool addHexParentheses /*= true*/) const
 {
 	if(addHexParentheses)
 	{
@@ -407,7 +407,7 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	return YaraHexStringBuilder( ts, std::make_shared< HexStringOr >(hexStrings) );
 }
 
-YaraHexStringBuilder _alt(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
+YaraHexStringBuilder _alt(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexString>>& hexStrings, const YaraHexStringBuilder& unit)
 {
 	hexStrings.push_back(unit.get(ts, false));
 	ts->emplace_back(HEX_ALT_RIGHT_BRACKET, ")");

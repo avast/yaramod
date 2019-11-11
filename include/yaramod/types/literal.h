@@ -429,8 +429,8 @@ public:
 
 	/// @name Include substream handler methods
 	/// @{
-	std::shared_ptr<TokenStream> getSubTokenStream() const { return _subTokenStream; }
-	std::shared_ptr<TokenStream> initializeSubTokenStream()
+	const std::shared_ptr<TokenStream>& getSubTokenStream() const { return _subTokenStream; }
+	const std::shared_ptr<TokenStream>& initializeSubTokenStream()
 	{
 		assert(_subTokenStream == nullptr);
 		_subTokenStream = std::make_shared<TokenStream>();

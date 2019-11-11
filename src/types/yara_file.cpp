@@ -113,7 +113,7 @@ YaraFile::YaraFile()
 {
 }
 
-YaraFile::YaraFile(std::shared_ptr<TokenStream> tokenStream)
+YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream)
 	: _tokenStream(std::move(tokenStream))
 	, _imports()
 	, _rules()

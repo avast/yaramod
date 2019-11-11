@@ -23,7 +23,7 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraFile();
-	YaraFile(std::shared_ptr<TokenStream> tokenStream);
+	YaraFile(const std::shared_ptr<TokenStream>& tokenStream);
 	YaraFile(YaraFile&&) noexcept = default;
 
 	YaraFile& operator=(YaraFile&&) noexcept = default;

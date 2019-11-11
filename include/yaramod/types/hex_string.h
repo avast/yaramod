@@ -77,8 +77,8 @@ class HexString : public String
 public:
 	/// @name Constructors
 	/// @{
-	explicit HexString(std::shared_ptr<TokenStream> ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
-	explicit HexString(std::shared_ptr<TokenStream> ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
 	/// @}
 
 	/// @name Virtual methods.

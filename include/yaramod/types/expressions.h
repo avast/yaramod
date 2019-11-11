@@ -1415,7 +1415,7 @@ public:
 
 	LiteralExpression() = default;
 	LiteralExpression(TokenIt value) : _value(value) {}
-	LiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+	LiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: Expression(ts)
 		, _value(value)
 	{
@@ -1470,7 +1470,7 @@ public:
 		else
 			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
 	}
-	BoolLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+	BoolLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<bool>(ts, value)
 	{
 	}
@@ -1497,7 +1497,7 @@ public:
 		: LiteralExpression<std::string>(value)
 	{
 	}
-	StringLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+	StringLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<std::string>(ts, value)
 	{
 	}
@@ -1525,7 +1525,7 @@ public:
 		: LiteralExpression<uint64_t>(value)
 	{
 	}
-	IntLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+	IntLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<uint64_t>(ts, value)
 	{
 	}
@@ -1553,7 +1553,7 @@ public:
 		: LiteralExpression<double>(value)
 	{
 	}
-	DoubleLiteralExpression(std::shared_ptr<TokenStream> ts, TokenIt value)
+	DoubleLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<double>(ts, value)
 	{
 	}
