@@ -34,7 +34,7 @@ public:
 
 	/// @name Build method
 	/// @{
-	std::unique_ptr<YaraFile> get(bool recheck = true, ParserDriver* external_driver = nullptr);
+	std::unique_ptr<YaraFile> get(bool recheck = false, ParserDriver* external_driver = nullptr);
 	/// @}
 
 	/// @name Building methods

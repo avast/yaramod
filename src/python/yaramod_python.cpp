@@ -428,7 +428,7 @@ void addBuilderClasses(py::module& module)
 		.def(py::init<>())
 		.def("get", [](YaraFileBuilder& self, bool recheck) {
 				return self.get(recheck, nullptr);
-			}, py::arg("recheck") = true)
+			}, py::arg("recheck") = false)
 		.def("with_module", &YaraFileBuilder::withModule)
 		.def("with_rule", [](YaraFileBuilder& self, const Rule& rule) {
 				return self.withRule(Rule{rule});
