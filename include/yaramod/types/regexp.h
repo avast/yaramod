@@ -14,8 +14,8 @@
 
 #include <optional>
 
-#include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
+#include "yaramod/types/tokenstream.h"
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {

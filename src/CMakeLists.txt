@@ -10,7 +10,6 @@ set(SOURCES
 	builder/yara_rule_builder.cpp
 	parser/parser_driver.cpp
 	types/hex_string.cpp
-	types/literal.cpp
 	types/meta.cpp
 	types/modules/androguard_module.cpp
 	types/modules/cuckoo_module.cpp
@@ -27,6 +26,8 @@ set(SOURCES
 	types/modules/time_module.cpp
 	types/plain_string.cpp
 	types/rule.cpp
+	types/token.cpp
+	types/tokenstream.cpp
 	types/yara_file.cpp
 	utils/filesystem.cpp
 	utils/utils.cpp

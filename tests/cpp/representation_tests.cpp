@@ -7,9 +7,9 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "yaramod/types/literal.h"
-#include "yaramod/types/regexp.h"
 #include "yaramod/types/meta.h"
+#include "yaramod/types/regexp.h"
+#include "yaramod/types/tokenstream.h"
 
 using namespace ::testing;
 

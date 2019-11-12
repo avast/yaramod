@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "yaramod/types/literal.h"
+#include "yaramod/types/token.h"
 
 namespace yaramod {
 

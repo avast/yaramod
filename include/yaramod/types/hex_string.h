@@ -13,8 +13,8 @@
 #include <sstream>
 #include <vector>
 
-#include "yaramod/types/literal.h"
 #include "yaramod/types/string.h"
+#include "yaramod/types/tokenstream.h"
 
 namespace yaramod {
 
@@ -102,8 +102,8 @@ public:
 	/// @name Iterators
 	/// @{
 	auto begin() const { return _units.begin(); }
-	auto end() const { return _units.end();
-}	/// @}
+	auto end() const { return _units.end(); }
+	/// @}
 
 private:
 	std::vector<std::shared_ptr<HexStringUnit>> _units; ///< Units in the hex string
@@ -150,7 +150,7 @@ public:
 	/// @}
 
 private:
-	TokenIt _value; ///< Value of the nibble, int
+	TokenIt _value; ///< Value of the nibble
 };
 
 /**
@@ -172,7 +172,7 @@ public:
 	virtual std::size_t getLength() const override { return 1; }
 	/// @}
 private:
-	TokenIt _value; ///< Value of the nibble, int
+	TokenIt _value; ///< Value of the nibble
 };
 
 /**

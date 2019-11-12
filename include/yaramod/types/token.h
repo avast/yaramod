@@ -1,5 +1,5 @@
 /**
- * @file src/types/literal.h
+ * @file src/types/token.h
  * @brief Declaration of class Literal.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
@@ -15,142 +15,147 @@
 #include <string>
 #include <sstream>
 #include <variant>
-#include <vector>
 
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {
+
+class Token;
+using TokenIt = std::list< Token >::iterator;
+using TokenConstIt = std::list< Token >::const_iterator;
+using TokenItReversed = std::reverse_iterator<TokenIt>;
+using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
 
 /**
  * Represents type of parsed tokens.
  */
 enum TokenType
 {
-	RULE_NAME = 1,
-	TAG = 2,
-	HEX_ALT = 3, // '|'
-	HEX_NIBBLE = 4,
-	HEX_WILDCARD = 5,
-	HEX_WILDCARD_LOW = 6,
-	HEX_WILDCARD_HIGH = 7,
-	HEX_JUMP_LEFT_BRACKET = 8, // '['
-	HEX_JUMP_RIGHT_BRACKET = 9, // ']'
-	HEX_ALT_LEFT_BRACKET = 10, // '('
-	HEX_ALT_RIGHT_BRACKET = 11, // ')'
-	HEX_JUMP_FIXED = 12,
-	HEX_START_BRACKET = 13, // '{'
-	HEX_END_BRACKET = 14, // '}'
-	NEW_LINE = 15,
-	META = 16, // 'meta'
-	MODIFIER = 17,
-	LQUOTE = 18,
-	RQUOTE = 19,
-	RULE_END = 256, // '}'
-	RULE_BEGIN = 257, // '{'
-	RANGE = 258,
-	DOT = 259,
-	DOUBLE_DOT = 260,
-	LT = 261,
-	GT = 262,
-	LE = 263,
-	GE = 264,
-	EQ = 265,
-	NEQ = 266,
-	SHIFT_LEFT = 267,
-	SHIFT_RIGHT = 268,
-	MINUS = 269,
-	PLUS = 270,
-	MULTIPLY = 271,
-	DIVIDE = 272,
-	MODULO = 273,
-	BITWISE_XOR = 274,
-	BITWISE_AND = 275,
-	BITWISE_OR = 276,
-	BITWISE_NOT = 277,
-	LP = 278,
-	RP = 279,
-	LCB = 280, // '{'
-	RCB = 281, // '}'
-	ASSIGN = 282,
-	COLON = 283,
-	COMMA = 284,
-	PRIVATE = 285,
-	GLOBAL = 286,
-	NONE = 287,
-	RULE = 288,
-	STRINGS = 289,
-	CONDITION = 290,
-	ASCII = 291,
-	NOCASE = 292,
-	WIDE = 293,
-	FULLWORD = 294,
-	XOR = 295,
-	IMPORT_MODULE = 296,
-	IMPORT_KEYWORD = 297,
-	NOT = 299,
-	AND = 300,
-	OR = 301,
-	ALL = 302,
-	ANY = 303,
-	OF = 304,
-	THEM = 305,
-	FOR = 306,
-	ENTRYPOINT = 307,
-	OP_AT = 308,
-	OP_IN = 309,
-	FILESIZE = 310,
-	CONTAINS = 311,
-	MATCHES = 312,
-	SLASH = 313,
-	STRING_LITERAL = 314,
-	INTEGER = 315,
-	DOUBLE = 316,
-	STRING_ID = 317,
-	STRING_ID_WILDCARD = 318,
-	STRING_LENGTH = 319,
-	STRING_OFFSET = 320,
-	STRING_COUNT = 321,
-	ID = 322,
-	INTEGER_FUNCTION = 323,
-	LSQB = 325, // '['
-	RSQB = 326, // ']'
-	DASH = 328, // '-'
-	REGEXP_OR = 331,
-	REGEXP_ITER = 332,
-	REGEXP_PITER = 333,
-	REGEXP_OPTIONAL = 334,
-	REGEXP_START_SLASH = 357,
-	REGEXP_END_SLASH = 358,
-	REGEXP_CHAR = 346,
-	REGEXP_RANGE = 347,
-	REGEXP_TEXT = 349,
-	REGEXP_CLASS_NEGATIVE = 350,
-	REGEXP_MODIFIERS = 351,
-	REGEXP_GREEDY = 352,
-	UNARY_MINUS = 353,
-	META_KEY = 354,
-	META_VALUE = 355,
-	STRING_KEY = 356,
-	VALUE_SYMBOL = 360,
-	FUNCTION_SYMBOL = 361,
-	ARRAY_SYMBOL = 362,
-	DICTIONARY_SYMBOL = 363,
-	STRUCTURE_SYMBOL = 364,
-	LP_ENUMERATION = 366,
-	RP_ENUMERATION = 367,
-	LP_WITH_SPACE_AFTER = 370,
-	RP_WITH_SPACE_BEFORE = 371,
-	LP_WITH_SPACES = 372,
-	RP_WITH_SPACES = 373,
-	BOOL_TRUE = 375,
-	BOOL_FALSE = 376,
-	ONELINE_COMMENT = 377,
-	COMMENT = 378,
-	INCLUDE_DIRECTIVE = 379,
-	INCLUDE_PATH = 380,
-	FUNCTION_CALL_LP = 381,
-	FUNCTION_CALL_RP = 382,
-   INVALID = 383,
+	RULE_NAME,
+	TAG,
+	HEX_ALT, // '|'
+	HEX_NIBBLE,
+	HEX_WILDCARD,
+	HEX_WILDCARD_LOW,
+	HEX_WILDCARD_HIGH,
+	HEX_JUMP_LEFT_BRACKET, // '['
+	HEX_JUMP_RIGHT_BRACKET, // ']'
+	HEX_ALT_LEFT_BRACKET, // '('
+	HEX_ALT_RIGHT_BRACKET, // ')'
+	HEX_JUMP_FIXED,
+	HEX_START_BRACKET, // '{'
+	HEX_END_BRACKET, // '}'
+	NEW_LINE,
+	META, // 'meta'
+	MODIFIER,
+	LQUOTE,
+	RQUOTE,
+	RULE_END, // '}'
+	RULE_BEGIN, // '{'
+	RANGE,
+	DOT,
+	DOUBLE_DOT,
+	LT,
+	GT,
+	LE,
+	GE,
+	EQ,
+	NEQ,
+	SHIFT_LEFT,
+	SHIFT_RIGHT,
+	MINUS,
+	PLUS,
+	MULTIPLY,
+	DIVIDE,
+	MODULO,
+	BITWISE_XOR,
+	BITWISE_AND,
+	BITWISE_OR,
+	BITWISE_NOT,
+	LP,
+	RP,
+	LCB, // '{'
+	RCB, // '}'
+	ASSIGN,
+	COLON,
+	COMMA,
+	PRIVATE,
+	GLOBAL,
+	NONE,
+	RULE,
+	STRINGS,
+	CONDITION,
+	ASCII,
+	NOCASE,
+	WIDE,
+	FULLWORD,
+	XOR,
+	IMPORT_MODULE,
+	IMPORT_KEYWORD,
+	NOT,
+	AND,
+	OR,
+	ALL,
+	ANY,
+	OF,
+	THEM,
+	FOR,
+	ENTRYPOINT,
+	OP_AT,
+	OP_IN,
+	FILESIZE,
+	CONTAINS,
+	MATCHES,
+	SLASH,
+	STRING_LITERAL,
+	INTEGER,
+	DOUBLE,
+	STRING_ID,
+	STRING_ID_WILDCARD,
+	STRING_LENGTH,
+	STRING_OFFSET,
+	STRING_COUNT,
+	ID,
+	INTEGER_FUNCTION,
+	LSQB, // '['
+	RSQB, // ']'
+	DASH, // '-'
+	REGEXP_OR,
+	REGEXP_ITER,
+	REGEXP_PITER,
+	REGEXP_OPTIONAL,
+	REGEXP_START_SLASH,
+	REGEXP_END_SLASH,
+	REGEXP_CHAR,
+	REGEXP_RANGE,
+	REGEXP_TEXT,
+	REGEXP_CLASS_NEGATIVE,
+	REGEXP_MODIFIERS,
+	REGEXP_GREEDY,
+	UNARY_MINUS,
+	META_KEY,
+	META_VALUE,
+	STRING_KEY,
+	VALUE_SYMBOL,
+	FUNCTION_SYMBOL,
+	ARRAY_SYMBOL,
+	DICTIONARY_SYMBOL,
+	STRUCTURE_SYMBOL,
+	LP_ENUMERATION,
+	RP_ENUMERATION,
+	LP_WITH_SPACE_AFTER,
+	RP_WITH_SPACE_BEFORE,
+	LP_WITH_SPACES,
+	RP_WITH_SPACES,
+	BOOL_TRUE,
+	BOOL_FALSE,
+	ONELINE_COMMENT,
+	COMMENT,
+	INCLUDE_DIRECTIVE,
+	INCLUDE_PATH,
+	FUNCTION_CALL_LP,
+	FUNCTION_CALL_RP,
+	INVALID,
 };
 
 class Location
@@ -430,13 +435,8 @@ public:
 
 	/// @name Include substream handler methods
 	/// @{
-	const std::shared_ptr<TokenStream>& getSubTokenStream() const { return _subTokenStream; }
-	const std::shared_ptr<TokenStream>& initializeSubTokenStream()
-	{
-		assert(_subTokenStream == nullptr);
-		_subTokenStream = std::make_shared<TokenStream>();
-		return getSubTokenStream();
-	}
+	const std::shared_ptr<TokenStream>& getSubTokenStream() const;
+	const std::shared_ptr<TokenStream>& initializeSubTokenStream();
 	/// @}
 
 private:
@@ -447,122 +447,5 @@ private:
 	Location _location; // Location in source input is stored in Tokens for precise error outputs
 	std::size_t _wanted_column; // Wanted column where this Literal should be printed. Used for one-line comments.
 };
-
-using TokenIt = std::list< Token >::iterator;
-using TokenConstIt = std::list< Token >::const_iterator;
-using TokenItReversed = std::reverse_iterator<TokenIt>;
-using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
-
-class TokenStream
-{
-public:
-	class PrintHelper
-	{
-	public:
-		std::size_t getCurrentLine() const { return lineCounter; }
-		const std::vector<TokenIt>& getCommentPool() const { return commentPool; }
-
-		std::size_t insertIntoStream(std::stringstream* ss, char what);
-		std::size_t insertIntoStream(std::stringstream* ss, const std::string& what, std::size_t length = 0);
-		std::size_t insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what);
-		std::size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment);
-	private:
-		std::size_t lineCounter = 0;
-		std::size_t columnCounter = 0;
-		bool commentOnThisLine = false;
-		std::size_t maximalCommentColumn = 0;
-		std::vector<TokenIt> commentPool;
-	};
-
-	TokenStream() = default;
-
-	/// @name Insertion methods
-	/// @{
-	TokenIt emplace_back(TokenType type, char value);
-	TokenIt emplace_back(TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, bool b, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	TokenIt emplace_back(TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
-	TokenIt emplace_back(TokenType type, const Literal& literal);
-	TokenIt emplace_back(TokenType type, Literal&& literal);
-	TokenIt emplace(const TokenIt& before, TokenType type, char value);
-	TokenIt emplace(const TokenIt& before, TokenType type, const char* value);
-	TokenIt emplace(const TokenIt& before, TokenType type, const std::string& value);
-	TokenIt emplace(const TokenIt& before, TokenType type, std::string&& value);
-	TokenIt emplace(const TokenIt& before, TokenType type, bool b);
-	TokenIt emplace(const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	TokenIt emplace(const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
-	TokenIt emplace(const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, const Literal& literal);
-	TokenIt emplace(const TokenIt& before, TokenType type, Literal&& literal);
-	TokenIt push_back(const Token& t);
-	TokenIt push_back(Token&& t);
-	TokenIt insert(TokenIt before, TokenType type, const Literal& literal);
-	TokenIt insert(TokenIt before, TokenType type, Literal&& literal);
-	TokenIt erase(TokenIt element);
-	TokenIt erase(TokenIt first, TokenIt last);
-	void move_append(TokenStream* donor);
-	void move_append(TokenStream* donor, TokenIt before);
-	/// @}
-
-	/// @name Iterators
-	/// @{
-	TokenIt begin();
-	TokenIt end();
-	TokenConstIt begin() const;
-	TokenConstIt end() const;
-	TokenItReversed rbegin();
-	TokenItReversed rend();
-	TokenConstItReversed rbegin() const;
-	TokenConstItReversed rend() const;
-	/// @}
-
-	/// @name Capacity
-	/// @{
-	std::size_t size() const;
-	bool empty() const;
-	/// @}
-
-	/// @name Lookaround methods
-	/// @{
-	TokenIt find(TokenType type);
-	TokenIt find(TokenType type, TokenIt from);
-	TokenIt find(TokenType type, TokenIt from, TokenIt to);
-	TokenIt findBackwards(TokenType type);
-	TokenIt findBackwards(TokenType type, TokenIt to);
-	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
-	std::optional<TokenIt> predecessor(TokenIt it);
-	/// @}
-
-	/// @name Text representation
-	/// @{
-	friend std::ostream& operator<<(std::ostream& os, TokenStream& ts) { return os << ts.getText(false); }
-	std::string getText(bool withIncludes = false, bool alignComments = true);
-	std::vector<std::string> getTokensAsText() const;
-	/// @}
-
-	/// @name Reseting method
-	void clear();
-	/// @}
-protected:
-	void computeCommentAlignment(bool withIncludes);
-	void getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments);
-	void autoformat();
-	void determineNewlineSectors();
-	void addMissingNewLines();
-private:
-	std::list< Token > _tokens; ///< All tokens off the rule
-	bool formatted = false; ///< The flag is set once autoformat has been called
-};
-
 
 } //namespace yaramod

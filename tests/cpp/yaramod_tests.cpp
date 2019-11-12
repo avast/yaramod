@@ -1,5 +1,5 @@
 /**
-* @file tests/literal_tests.cpp
+* @file tests/yaramod_tests.cpp
 * @brief Tests for the YARA literal.
 * @copyright (c) 2019 Avast Software, licensed under the MIT license
 */

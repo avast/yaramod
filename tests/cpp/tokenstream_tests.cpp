@@ -1,5 +1,5 @@
 /**
-* @file tests/literal_tests.cpp
+* @file tests/tokenstream_tests.cpp
 * @brief Tests for the YARA literal.
 * @copyright (c) 2019 Avast Software, licensed under the MIT license
 */
@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "yaramod/types/literal.h"
+#include "yaramod/types/tokenstream.h"
 #include "yaramod/types/meta.h"
 
 using namespace ::testing;
@@ -15,9 +15,9 @@ using namespace ::testing;
 namespace yaramod {
 namespace tests {
 
-class LiteralTests : public Test {};
+class TokenStreamTests : public Test {};
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 BoolLiteral) {
    auto l = Literal(true);
    ASSERT_TRUE(l.isBool());
@@ -33,7 +33,7 @@ BoolLiteral) {
    ASSERT_EQ(l.getText(), "Yes");
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamFindSimple) {
    TokenStream ts;
 
@@ -44,7 +44,7 @@ TokenStreamFindSimple) {
    ASSERT_EQ(found, key);
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamFind) {
    TokenStream ts;
    TokenIt c1 = ts.emplace_back(TokenType::COMMENT, "/*c1*/");
@@ -64,7 +64,7 @@ TokenStreamFind) {
    ASSERT_EQ(ts.find(META_VALUE, c1, c4), c4      );
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamFindBackwardsSimple) {
    TokenStream ts;
 
@@ -75,7 +75,7 @@ TokenStreamFindBackwardsSimple) {
    ASSERT_EQ(found, key);
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamFindBackwards) {
    TokenStream ts;
    TokenIt c1 = ts.emplace_back(TokenType::COMMENT, "/*c1*/");
@@ -95,7 +95,7 @@ TokenStreamFindBackwards) {
    ASSERT_EQ(ts.findBackwards(META_KEY, c1, c4), k2      );
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamEmplaceBack) {
    TokenStream ts;
 
@@ -106,7 +106,7 @@ TokenStreamEmplaceBack) {
    ASSERT_EQ(value->getPureText(), "Mr. Avastian");
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamEmplace) {
    TokenStream ts;
 
@@ -119,7 +119,7 @@ TokenStreamEmplace) {
    ASSERT_EQ(comment->getPureText(), "/*comment about the author*/");
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamPushBack) {
    TokenStream ts;
    Token t(TokenType::RULE_NAME, Literal("rule_name"));
@@ -127,7 +127,7 @@ TokenStreamPushBack) {
    ASSERT_EQ(name->getPureText(), "rule_name");
 }
 
-TEST_F(LiteralTests,
+TEST_F(TokenStreamTests,
 TokenStreamErase) {
    TokenStream ts;
    TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");

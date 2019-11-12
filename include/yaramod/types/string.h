@@ -8,7 +8,7 @@
 
 #include <string>
 #include <vector>
-#include "yaramod/types/literal.h"
+#include "yaramod/types/tokenstream.h"
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {
