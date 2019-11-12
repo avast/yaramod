@@ -7,9 +7,15 @@
 
 namespace yaramod {
 
+/**
+ * A container storing all parsed tokens. Formated text of the parsed input is accessible with getText method or <<operator.
+ */
 class TokenStream
 {
 public:
+	/**
+	 * Class serves as a context storage for printing TokenStream and determining comment alignment.
+	 */
 	class PrintHelper
 	{
 	public:
@@ -115,7 +121,6 @@ public:
 	void clear();
 	/// @}
 protected:
-	void computeCommentAlignment(bool withIncludes);
 	void getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments);
 	void autoformat();
 	void determineNewlineSectors();

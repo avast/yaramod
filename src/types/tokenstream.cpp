@@ -425,6 +425,18 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
 	return os.str();
 }
 
+/**
+ * Iterates through _tokens and determines where to put whitespaces and other characters.
+ * If os != nullptr, it is filled with the text.
+ * At the end, each comment is assigned it's desired alignment. This happens at the end - to
+ * have the comments aligned in the output, this method should be called twice, first time with
+ * os == nullptr.
+ *
+ * @param helper The expression to enclose.
+ * @param linebreak Put linebreak after opening and before closing parenthesis and indent content by one more level.
+ *
+ * @return Builder.
+ */
 void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
 	if(!formatted)
