@@ -33,31 +33,39 @@ public:
 	/// @name Insertion methods
 	/// @{
 	TokenIt emplace_back(TokenType type, char value);
-	TokenIt emplace_back(TokenType type, const char* value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, const std::string& value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, std::string&& value, const std::optional<std::string>& formatted_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, bool b, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace_back(TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	TokenIt emplace_back(TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
+	template <typename Value, typename T>
+	TokenIt emplace_back(TokenType type, Value&& value, T&& formatted_value)
+	{
+		_tokens.emplace_back(type, Literal(std::forward<Value>(value), std::forward<T>(formatted_value)));
+		return --_tokens.end();
+	}
+	template <typename Value>
+	TokenIt emplace_back(TokenType type, Value&& value)
+	{
+		_tokens.emplace_back(type, Literal(std::forward<Value>(value)));
+		return --_tokens.end();
+	}
 	TokenIt emplace_back(TokenType type, const Literal& literal);
 	TokenIt emplace_back(TokenType type, Literal&& literal);
+
 	TokenIt emplace(const TokenIt& before, TokenType type, char value);
-	TokenIt emplace(const TokenIt& before, TokenType type, const char* value);
-	TokenIt emplace(const TokenIt& before, TokenType type, const std::string& value);
-	TokenIt emplace(const TokenIt& before, TokenType type, std::string&& value);
-	TokenIt emplace(const TokenIt& before, TokenType type, bool b);
-	TokenIt emplace(const TokenIt& before, TokenType type, int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	TokenIt emplace(const TokenIt& before, TokenType type, const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	TokenIt emplace(const TokenIt& before, TokenType type, std::shared_ptr<Symbol>&& s, const std::string& symbol_name);
-	TokenIt emplace(const TokenIt& before, TokenType type, double i, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	template <typename Value, typename T>
+	TokenIt emplace(const TokenIt& before, TokenType type, Value&& value, T&& formatted_value)
+	{
+		_tokens.emplace(before, type, Literal(std::forward<Value>(value), std::forward<T>(formatted_value)));
+		auto output = before;
+		return --output;
+	}
+	template <typename Value>
+	TokenIt emplace(const TokenIt& before, TokenType type, Value&& value)
+	{
+		_tokens.emplace(before, type, Literal(std::forward<Value>(value)));
+		auto output = before;
+		return --output;
+	}
 	TokenIt emplace(const TokenIt& before, TokenType type, const Literal& literal);
 	TokenIt emplace(const TokenIt& before, TokenType type, Literal&& literal);
+
 	TokenIt push_back(const Token& t);
 	TokenIt push_back(Token&& t);
 	TokenIt insert(TokenIt before, TokenType type, const Literal& literal);
@@ -94,7 +102,6 @@ public:
 	TokenIt findBackwards(TokenType type);
 	TokenIt findBackwards(TokenType type, TokenIt to);
 	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
-	std::optional<TokenIt> predecessor(TokenIt it);
 	/// @}
 
 	/// @name Text representation
@@ -113,6 +120,8 @@ protected:
 	void autoformat();
 	void determineNewlineSectors();
 	void addMissingNewLines();
+
+	std::optional<TokenIt> predecessor(TokenIt it);
 private:
 	std::list< Token > _tokens; ///< All tokens off the rule
 	bool formatted = false; ///< The flag is set once autoformat has been called

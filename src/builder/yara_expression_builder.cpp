@@ -538,9 +538,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
 YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) // pe.attr
 {
 	TokenIt dotIt = _tokenStream->emplace_back(DOT, ".");
-	auto symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
+	const std::shared_ptr<Symbol>& symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
 	Expression::Type type = symbol->getDataType();
-	auto symbolName = symbol->getName();
+	const std::string& symbolName = symbol->getName();
 	TokenIt symbolIt = _tokenStream->emplace_back(ID, std::move(symbol), symbolName);
 
 	_expr = std::make_shared<StructAccessExpression>(std::move(_expr), dotIt, symbolIt);
@@ -761,7 +761,7 @@ YaraExpressionBuilder boolVal(bool value)
 YaraExpressionBuilder id(const std::string& id)
 {
 	auto ts = std::make_shared<TokenStream>();
-	auto symbol = std::make_shared<ValueSymbol>(id, Expression::Type::Object);
+	const std::shared_ptr<Symbol>& symbol = std::make_shared<ValueSymbol>(id, Expression::Type::Object);
 	TokenIt token = ts->emplace_back(ID, std::move(symbol), id);
 	auto expression = std::make_shared<IdExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression));
