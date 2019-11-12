@@ -8,7 +8,7 @@
 
 #include <string>
 
-namespace yaramod{
+namespace yaramod {
 
 class YaramodError : public std::exception
 {

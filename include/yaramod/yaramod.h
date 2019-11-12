@@ -26,7 +26,8 @@
 
 namespace yaramod {
 
-class Yaramod{
+class Yaramod
+{
 public:
 	/*
 	 * @param ParserMode
@@ -52,6 +53,7 @@ public:
 	 * @return Valid @c YaraFile instance if parsing succeeded, otherwise @c nullptr.
 	 */
 	std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parserMode = ParserMode::Regular);
+
 private:
 	ParserDriver _driver;
 };

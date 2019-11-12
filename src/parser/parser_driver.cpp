@@ -553,7 +553,7 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("string_mods") // pair<uint32_t, vector<TokenIt>>
+	_parser.rule("string_mods") // pair<std::uint32_t, vector<TokenIt>>
 		.production("string_mods", "ASCII", [](auto&& args) -> Value {
 			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
 			mods.first = mods.first | String::Modifiers::Ascii;

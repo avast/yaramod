@@ -958,7 +958,7 @@ public:
 	ForIntExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id, TokenIt in, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
 		, _id(id)
-		, _for(for_token)
+		, _for (for_token)
 		, _left_bracket(left_bracket)
 		, _right_bracket(right_bracket)
 	{
@@ -1003,7 +1003,7 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
 	ForStringExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
-		, _for(for_token)
+		, _for (for_token)
 		, _left_bracket(left_bracket)
 		, _right_bracket(right_bracket)
 	{

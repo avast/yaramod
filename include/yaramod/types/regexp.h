@@ -36,6 +36,7 @@ public:
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) = 0;
 	std::shared_ptr<TokenStream>&& getTokenStream() { return std::move(_tokenStream); }
+
 protected:
 	std::shared_ptr<TokenStream> _tokenStream;
 };
@@ -60,7 +61,7 @@ public:
 		std::ostringstream ss;
 		ss << _leftRectBracket->getPureText();
 		ss << _negative->getPureText();
-		for(TokenIt it : _characters)
+		for (TokenIt it : _characters)
 			ss << it->getPureText();
 		ss << _rightRectBracket->getPureText();
 
@@ -74,14 +75,14 @@ public:
 
 	void addCharacters(const std::string& text)
 	{
-		for(char c : text)
+		for (char c : text)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
 	}
 
 	std::string getCharacters() const
 	{
 		std::stringstream ss;
-		for(TokenIt it : _characters)
+		for (TokenIt it : _characters)
 			ss << it->getPureText();
 		return ss.str();
 	}
@@ -115,12 +116,13 @@ public:
 		else
 			addCharacters(text);
 	}
+
 	virtual ~RegexpText() override {}
 
 	virtual std::string getText() const override
 	{
 		std::string output;
-		for(const auto& it : _characters)
+		for (const auto& it : _characters)
 			output += it->getPureText();
 		return output;
 	}
@@ -132,7 +134,7 @@ public:
 
 	void addCharacters(const std::string& text)
 	{
-		for(char c : text)
+		for (char c : text)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
 	}
 
@@ -333,6 +335,7 @@ protected:
 		_operation = _tokenStream->emplace_back(operation_token_type, std::string() + operation_symbol);
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
+
 	RegexpOperation() = default;
 
 protected:
@@ -459,7 +462,7 @@ public:
 			out1 = std::make_optional(_first.value()->getUInt64_t());
 		if(_second)
 			out2 = std::make_optional(_second.value()->getUInt64_t());
-		return std::make_pair(out1, out2);
+		return {std::move(out1), std::move(out2)};
 	}
 
 private:
@@ -548,7 +551,7 @@ public:
 	RegexpConcat(std::vector<std::shared_ptr<RegexpUnit>>&& units)
 		: _units(std::move(units))
 	{
-		for(auto unit : _units)
+		for (auto unit : _units)
 			_tokenStream->move_append(unit->getTokenStream().get());
 	}
 

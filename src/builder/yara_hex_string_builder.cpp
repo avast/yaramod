@@ -397,7 +397,7 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	hexStrings.reserve(units.size());
 
 	auto ts = std::make_shared<TokenStream>();
-	for(std::size_t i = 0; i < units.size(); ++i)
+	for (std::size_t i = 0; i < units.size(); ++i)
 	{
 		hexStrings.push_back(units[i].get(ts, false)); //filling up ts while getting the hexStrings
 		if(i + 1 < units.size()) {

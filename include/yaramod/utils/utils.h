@@ -57,7 +57,7 @@ std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std
 	else
 	{
 		std::string output;
-		for(char c : os.str())
+		for (char c : os.str())
 			output += std::toupper(c);
 		return output;
 	}

@@ -19,12 +19,12 @@
 namespace yaramod {
 
 class YaraFileBuilder;
+
 /**
  * Class representing YARA rule.
  */
 class Rule
 {
-	friend YaraFileBuilder;
 public:
 	struct Location
 	{
@@ -80,6 +80,7 @@ public:
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	const Meta* getMetaWithName(const std::string& key) const;
 	const Location& getLocation() const;
+	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	/// @}
 
 	/// @name Setter methods
@@ -108,6 +109,7 @@ public:
 
 private:
 	void removeTags(TokenType type);
+
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	TokenIt _name; ///< Name
 	std::optional<TokenIt> _mod; ///< Modifier

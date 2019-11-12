@@ -255,7 +255,7 @@ enum class ParserMode
  * It also serves as context storage for parsing.
  *
  * ParserDriver driver(ParserMode::Regular);
- *	for(input : inputs) {
+ *	for (input : inputs) {
  *		driver.setInput(input);
  * 	driver.parse();
  * 	result = driver.getParsedFile();
@@ -375,7 +375,6 @@ protected:
 	/// @}
 
 private:
-
 	std::string _strLiteral; ///< Currently processed string literal.
 	std::string _indent; ///< Variable storing current indentation
 	std::string _comment; ///< For incremental construction of parsed comments

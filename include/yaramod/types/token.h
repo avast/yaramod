@@ -172,12 +172,14 @@ public:
 		_end.first = _begin.first + count; // line
 		_end.second = 0; // column
 	}
+
 	void addColumn(std::size_t count)
 	{
 		_begin.first = _end.first;
 		_begin.second = _end.second;
 		_end.second += count;
 	}
+
 	void reset()
 	{
 		_begin = {1, 0};
@@ -187,9 +189,10 @@ public:
 
 	/// @name Getters
 	/// @{
-	std::pair<std::size_t, std::size_t> begin() const { return std::make_pair(_begin.first, _begin.second + 1); }
+	std::pair<std::size_t, std::size_t> begin() const { return {_begin.first, _begin.second + 1}; }
 	const std::pair<std::size_t, std::size_t>& end() const { return _end; }
 	/// @}
+
 private:
 	std::pair<std::size_t, std::size_t> _begin; // (line, column)
 	std::pair<std::size_t, std::size_t> _end; // (line, column)
@@ -273,6 +276,7 @@ public:
 			throw YaramodError(ss.str());
 		}
 	}
+
 	std::string getFormattedValue() const;
 	/// @}
 

@@ -39,7 +39,7 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, std::move(name));
 	_symbol = std::make_shared<ValueSymbol>(_name->getPureText(), Expression::Type::Bool);
 
-	for(const std::string& tag : tags)
+	for (const std::string& tag : tags)
 	{
 		TokenIt tagIt = _tokenStream->emplace_back(TokenType::TAG, tag);
 		_tags.push_back(tagIt);
@@ -210,7 +210,7 @@ const Expression::Ptr& Rule::getCondition() const
 std::vector<std::string> Rule::getTags() const
 {
 	std::vector<std::string> output;
-	for(const TokenIt& item : _tags)
+	for (const TokenIt& item : _tags)
 		output.push_back(item->getPureText());
 	return output;
 }
@@ -285,11 +285,11 @@ void Rule::setTags(const std::vector<std::string>& tags)
 {
 	TokenIt last;
 	//delete all tags from tokenStream
-	for(const TokenIt& it : _tags)
+	for (const TokenIt& it : _tags)
 		last = _tokenStream->erase(it);
 	_tags = std::vector<TokenIt>();
 	// Insert new tags into TokenStream
-	for(const std::string& tag : tags)
+	for (const std::string& tag : tags)
 	{
 		TokenIt tagIt = _tokenStream->insert(last, TokenType::TAG, Literal(tag));
 		_tags.push_back(tagIt);
@@ -400,7 +400,7 @@ void Rule::addTag(const std::string& tag)
  */
 void Rule::removeTags(const std::string& tag)
 {
-	for(auto it = _tags.begin(); it != _tags.end(); ++it)
+	for (auto it = _tags.begin(); it != _tags.end(); ++it)
 		if((*it)->getText() == tag)
 		{
 			_tokenStream->erase(*it);
@@ -411,7 +411,7 @@ void Rule::removeTags(const std::string& tag)
 
 void Rule::removeTags(TokenType type)
 {
-	for(auto it = _tags.begin(); it != _tags.end(); ++it)
+	for (auto it = _tags.begin(); it != _tags.end(); ++it)
 		if((*it)->getType() == type)
 		{
 			_tokenStream->erase(*it);

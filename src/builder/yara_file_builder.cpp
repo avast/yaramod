@@ -114,10 +114,9 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
 	if(!_rules.empty() || _lastAddedWasImport)
-	{
 		_tokenStream->emplace_back(NEW_LINE, "\n");
-	}
-	_tokenStream->move_append(rule->_tokenStream.get());
+
+	_tokenStream->move_append(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_rules.emplace_back(std::move(rule));
@@ -135,10 +134,9 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
 	if(!_rules.empty() || _lastAddedWasImport)
-	{
 		_tokenStream->emplace_back(NEW_LINE, "\n");
-	}
-	_tokenStream->move_append(rule->_tokenStream.get());
+
+	_tokenStream->move_append(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_rules.emplace_back(rule);
 	_lastAddedWasImport = false;

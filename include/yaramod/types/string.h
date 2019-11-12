@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+
 #include "yaramod/types/tokenstream.h"
 #include "yaramod/yaramod_error.h"
 
@@ -162,7 +163,7 @@ public:
 
 			TokenIt behind_last_erased = _tokenStream->end();
 
-			for(const TokenIt& it : _mods_strings)
+			for (const TokenIt& it : _mods_strings)
 				behind_last_erased = _tokenStream->erase(it);
 
 			_mods_strings = std::vector<TokenIt>();
@@ -191,7 +192,7 @@ public:
 			_mods = mods;
 
 			//delete current modifiers
-			for(const TokenIt& it : _mods_strings)
+			for (const TokenIt& it : _mods_strings)
 				_tokenStream->erase(it);
 
 			_mods_strings = std::move(mods_strings);

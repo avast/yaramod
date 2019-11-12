@@ -28,7 +28,7 @@ public:
 	explicit PlainString(const std::shared_ptr<TokenStream>& ts, const std::string& text);
 	explicit PlainString(const std::shared_ptr<TokenStream>& ts, std::string&& text);
 	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt text);
-	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt equal_sign, uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt equal_sign, std::uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text);
 	~PlainString() = default;
 	/// @}
 

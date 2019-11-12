@@ -188,7 +188,7 @@ TokenIt TokenStream::findBackwards(TokenType type, TokenIt from, TokenIt to)
 {
 	if(from == to)
 		return to;
-	for(TokenIt it = to; --it != from;)
+	for (TokenIt it = to; --it != from;)
 	{
 		if(it->getType() == type)
 			return it;
@@ -202,7 +202,7 @@ TokenIt TokenStream::findBackwards(TokenType type, TokenIt from, TokenIt to)
 std::vector<std::string> TokenStream::getTokensAsText() const
 {
 	std::vector<std::string> output;
-	for(auto t : _tokens)
+	for (auto t : _tokens)
 	{
 		output.push_back(t.getPureText());
 	}
@@ -277,7 +277,7 @@ private:
 void TokenStream::determineNewlineSectors()
 {
 	std::stack<TokenIt> leftBrackets;
-	for(auto it = begin(); it != end(); ++it)
+	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
 		if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
@@ -297,7 +297,7 @@ void TokenStream::addMissingNewLines()
 {
 	BracketStack brackets;
 	std::size_t lineCounter = 0;
-	for(auto it = begin(); it != end(); ++it)
+	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
 		auto nextIt = std::next(it);
@@ -367,7 +367,7 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 		if(!commentOnThisLine || (prevIt && (*prevIt)->getType() == COLON))
 		{
 			if(commentPool.size() >= 2)
-				for(auto comment : commentPool)
+				for (auto comment : commentPool)
 					comment->setIndentation(maximalCommentColumn);
 			commentPool.clear();
 			maximalCommentColumn = 0;
@@ -409,7 +409,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 	}
 
 	if(ss)
-		for(const auto& c : it->getPureText())
+		for (const auto& c : it->getPureText())
 			*ss << c;
 	return columnCounter;
 }
@@ -449,7 +449,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	bool inside_regexp = false;
 	bool inside_enumeration_brackets = false;
 	bool second_nibble = true;
-	for(auto it = begin(); it != end(); ++it)
+	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
 
