@@ -7,14 +7,17 @@
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
 #include "yaramod/types/expressions.h"
-#include <pog/html_report.h>
+
+// Uncomment for advanced debugging with HtmlReport:
+// #include <pog/html_report.h>
+
 
 namespace yaramod {
 
 void error_handle(const Location& location, const std::string& msg)
 {
 	std::stringstream err;
-	if(location.begin().second < location.end().second)
+	if (location.begin().second < location.end().second)
 		err << "Error at " << location.begin().first << "." << location.begin().second << "-" << location.end().second << ": " << msg;
 	else
 		err << "Error at " << location.begin().first << "." << location.begin().second << ": " << msg;
@@ -88,7 +91,7 @@ void ParserDriver::defineTokens()
 	_parser.token("\\)").symbol("RP").description(")").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); })
 		.precedence(1, pog::Associativity::Left);
 	_parser.token("\\{").symbol("LCB").description("{").action([&](std::string_view str) -> Value {
-		if(sectionStrings())
+		if (sectionStrings())
 			enter_state("$hexstr");
 		return emplace_back(LCB, std::string{str});
 	});
@@ -385,9 +388,9 @@ void ParserDriver::defineTokens()
 
 	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) {
   		_parser.pop_input_stream();
-  		if(currentTokenStreamCount() > 1)
+  		if (currentTokenStreamCount() > 1)
 			popTokenStream();
-		if(currentLocationCount() > 1)
+		if (currentLocationCount() > 1)
 			popLocation();
   		return 0;
 	});
@@ -406,7 +409,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if(!_file.addImport(import))
+			if (!_file.addImport(import))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})
@@ -420,7 +423,7 @@ void ParserDriver::defineGrammar()
 		.production(
 			"rule_mod", "RULE", "ID", [&](auto&& args) -> Value {
 				args[2].getTokenIt()->setType(RULE_NAME);
-				if(ruleExists(args[2].getTokenIt()->getString()))
+				if (ruleExists(args[2].getTokenIt()->getString()))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of rule '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
@@ -515,7 +518,7 @@ void ParserDriver::defineGrammar()
 				auto string = std::move(args[4].getYaramodString());
 				string->setIdentifier(args[1].getTokenIt(), args[2].getTokenIt());
 				auto strings = std::move(args[0].getStringsTrie());
-				if(!strings->insert(trieId, std::move(string)))
+				if (!strings->insert(trieId, std::move(string)))
 				{
 					error_handle(args[1].getTokenIt()->getLocation(), "Redefinition of string '" + trieId + "'");
 				}
@@ -769,9 +772,9 @@ void ParserDriver::defineGrammar()
 		})
 		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [&](auto&& args) -> Value {
 			auto pair = std::move(args[1].getRegexpRangePair());
-			if(!pair.first && !pair.second)
+			if (!pair.first && !pair.second)
 				error_handle(currentLocation(), "Range in regular expression does not have defined lower bound nor higher bound");
-			if(pair.first && pair.second && pair.first.value() > pair.second.value())
+			if (pair.first && pair.second && pair.first.value() > pair.second.value())
 				error_handle(currentLocation(), "Range in regular expression has greater lower bound than higher bound");
 			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
 		})
@@ -809,7 +812,7 @@ void ParserDriver::defineGrammar()
 		.production("REGEXP_NON_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonDigit>()); })
 		.production("REGEXP_CLASS", [](auto&& args) -> Value {
 			std::string c = std::move(args[0].getString());
-			if(c[0] == '^')
+			if (c[0] == '^')
 				return Value(std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true));
 			else
 				return Value(std::make_shared<RegexpClass>(std::move(c), false));
@@ -830,7 +833,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			if(!stringExists(id->getString()))
+			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
 			auto output = std::make_shared<StringExpression>(std::move(id));
 			output->setType(Expression::Type::Bool);
@@ -838,11 +841,11 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_ID", "AT", "primary_expression", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			if(!stringExists(id->getString()))
+			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr expr = args[2].getExpression();
-			if(!expr->isInt())
+			if (!expr->isInt())
 				error_handle(args[1].getTokenIt()->getLocation(), "Operator 'at' expects integer on the right-hand side of the expression");
 			auto output = std::make_shared<StringAtExpression>(id, op, std::move(expr));
 			output->setType(Expression::Type::Bool);
@@ -850,7 +853,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_ID", "IN", "range", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			if(!stringExists(id->getString()))
+			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr range = args[2].getExpression();
@@ -862,7 +865,7 @@ void ParserDriver::defineGrammar()
 		.production(
 			"FOR", "for_expression", "ID", [&](auto&& args) -> Value {
 				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
-				if(!addLocalSymbol(symbol))
+				if (!addLocalSymbol(symbol))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
@@ -887,7 +890,7 @@ void ParserDriver::defineGrammar()
 		)
 		.production(
 			"FOR", "for_expression", "OF", "string_set", [&](auto&& args) -> Value {
-				if(isInStringLoop())
+				if (isInStringLoop())
 					error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
 				stringLoopEnter();
 				return {};
@@ -993,9 +996,9 @@ void ParserDriver::defineGrammar()
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
-			if(!left->isString())
+			if (!left->isString())
 				error_handle(op_token->getLocation(), "operator 'contains' expects string on the left-hand side of the expression");
-			if(!right->isString())
+			if (!right->isString())
 				error_handle(op_token->getLocation(), "operator 'contains' expects string on the right-hand side of the expression");
 			auto output = std::make_shared<ContainsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
@@ -1005,7 +1008,7 @@ void ParserDriver::defineGrammar()
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getYaramodString());
-			if(!left->isString())
+			if (!left->isString())
 				error_handle(op_token->getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
 			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
@@ -1118,7 +1121,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("MINUS", "primary_expression", [&](auto&& args) -> Value {
 			auto right = args[1].getExpression();
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 			{
 				error_handle(args[0].getTokenIt()->getLocation(), "unary minus expects integer or float type");
 			}
@@ -1131,9 +1134,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "PLUS", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '+' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '+' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<PlusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
@@ -1143,9 +1146,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "MINUS", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '-' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '-' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MinusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
@@ -1155,9 +1158,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "MULTIPLY", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '*' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '*' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<MultiplyExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
@@ -1167,9 +1170,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "DIVIDE", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '\\' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '\\' expects integer or float on the right-hand side");
 			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
 			auto output = std::make_shared<DivideExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
@@ -1179,9 +1182,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '%' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '%' expects integer or float on the right-hand side");
 			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1190,9 +1193,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "BITWISE_XOR", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '^' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '^' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1201,9 +1204,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "BITWISE_AND", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '&' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '&' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1212,9 +1215,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "BITWISE_OR", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '|' expects integer or float on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '|' expects integer or float on the right-hand side");
 			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1222,7 +1225,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
 			auto right = args[1].getExpression();
-			if(!right->isInt())
+			if (!right->isInt())
 				error_handle(args[0].getTokenIt()->getLocation(), "bitwise not expects integer");
 			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1231,9 +1234,9 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "SHIFT_LEFT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '<<' expects integer on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '<<' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
@@ -1242,16 +1245,16 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "SHIFT_RIGHT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
-			if(!left->isInt() && !left->isFloat())
+			if (!left->isInt() && !left->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '>>' expects integer on the left-hand side");
-			if(!right->isInt() && !right->isFloat())
+			if (!right->isInt() && !right->isFloat())
 				error_handle(args[1].getTokenIt()->getLocation(), "operator '>>' expects integer on the right-hand side");
 			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			return Value(std::move(output));
 		})
 		.production("INTEGER_FUNCTION", "LP", "primary_expression", "RP", [&](auto&& args) -> Value {
-			if(!args[2].getExpression()->isInt())
+			if (!args[2].getExpression()->isInt())
 				error_handle(args[0].getTokenIt()->getLocation(), "operator '" + args[0].getTokenIt()->getString() + "' expects integer");
 			auto output = std::make_shared<IntFunctionExpression>(std::move(args[0].getTokenIt()), std::move(args[1].getTokenIt()), std::move(args[2].getExpression()), std::move(args[3].getTokenIt()));
 			output->setType(Expression::Type::Int);
@@ -1270,7 +1273,7 @@ void ParserDriver::defineGrammar()
 	_parser.rule("identifier") // Expression::Ptr
 		.production("ID", [&](auto&& args) -> Value {
 			auto symbol = findSymbol(args[0].getTokenIt()->getString());
-			if(!symbol)
+			if (!symbol)
 				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
 			TokenIt symbol_token = args[0].getTokenIt();
 			symbol_token->setValue(symbol, symbol->getName());
@@ -1280,11 +1283,11 @@ void ParserDriver::defineGrammar()
 		})
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
-			if(!expr->isObject())
+			if (!expr->isObject())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
-			if(!parentSymbol->isStructure())
+			if (!parentSymbol->isStructure())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
 			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
 
@@ -1302,7 +1305,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("identifier", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
-			if(!expr->isObject())
+			if (!expr->isObject())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
@@ -1375,9 +1378,9 @@ void ParserDriver::defineGrammar()
 		.production("LP", "primary_expression", "RANGE", "primary_expression", "RP", [&](auto&& args) -> Value {
 			auto left = args[1].getExpression();
 			auto right = args[3].getExpression();
-			if(!left->isInt())
+			if (!left->isInt())
 				error_handle(args[2].getTokenIt()->getLocation(), "operator '..' expects integer as lower bound of the interval");
-			if(!right->isInt())
+			if (!right->isInt())
 				error_handle(args[2].getTokenIt()->getLocation(), "operator '..' expects integer as upper bound of the interval");
 			return Value(std::make_shared<RangeExpression>(args[0].getTokenIt(), std::move(left), args[2].getTokenIt(), std::move(right), args[4].getTokenIt()));
 		})
@@ -1404,13 +1407,13 @@ void ParserDriver::defineGrammar()
 	_parser.rule("integer_enumeration") // vector<Expression::Ptr>
 		.production("primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[0].getExpression();
-			if(!expr->isInt())
+			if (!expr->isInt())
 				error_handle(currentLocation(), "integer set expects integer type");
 			return Value(std::vector<Expression::Ptr> {std::move(expr)});
 		})
 		.production("integer_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[2].getExpression();
-			if(!expr->isInt())
+			if (!expr->isInt())
 				error_handle(currentLocation(), "integer set expects integer type");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(expr));
@@ -1434,19 +1437,19 @@ void ParserDriver::defineGrammar()
 	_parser.rule("string_enumeration") // vector<Expression::Ptr>
 		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			if(!stringExists(id->getPureText()))
+			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
 			return std::vector<Expression::Ptr>{std::make_shared<StringExpression>(id)};
 		})
 		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			if(!stringExists(id->getPureText()))
+			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
 			return std::vector<Expression::Ptr>{std::make_shared<StringWildcardExpression>(id)};
 		})
 		.production("string_enumeration", "COMMA", "STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[2].getTokenIt();
-			if(!stringExists(id->getPureText()))
+			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::make_shared<StringExpression>(id));
@@ -1454,7 +1457,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production("string_enumeration", "COMMA", "STRING_ID_WILDCARD", [&](auto&& args) -> Value {
 			TokenIt id = args[2].getTokenIt();
-			if(!stringExists(id->getPureText()))
+			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::make_shared<StringWildcardExpression>(id));
@@ -1469,7 +1472,7 @@ bool ParserDriver::prepareParser()
 	// Uncomment for advanced debugging with HtmlReport:
 	// pog::HtmlReport html(_parser);
 	// html.save("html_index.html");
-	if(!report)
+	if (!report)
 	{
 		// Uncomment for debugging:
 		// fmt::print("{}\n", report.to_string());
@@ -1490,7 +1493,7 @@ void ParserDriver::initialize()
 	defineGrammar();
 	_parser.set_start_symbol("rules");
 	bool prepared = prepareParser();
-	if(!prepared)
+	if (!prepared)
 		throw YaramodError("Error: Parser initialization failed");
 }
 
@@ -1663,7 +1666,7 @@ bool ParserDriver::includeFile(const std::string& includePath)
  */
 std::istream* ParserDriver::currentInputStream()
 {
-	if(_includedFiles.empty())
+	if (_includedFiles.empty())
 	{
 		assert(_optionalFirstInput);
 		return _optionalFirstInput;
@@ -1726,7 +1729,7 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 	if (!_includedFileNames.empty())
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
 	bool success = !ruleExists(rule->getName());
-	if(!success)
+	if (!success)
 		throw ParserError(std::string("Error: Redefinition of rule "+rule->getName()));
 	else
 		_file.addRule(std::move(rule));

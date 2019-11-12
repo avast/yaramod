@@ -203,12 +203,12 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& t
  */
 std::shared_ptr<HexString> YaraHexStringBuilder::get(const std::shared_ptr<TokenStream>& acceptor /*= nullptr*/, bool addHexParentheses /*= true*/) const
 {
-	if(addHexParentheses)
+	if (addHexParentheses)
 	{
 		_tokenStream->emplace(_tokenStream->begin(), HEX_START_BRACKET, "{");
 		_tokenStream->emplace_back(HEX_END_BRACKET, "}");
 	}
-	if(acceptor)
+	if (acceptor)
 	{
 		acceptor->move_append(_tokenStream.get());
 		return std::make_shared<HexString>(acceptor, _units);
@@ -400,7 +400,7 @@ YaraHexStringBuilder alt(const std::vector<YaraHexStringBuilder>& units)
 	for (std::size_t i = 0; i < units.size(); ++i)
 	{
 		hexStrings.push_back(units[i].get(ts, false)); //filling up ts while getting the hexStrings
-		if(i + 1 < units.size()) {
+		if (i + 1 < units.size()) {
 			ts->emplace_back(HEX_ALT, "|"); // add '|' in between the hexStrings
 		}
 	}

@@ -111,7 +111,7 @@ class RegexpText : public RegexpUnit
 public:
 	RegexpText(const std::string& text, bool storeAsOne = false)
 	{
-		if(storeAsOne)
+		if (storeAsOne)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_TEXT, text));
 		else
 			addCharacters(text);
@@ -417,7 +417,7 @@ public:
 			if (range.first)
 			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
-			if(range.second)
+			if (range.second)
 				_second = _tokenStream->emplace_back(TokenType::DOUBLE, *range.second);
 		}
 
@@ -433,14 +433,14 @@ public:
 		ss << _operand->getText();
 		ss << _leftBracket->getPureText();
 
-		if(_first && _first == _second)
+		if (_first && _first == _second)
 			ss << (*_first)->getPureText();
 		else
 		{
-			if(_first)
+			if (_first)
 				ss << (*_first)->getPureText();
 			ss << _operation->getPureText();
-			if(_second)
+			if (_second)
 				ss << (*_second)->getPureText();
 		}
 		ss << _rightBracket->getPureText();
@@ -458,9 +458,9 @@ public:
 	{
 		std::optional<std::uint64_t> out1;
 		std::optional<std::uint64_t> out2;
-		if(_first)
+		if (_first)
 			out1 = std::make_optional(_first.value()->getUInt64_t());
-		if(_second)
+		if (_second)
 			out2 = std::make_optional(_second.value()->getUInt64_t());
 		return {std::move(out1), std::move(out2)};
 	}
@@ -628,9 +628,9 @@ public:
 
 	virtual TokenIt getFirstTokenIt() const override
 	{
-		if(_id)
+		if (_id)
 			return _id.value();
-		else if(_assign_token)
+		else if (_assign_token)
 			return _assign_token.value();
 		else
 			return _leftSlash;
@@ -650,7 +650,7 @@ public:
 	*/
 	std::string getSuffixModifiers() const
 	{
-		if(!_suffixMods)
+		if (!_suffixMods)
 			return "";
 		else
 			return (*_suffixMods)->getPureText();
@@ -658,9 +658,9 @@ public:
 
 	void setSuffixModifiers(const std::string& suffixMods)
 	{
-		if(suffixMods != "")
+		if (suffixMods != "")
 		{
-			if(_suffixMods.has_value())
+			if (_suffixMods.has_value())
 				(*_suffixMods)->setValue(suffixMods);
 			else
 				_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods);
@@ -674,11 +674,11 @@ public:
 
 	void setSuffixModifiers(TokenIt suffixMods)
 	{
-		if(_suffixMods == suffixMods)
+		if (_suffixMods == suffixMods)
 			return;
 		else
 		{
-			if(_suffixMods.has_value())
+			if (_suffixMods.has_value())
 				_tokenStream->erase(*_suffixMods);
 			_suffixMods = suffixMods;
 		}

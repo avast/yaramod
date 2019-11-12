@@ -72,9 +72,9 @@ std::string HexString::getPureText() const
 
 TokenIt HexString::getFirstTokenIt() const
 {
-   if(_id)
+   if (_id)
       return _id.value();
-   else if(_assign_token)
+   else if (_assign_token)
       return _assign_token.value();
    else
       return _tokenStream->begin();

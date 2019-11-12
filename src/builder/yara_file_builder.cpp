@@ -35,7 +35,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 		// Recheck the file by parsing it again
 		// We are not able to perform all semantic checks while building so we need to do this
 		std::unique_ptr<ParserDriver> driver;
-		if(external_driver)
+		if (external_driver)
 		{
 			external_driver->reset();
 			external_driver->setInput(ss);
@@ -78,9 +78,9 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
  */
 YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 {
-	if(!_modules.empty())
+	if (!_modules.empty())
 	{
-		if(!_lastAddedWasImport)
+		if (!_lastAddedWasImport)
 			_tokenStream->emplace_back(NEW_LINE, "\n");
 	}
 	_tokenStream->emplace_back(TokenType::IMPORT_KEYWORD, "import");
@@ -113,7 +113,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
-	if(!_rules.empty() || _lastAddedWasImport)
+	if (!_rules.empty() || _lastAddedWasImport)
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_tokenStream->move_append(rule->getTokenStream());
@@ -133,7 +133,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
-	if(!_rules.empty() || _lastAddedWasImport)
+	if (!_rules.empty() || _lastAddedWasImport)
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_tokenStream->move_append(rule->getTokenStream());

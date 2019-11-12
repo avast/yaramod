@@ -40,7 +40,7 @@ PlainString::PlainString(const std::shared_ptr<TokenStream>&  ts, TokenIt text)
 	: String(ts, String::Type::Plain)
 	, _text(text)
 {
-	if(!text->isString())
+	if (!text->isString())
 		throw YaramodError("String class identifier must be string.");
 	assert(text->getType() == TokenType::STRING_LITERAL);
 }
@@ -73,9 +73,9 @@ std::string PlainString::getPureText() const
 
 TokenIt PlainString::getFirstTokenIt() const
 {
-	if(_id)
+	if (_id)
 		return _id.value();
-	else if(_assign_token)
+	else if (_assign_token)
 		return _assign_token.value();
 	else
 		return _text;

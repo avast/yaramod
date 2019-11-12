@@ -221,12 +221,12 @@ public:
 	/// @{
 	std::optional<std::uint64_t> getLow() const
 	{
-		if(_low.has_value())
+		if (_low.has_value())
 			return _low.value()->getUInt64_t();
 		return std::nullopt;
 	}
 	std::optional<std::uint64_t> getHigh() const {
-		if(_high.has_value())
+		if (_high.has_value())
 			return _high.value()->getUInt64_t();
 		return std::nullopt;
    }

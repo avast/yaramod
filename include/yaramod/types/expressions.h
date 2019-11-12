@@ -356,7 +356,7 @@ class UnaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		if(_op->getType() == NOT)
+		if (_op->getType() == NOT)
 			return _op->getString() + " " + _expr->getText(indent);
 		else
 			return _op->getString() + _expr->getText(indent);
@@ -1192,7 +1192,7 @@ public:
 	IdExpression() = default;
 	IdExpression(const std::shared_ptr<Symbol>& symbol)
 	{
-		if(symbol)
+		if (symbol)
 			_symbol = _tokenStream->emplace_back(ID, symbol, symbol->getName());
 	}
 
@@ -1209,7 +1209,7 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
-		if(_symbol)
+		if (_symbol)
 			return _symbol.value()->getSymbol()->getName();
 		return std::string();
 	}
@@ -1258,7 +1258,7 @@ public:
 
 	virtual std::string getText(const std::string& indent = "") const override
 	{
-		if(_symbol)
+		if (_symbol)
 			return _structure->getText(indent) + _dot->getString() + _symbol.value()->getSymbol()->getName();
 		return _structure->getText(indent) + _dot->getString();
 	}
@@ -1429,7 +1429,7 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = "") const override
 	{
-		if(_value.has_value()){
+		if (_value.has_value()){
 			return _value.value()->getText();
 		}
 		else
@@ -1438,7 +1438,7 @@ public:
 
 	void clear()
 	{
-		if(_value.has_value())
+		if (_value.has_value())
 			_tokenStream->erase(_value.value());
 	}
 
@@ -1465,7 +1465,7 @@ public:
 	BoolLiteralExpression(bool value)
 		: LiteralExpression<bool>()
 	{
-		if(value)
+		if (value)
 			_value = _tokenStream->emplace_back(BOOL_TRUE, value, "true");
 		else
 			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");

@@ -206,14 +206,14 @@ std::string Literal::getText(bool pure) const
 	if (is<std::string>())
 	{
 		const std::string& output = get<std::string>();
-		if(pure)
+		if (pure)
 			return unescapeString(output);
 		else
 			return '"' + output + '"';
 	}
 	else if (is<bool>())
 	{
-		if(_formated_value.has_value())
+		if (_formated_value.has_value())
 			return _formated_value.value();
 		std::ostringstream ss;
 		ss << std::boolalpha << get<bool>();
@@ -221,28 +221,28 @@ std::string Literal::getText(bool pure) const
 	}
 	else if (is<int>())
 	{
-		if(_formated_value.has_value())
+		if (_formated_value.has_value())
 			return _formated_value.value();
 		else
 			return numToStr<int>(get<int>());
 	}
 	else if (is<int64_t>())
 	{
-		if(_formated_value.has_value())
+		if (_formated_value.has_value())
 			return _formated_value.value();
 		else
 			return numToStr<int64_t>(get<int64_t>());
 	}
 	else if (is<uint64_t>())
 	{
-		if(_formated_value.has_value())
+		if (_formated_value.has_value())
 			return _formated_value.value();
 		else
 			return numToStr<uint64_t>(get<uint64_t>());
 	}
 	else if (is<double>())
 	{
-		if(_formated_value.has_value())
+		if (_formated_value.has_value())
 			return _formated_value.value();
 		else
 			return numToStr<double>(get<double>());

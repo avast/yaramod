@@ -753,9 +753,9 @@ rule rule_2 {
 		auto hexString = strings[0];
 		EXPECT_TRUE(hexString->isHex());
 		EXPECT_EQ("$1", hexString->getIdentifier());
-		if(i == 0)
+		if (i == 0)
 			EXPECT_EQ("{ ( 11 | 22 ) 33 44 ( 55 | 66 ) }", hexString->getText());
-		else if(i == 1)
+		else if (i == 1)
 			EXPECT_EQ("{ 01 23 ( AA DD | FF [5-7] FF ) 45 56 }", hexString->getText());
 		else
 			EXPECT_EQ("{ 01 [-] ( AA DD | EE ) }", hexString->getText());

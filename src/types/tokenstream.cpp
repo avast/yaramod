@@ -139,7 +139,7 @@ std::reverse_iterator<TokenConstIt> TokenStream::rend() const
 
 std::optional<TokenIt> TokenStream::predecessor(TokenIt it)
 {
-	if(it == begin())
+	if (it == begin())
 		return std::nullopt;
 	else
 		return std::prev(it);
@@ -167,7 +167,7 @@ TokenIt TokenStream::find(TokenType type, TokenIt from)
 
 TokenIt TokenStream::find(TokenType type, TokenIt from, TokenIt to)
 {
-	return std::find_if(
+	return std::find_if (
 		from,
 		to,
 		[&type](const Token& t){ return t.getType() == type; }
@@ -186,14 +186,14 @@ TokenIt TokenStream::findBackwards(TokenType type, TokenIt to)
 
 TokenIt TokenStream::findBackwards(TokenType type, TokenIt from, TokenIt to)
 {
-	if(from == to)
+	if (from == to)
 		return to;
 	for (TokenIt it = to; --it != from;)
 	{
-		if(it->getType() == type)
+		if (it->getType() == type)
 			return it;
 	}
-	if(from->getType() == type)
+	if (from->getType() == type)
 		return from;
 	else
 		return to;
@@ -234,13 +234,13 @@ public:
 	void addLeftBracket(std::size_t line, bool put_new_lines)
 	{
 
-		if(_brackets.empty())
+		if (_brackets.empty())
 			_brackets.emplace_back(line, 1, put_new_lines);
 		else
 		{
 			const auto& previous = _brackets.back();
 			std::size_t tabulator = previous.getTabulator();
-			if(line != previous.getLine())
+			if (line != previous.getLine())
 				++tabulator;
 			_brackets.emplace_back(line, tabulator, put_new_lines);
 		}
@@ -256,14 +256,14 @@ public:
 	/// @{
 	bool putNewlineInCurrentSector() const
 	{
-		if(_brackets.empty())
+		if (_brackets.empty())
 			return false;
 		return _brackets.back().putNewLines();
 	}
 
 	std::string getTabulators() const
 	{
-		if(_brackets.empty())
+		if (_brackets.empty())
 			return std::string{};
 		return std::string(_brackets.back().getTabulator(), '\t');
 	}
@@ -280,15 +280,15 @@ void TokenStream::determineNewlineSectors()
 	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
-		if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
 			leftBrackets.push(it);
-		else if(current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
+		else if (current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
 		{
-			if(leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
+			if (leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
 				it->setFlag(true);
 			leftBrackets.pop();
 		}
-		else if(current == NEW_LINE && !leftBrackets.empty())
+		else if (current == NEW_LINE && !leftBrackets.empty())
 			leftBrackets.top()->setFlag(true);
 	}
 }
@@ -301,21 +301,21 @@ void TokenStream::addMissingNewLines()
 	{
 		auto current = it->getType();
 		auto nextIt = std::next(it);
-		if(nextIt == end())
+		if (nextIt == end())
 			 break;
 		auto next = nextIt->getType();
-		if(current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
 		{
 			brackets.addLeftBracket(lineCounter, it->getFlag());
-			if(brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
+			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
 			{
 				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
 				next = nextIt->getType();
 			}
 		}
-		if(next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+		if (next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
 		{
-			if(brackets.putNewlineInCurrentSector() && current != NEW_LINE)
+			if (brackets.putNewlineInCurrentSector() && current != NEW_LINE)
 			{
 				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
 				next = nextIt->getType();
@@ -323,7 +323,7 @@ void TokenStream::addMissingNewLines()
 			else
 				brackets.addRightBracket();
 		}
-		if(current == NEW_LINE)
+		if (current == NEW_LINE)
 			++lineCounter;
 	}
 }
@@ -338,18 +338,18 @@ void TokenStream::autoformat()
 std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char what)
 {
 	columnCounter += 1;
-	if(ss)
+	if (ss)
 		*ss << what;
 	return columnCounter;
 }
 
 std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, const std::string& what, std::size_t length)
 {
-	if(length != 0)
+	if (length != 0)
 		columnCounter += length;
 	else
 		columnCounter += what.length();
-	if(ss)
+	if (ss)
 		*ss << what;
 	return columnCounter;
 }
@@ -362,11 +362,11 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 	const std::string& appendee = tmp.str();
 	assert(what->getType() != ONELINE_COMMENT);
 	auto prevIt = ts->predecessor(what);
-	if(what->getType() == NEW_LINE)
+	if (what->getType() == NEW_LINE)
 	{
-		if(!commentOnThisLine || (prevIt && (*prevIt)->getType() == COLON))
+		if (!commentOnThisLine || (prevIt && (*prevIt)->getType() == COLON))
 		{
-			if(commentPool.size() >= 2)
+			if (commentPool.size() >= 2)
 				for (auto comment : commentPool)
 					comment->setIndentation(maximalCommentColumn);
 			commentPool.clear();
@@ -379,11 +379,11 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 	else
 	{
 		columnCounter += appendee.length();
-		if(columnCounter > maximalCommentColumn)
+		if (columnCounter > maximalCommentColumn)
 			maximalCommentColumn = columnCounter;
 	}
 
-	if(ss)
+	if (ss)
 		*ss << appendee;
 	return columnCounter;
 }
@@ -394,21 +394,21 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 
 	const std::string& indent = it->getLiteral().getFormattedValue();
 	// print indent part 1
-	if(prevIt && (*prevIt)->getType() == NEW_LINE)
+	if (prevIt && (*prevIt)->getType() == NEW_LINE)
 	{
-		if(ss)
+		if (ss)
 			*ss << indent;
 	}// print indent part 2
-	else if(ss && alignComment && columnCounter < it->getIndentation() && (!prevIt || (*prevIt)->getType() != COLON))
+	else if (ss && alignComment && columnCounter < it->getIndentation() && (!prevIt || (*prevIt)->getType() != COLON))
 		*ss << std::string(it->getIndentation() - columnCounter + 1, ' ');
 	// remember oneline comments
-	if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
+	if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;
 		commentPool.push_back(it);
 	}
 
-	if(ss)
+	if (ss)
 		for (const auto& c : it->getPureText())
 			*ss << c;
 	return columnCounter;
@@ -417,7 +417,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 std::string TokenStream::getText(bool withIncludes, bool alignComments)
 {
 	PrintHelper helper;
-	if(alignComments)
+	if (alignComments)
 		getTextProcedure(helper, nullptr, withIncludes, alignComments); // First call determines alignment of comments
 
 	std::stringstream os;
@@ -439,7 +439,7 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
  */
 void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
-	if(!formatted)
+	if (!formatted)
 		autoformat();
 	BracketStack brackets;
 	int current_line_tabs = 0;
@@ -453,12 +453,12 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	{
 		auto current = it->getType();
 
-		if(current == INCLUDE_DIRECTIVE && withIncludes)
+		if (current == INCLUDE_DIRECTIVE && withIncludes)
 			continue;
-		else if(current == INCLUDE_PATH)
+		else if (current == INCLUDE_PATH)
 		{
 			assert(it->isIncludeToken());
-			if(withIncludes)
+			if (withIncludes)
 			{
 				const std::string& text = it->getSubTokenStream()->getText(withIncludes);
 				helper.insertIntoStream(os, text);
@@ -467,65 +467,65 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			else
 				helper.insertIntoStream(os, this, it);
 		}
-		else if((current == ONELINE_COMMENT || current == COMMENT))
+		else if ((current == ONELINE_COMMENT || current == COMMENT))
 			helper.printComment(os, this, it, alignComments);
 		else
 			helper.insertIntoStream(os, this, it);
 
 		auto nextIt = std::next(it);
-		if(nextIt == end())
+		if (nextIt == end())
 			 break;
 		auto next = nextIt->getType();
-		if(current == RULE_BEGIN)
+		if (current == RULE_BEGIN)
 			inside_rule = true;
-		else if(current == RULE_END)
+		else if (current == RULE_END)
 			inside_rule = false;
-		else if(current == HEX_START_BRACKET)
+		else if (current == HEX_START_BRACKET)
 			inside_hex_string = true;
-		else if(current == HEX_END_BRACKET)
+		else if (current == HEX_END_BRACKET)
 			inside_hex_string = false;
-		else if(current == HEX_JUMP_LEFT_BRACKET)
+		else if (current == HEX_JUMP_LEFT_BRACKET)
 			inside_hex_jump = true;
-		else if(current == HEX_JUMP_RIGHT_BRACKET)
+		else if (current == HEX_JUMP_RIGHT_BRACKET)
 			inside_hex_jump = false;
-		else if(current == REGEXP_START_SLASH)
+		else if (current == REGEXP_START_SLASH)
 			inside_regexp = true;
-		else if(current == REGEXP_END_SLASH)
+		else if (current == REGEXP_END_SLASH)
 			inside_regexp = false;
-		else if(current == LP_ENUMERATION)
+		else if (current == LP_ENUMERATION)
 			inside_enumeration_brackets = true;
-		else if(current == RP_ENUMERATION)
+		else if (current == RP_ENUMERATION)
 			inside_enumeration_brackets = false;
 
-		if(it->isLeftBracket())
+		if (it->isLeftBracket())
 		{
 			brackets.addLeftBracket(helper.getCurrentLine(), it->getFlag());
-			if(it->getFlag())
+			if (it->getFlag())
 				++current_line_tabs;
 		}
-		if(it->isRightBracket())
+		if (it->isRightBracket())
 		{
 			brackets.addRightBracket();
 		}
-		if(current == NEW_LINE)
+		if (current == NEW_LINE)
 		{
-			if(inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
+			if (inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
 			{
-				if(next == META
+				if (next == META
 					|| next == STRINGS
 					|| next == CONDITION)
 				{
 					helper.insertIntoStream(os, "\t", TABULATOR_LENGTH);
 				}
-				else if(next != RULE_END)
+				else if (next != RULE_END)
 				{
-					if(nextIt->isRightBracket() && nextIt->getFlag())
+					if (nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
 					helper.insertIntoStream(os, std::string(2 + current_line_tabs, '\t'), (2 + current_line_tabs) * TABULATOR_LENGTH);
 				}
 			}
 		}
-		else if(inside_hex_string)
+		else if (inside_hex_string)
 		{
 			switch(current)
 			{
@@ -543,13 +543,13 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 				default:
 					break;
 			}
-			if(!inside_hex_jump && next != NEW_LINE)
+			if (!inside_hex_jump && next != NEW_LINE)
 			{
-				if(second_nibble && next != COMMA)
+				if (second_nibble && next != COMMA)
 					helper.insertIntoStream(os, ' ');
 			}
 		}
-		else if(!inside_regexp && !inside_enumeration_brackets)
+		else if (!inside_regexp && !inside_enumeration_brackets)
 		{
 			switch(current)
 			{
@@ -566,7 +566,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 				case FUNCTION_CALL_LP:
 					break;
 				case LP:
-					if(next == COMMENT || next == ONELINE_COMMENT)
+					if (next == COMMENT || next == ONELINE_COMMENT)
 						helper.insertIntoStream(os, ' ');
 					break;
 				default:
@@ -582,21 +582,21 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 						case FUNCTION_CALL_RP:
 							break;
 						case REGEXP_MODIFIERS:
-							if(current != REGEXP_MODIFIERS)
+							if (current != REGEXP_MODIFIERS)
 								break;
 							[[fallthrough]];
 						default:
-							if(next != LSQB || (current != STRING_OFFSET && current != STRING_LENGTH))
+							if (next != LSQB || (current != STRING_OFFSET && current != STRING_LENGTH))
 								helper.insertIntoStream(os, ' ');
 					}
 			}
 		}
-		else if(inside_enumeration_brackets)
+		else if (inside_enumeration_brackets)
 		{
-			if(current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
+			if (current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
 				helper.insertIntoStream(os, ' ');
 		}
-		else if(current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
+		else if (current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
 			helper.insertIntoStream(os, ' ');
 	}
 }

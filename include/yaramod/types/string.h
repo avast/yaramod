@@ -89,7 +89,7 @@ public:
 	Type getType() const { return _type; }
 	std::string getIdentifier() const
 	{
-		if(_id)
+		if (_id)
 			return _id.value()->getPureText();
 		else
 			return std::string();
@@ -129,7 +129,7 @@ public:
 	template <typename Str>
 	void setIdentifier(Str&& id)
 	{
-		if(_id)
+		if (_id)
 			_id.value()->setValue(std::forward<Str>(id));
 		else
 		{
@@ -147,9 +147,9 @@ public:
 
 	void setIdentifier(TokenIt id)
 	{
-		if(!id->isString())
+		if (!id->isString())
 			throw YaramodError("String class identifier type must be string");
-		if(_id && _id.value() != id)
+		if (_id && _id.value() != id)
 			_tokenStream->erase(_id.value());
 		_id = id;
 	}
@@ -157,7 +157,7 @@ public:
 	// use only when not care about the order of mods in tokenstream
 	void setModifiers(std::uint32_t mods, bool avoidSingleAscii = false)
 	{
-		if(_mods != mods)
+		if (_mods != mods)
 		{
 			_mods = mods;
 
@@ -169,7 +169,7 @@ public:
 			_mods_strings = std::vector<TokenIt>();
 			if (_mods & Modifiers::Ascii)
 			{
-				if(_mods == Modifiers::Ascii && avoidSingleAscii)
+				if (_mods == Modifiers::Ascii && avoidSingleAscii)
 					return;
 				else
 					_mods_strings.push_back(_tokenStream->emplace(behind_last_erased, MODIFIER, "ascii"));
@@ -187,7 +187,7 @@ public:
 
 	void setModifiers(std::uint32_t mods, std::vector<TokenIt>&& mods_strings)
 	{
-		if(_mods != mods)
+		if (_mods != mods)
 		{
 			_mods = mods;
 
@@ -202,21 +202,21 @@ public:
 	// The mod's token is emplaced at the end of the tokenStream (that is needed if we want to put a comment in between modifiers)
 	bool addModifier(String::Modifiers mod)
 	{
-		if(_mods && mod) //mod already present
+		if (_mods && mod) //mod already present
 			return false;
 		else
 		{
 			_mods += mod;
 			TokenIt it;
-			if(mod & Modifiers::Ascii)
+			if (mod & Modifiers::Ascii)
 				it = _tokenStream->emplace_back(MODIFIER, "ascii");
-			else if(mod & Modifiers::Wide)
+			else if (mod & Modifiers::Wide)
 				it = _tokenStream->emplace_back(MODIFIER, "wide");
-			else if(mod & Modifiers::Nocase)
+			else if (mod & Modifiers::Nocase)
 				it = _tokenStream->emplace_back(MODIFIER, "nocase");
-			else if(mod & Modifiers::Fullword)
+			else if (mod & Modifiers::Fullword)
 				it = _tokenStream->emplace_back(MODIFIER, "fullword");
-			else if(mod & Modifiers::Xor)
+			else if (mod & Modifiers::Xor)
 				it = _tokenStream->emplace_back(MODIFIER, "xor");
 			_mods_strings.push_back(it);
 			return true;

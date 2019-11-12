@@ -19,9 +19,9 @@ namespace {
 enum class ArgType {Left, Right, Single};
 void error_handle(ArgType operator_type, const std::string& op, const std::string& expected_type, const Expression::Ptr& expr)
 {
-	if(operator_type == ArgType::Single)
+	if (operator_type == ArgType::Single)
 		throw YaraExpressionBuilderError("Operator " + op + " type mismatch: Expecting " + expected_type + ", argument '" + expr->getText() + "' has type " + expr->getTypeString() + ".");
-	else if(operator_type == ArgType::Right)
+	else if (operator_type == ArgType::Right)
 		throw YaraExpressionBuilderError("Operator " + op + " type mismatch: Expecting " + expected_type + ", right argument '" + expr->getText() + "' has type " + expr->getTypeString() + ".");
 	else
 		throw YaraExpressionBuilderError("Operator " + op + " type mismatch: Expecting " + expected_type + ", left argument '" + expr->getText() + "' has type " + expr->getTypeString() + ".");
@@ -44,12 +44,12 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 	auto formula = op(terms[0], terms[1]);
 	for (std::size_t i = 2; i < terms.size(); ++i)
 	{
-		if(!terms[i].canBeBool())
+		if (!terms[i].canBeBool())
 		{
 			const auto& expr = terms[i].get();
 			error_handle("Expected boolean, got '" + expr->getText() + "' of type " + expr->getTypeString());
 		}
-		if(i>=2)
+		if (i>=2)
 			formula = op(formula, terms[i]);
 	}
 
@@ -438,7 +438,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
 	for (std::size_t i = 0; i < args.size(); ++i)
 	{
 		_tokenStream->move_append(args[i].getTokenStream());
-		if(i < args.size() - 1)
+		if (i < args.size() - 1)
 			_tokenStream->emplace_back(COMMA, ",");
 	}
 	TokenIt rb = _tokenStream->emplace_back(FUNCTION_CALL_RP, ")");
@@ -461,23 +461,23 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  */
 YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message, bool multiline, const std::string& indent)
 {
-	if(message != "")
+	if (message != "")
 	{
 		TokenIt insert_before = _tokenStream->begin();
 		std::stringstream ss;
 		ss << indent;
-		if(multiline)
+		if (multiline)
 		{
 			ss << "/*";
-			if(message.front() != '\n')
+			if (message.front() != '\n')
 				ss << " ";
 			for (auto c : message)
 			{
 				ss << c;
-				if(c == '\n')
+				if (c == '\n')
 					ss << indent;
 			}
-			if(message.back() != '\n')
+			if (message.back() != '\n')
 				ss << " ";
 			ss << "*/";
 			_tokenStream->emplace(insert_before, TokenType::COMMENT, ss.str());
@@ -485,7 +485,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
 		else
 		{
 			for (auto item : message)
-				if(item == '\n')
+				if (item == '\n')
 					throw YaraExpressionBuilderError("Error: one-line comment must not contain \\n.");
 			ss << "// " << message;
 			_tokenStream->emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
@@ -780,10 +780,10 @@ YaraExpressionBuilder paren(const YaraExpressionBuilder& other, bool linebreak)
 {
 	auto ts = std::make_shared<TokenStream>();
 	auto lb = ts->emplace_back(LP, "(");
-	if(linebreak)
+	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
 	ts->move_append(other.getTokenStream());
-	if(linebreak)
+	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
 	auto rb = ts->emplace_back(RP, ")");
 	auto expression = std::make_shared<ParenthesesExpression>(lb, other.get(), rb, linebreak);
@@ -1054,7 +1054,7 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
 	for (std::size_t i = 0; i < elements.size(); ++i)
 	{
 		ts->move_append(elements[i].getTokenStream());
-		if(i < elements.size() - 1)
+		if (i < elements.size() - 1)
 			ts->emplace_back(COMMA, ",");
 	}
 	TokenIt rb = ts->emplace_back(RP, ")");
@@ -1077,15 +1077,15 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
  */
 YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	if(!lhs.canBeBool())
+	if (!lhs.canBeBool())
 		error_handle(ArgType::Left, "and", "bool", rhs.get());
-	else if(!rhs.canBeBool())
+	else if (!rhs.canBeBool())
 		error_handle(ArgType::Right, "and", "bool", lhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
 	ts->move_append(lhs.getTokenStream());
 	TokenIt andToken = ts->emplace_back(AND, "and");
-	if(linebreak)
+	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
 	ts->move_append(rhs.getTokenStream());
 
@@ -1104,15 +1104,15 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
  */
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak)
 {
-	if(!lhs.canBeBool())
+	if (!lhs.canBeBool())
 		error_handle(ArgType::Left, "or", "bool", lhs.get());
-	else if(!rhs.canBeBool())
+	else if (!rhs.canBeBool())
 		error_handle(ArgType::Right, "or", "bool", rhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
 	ts->move_append(lhs.getTokenStream());
 	TokenIt orToken = ts->emplace_back(OR, "or");
-	if(linebreak)
+	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
 	ts->move_append(rhs.getTokenStream());
 
@@ -1131,7 +1131,7 @@ YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraEx
 YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks)
 {
 	for (const auto& bld : terms)
-		if(!bld.canBeBool())
+		if (!bld.canBeBool())
 			error_handle(ArgType::Single, "and", "bool", bld.get());
 	return logicalFormula(terms, [linebreaks](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return conjunction(term1, term2, linebreaks); });
 }
@@ -1147,7 +1147,7 @@ YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& term
 YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks)
 {
 	for (const auto& bld : terms)
-		if(!bld.canBeBool())
+		if (!bld.canBeBool())
 			error_handle(ArgType::Single, "or", "bool", bld.get());
 	return logicalFormula(terms, [linebreaks](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return disjunction(term1, term2, linebreaks); });
 }
@@ -1165,7 +1165,7 @@ YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuil
 	std::vector<YaraExpressionBuilder> commented_terms;
 	for (const auto& pair : terms)
 	{
-		if(!pair.first.canBeBool())
+		if (!pair.first.canBeBool())
 			error_handle(ArgType::Single, "and", "bool", pair.first.get());
 		commented_terms.push_back(pair.first);
 		commented_terms.back().comment(pair.second, true);
@@ -1186,7 +1186,7 @@ YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuil
 	std::vector<YaraExpressionBuilder> commented_terms;
 	for (const auto& pair : terms)
 	{
-		if(!pair.first.canBeBool())
+		if (!pair.first.canBeBool())
 			error_handle(ArgType::Single, "or", "bool", pair.first.get());
 		commented_terms.push_back(pair.first);
 		commented_terms.back().comment(pair.second, true);

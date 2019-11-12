@@ -45,9 +45,9 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 		_tags.push_back(tagIt);
 	}
 
-	if(mod == Modifier::Global)
+	if (mod == Modifier::Global)
 		_mod = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
-	else if(mod == Modifier::Private)
+	else if (mod == Modifier::Private)
 		_mod = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
 	else
 		_mod = _tokenStream->emplace_back(TokenType::NONE, "");
@@ -138,9 +138,9 @@ std::string Rule::getName() const
  */
 Rule::Modifier Rule::getModifier() const
 {
-	if(isGlobal())
+	if (isGlobal())
 		return Rule::Modifier::Global;
-	else if(isPrivate())
+	else if (isPrivate())
 		return Rule::Modifier::Private;
 	else
 		return Rule::Modifier::None;
@@ -401,7 +401,7 @@ void Rule::addTag(const std::string& tag)
 void Rule::removeTags(const std::string& tag)
 {
 	for (auto it = _tags.begin(); it != _tags.end(); ++it)
-		if((*it)->getText() == tag)
+		if ((*it)->getText() == tag)
 		{
 			_tokenStream->erase(*it);
 			_tags.erase(it);
@@ -412,7 +412,7 @@ void Rule::removeTags(const std::string& tag)
 void Rule::removeTags(TokenType type)
 {
 	for (auto it = _tags.begin(); it != _tags.end(); ++it)
-		if((*it)->getType() == type)
+		if ((*it)->getType() == type)
 		{
 			_tokenStream->erase(*it);
 			_tags.erase(it);

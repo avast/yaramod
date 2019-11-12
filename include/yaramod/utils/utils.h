@@ -52,7 +52,7 @@ std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std
 		os << format << std::showbase << num;
 	else
 		os << format << num;
-	if(!toUpper)
+	if (!toUpper)
 		return os.str();
 	else
 	{

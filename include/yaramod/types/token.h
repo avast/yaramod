@@ -298,9 +298,9 @@ public:
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
-		if(literal._formated_value.has_value())
+		if (literal._formated_value.has_value())
 			os << literal._formated_value.value();
-		else if(literal.is<bool>()){
+		else if (literal.is<bool>()){
 			os << (literal.get<bool>() ? "true" : "false");
 		}
 		else

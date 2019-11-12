@@ -11,7 +11,6 @@ if(CMAKE_CXX_COMPILER)
 endif()
 
 set(POG_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/pog-install)
-# Set include directories.
 set(POG_INCLUDE_DIR ${POG_INSTALL_DIR}/include)
 
 ExternalProject_Add(pog-project
