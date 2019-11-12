@@ -20,16 +20,16 @@ class TokenStreamTests : public Test {};
 TEST_F(TokenStreamTests,
 BoolLiteral) {
    auto l = Literal(true);
-   ASSERT_TRUE(l.isBool());
-   ASSERT_TRUE(l.getBool());
+   ASSERT_TRUE(l.is<bool>());
+   ASSERT_TRUE(l.get<bool>());
    ASSERT_EQ(l.getText(), "true");
    l = Literal(false);
-   ASSERT_TRUE(l.isBool());
-   ASSERT_FALSE(l.getBool());
+   ASSERT_TRUE(l.is<bool>());
+   ASSERT_FALSE(l.get<bool>());
    ASSERT_EQ(l.getText(), "false");
    l = Literal(true, "Yes");
-   ASSERT_TRUE(l.isBool());
-   ASSERT_TRUE(l.getBool());
+   ASSERT_TRUE(l.is<bool>());
+   ASSERT_TRUE(l.get<bool>());
    ASSERT_EQ(l.getText(), "Yes");
 }
 

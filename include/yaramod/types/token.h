@@ -211,7 +211,7 @@ class Literal
 public:
 	/// @name Costructors
 	/// @{
-	Literal() {assert(isString());};
+	Literal() { assert(is<std::string>()); };
 	explicit Literal(const char* value, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(const std::string& value, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(std::string&& value, const std::optional<std::string>& formated_value = std::nullopt);
@@ -244,13 +244,20 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	const std::string& getString() const;
-	bool getBool() const;
-	int getInt() const;
-	int64_t getInt64_t() const;
-	uint64_t getUInt64_t() const;
-	double getDouble() const;
-	const std::shared_ptr<Symbol>& getSymbol() const;
+	template <typename T>
+	const T& get() const
+	{
+		try
+		{
+			return std::get<T>(_value);
+		}
+		catch (std::bad_variant_access& exp)
+		{
+			std::stringstream err;
+			err << "Called get() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
+			throw YaramodError(err.str());
+		}
+	}
 
 	template <typename T>
 	const T& getValue() const
@@ -277,13 +284,11 @@ public:
 
 	/// @name Detection methods
 	/// @{
-	bool isString() const;
-	bool isBool() const;
-	bool isInt() const;
-	bool isInt64_t() const;
-	bool isUInt64_t() const;
-	bool isDouble() const;
-	bool isSymbol() const;
+	template <typename T>
+	bool is() const
+	{
+		return std::holds_alternative< T >(_value);
+	}
 
 	bool isIntegral() const;
 	/// @}
@@ -291,8 +296,8 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
 		if(literal._formated_value.has_value())
 			os << literal._formated_value.value();
-		else if(literal.isBool()){
-			os << (literal.getBool() ? "true" : "false");
+		else if(literal.is<bool>()){
+			os << (literal.get<bool>() ? "true" : "false");
 		}
 		else
 			std::visit(
@@ -369,13 +374,13 @@ public:
 
 	/// @name Detection methods
 	/// @{
-	bool isString() const { return _value->isString(); }
-	bool isBool() const { return _value->isBool(); }
-	bool isInt() const { return _value->isInt64_t(); }
-	bool isInt64_t() const { return _value->isInt64_t(); }
-	bool isUInt64_t() const { return _value->isUInt64_t(); }
-	bool isDouble() const { return _value->isDouble(); }
-	bool isSymbol() const { return _value->isSymbol(); }
+	bool isString() const { return _value->is<std::string>(); }
+	bool isBool() const { return _value->is<bool>(); }
+	bool isInt() const { return _value->is<int>(); }
+	bool isInt64_t() const { return _value->is<int64_t>(); }
+	bool isUInt64_t() const { return _value->is<uint64_t>(); }
+	bool isDouble() const { return _value->is<double>(); }
+	bool isSymbol() const { return _value->is<std::shared_ptr<Symbol>>(); }
 
 	bool isIntegral() const { return _value->isIntegral(); }
 

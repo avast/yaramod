@@ -191,108 +191,6 @@ void Literal::setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name)
 	_formated_value = std::move(symbol_name);
 }
 
-/**
- * Getter methods
- *
- */
-const std::string& Literal::getString() const
-{
-	try
-	{
-		return std::get<std::string>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getString() of a non-string TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-bool Literal::getBool() const
-{
-	try
-	{
-		return std::get<bool>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getBool() of a non-bool TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-int Literal::getInt() const
-{
-	try
-	{
-		return std::get<int>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getInt() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-int64_t Literal::getInt64_t() const
-{
-	try
-	{
-		return std::get<int64_t>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getInt64_t() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-uint64_t Literal::getUInt64_t() const
-{
-	try
-	{
-		return std::get<uint64_t>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getUInt64_t() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-double Literal::getDouble() const
-{
-	try
-	{
-		return std::get<double>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getDouble() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
-const std::shared_ptr<Symbol>& Literal::getSymbol() const
-{
-	try
-	{
-		return std::get<std::shared_ptr<Symbol>>(_value);
-	}
-	catch (std::bad_variant_access& exp)
-	{
-		std::stringstream err;
-		err << "Called getSymbol() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-		throw YaramodError(err.str());
-	}
-}
-
 std::string Literal::getFormattedValue() const
 {
 	return _formated_value.value_or(std::string());
@@ -305,51 +203,51 @@ std::string Literal::getFormattedValue() const
  */
 std::string Literal::getText(bool pure) const
 {
-	if (isString())
+	if (is<std::string>())
 	{
-		const std::string& output = getString();
+		const std::string& output = get<std::string>();
 		if(pure)
 			return unescapeString(output);
 		else
 			return '"' + output + '"';
 	}
-	else if (isBool())
+	else if (is<bool>())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		std::ostringstream ss;
-		ss << std::boolalpha << getBool();
+		ss << std::boolalpha << get<bool>();
 		return ss.str();
 	}
-	else if (isInt())
+	else if (is<int>())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<int>(getInt());
+			return numToStr<int>(get<int>());
 	}
-	else if (isInt64_t())
+	else if (is<int64_t>())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<int64_t>(getInt64_t());
+			return numToStr<int64_t>(get<int64_t>());
 	}
-	else if (isUInt64_t())
+	else if (is<uint64_t>())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<uint64_t>(getUInt64_t());
+			return numToStr<uint64_t>(get<uint64_t>());
 	}
-	else if (isDouble())
+	else if (is<double>())
 	{
 		if(_formated_value.has_value())
 			return _formated_value.value();
 		else
-			return numToStr<double>(getDouble());
+			return numToStr<double>(get<double>());
 	}
-	else if (isSymbol())
+	else if (is<std::shared_ptr<Symbol>>())
 	{
 		assert(_formated_value);
 		return _formated_value.value();
@@ -373,44 +271,9 @@ std::string Literal::getPureText() const
 	return getText(true);
 }
 
-bool Literal::isString() const
-{
-	return _value.index() == 0;
-}
-
-bool Literal::isBool() const
-{
-	return _value.index() == 1;
-}
-
-bool Literal::isInt() const
-{
-	return _value.index() == 2;
-}
-
-bool Literal::isInt64_t() const
-{
-	return _value.index() == 3;
-}
-
-bool Literal::isUInt64_t() const
-{
-	return _value.index() == 4;
-}
-
-bool Literal::isDouble() const
-{
-	return _value.index() == 5;
-}
-
-bool Literal::isSymbol() const
-{
-	return _value.index() == 6;
-}
-
 bool Literal::isIntegral() const
 {
-	return isInt() ||  isInt64_t() || isUInt64_t() || isDouble() ;
+	return is<int>() ||  is<int64_t>() || is<uint64_t>() || is<double>() ;
 }
 
 const Literal& Token::getLiteral() const
@@ -421,37 +284,37 @@ const Literal& Token::getLiteral() const
 
 const std::string& Token::getString() const
 {
-	return _value->getString();
+	return _value->get<std::string>();
 }
 
 bool Token::getBool() const
 {
-	return _value->getBool();
+	return _value->get<bool>();
 }
 
 int Token::getInt() const
 {
-	return _value->getInt();
+	return _value->get<int>();
 }
 
 int64_t Token::getInt64_t() const
 {
-	return _value->getInt64_t();
+	return _value->get<int64_t>();
 }
 
 uint64_t Token::getUInt64_t() const
 {
-	return _value->getUInt64_t();
+	return _value->get<uint64_t>();
 }
 
 double Token::getDouble() const
 {
-	return _value->getDouble();
+	return _value->get<double>();
 }
 
 const std::shared_ptr<Symbol>& Token::getSymbol() const
 {
-	return _value->getSymbol();
+	return _value->get<std::shared_ptr<Symbol>>();
 }
 
 const std::shared_ptr<TokenStream>& Token::getSubTokenStream() const

@@ -148,14 +148,14 @@ void addBasicClasses(py::module& module)
 		.def(py::init<bool>())
 		.def_property_readonly("text", [](Literal& self) { return self.getText(); })
 		.def_property_readonly("pure_text", &Literal::getPureText)
-		.def_property_readonly("is_string", &Literal::isString)
-		.def_property_readonly("is_bool", &Literal::isBool)
-		.def_property_readonly("is_int", &Literal::isInt)
-		.def_property_readonly("is_int64_t", &Literal::isInt64_t)
-		.def_property_readonly("is_uint64_t", &Literal::isUInt64_t)
+		.def_property_readonly("is_string", &Literal::is<std::string>)
+		.def_property_readonly("is_bool", &Literal::is<bool>)
+		.def_property_readonly("is_int", &Literal::is<int>)
+		.def_property_readonly("is_int64_t", &Literal::is<int64_t>)
+		.def_property_readonly("is_uint64_t", &Literal::is<uint64_t>)
 		.def_property_readonly("is_integral", &Literal::isIntegral)
-		.def_property_readonly("is_float", &Literal::isDouble)
-		.def_property_readonly("is_symbol", &Literal::isSymbol);
+		.def_property_readonly("is_float", &Literal::is<double>)
+		.def_property_readonly("is_symbol", &Literal::is<std::shared_ptr<Symbol>>);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
