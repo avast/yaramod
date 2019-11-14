@@ -212,23 +212,13 @@ void ParserDriver::defineTokens()
 		_strLiteral.clear();
 		return {};
 	});
-	_parser.token(R"(\\t)").states("$str").action([&](std::string_view) -> Value {
-		_strLiteral += "\\t";
-		return {};
-	});
-	_parser.token(R"(\\n)").states("$str").action([&](std::string_view) -> Value {
-		_strLiteral += "\\n";
-		currentLocation().addLine();
-		return {};
-	});
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action([&](std::string_view str) -> Value {
 		_strLiteral += "\\x";
 		_strLiteral += std::string{str}.substr(2);
 		return {};
 	});
 	_parser.token(R"(\\\")").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\""; return {}; });
-	_parser.token(R"(\\\\)").states("$str").action([&](std::string_view) -> Value { _strLiteral += "\\\\"; return {}; });
-	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { error_handle(currentLocation(), "Unknown escape sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(\\[^\"])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
 		return emplace_back(STRING_LITERAL, _strLiteral);
