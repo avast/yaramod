@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/types/meta.h"
 
 using namespace ::testing;

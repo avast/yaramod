@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "yaramod/types/string.h"
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 
 namespace yaramod {
 

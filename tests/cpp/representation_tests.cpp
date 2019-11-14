@@ -9,7 +9,7 @@
 
 #include "yaramod/types/meta.h"
 #include "yaramod/types/regexp.h"
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 
 using namespace ::testing;
 

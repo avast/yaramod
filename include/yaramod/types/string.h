@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {

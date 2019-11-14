@@ -10,7 +10,7 @@
 #include <string>
 
 #include "yaramod/types/expression.h"
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/yaramod_error.h"
 

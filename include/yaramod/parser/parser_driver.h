@@ -24,7 +24,7 @@
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/hex_string.h"
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"

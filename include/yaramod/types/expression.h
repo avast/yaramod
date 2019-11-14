@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "yaramod/utils/visitor_result.h"
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 
 namespace yaramod {
 

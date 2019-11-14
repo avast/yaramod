@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stack>
 
-#include "yaramod/types/tokenstream.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/utils/utils.h"
 
 namespace yaramod {
