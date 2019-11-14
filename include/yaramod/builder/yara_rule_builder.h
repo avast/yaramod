@@ -61,7 +61,7 @@ public:
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value, std::uint32_t mods = String::Modifiers::Ascii);
 	YaraRuleBuilder& withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString);
 	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value,
-			const std::string& suffixMods = "", std::uint32_t mods = String::Modifiers::Ascii);
+			const std::string& suffixMods = std::string{}, std::uint32_t mods = String::Modifiers::Ascii);
 
 	YaraRuleBuilder& withCondition(Expression::Ptr&& condition);
 	YaraRuleBuilder& withCondition(const Expression::Ptr& condition);

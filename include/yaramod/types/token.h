@@ -21,8 +21,8 @@
 namespace yaramod {
 
 class Token;
-using TokenIt = std::list< Token >::iterator;
-using TokenConstIt = std::list< Token >::const_iterator;
+using TokenIt = std::list<Token>::iterator;
+using TokenConstIt = std::list<Token>::const_iterator;
 using TokenItReversed = std::reverse_iterator<TokenIt>;
 using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
 
@@ -289,15 +289,12 @@ public:
 	/// @name Detection methods
 	/// @{
 	template <typename T>
-	bool is() const
-	{
-		return std::holds_alternative< T >(_value);
-	}
-
+	bool is() const { return std::holds_alternative<T>(_value); }
 	bool isIntegral() const;
 	/// @}
 
-	friend std::ostream& operator<<(std::ostream& os, const Literal& literal) {
+	friend std::ostream& operator<<(std::ostream& os, const Literal& literal)
+	{
 		if (literal._formated_value.has_value())
 			os << literal._formated_value.value();
 		else if (literal.is<bool>()){
@@ -318,8 +315,8 @@ private:
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted:	_formated_value is empty  AND  _value contains x
 	/// ii. x it is formatted:	  _formated_value contains x's string representation  AND  _value contains pure x
-	std::variant< std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol> > _value; ///< Value used for all literals:
-	std::optional< std::string > _formated_value; ///< Value used for integral literals with particular formatting
+	std::variant<std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol>> _value; ///< Value used for all literals:
+	std::optional<std::string> _formated_value; ///< Value used for integral literals with particular formatting
 };
 
 class TokenStream;
@@ -332,7 +329,7 @@ class Token
 public:
 	Token(TokenType type, const Literal& value)
 		: _type(type)
-		, _value(std::make_shared < Literal >(value))
+		, _value(std::make_shared<Literal>(value))
 		, _location()
 		, _wanted_column(0)
 	{
@@ -340,7 +337,7 @@ public:
 
 	Token(TokenType type, Literal&& value)
 		: _type(type)
-		, _value(std::make_shared < Literal >(std::move(value)))
+		, _value(std::make_shared<Literal>(std::move(value)))
 		, _location()
 		, _wanted_column(0)
 	{
@@ -358,7 +355,7 @@ public:
 
 	/// @name Setter methods
 	/// @{
-	void setValue(const Literal& new_value) { _value = std::make_shared< Literal >(new_value); }
+	void setValue(const Literal& new_value) { _value = std::make_shared<Literal>(new_value); }
 
 	void setValue(const std::string& value) { _value->setValue(value); }
 	void setValue(std::string&& value) { _value->setValue(std::move(value)); }
@@ -411,7 +408,8 @@ public:
 	}
 	/// @}
 
-	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
+	friend std::ostream& operator<<(std::ostream& os, const Token& token)
+	{
 		switch(token._type)
 		{
 			case TokenType::META_VALUE:
@@ -451,8 +449,8 @@ public:
 private:
 	bool _flag = false; // used for '(' to determine it's sector and whether to put newlines
 	TokenType _type;
-	std::shared_ptr< TokenStream > _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
-	std::shared_ptr< Literal > _value; // pointer to the value owned by the Token
+	std::shared_ptr<TokenStream> _subTokenStream = nullptr; // used only for INCLUDE_PATH tokens
+	std::shared_ptr<Literal> _value; // pointer to the value owned by the Token
 	Location _location; // Location in source input is stored in Tokens for precise error outputs
 	std::size_t _wanted_column; // Wanted column where this Literal should be printed. Used for one-line comments.
 };

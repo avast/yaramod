@@ -51,7 +51,7 @@ public:
 	RegexpClass(const std::string& characters, bool negative = false)
 	{
 		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
-		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative, negative? "^" : "");
+		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative, negative? "^" : std::string{});
 		addCharacters(std::move(characters));
 		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
@@ -76,7 +76,7 @@ public:
 	void addCharacters(const std::string& text)
 	{
 		for (char c : text)
-			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
+			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
 	}
 
 	std::string getCharacters() const
@@ -135,7 +135,7 @@ public:
 	void addCharacters(const std::string& text)
 	{
 		for (char c : text)
-			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string() + c));
+			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
 	}
 
 private:
@@ -332,7 +332,7 @@ protected:
 	{
 		//take the operand's tokenStream and append first the operation and then greedy
 		_tokenStream = std::move(_operand->getTokenStream());
-		_operation = _tokenStream->emplace_back(operation_token_type, std::string() + operation_symbol);
+		_operation = _tokenStream->emplace_back(operation_token_type, std::string(1, operation_symbol));
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
 
@@ -459,9 +459,9 @@ public:
 		std::optional<std::uint64_t> out1;
 		std::optional<std::uint64_t> out2;
 		if (_first)
-			out1 = std::make_optional(_first.value()->getUInt64());
+			out1 = _first.value()->getUInt64();
 		if (_second)
-			out2 = std::make_optional(_second.value()->getUInt64());
+			out2 = _second.value()->getUInt64();
 		return {std::move(out1), std::move(out2)};
 	}
 
@@ -551,7 +551,7 @@ public:
 	RegexpConcat(std::vector<std::shared_ptr<RegexpUnit>>&& units)
 		: _units(std::move(units))
 	{
-		for (auto unit : _units)
+		for (auto&& unit : _units)
 			_tokenStream->move_append(unit->getTokenStream().get());
 	}
 
@@ -651,14 +651,14 @@ public:
 	std::string getSuffixModifiers() const
 	{
 		if (!_suffixMods)
-			return "";
+			return std::string{};
 		else
 			return (*_suffixMods)->getPureText();
 	}
 
 	void setSuffixModifiers(const std::string& suffixMods)
 	{
-		if (suffixMods != "")
+		if (suffixMods != std::string{})
 		{
 			if (_suffixMods.has_value())
 				(*_suffixMods)->setValue(suffixMods);

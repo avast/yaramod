@@ -50,7 +50,7 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 	else if (mod == Modifier::Private)
 		_mod = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
 	else
-		_mod = _tokenStream->emplace_back(TokenType::NONE, "");
+		_mod = _tokenStream->emplace_back(TokenType::NONE, std::string{});
 }
 
 Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
@@ -210,6 +210,7 @@ const Expression::Ptr& Rule::getCondition() const
 std::vector<std::string> Rule::getTags() const
 {
 	std::vector<std::string> output;
+	output.reserve(_tags.size());
 	for (const TokenIt& item : _tags)
 		output.push_back(item->getPureText());
 	return output;
@@ -289,7 +290,7 @@ void Rule::setTags(const std::vector<std::string>& tags)
 		last = _tokenStream->erase(it);
 	_tags = std::vector<TokenIt>();
 	// Insert new tags into TokenStream
-	for (const std::string& tag : tags)
+	for (const auto& tag : tags)
 	{
 		TokenIt tagIt = _tokenStream->insert(last, TokenType::TAG, Literal(tag));
 		_tags.push_back(tagIt);

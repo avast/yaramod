@@ -257,7 +257,7 @@ YaraExpressionBuilder all();
 YaraExpressionBuilder any();
 YaraExpressionBuilder them();
 
-YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = "");
+YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = std::string{});
 /// @}
 
 }

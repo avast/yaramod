@@ -18,7 +18,7 @@ namespace yaramod {
 
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
-	_tokens.emplace_back(type, std::move(Literal(std::string() + value)));
+	_tokens.emplace_back(type, std::move(Literal(std::string(1, value))));
 	return --_tokens.end();
 }
 
@@ -36,7 +36,7 @@ TokenIt TokenStream::emplace_back(TokenType type, Literal&& literal)
 
 TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, char value)
 {
-	_tokens.emplace(before, type, std::move(Literal(std::string() + value)));
+	_tokens.emplace(before, type, std::move(Literal(std::string(1, value))));
 	auto output = before;
 	return --output;
 }

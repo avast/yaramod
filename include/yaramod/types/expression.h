@@ -59,7 +59,7 @@ public:
 	/// @name Virtual methods
 	/// @{
 	virtual VisitResult accept(Visitor* v) = 0;
-	virtual std::string getText(const std::string& indent = "") const = 0;
+	virtual std::string getText(const std::string& indent = std::string{}) const = 0;
 	/// @}
 
 	/// @name Getter methods

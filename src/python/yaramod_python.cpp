@@ -451,7 +451,7 @@ void addBuilderClasses(py::module& module)
 		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
 		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"), py::arg("mods") = String::Modifiers::Ascii)
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
-		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = "", py::arg("mods") = String::Modifiers::Ascii)
+		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{}, py::arg("mods") = String::Modifiers::Ascii)
 		.def("with_condition", py::overload_cast<const Expression::Ptr&>(&YaraRuleBuilder::withCondition));
 
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")

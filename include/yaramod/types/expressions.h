@@ -42,7 +42,7 @@ public:
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
 	}
@@ -81,7 +81,7 @@ public:
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
 	}
@@ -131,7 +131,7 @@ public:
 	void setAtExpression(const Expression::Ptr& at) { _at = at; }
 	void setAtExpression(Expression::Ptr&& at) { _at = std::move(at); }
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return getId() + " " + _at_symbol->getString() + " " + _at->getText(indent);
 	}
@@ -183,7 +183,7 @@ public:
 	void setRangeExpression(const Expression::Ptr& range) { _range = range; }
 	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return getId() + " " + _in_symbol->getString() + " " + _range->getText(indent);
 	}
@@ -224,7 +224,7 @@ public:
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return _id->getString();
 	}
@@ -281,7 +281,7 @@ public:
 	void setIndexExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
@@ -338,7 +338,7 @@ public:
 	void setIndexExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
@@ -354,7 +354,7 @@ private:
 class UnaryOpExpression : public Expression
 {
 public:
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		if (_op->getType() == NOT)
 			return _op->getString() + " " + _expr->getText(indent);
@@ -454,7 +454,7 @@ public:
 class BinaryOpExpression : public Expression
 {
 public:
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _left->getText(indent) + ' ' + _op->getString() + (_linebreak ? "\n" + indent : " ") + _right->getText(indent);
 	}
@@ -969,7 +969,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		assert(_set);
 		std::stringstream ss;
@@ -1014,7 +1014,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		std::stringstream ss;
 		ss	<< _for->getString() << " " << _forExpr->getText(indent) << " "
@@ -1054,7 +1054,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent);
 	}
@@ -1091,7 +1091,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		std::ostringstream ss;
 		ss << _left_bracket->getString();
@@ -1152,7 +1152,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _left_bracket->getString() + _low->getText(indent) + " " + _double_dot->getString() + " " + _high->getText(indent) + _right_bracket->getString();
 	}
@@ -1207,7 +1207,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		if (_symbol)
 			return _symbol.value()->getSymbol()->getName();
@@ -1256,7 +1256,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		if (_symbol)
 			return _structure->getText(indent) + _dot->getString() + _symbol.value()->getSymbol()->getName();
@@ -1321,7 +1321,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _array->getText(indent) + _left_bracket->getString() + _accessor->getText(indent) + _right_bracket->getString();
 	}
@@ -1368,7 +1368,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		// Use just empty parentheses for parameter-less function
 		if (_args.empty())
@@ -1427,7 +1427,7 @@ public:
 		return (*_value)->template getValue<LiteralType>();
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		if (_value.has_value()){
 			return _value.value()->getText();
@@ -1570,7 +1570,7 @@ public:
 class KeywordExpression : public Expression
 {
 public:
-	virtual std::string getText(const std::string& /*indent*/ = "") const override
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return _keyword->getString();
 	}
@@ -1738,7 +1738,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		if (_linebreak)
 		{
@@ -1797,7 +1797,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& indent = "") const override
+	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return _func->getString() + _left_bracket->getString() + _expr->getText(indent) + _right_bracket->getString();
 	}
@@ -1846,7 +1846,7 @@ public:
 		return v->visit(this);
 	}
 
-	virtual std::string getText(const std::string& /*indent*/ = "") const override { return _regexp->getText(); }
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override { return _regexp->getText(); }
 
 	const std::shared_ptr<String>& getRegexpString() const { return _regexp; }
 
