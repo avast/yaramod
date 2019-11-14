@@ -2890,28 +2890,28 @@ rule rule_with_escaped_double_quotes_works {
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
-TEST_F(ParserTests,
-InvalidEscapeSequence) {
-	prepareInput(
-R"(rule rule_with_invalid_escape_sequence {
-	strings:
-		$str = "\n\r"
-	condition:
-		$str
-}"
-)");
+// TEST_F(ParserTests,
+// InvalidEscapeSequence) {
+// 	prepareInput(
+// R"(rule rule_with_invalid_escape_sequence {
+// 	strings:
+// 		$str = "\n\r"
+// 	condition:
+// 		$str
+// }"
+// )");
 
-	try
-	{
-		driver.parse();
-		FAIL() << "Parser did not throw an exception.";
-	}
-	catch (const ParserError& err)
-	{
-		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 3.13: Syntax error: Unknown symbol on input, expected one of {, /, \"", err.getErrorMessage());
-	}
-}
+// 	try
+// 	{
+// 		driver.parse();
+// 		FAIL() << "Parser did not throw an exception.";
+// 	}
+// 	catch (const ParserError& err)
+// 	{
+// 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+// 		EXPECT_EQ("Error at 3.13: Syntax error: Unknown symbol on input, expected one of {, /, \"", err.getErrorMessage());
+// 	}
+// }
 
 TEST_F(ParserTests,
 NewlineInHexString) {
