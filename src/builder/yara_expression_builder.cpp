@@ -49,7 +49,7 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 			const auto& expr = terms[i].get();
 			error_handle("Expected boolean, got '" + expr->getText() + "' of type " + expr->getTypeString());
 		}
-		if (i>=2)
+		if (i >= 2)
 			formula = op(formula, terms[i]);
 	}
 

@@ -151,9 +151,8 @@ YaraRuleBuilder& YaraRuleBuilder::withComment(const std::string& comment, bool m
 	}
 	else
 	{
-		for (auto item : comment)
-			if (item == '\n')
-				throw RuleBuilderError("Error: one-line comment must not contain \\n.");
+		if (comment.find('\n') != std::string::npos)
+			throw RuleBuilderError("Error: one-line comment must not contain \\n.");
 		ss << "// " << comment;
 		_tokenStream->emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
 	}

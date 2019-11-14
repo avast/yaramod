@@ -401,26 +401,22 @@ void Rule::addTag(const std::string& tag)
  */
 void Rule::removeTags(const std::string& tag)
 {
-	for (auto it = _tags.begin(); it != _tags.end(); ++it)
-		if ((*it)->getText() == tag)
-		{
-			_tokenStream->erase(*it);
-			_tags.erase(it);
-			return;
-		}
+	auto found = std::find_if(_tags.begin(), _tags.end(), [&tag](TokenIt it){ return it->getText() == tag; });
+	if (found != _tags.end())
+	{
+		_tokenStream->erase(*found);
+		_tags.erase(found);
+	}
 }
 
 void Rule::removeTags(TokenType type)
 {
-	for (auto it = _tags.begin(); it != _tags.end(); ++it)
-		if ((*it)->getType() == type)
-		{
-			_tokenStream->erase(*it);
-			_tags.erase(it);
-			// return true;
-			return;
-		}
-	// return false;
+	auto found = std::find_if(_tags.begin(), _tags.end(), [&type](TokenIt it){ return it->getType() == type; });
+	if (found != _tags.end())
+	{
+		_tokenStream->erase(*found);
+		_tags.erase(found);
+	}
 }
 
 }

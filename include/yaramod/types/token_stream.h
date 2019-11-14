@@ -128,7 +128,7 @@ protected:
 
 	std::optional<TokenIt> predecessor(TokenIt it);
 private:
-	std::list< Token > _tokens; ///< All tokens off the rule
+	std::list<Token> _tokens; ///< All tokens off the rule
 	bool formatted = false; ///< The flag is set once autoformat has been called
 };
 
