@@ -27,7 +27,7 @@ set(SOURCES
 	types/plain_string.cpp
 	types/rule.cpp
 	types/token.cpp
-	types/tokenstream.cpp
+	types/token_stream.cpp
 	types/yara_file.cpp
 	utils/filesystem.cpp
 	utils/utils.cpp

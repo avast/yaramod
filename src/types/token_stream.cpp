@@ -167,11 +167,7 @@ TokenIt TokenStream::find(TokenType type, TokenIt from)
 
 TokenIt TokenStream::find(TokenType type, TokenIt from, TokenIt to)
 {
-	return std::find_if (
-		from,
-		to,
-		[&type](const Token& t){ return t.getType() == type; }
-	);
+	return std::find_if( from, to, [&type](const Token& t){ return t.getType() == type; });
 }
 
 TokenIt TokenStream::findBackwards(TokenType type)
