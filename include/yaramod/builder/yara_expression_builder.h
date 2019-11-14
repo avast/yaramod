@@ -42,10 +42,7 @@ enum class IntFunctionEndianness
 class YaraExpressionBuilderError : public YaramodError
 {
 public:
-	YaraExpressionBuilderError(const std::string& errorMsg)
-		: YaramodError(std::string("YaraExpressionBuilder error: ") + errorMsg)
-	{
-	}
+	YaraExpressionBuilderError(const std::string& errorMsg) : YaramodError("YaraExpressionBuilder error: " + errorMsg) {}
 	YaraExpressionBuilderError(const YaraExpressionBuilderError&) = default;
 };
 

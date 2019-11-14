@@ -20,10 +20,7 @@ namespace yaramod {
 class YaraFileBuilderError : public YaramodError
 {
 public:
-	YaraFileBuilderError(const std::string& errorMsg)
-		: YaramodError(std::string("YaraExpressionBuilder error: ") + errorMsg)
-	{
-	}
+	YaraFileBuilderError(const std::string& errorMsg) : YaramodError("YaraExpressionBuilder error: " + errorMsg) {}
 	YaraFileBuilderError(const YaraFileBuilderError&) = default;
 };
 

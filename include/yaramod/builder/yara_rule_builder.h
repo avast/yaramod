@@ -8,9 +8,9 @@
 
 #include <string>
 
-#include <yaramod/yaramod_error.h>
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/rule.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -20,7 +20,7 @@ namespace yaramod {
 class RuleBuilderError : public YaramodError
 {
 public:
-	RuleBuilderError(const std::string& errorMsg) : YaramodError(errorMsg) {}
+	RuleBuilderError(const std::string& errorMsg) : YaramodError("YaraRuleBuilder error: " + errorMsg) {}
 	RuleBuilderError(const RuleBuilderError&) = default;
 };
 
