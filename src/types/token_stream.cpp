@@ -1,6 +1,6 @@
 /**
- * @file src/types/tokenstream.cpp
- * @brief Implementation of class Literal.
+ * @file src/types/token_stream.cpp
+ * @brief Implementation of class TokenStream.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 

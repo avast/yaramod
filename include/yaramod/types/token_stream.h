@@ -1,3 +1,9 @@
+/**
+ * @file src/types/token_stream.h
+ * @brief Declaration of class TokenStream.
+ * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ */
+
 #pragma once
 
 #include <list>

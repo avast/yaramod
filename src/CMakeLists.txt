@@ -10,6 +10,7 @@ set(SOURCES
 	builder/yara_rule_builder.cpp
 	parser/parser_driver.cpp
 	types/hex_string.cpp
+	types/literal.cpp
 	types/meta.cpp
 	types/modules/androguard_module.cpp
 	types/modules/cuckoo_module.cpp
