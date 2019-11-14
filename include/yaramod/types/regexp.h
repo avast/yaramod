@@ -459,9 +459,9 @@ public:
 		std::optional<std::uint64_t> out1;
 		std::optional<std::uint64_t> out2;
 		if (_first)
-			out1 = std::make_optional(_first.value()->getUInt64_t());
+			out1 = std::make_optional(_first.value()->getUInt64());
 		if (_second)
-			out2 = std::make_optional(_second.value()->getUInt64_t());
+			out2 = std::make_optional(_second.value()->getUInt64());
 		return {std::move(out1), std::move(out2)};
 	}
 

@@ -297,12 +297,12 @@ int Token::getInt() const
 	return _value->get<int>();
 }
 
-int64_t Token::getInt64_t() const
+int64_t Token::getInt64() const
 {
 	return _value->get<int64_t>();
 }
 
-uint64_t Token::getUInt64_t() const
+uint64_t Token::getUInt64() const
 {
 	return _value->get<uint64_t>();
 }

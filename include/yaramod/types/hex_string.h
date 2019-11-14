@@ -200,15 +200,15 @@ public:
 		// If both low and high bound is defined and they are the same, it is the fixed jump.
 		if (_low.has_value() && _high.has_value() && _low.value() == _high.value())
 		{
-			ss << _low.value()->getUInt64_t();
+			ss << _low.value()->getUInt64();
 		}
 		else
 		{
 			if (_low.has_value())
-				ss << _low.value()->getUInt64_t();
+				ss << _low.value()->getUInt64();
 			ss << '-';
 			if (_high.has_value())
-				ss << _high.value()->getUInt64_t();
+				ss << _high.value()->getUInt64();
 		}
 		ss << ']';
 		return ss.str();
@@ -222,12 +222,12 @@ public:
 	std::optional<std::uint64_t> getLow() const
 	{
 		if (_low.has_value())
-			return _low.value()->getUInt64_t();
+			return _low.value()->getUInt64();
 		return std::nullopt;
 	}
 	std::optional<std::uint64_t> getHigh() const {
 		if (_high.has_value())
-			return _high.value()->getUInt64_t();
+			return _high.value()->getUInt64();
 		return std::nullopt;
    }
 	/// @}

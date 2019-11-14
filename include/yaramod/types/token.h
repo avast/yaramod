@@ -381,8 +381,8 @@ public:
 	bool isString() const { return _value->is<std::string>(); }
 	bool isBool() const { return _value->is<bool>(); }
 	bool isInt() const { return _value->is<int>(); }
-	bool isInt64_t() const { return _value->is<int64_t>(); }
-	bool isUInt64_t() const { return _value->is<uint64_t>(); }
+	bool isInt64() const { return _value->is<int64_t>(); }
+	bool isUInt64() const { return _value->is<uint64_t>(); }
 	bool isDouble() const { return _value->is<double>(); }
 	bool isSymbol() const { return _value->is<std::shared_ptr<Symbol>>(); }
 
@@ -431,8 +431,8 @@ public:
 	const std::string& getString() const;
 	bool getBool() const;
 	int getInt() const;
-	int64_t getInt64_t() const;
-	uint64_t getUInt64_t() const;
+	int64_t getInt64() const;
+	uint64_t getUInt64() const;
 	double getDouble() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	template <typename T>
