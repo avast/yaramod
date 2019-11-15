@@ -2891,11 +2891,11 @@ rule rule_with_escaped_double_quotes_works {
 }
 
 TEST_F(ParserTests,
-InvalidEscapeSequence) {
+InvalidEscapedSequence1) {
 	prepareInput(
 R"(rule rule_with_invalid_escape_sequence {
 	strings:
-		$str = "\n\r"
+		$str = "\t\r"
 	condition:
 		$str
 }"
@@ -2909,7 +2909,31 @@ R"(rule rule_with_invalid_escape_sequence {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 3.13: Syntax error: Unknown symbol on input, expected one of {, /, \"", err.getErrorMessage());
+		EXPECT_EQ("Error at 3.13-14: Syntax error: Unknown escaped sequence '\\r'", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+InvalidEscapedSequence2) {
+	prepareInput(
+R"(rule rule_with_invalid_escape_sequence {
+	strings:
+		$st1 = "\n\n\n"
+		$st2 = "\t\r"
+	condition:
+		$st1 or $st2
+}"
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.13-14: Syntax error: Unknown escaped sequence '\\r'", err.getErrorMessage());
 	}
 }
 

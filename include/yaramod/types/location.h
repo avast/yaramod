@@ -41,6 +41,15 @@ public:
 	const std::pair<std::size_t, std::size_t>& end() const { return _end; }
 	/// @}
 
+	friend std::ostream& operator<<(std::ostream& os, const Location& location)
+	{
+		if (location.begin().second < location.end().second)
+			os << location.begin().first << "." << location.begin().second << "-" << location.end().second;
+		else
+			os << location.begin().first << "." << location.begin().second;
+		return os;
+	}
+
 private:
 	std::pair<std::size_t, std::size_t> _begin; // (line, column)
 	std::pair<std::size_t, std::size_t> _end; // (line, column)

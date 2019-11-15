@@ -17,10 +17,7 @@ namespace yaramod {
 void error_handle(const Location& location, const std::string& msg)
 {
 	std::stringstream err;
-	if (location.begin().second < location.end().second)
-		err << "Error at " << location.begin().first << "." << location.begin().second << "-" << location.end().second << ": " << msg;
-	else
-		err << "Error at " << location.begin().first << "." << location.begin().second << ": " << msg;
+	err << "Error at " << location << ": " << msg;
 	throw ParserError(err.str());
 }
 
@@ -212,23 +209,20 @@ void ParserDriver::defineTokens()
 		_strLiteral.clear();
 		return {};
 	});
-	_parser.token(R"(\\n)").states("$str").action([&](std::string_view) -> Value {
-		_strLiteral += "\\n";
-		currentLocation().addLine();
-		return {};
-	});
 
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action([&](std::string_view str) -> Value {
 		_strLiteral += "\\x";
 		_strLiteral += std::string{str}.substr(2);
 		return {};
 	});
-	_parser.token(R"(\\[t\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
-	_parser.token(R"(\\\.)").states("$str").action([&](std::string_view str) -> Value { error_handle(currentLocation(), "Unknown escape sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(\\t)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
+	_parser.token(R"(\\n)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
+	_parser.token(R"(\\")").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '"'
+	_parser.token("\\\\\\\\").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\\'
+	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value {error_handle(currentLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
-	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
-		return emplace_back(STRING_LITERAL, _strLiteral);
-	});
+	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value { return emplace_back(STRING_LITERAL, _strLiteral); });
+
 	// $str end
 
 	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").description("fixed-width integer function").action([&](std::string_view str) -> Value { return emplace_back(INTEGER_FUNCTION, std::string{str}); });
