@@ -14,7 +14,7 @@
 
 namespace yaramod {
 
-#define TABULATOR_LENGTH 8
+constexpr unsigned tabulator_length = 8;
 
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
@@ -511,13 +511,13 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					|| next == STRINGS
 					|| next == CONDITION)
 				{
-					helper.insertIntoStream(os, "\t", TABULATOR_LENGTH);
+					helper.insertIntoStream(os, "\t", tabulator_length);
 				}
 				else if (next != RULE_END)
 				{
 					if (nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
-					helper.insertIntoStream(os, std::string(2 + current_line_tabs, '\t'), (2 + current_line_tabs) * TABULATOR_LENGTH);
+					helper.insertIntoStream(os, std::string(2 + current_line_tabs, '\t'), (2 + current_line_tabs) * tabulator_length);
 				}
 			}
 		}

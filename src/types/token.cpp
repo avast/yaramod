@@ -14,9 +14,6 @@
 
 namespace yaramod {
 
-#define TABULATOR_LENGTH 8
-
-
 const Literal& Token::getLiteral() const
 {
 	assert(_value);
