@@ -25,19 +25,22 @@ class PlainString : public String
 public:
 	/// @name Constructors
 	/// @{
-	explicit PlainString(const std::string& text);
-	explicit PlainString(std::string&& text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, const std::string& text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, std::string&& text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt text);
+	explicit PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt equal_sign, std::uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text);
 	~PlainString() = default;
 	/// @}
 
-	/// @name String representation
+	/// @name Virtual methods
 	/// @{
 	virtual std::string getText() const override;
 	virtual std::string getPureText() const override;
+	virtual TokenIt getFirstTokenIt() const override;
 	/// @}
 
 private:
-	std::string _text; ///< Text of the plain string
+	TokenIt _text; ///< Text of the plain string
 };
 
 }

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "yaramod/types/literal.h"
+#include "yaramod/types/token.h"
 
 namespace yaramod {
 
@@ -21,8 +21,7 @@ class Meta
 public:
 	/// @name Constructors
 	/// @{
-	template <typename KeyT, typename LiteralT>
-	explicit Meta(KeyT&& key, LiteralT&& value) : _key(std::forward<KeyT>(key)), _value(std::forward<LiteralT>(value)) {}
+	Meta(TokenIt key, TokenIt value) : _key(key), _value(value) {}
 	Meta(const Meta& meta) = default;
 	Meta(Meta&& meta) = default;
 	/// @}
@@ -51,8 +50,8 @@ public:
 	/// @}
 
 private:
-	std::string _key; ///< Key
-	Literal _value; ///< Value
+	TokenIt _key; ///< Key
+	TokenIt _value; ///< Value
 };
 
 }

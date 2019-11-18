@@ -8,6 +8,7 @@
 #include <cctype>
 #include <iomanip>
 #include <locale>
+#include <optional>
 #include <sstream>
 
 #include "yaramod/utils/utils.h"
@@ -46,6 +47,8 @@ bool isValidIdentifier(const std::string& id)
 /**
  * Escapes the string according to the YARA escaping rules. Only escaping sequences are
  * `\n`, `\t`, `\"`, `\\` and `\xXX`.
+ * non-printable characters are escaped: 				'\x40' -> "@"
+ * printable characters are delegated separately: 	'\n' -> "\n"  ...  string of size 2
  *
  * @param str String to escape.
  *
@@ -89,6 +92,89 @@ std::string escapeString(const std::string& str)
 		}
 	}
 
+	return result;
+}
+
+std::optional<std::uint8_t> nibbleToByte(char nibble)
+{
+	if ('0' <= nibble && nibble <= '9')
+		return nibble - '0';
+	else if (char nl = std::tolower(nibble); 'a' <= nl && nl <= 'f')
+		return nl - 'a' + 10;
+	else
+		return {};
+}
+
+/**
+ * Unescapes the string according to the YARA escaping rules. Only escaping sequences are
+ * `\n`, `\t`, `\"`, `\\` and `\xXX`.
+ *
+ * @param str String to unescape.
+ *
+ * @return unescaped string.
+ */
+std::string unescapeString(std::string_view str)
+{
+	if (str.length() < 2)
+		return std::string{str.data(), str.length()};
+
+	std::string result;
+	result.reserve(str.length());
+
+	std::size_t i;
+	for (i = 0; i < str.length() - 1; ++i)
+	{
+		if (str[i] == '\\')
+		{
+			if (i + 3 < str.length() && str[i + 1] == 'x')
+			{
+				auto high = nibbleToByte(str[i + 2]);
+				auto low = nibbleToByte(str[i + 3]);
+				if (!high || !low)
+					std::copy(str.begin() + i, str.begin() + i + 4, std::back_inserter(result));
+				else
+				{
+					result.push_back((high.value() << 4) | low.value());
+				}
+				i += 3;
+			}
+			else if (str[i + 1] == '\\')
+			{
+				result.push_back('\\');
+				++i;
+			}
+			else if (str[i + 1] == '\"')
+			{
+				result.push_back('\"');
+				++i;
+			}
+			else if (str[i + 1] == 'n')
+			{
+				result.push_back('\n');
+				++i;
+			}
+			else if (str[i + 1] == 'r')
+			{
+				result.push_back('\r');
+				++i;
+			}
+			else if (str[i + 1] == 't')
+			{
+				result.push_back('\t');
+				++i;
+			}
+			else
+			{
+				result.push_back(str[i]);
+			}
+		}
+		else
+		{
+			result.push_back(str[i]);
+		}
+	}
+
+	std::copy(str.begin() + i, str.end(), std::back_inserter(result));
 	return result;
 }
 

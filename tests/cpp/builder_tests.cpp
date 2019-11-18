@@ -10,14 +10,18 @@
 #include "yaramod/builder/yara_file_builder.h"
 #include "yaramod/builder/yara_hex_string_builder.h"
 #include "yaramod/builder/yara_rule_builder.h"
-#include "yaramod/types/expressions.h"
 
 using namespace ::testing;
 
 namespace yaramod {
 namespace tests {
 
-class BuilderTests : public Test {};
+class BuilderTests : public Test {
+public:
+	BuilderTests() : driver(ParserMode::Regular) {}
+
+	yaramod::ParserDriver driver;
+};
 
 TEST_F(BuilderTests,
 EmptyFileWorks) {
@@ -34,7 +38,7 @@ PureImportsWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withModule("elf")
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -46,17 +50,28 @@ TEST_F(BuilderTests,
 UnnamedRuleWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule.get();
+	assert(rule);
+	EXPECT_EQ(R"(rule unknown {
+	condition:
+		true
+})", rule->getText());
 
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule unknown {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule unknown {
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -69,13 +84,19 @@ RuleWithCustomNameWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_custom_name {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_custom_name {
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -92,7 +113,7 @@ RuleWithMetasWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_metas {
@@ -104,6 +125,17 @@ RuleWithMetasWorks) {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_metas {
+	meta:
+		string_meta = "string value"
+		int_meta = 42
+		hex_int_meta = 0x42
+		bool_meta = false
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -118,13 +150,19 @@ RuleWithTagsWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_tags : Tag1 Tag2 {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_tags : Tag1 Tag2 {
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -138,13 +176,77 @@ RuleWithModifierWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(global rule rule_with_modifier {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(global rule rule_with_modifier {
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithOnelineCommentWorks) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_oneline_comment")
+		.withModifier(Rule::Modifier::Global)
+		.withComment("comment", false)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(false);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(global rule rule_with_oneline_comment {
+	condition:
+		true
+})", yaraFile->getText());
+
+	std::string expected = R"(// comment
+global rule rule_with_oneline_comment {
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithMultilineCommentWorks) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_multiline_comment")
+		.withModifier(Rule::Modifier::Global)
+		.withComment("comment", true)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(false);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(global rule rule_with_multiline_comment {
+	condition:
+		true
+})", yaraFile->getText());
+
+	std::string expected = R"(/* comment */
+global rule rule_with_multiline_comment {
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -158,7 +260,7 @@ RuleWithPlainStringWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_plain_string {
@@ -167,6 +269,14 @@ RuleWithPlainStringWorks) {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_plain_string {
+	strings:
+		$1 = "This is plain string." ascii wide
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -180,7 +290,7 @@ RuleWithPlainStringPureWideWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_plain_string {
@@ -189,6 +299,14 @@ RuleWithPlainStringPureWideWorks) {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_plain_string {
+	strings:
+		$1 = "This is plain string." wide
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -211,7 +329,7 @@ MultipleRulesWorks) {
 	auto yaraFile = newFile
 		.withRule(std::move(rule1))
 		.withRule(std::move(rule2))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_1 : Tag1 {
@@ -231,6 +349,25 @@ rule rule_2 : Tag2 {
 	condition:
 		true
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_1 : Tag1 {
+	meta:
+		id = 1
+	strings:
+		$1 = "This is plain string 1."
+	condition:
+		true
+}
+
+rule rule_2 : Tag2 {
+	meta:
+		id = 2
+	strings:
+		$2 = "This is plain string 2."
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -247,7 +384,7 @@ RuleWithCustomConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_custom_condition {
@@ -256,6 +393,14 @@ RuleWithCustomConditionWorks) {
 	condition:
 		$1 at entrypoint
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_custom_condition {
+	strings:
+		$1 = "Hello World!"
+	condition:
+		$1 at entrypoint
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -272,7 +417,7 @@ RuleWithConditionWithSymbolsWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_condition_with_symbols {
@@ -281,16 +426,24 @@ RuleWithConditionWithSymbolsWorks) {
 	condition:
 		for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_condition_with_symbols {
+	strings:
+		$1 = "Hello World!"
+	condition:
+		for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
 RuleWithHexStringWorks) {
 	auto cond = stringRef("$1").get();
 
-	auto alt1 = YaraHexStringBuilder().add(0xBB, 0xCC);
+	auto alt1 = YaraHexStringBuilder().add(0xBB).add(0xCC);
 	auto alt2 = YaraHexStringBuilder().add(0xDD, 0xEE);
-	auto alt3 = YaraHexStringBuilder().add(0xFF);
-	auto alt4 = YaraHexStringBuilder(std::vector<std::uint8_t>{ 0xFE, 0xED });
+	auto alt3 = YaraHexStringBuilder().add(0xFF, 0xF1);
+	auto alt4 = YaraHexStringBuilder(std::vector<std::uint8_t>{ 0xFE, 0xED, 0xDC });
 
 	YaraHexStringBuilder newHexStr;
 	auto hexStr = newHexStr
@@ -307,18 +460,28 @@ RuleWithHexStringWorks) {
 		.withCondition(cond)
 		.get();
 
+	ASSERT_NE(nullptr, rule);
+
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_hex_string {
 	strings:
-		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF | FE ED ) 99 }
+		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
 		$1
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_hex_string {
+	strings:
+		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
+	condition:
+		$1
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -336,7 +499,7 @@ RuleWithStringForConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_string_for_condition {
@@ -346,6 +509,15 @@ RuleWithStringForConditionWorks) {
 	condition:
 		for any of ($1, $2) : ( $ at entrypoint )
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_string_for_condition {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		for any of ($1, $2) : ( $ at entrypoint )
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -363,7 +535,7 @@ RuleWithOfWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_of {
@@ -373,6 +545,15 @@ RuleWithOfWorks) {
 	condition:
 		all of them
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_of {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		all of them
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -389,7 +570,7 @@ RuleWithRangeWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_range {
@@ -398,6 +579,14 @@ RuleWithRangeWorks) {
 	condition:
 		$1 in (0 .. filesize)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_range {
+	strings:
+		$1 = "Hello World!"
+	condition:
+		$1 in (0 .. filesize)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -414,7 +603,7 @@ RuleWithStructureWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -423,6 +612,83 @@ rule rule_with_range {
 	condition:
 		pe.number_of_sections > 1
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_range {
+	condition:
+		pe.number_of_sections > 1
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithConditionWithOnelineComment) {
+	auto cond = (id("pe").comment("Number of sections needs to exceed 1", false).access("number_of_sections") > intVal(1)).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_range")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withModule("pe")
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_range {
+	condition:
+		pe.number_of_sections > 1
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_range {
+	condition:
+		// Number of sections needs to exceed 1
+		pe.number_of_sections > 1
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithConditionWithMultilineComment) {
+	auto cond = (id("pe").comment("Number of sections needs to exceed 1,\nbecause one is simply not enough.", true).access("number_of_sections") > intVal(1)).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_range")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withModule("pe")
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_range {
+	condition:
+		pe.number_of_sections > 1
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_range {
+	condition:
+		/* Number of sections needs to exceed 1,
+		because one is simply not enough. */
+		pe.number_of_sections > 1
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -440,7 +706,7 @@ RuleWithArrayAndStructureWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -449,6 +715,14 @@ rule rule_with_array_and_structure {
 	condition:
 		pe.sections[0].name contains "text"
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_array_and_structure {
+	condition:
+		pe.sections[0].name contains "text"
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -466,7 +740,7 @@ RuleWithFunctionCallWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -475,6 +749,14 @@ rule rule_with_function_call {
 	condition:
 		pe.exports("ExitProcess")
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_function_call {
+	condition:
+		pe.exports("ExitProcess")
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -491,13 +773,19 @@ RuleWithIntFunctionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_int_function {
 	condition:
 		uint16(0) == 0x5a4d
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_int_function {
+	condition:
+		uint16(0) == 0x5a4d
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -514,13 +802,19 @@ RuleWithArithmeticOperationsWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_arithmetic_operations {
 	condition:
 		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_arithmetic_operations {
+	condition:
+		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -537,13 +831,19 @@ RuleWithArithmeticOperationsWithDoubleValuesWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_arithmetic_operations_with_double_values {
 	condition:
 		(entrypoint + 2.71828 * 10) < (filesize - 1.61803 \ 3.14159)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_arithmetic_operations_with_double_values {
+	condition:
+		(entrypoint + 2.71828 * 10) < (filesize - 1.61803 \ 3.14159)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -561,7 +861,7 @@ RuleWithBitwiseOperationsWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -570,6 +870,14 @@ rule rule_with_bitwise_operations {
 	condition:
 		pe.characteristics & (pe.DLL | pe.RELOCS_STRIPPED)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_bitwise_operations {
+	condition:
+		pe.characteristics & (pe.DLL | pe.RELOCS_STRIPPED)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -587,7 +895,7 @@ RuleWithLogicOperationsWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -596,6 +904,14 @@ rule rule_with_logic_operations {
 	condition:
 		pe.is_32bit() and (pe.is_dll() or (pe.number_of_sections > 3))
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_logic_operations {
+	condition:
+		pe.is_32bit() and (pe.is_dll() or (pe.number_of_sections > 3))
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -612,13 +928,19 @@ RuleWithIntMultpliersWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_int_multipliers {
 	condition:
 		100KB <= filesize and filesize <= 1MB
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_int_multipliers {
+	condition:
+		100KB <= filesize and filesize <= 1MB
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -636,7 +958,7 @@ RuleWithStringOperatorsWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_string_operators {
@@ -645,6 +967,14 @@ RuleWithStringOperatorsWorks) {
 	condition:
 		#1 > 0 and !1 > 1 and @1 > 100
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_string_operators {
+	strings:
+		$1 = "Hello World!"
+	condition:
+		#1 > 0 and !1 > 1 and @1 > 100
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -661,7 +991,7 @@ RuleWithRegexpWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_regexp {
@@ -670,6 +1000,14 @@ RuleWithRegexpWorks) {
 	condition:
 		$1
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_regexp {
+	strings:
+		$1 = /md5: [0-9a-zA-Z]{32}/i
+	condition:
+		$1
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -687,7 +1025,7 @@ RuleWithRegexpInConditionWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(import "pe"
@@ -696,6 +1034,14 @@ rule rule_with_regexp_in_condition {
 	condition:
 		pe.sections[0].name matches /\.(text|data)/i
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_regexp_in_condition {
+	condition:
+		pe.sections[0].name matches /\.(text|data)/i
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -713,7 +1059,7 @@ RuleWithConjunctionInConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_conjunction {
@@ -722,6 +1068,14 @@ RuleWithConjunctionInConditionWorks) {
 	condition:
 		$1 and (@1 < 100) and (entrypoint == 100)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_conjunction {
+	strings:
+		$1 = "Hello"
+	condition:
+		$1 and (@1 < 100) and (entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -740,7 +1094,7 @@ RuleWithDisjunctionInConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_disjunction {
@@ -750,6 +1104,15 @@ RuleWithDisjunctionInConditionWorks) {
 	condition:
 		$1 or $2 or (entrypoint == 100)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_disjunction {
+	strings:
+		$1 = "Hello"
+		$2 = "World"
+	condition:
+		$1 or $2 or (entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -767,7 +1130,7 @@ RuleWithConjunctionWithLinebreaksInConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get(false);
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_conjunction_with_linebreaks {
@@ -778,6 +1141,16 @@ RuleWithConjunctionWithLinebreaksInConditionWorks) {
 		(@1 < 100) and
 		(entrypoint == 100)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_conjunction_with_linebreaks {
+	strings:
+		$1 = "Hello"
+	condition:
+		$1 and
+		(@1 < 100) and
+		(entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -796,7 +1169,7 @@ RuleWithDisjunctionWithLinebreaksInConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get(false);
+		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_disjunction_with_linebreaks {
@@ -808,6 +1181,110 @@ RuleWithDisjunctionWithLinebreaksInConditionWorks) {
 		$2 or
 		(entrypoint == 100)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_disjunction_with_linebreaks {
+	strings:
+		$1 = "Hello"
+		$2 = "World"
+	condition:
+		$1 or
+		$2 or
+		(entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithCommentedConjunctionInConditionWorks) {
+	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;
+	terms.emplace_back(std::make_pair(stringRef("$1"), "comment1"));
+	terms.emplace_back(std::make_pair(paren(matchOffset("$1") < intVal(100)), "comment2"));
+	terms.emplace_back(std::make_pair(paren(entrypoint() == intVal(100)), "comment3"));
+
+	auto cond = conjunction(terms).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_commented_conjunction")
+		.withPlainString("$1", "Hello")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_commented_conjunction {
+	strings:
+		$1 = "Hello"
+	condition:
+		$1 and
+		(@1 < 100) and
+		(entrypoint == 100)
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_commented_conjunction {
+	strings:
+		$1 = "Hello"
+	condition:
+		/* comment1 */
+		$1 and
+		/* comment2 */
+		(@1 < 100) and
+		/* comment3 */
+		(entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithCommentedDisjunctionInConditionWorks) {
+	std::vector<std::pair<YaraExpressionBuilder, std::string>> terms;
+	terms.emplace_back(std::make_pair(stringRef("$1"), "Hello must be present"));
+	terms.emplace_back(std::make_pair(stringRef("$2"), "World must be present"));
+	terms.emplace_back(std::make_pair(paren(entrypoint() == intVal(100)), "entrypoint is 100"));
+
+	auto cond = disjunction(terms).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_commented_disjunction")
+		.withPlainString("$1", "Hello")
+		.withPlainString("$2", "World")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true, &driver);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_commented_disjunction {
+	strings:
+		$1 = "Hello"
+		$2 = "World"
+	condition:
+		$1 or
+		$2 or
+		(entrypoint == 100)
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_commented_disjunction {
+	strings:
+		$1 = "Hello"
+		$2 = "World"
+	condition:
+		/* Hello must be present */
+		$1 or
+		/* World must be present */
+		$2 or
+		/* entrypoint is 100 */
+		(entrypoint == 100)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -826,7 +1303,7 @@ RuleWithParenthesesWithLinebreaksInConditionWorks) {
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
 		.withRule(std::move(rule))
-		.get(false);
+		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_parentheses_with_linebreaks {
@@ -839,6 +1316,18 @@ RuleWithParenthesesWithLinebreaksInConditionWorks) {
 			$2 or $3
 		)
 })", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_parentheses_with_linebreaks {
+	strings:
+		$1 = "Hello"
+		$2 = "Cruel"
+		$3 = "World"
+	condition:
+		$1 and (
+			$2 or $3
+		)
+}
+)", yaraFile->getTextFormatted());
 }
 
 TEST_F(BuilderTests,
@@ -857,9 +1346,11 @@ RuleWithEscapedSequencesWorks) {
 	auto yaraFile = newFile
 		.withModule("pe")
 		.withRule(std::move(rule))
-		.get();
+		.get(true, &driver);
 
-	auto expected = R"(import "pe"
+	ASSERT_NE(nullptr, yaraFile);
+
+	std::string expected = R"(import "pe"
 
 rule rule_with_double_quotes {
 	meta:
@@ -869,8 +1360,20 @@ rule rule_with_double_quotes {
 	condition:
 		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
 })";
-	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(expected, yaraFile->getText());
+
+	std::string expected_with_newline = R"(import "pe"
+
+rule rule_with_double_quotes {
+	meta:
+		str_meta = "Double \"\t\n\\\x01\xff quotes"
+	strings:
+		$str = "Double \"\t\n\\\x01\xff quotes"
+	condition:
+		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
+}
+)";
+	EXPECT_EQ(expected_with_newline, yaraFile->getTextFormatted());
 }
 
 }

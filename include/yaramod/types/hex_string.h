@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "yaramod/types/string.h"
+#include "yaramod/types/token_stream.h"
 
 namespace yaramod {
 
@@ -58,6 +59,8 @@ protected:
 	Type _type; ///< Type of the unit
 };
 
+class YaraRuleBuilder;
+
 /**
  * Class representing hex strings in the strings section
  * of the YARA rules.
@@ -73,14 +76,15 @@ class HexString : public String
 public:
 	/// @name Constructors
 	/// @{
-	explicit HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units);
-	explicit HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
 	/// @}
 
-	/// @name String representation.
+	/// @name Virtual methods.
 	/// @{
 	virtual std::string getText() const override;
 	virtual std::string getPureText() const override;
+	virtual TokenIt getFirstTokenIt() const override;
 	/// @}
 
 	/// @name Getters
@@ -116,27 +120,29 @@ class HexStringNibble : public HexStringUnit
 public:
 	/// @name Constructors
 	/// @{
-	explicit HexStringNibble(std::uint8_t value) : HexStringUnit(Type::Nibble), _value(value) {}
+	explicit HexStringNibble(TokenIt value) : HexStringUnit(Type::Nibble), _value(value) {}
 	/// @}
 
 	/// @name Virtual methods
 	/// @{
 	virtual std::string getText() const override
 	{
-		assert(_value <= 0xf);
+		auto value = getValue();
+		assert(value <= 0xf);
 
-		if (_value <= 9)
-			return std::string(1, _value + '0');
+		if (value <= 9)
+			return std::string(1, value + '0');
 		else
-			return std::string(1, _value - 10 + 'A');
+			return std::string(1, value - 10 + 'A');
 	}
 
 	/// @name Getters
 	/// @{
 	std::uint8_t getValue() const
 	{
-		assert(_value <= 0xf);
-		return _value;
+		auto output = _value->getInt();
+		assert(output <= 0xf);
+		return output;
 	}
 	/// @}
 
@@ -144,7 +150,7 @@ public:
 	/// @}
 
 private:
-	std::uint8_t _value; ///< Value of the nibble
+	TokenIt _value; ///< Value of the nibble
 };
 
 /**
@@ -157,7 +163,7 @@ class HexStringWildcard : public HexStringUnit
 public:
 	/// @name Constructors
 	/// @{
-	HexStringWildcard() : HexStringUnit(Type::Wildcard) {}
+	HexStringWildcard(TokenIt value) : HexStringUnit(Type::Wildcard), _value(value) {}
 	/// @}
 
 	/// @name Virtual methods
@@ -165,6 +171,8 @@ public:
 	virtual std::string getText() const override { return "?"; }
 	virtual std::size_t getLength() const override { return 1; }
 	/// @}
+private:
+	TokenIt _value; ///< Value of the nibble
 };
 
 /**
@@ -179,8 +187,8 @@ public:
 	/// @name Constructors
 	/// @{
 	HexStringJump() : HexStringUnit(Type::Jump) {}
-	HexStringJump(std::uint64_t low) : HexStringUnit(Type::Jump), _low(low), _high() {}
-	HexStringJump(std::uint64_t low, std::uint64_t high) : HexStringUnit(Type::Jump), _low(low), _high(high) {}
+	HexStringJump(TokenIt low) : HexStringUnit(Type::Jump), _low(low), _high() {}
+	HexStringJump(TokenIt low, TokenIt high) : HexStringUnit(Type::Jump), _low(low), _high(high) {}
 	/// @}
 
 	/// @name Virtual methods
@@ -192,15 +200,15 @@ public:
 		// If both low and high bound is defined and they are the same, it is the fixed jump.
 		if (_low.has_value() && _high.has_value() && _low.value() == _high.value())
 		{
-			ss << _low.value();
+			ss << _low.value()->getUInt64();
 		}
 		else
 		{
 			if (_low.has_value())
-				ss << _low.value();
+				ss << _low.value()->getUInt64();
 			ss << '-';
 			if (_high.has_value())
-				ss << _high.value();
+				ss << _high.value()->getUInt64();
 		}
 		ss << ']';
 		return ss.str();
@@ -211,12 +219,21 @@ public:
 
 	/// @name Getters
 	/// @{
-	std::optional<std::uint64_t> getLow() const { return _low; }
-	std::optional<std::uint64_t> getHigh() const { return _low; }
+	std::optional<std::uint64_t> getLow() const
+	{
+		if (_low.has_value())
+			return _low.value()->getUInt64();
+		return std::nullopt;
+	}
+	std::optional<std::uint64_t> getHigh() const {
+		if (_high.has_value())
+			return _high.value()->getUInt64();
+		return std::nullopt;
+   }
 	/// @}
 
 private:
-	std::optional<std::uint64_t> _low, _high; ///< Low and high bounds of the jump.
+	std::optional<TokenIt> _low, _high; ///< Low and high bounds of the jump.
 };
 
 /**

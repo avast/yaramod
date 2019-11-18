@@ -12,7 +12,10 @@
 #include <utility>
 #include <vector>
 
+#include <optional>
+
 #include "yaramod/types/string.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {
@@ -23,26 +26,46 @@ namespace yaramod {
 class RegexpUnit
 {
 public:
-	RegexpUnit() {}
+	RegexpUnit()
+		: _tokenStream(std::make_shared<TokenStream>())
+	{
+	}
 	virtual ~RegexpUnit() {}
 
 	virtual std::string getText() const = 0;
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) = 0;
+	std::shared_ptr<TokenStream>&& getTokenStream() { return std::move(_tokenStream); }
+
+protected:
+	std::shared_ptr<TokenStream> _tokenStream;
 };
 
 /**
  * Class representing class unit in regular expressions. Class units
- * are enclosed in [] and can be either positive or negative (class starts with symbol ^).
+ * are enclosed in [] and can be either positive or negative (class starts with symbol ^, e.g. [^xyz]).
  */
 class RegexpClass : public RegexpUnit
 {
 public:
-	RegexpClass(std::string&& characters, bool negative = false) : _characters(characters), _negative(negative) {}
-
-	virtual std::string getText() const
+	RegexpClass(const std::string& characters, bool negative = false)
 	{
-		return '[' + (_negative ? "^" : std::string()) + _characters + ']';
+		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
+		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative, negative? "^" : std::string{});
+		addCharacters(std::move(characters));
+		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
+	}
+
+	virtual std::string getText() const override
+	{
+		std::ostringstream ss;
+		ss << _leftRectBracket->getPureText();
+		ss << _negative->getPureText();
+		for (TokenIt it : _characters)
+			ss << it->getPureText();
+		ss << _rightRectBracket->getPureText();
+
+		return ss.str();
 	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
@@ -50,14 +73,33 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getCharacters() const { return _characters; }
-	void setCharacters(const std::string& characters) { _characters = characters; }
+	void addCharacters(const std::string& text)
+	{
+		for (char c : text)
+			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
+	}
 
-	bool isNegative() const { return _negative; }
+	std::string getCharacters() const
+	{
+		std::stringstream ss;
+		for (TokenIt it : _characters)
+			ss << it->getPureText();
+		return ss.str();
+	}
+
+	void setCharacters(const std::string& characters)
+	{
+		_characters.clear();
+		addCharacters(characters);
+	}
+
+	bool isNegative() const { return _negative->getBool(); }
 
 private:
-	std::string _characters; ///< Characters in the class
-	bool _negative; ///< Negative class
+	TokenIt _leftRectBracket; ///< '[' token
+	std::vector<TokenIt> _characters; ///< Characters in the class
+	TokenIt _negative; ///< Negative class
+	TokenIt _rightRectBracket; ///< ']' token
 };
 
 /**
@@ -67,18 +109,37 @@ private:
 class RegexpText : public RegexpUnit
 {
 public:
-	RegexpText(const std::string& text) : _text(text) {}
+	RegexpText(const std::string& text, bool storeAsOne = false)
+	{
+		if (storeAsOne)
+			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_TEXT, text));
+		else
+			addCharacters(text);
+	}
+
 	virtual ~RegexpText() override {}
 
-	virtual std::string getText() const override { return _text; }
+	virtual std::string getText() const override
+	{
+		std::string output;
+		for (const auto& it : _characters)
+			output += it->getPureText();
+		return output;
+	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
 	}
 
+	void addCharacters(const std::string& text)
+	{
+		for (char c : text)
+			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
+	}
+
 private:
-	std::string _text; ///< Text
+	std::vector<TokenIt> _characters; ///< Text
 };
 
 /**
@@ -88,7 +149,7 @@ private:
 class RegexpAnyChar : public RegexpText
 {
 public:
-	RegexpAnyChar() : RegexpText(".") {}
+	RegexpAnyChar() : RegexpText(".", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -103,7 +164,7 @@ public:
 class RegexpWordChar : public RegexpText
 {
 public:
-	RegexpWordChar() : RegexpText("\\w") {}
+	RegexpWordChar() : RegexpText("\\w", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -118,7 +179,7 @@ public:
 class RegexpNonWordChar : public RegexpText
 {
 public:
-	RegexpNonWordChar() : RegexpText("\\W") {}
+	RegexpNonWordChar() : RegexpText("\\W", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -133,7 +194,7 @@ public:
 class RegexpSpace : public RegexpText
 {
 public:
-	RegexpSpace() : RegexpText("\\s") {}
+	RegexpSpace() : RegexpText("\\s", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -148,7 +209,7 @@ public:
 class RegexpNonSpace : public RegexpText
 {
 public:
-	RegexpNonSpace() : RegexpText("\\S") {}
+	RegexpNonSpace() : RegexpText("\\S", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -163,7 +224,7 @@ public:
 class RegexpDigit : public RegexpText
 {
 public:
-	RegexpDigit() : RegexpText("\\d") {}
+	RegexpDigit() : RegexpText("\\d", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -178,7 +239,7 @@ public:
 class RegexpNonDigit : public RegexpText
 {
 public:
-	RegexpNonDigit() : RegexpText("\\D") {}
+	RegexpNonDigit() : RegexpText("\\D", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -193,7 +254,7 @@ public:
 class RegexpWordBoundary : public RegexpText
 {
 public:
-	RegexpWordBoundary() : RegexpText("\\b") {}
+	RegexpWordBoundary() : RegexpText("\\b", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -208,7 +269,7 @@ public:
 class RegexpNonWordBoundary : public RegexpText
 {
 public:
-	RegexpNonWordBoundary() : RegexpText("\\B") {}
+	RegexpNonWordBoundary() : RegexpText("\\B", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -223,12 +284,7 @@ public:
 class RegexpStartOfLine : public RegexpText
 {
 public:
-	RegexpStartOfLine() : RegexpText("^") {}
-
-	virtual RegexpVisitResult accept(RegexpVisitor* v) override
-	{
-		return v->visit(this);
-	}
+	RegexpStartOfLine() : RegexpText("^", true) {}
 };
 
 /**
@@ -238,7 +294,7 @@ public:
 class RegexpEndOfLine : public RegexpText
 {
 public:
-	RegexpEndOfLine() : RegexpText("$") {}
+	RegexpEndOfLine() : RegexpText("$", true) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -257,12 +313,13 @@ public:
 
 	virtual std::string getText() const override
 	{
-		return _operand->getText() + _operation + (_greedy ? std::string() : "?");
+		assert(_operand != nullptr);
+		return _operand->getText() + _operation->getString() + _greedy->getPureText();
 	}
 
-	char getOperation() const { return _operation; }
+	virtual char getOperation() const { return _operation->getString()[0]; }
 
-	bool isGreedy() const { return _greedy; }
+	bool isGreedy() const { return _greedy->getBool(); }
 
 	const std::shared_ptr<RegexpUnit>& getOperand() const { return _operand; }
 
@@ -270,12 +327,21 @@ public:
 	void setOperand(std::shared_ptr<RegexpUnit>&& operand) { _operand = std::move(operand); }
 
 protected:
-	RegexpOperation(char operation, std::shared_ptr<RegexpUnit>&& operand, bool greedy) : _operation(operation), _operand(std::move(operand)), _greedy(greedy) {}
+	RegexpOperation(TokenType operation_token_type, char operation_symbol, std::shared_ptr<RegexpUnit>&& operand, bool greedy)
+		: _operand(std::move(operand))
+	{
+		//take the operand's tokenStream and append first the operation and then greedy
+		_tokenStream = std::move(_operand->getTokenStream());
+		_operation = _tokenStream->emplace_back(operation_token_type, std::string(1, operation_symbol));
+		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
+	}
+
+	RegexpOperation() = default;
 
 protected:
-	char _operation; ///< Operation character
+	TokenIt _operation; ///< Operation character, char
 	std::shared_ptr<RegexpUnit> _operand; ///< Operand of the operation
-	bool _greedy; ///< Greediness
+	TokenIt _greedy; ///< Greedy
 };
 
 /**
@@ -285,7 +351,7 @@ protected:
 class RegexpIteration : public RegexpOperation
 {
 public:
-	RegexpIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('*', std::move(operand), greedy) {}
+	RegexpIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_ITER, '*', std::move(operand), greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -300,7 +366,7 @@ public:
 class RegexpPositiveIteration : public RegexpOperation
 {
 public:
-	RegexpPositiveIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('+', std::move(operand), greedy) {}
+	RegexpPositiveIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_PITER, '+', std::move(operand), greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -315,7 +381,7 @@ public:
 class RegexpOptional : public RegexpOperation
 {
 public:
-	RegexpOptional(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation('?', std::move(operand), greedy) {}
+	RegexpOptional(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_OPTIONAL, '?', std::move(operand), greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
@@ -332,33 +398,53 @@ class RegexpRange : public RegexpOperation
 {
 public:
 	RegexpRange(std::shared_ptr<RegexpUnit>&& operand, std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>&& range, bool greedy)
-		: RegexpOperation(' ', std::move(operand), greedy), _range(std::move(range)) {}
+	{
+		assert(operand);
+		_operand = std::move(operand);
+		///  '{'  left  ','  right  '}'
+		_tokenStream = std::move(_operand->getTokenStream());
+		_leftBracket = _tokenStream->emplace_back(TokenType::LCB, '{');
+
+		// If both start and end are defined and they are equal, it is fixed range.
+		if (range.first && range.second && range.first.value() == range.second.value())
+		{
+			_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
+			_operation = _tokenStream->emplace_back(TokenType::COMMA, std::string());
+			_second = _first;
+		}
+		else
+		{
+			if (range.first)
+			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
+			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
+			if (range.second)
+				_second = _tokenStream->emplace_back(TokenType::DOUBLE, *range.second);
+		}
+
+		_rightBracket = _tokenStream->emplace_back(TokenType::RCB, '}');
+		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
+	}
+
+	virtual char getOperation() const override { return ' '; }
 
 	virtual std::string getText() const override
 	{
 		std::ostringstream ss;
-		ss << _operand->getText() << '{';
+		ss << _operand->getText();
+		ss << _leftBracket->getPureText();
 
-		if (_range.first && _range.second)
-		{
-			// If both start and end are defined and they are equal, it is fixed range.
-			if (_range.first.value() == _range.second.value())
-				ss << _range.first.value();
-			else
-				ss << _range.first.value() << ',' << _range.second.value();
-		}
+		if (_first && _first == _second)
+			ss << (*_first)->getPureText();
 		else
 		{
-			if (_range.first)
-				ss << _range.first.value();
-			ss << ',';
-			if (_range.second)
-				ss << _range.second.value();
+			if (_first)
+				ss << (*_first)->getPureText();
+			ss << _operation->getPureText();
+			if (_second)
+				ss << (*_second)->getPureText();
 		}
-
-		ss << '}';
-		if (!_greedy)
-			ss << '?';
+		ss << _rightBracket->getPureText();
+		ss << _greedy->getPureText();
 
 		return ss.str();
 	}
@@ -368,13 +454,22 @@ public:
 		return v->visit(this);
 	}
 
-	const std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>& getRange() const
+	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> getRange() const
 	{
-		return _range;
+		std::optional<std::uint64_t> out1;
+		std::optional<std::uint64_t> out2;
+		if (_first)
+			out1 = _first.value()->getUInt64();
+		if (_second)
+			out2 = _second.value()->getUInt64();
+		return {std::move(out1), std::move(out2)};
 	}
 
 private:
-	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> _range; ///< Lower and higher bound of the range
+	TokenIt _leftBracket; ///< '{' token
+	std::optional<TokenIt> _first; ///< Lower bound of the range
+	std::optional<TokenIt> _second; ///< Higher bound of the range
+	TokenIt _rightBracket; ///< '}' token
 };
 
 /**
@@ -385,11 +480,18 @@ private:
 class RegexpOr : public RegexpUnit
 {
 public:
-	RegexpOr(std::shared_ptr<RegexpUnit>&& left, std::shared_ptr<RegexpUnit>&& right) : _left(std::move(left)), _right(std::move(right)) {}
+	RegexpOr(std::shared_ptr<RegexpUnit>&& left, std::shared_ptr<RegexpUnit>&& right)
+		: _left(std::move(left))
+		, _right(std::move(right))
+	{
+		_tokenStream = std::move(_left->getTokenStream());
+		_or = _tokenStream->emplace_back(TokenType::REGEXP_OR, "|");
+		_tokenStream->move_append(_right->getTokenStream().get());
+	}
 
 	virtual std::string getText() const override
 	{
-		return _left->getText() + '|' + _right->getText();
+		return _left->getText() + _or->getPureText() + _right->getText();
 	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
@@ -401,6 +503,7 @@ public:
 	const std::shared_ptr<RegexpUnit>& getRight() const { return _right; }
 
 private:
+	TokenIt _or;
 	std::shared_ptr<RegexpUnit> _left, _right; ///< Operands
 };
 
@@ -411,11 +514,17 @@ private:
 class RegexpGroup : public RegexpUnit
 {
 public:
-	RegexpGroup(std::shared_ptr<RegexpUnit>&& unit) : _unit(std::move(unit)) {}
+	RegexpGroup(std::shared_ptr<RegexpUnit>&& unit)
+		: _unit(std::move(unit))
+	{
+		_left_bracket = _tokenStream->emplace_back(TokenType::LP, "(");
+		_tokenStream->move_append(_unit->getTokenStream().get());
+		_right_bracket = _tokenStream->emplace_back(TokenType::RP, ")");
+	}
 
 	virtual std::string getText() const override
 	{
-		return '(' + _unit->getText() + ')';
+		return _left_bracket->getPureText() + _unit->getText() + _right_bracket->getPureText();
 	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
@@ -426,7 +535,9 @@ public:
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
 
 private:
+	TokenIt _left_bracket; ///< '(' token
 	std::shared_ptr<RegexpUnit> _unit; ///< Grouped units
+	TokenIt _right_bracket; ///< ')' token
 };
 
 /**
@@ -437,7 +548,12 @@ private:
 class RegexpConcat : public RegexpUnit
 {
 public:
-	RegexpConcat(std::vector<std::shared_ptr<RegexpUnit>>&& units) : _units(std::move(units)) {}
+	RegexpConcat(std::vector<std::shared_ptr<RegexpUnit>>&& units)
+		: _units(std::move(units))
+	{
+		for (auto&& unit : _units)
+			_tokenStream->move_append(unit->getTokenStream().get());
+	}
 
 	virtual std::string getText() const override
 	{
@@ -481,16 +597,43 @@ private:
 class Regexp : public String
 {
 public:
-	Regexp(std::shared_ptr<RegexpUnit>&& unit) : String(String::Type::Regexp), _unit(std::move(unit)) {}
+	Regexp(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& unit)
+		: String(ts, String::Type::Regexp)
+		, _unit(std::move(unit))
+	{
+		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
+		_tokenStream->move_append(_unit->getTokenStream().get());
+		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
+	}
+
+	Regexp(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& unit, const std::string& id)
+		: String(ts, String::Type::Regexp, id)
+		, _unit(std::move(unit))
+	{
+		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
+		_tokenStream->move_append(_unit->getTokenStream().get());
+		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
+	}
 
 	virtual std::string getText() const override
 	{
-		return '/' + getPureText() + '/' + getSuffixModifiers() + getModifiersText();
+		return _leftSlash->getPureText() + getPureText() + _rightSlash->getPureText() + getSuffixModifiers() + getModifiersText();
 	}
 
 	virtual std::string getPureText() const override
 	{
 		return _unit->getText();
+	}
+
+
+	virtual TokenIt getFirstTokenIt() const override
+	{
+		if (_id)
+			return _id.value();
+		else if (_assign_token)
+			return _assign_token.value();
+		else
+			return _leftSlash;
 	}
 
 	/**
@@ -505,14 +648,23 @@ public:
 	*                    ^
 	* @endcode
 	*/
-	const std::string& getSuffixModifiers() const
+	std::string getSuffixModifiers() const
 	{
-		return _suffixMods;
+		if (!_suffixMods)
+			return std::string{};
+		else
+			return (*_suffixMods)->getPureText();
 	}
 
 	void setSuffixModifiers(const std::string& suffixMods)
 	{
-		_suffixMods = suffixMods;
+		if (suffixMods != std::string{})
+		{
+			if (_suffixMods.has_value())
+				(*_suffixMods)->setValue(suffixMods);
+			else
+				_suffixMods = _tokenStream->emplace(std::next(_rightSlash), TokenType::REGEXP_MODIFIERS, suffixMods);
+		}
 	}
 
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
@@ -520,9 +672,28 @@ public:
 	void setUnit(const std::shared_ptr<RegexpUnit>& unit) { _unit = unit; }
 	void setUnit(std::shared_ptr<RegexpUnit>&& unit) { _unit = std::move(unit); }
 
+	void setSuffixModifiers(TokenIt suffixMods)
+	{
+		if (_suffixMods == suffixMods)
+			return;
+		else
+		{
+			if (_suffixMods.has_value())
+				_tokenStream->erase(*_suffixMods);
+			_suffixMods = suffixMods;
+		}
+	}
+
+	std::shared_ptr<TokenStream>&& getTokenStream()
+	{
+		return std::move(_unit->getTokenStream());
+	}
+
 private:
+	TokenIt _leftSlash; ///< right '/' token
 	std::shared_ptr<RegexpUnit> _unit; ///< Unit defining other units in regular expression
-	std::string _suffixMods; ///< Regular expression suffix modifiers
+	TokenIt _rightSlash; ///< left '/' token
+	std::optional<TokenIt> _suffixMods; ///< Regular expression suffix modifiers, std::string
 };
 
 }

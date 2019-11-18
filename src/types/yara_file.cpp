@@ -108,7 +108,15 @@ const std::vector<std::shared_ptr<Symbol>> YaraFile::globalVariables =
 /**
  * Constructor.
  */
-YaraFile::YaraFile() : _imports(), _rules()
+YaraFile::YaraFile()
+	: YaraFile(std::make_shared<TokenStream>())
+{
+}
+
+YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream)
+	: _tokenStream(std::move(tokenStream))
+	, _imports()
+	, _rules()
 {
 }
 
@@ -140,6 +148,11 @@ std::string YaraFile::getText() const
 	return trim(ss.str());
 }
 
+std::string YaraFile::getTextFormatted(bool withIncludes) const
+{
+	return getTokenStream()->getText(withIncludes);
+}
+
 /**
  * Adds the import of the module to the YARA file. Module needs
  * to exist and be defined in @c types/modules folder.
@@ -148,16 +161,16 @@ std::string YaraFile::getText() const
  *
  * @return @c true if module was found, @c false otherwise.
  */
-bool YaraFile::addImport(const std::string& import)
+bool YaraFile::addImport(TokenIt import)
 {
-	auto module = Module::load(import);
+	auto module = Module::load(import->getPureText());
 	if (!module)
 		return false;
 
 	// We don't want duplicates.
 	auto itr = std::find_if(_imports.begin(), _imports.end(),
 			[&import](const auto& loadedModule) {
-				return loadedModule->getName() == import;
+				return loadedModule->getName() == import->getPureText();
 			});
 	if (itr != _imports.end())
 		return true;
@@ -214,9 +227,9 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
  *
  * @return @c true if modules were found, @c false otherwise.
  */
-bool YaraFile::addImports(const std::vector<std::string>& imports)
+bool YaraFile::addImports(const std::vector<TokenIt>& imports)
 {
-	for (const auto& module : imports)
+	for (const TokenIt& module : imports)
 	{
 		if (!addImport(module))
 			return false;
@@ -257,6 +270,16 @@ void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rul
 const std::vector<std::shared_ptr<Module>>& YaraFile::getImports() const
 {
 	return _imports;
+}
+
+/**
+ * Returns the whole tokenStream of this file.
+ *
+ * @return _tokenStream.
+ */
+TokenStream* YaraFile::getTokenStream() const
+{
+	return _tokenStream.get();
 }
 
 /**

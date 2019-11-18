@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cctype>
 #include <sstream>
 #include <string>
 
@@ -13,6 +14,7 @@ namespace yaramod {
 
 bool isValidIdentifier(const std::string& id);
 std::string escapeString(const std::string& str);
+std::string unescapeString(std::string_view str);
 
 bool endsWith(const std::string& str, const std::string& withWhat);
 bool endsWith(const std::string& str, char withWhat);
@@ -43,9 +45,11 @@ bool startsWith(const std::string& str, const T& withWhat)
  * @return Number converted to string.
  */
 template <typename T>
-std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false)
+std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false)
 {
 	std::ostringstream os;
+	if(toUpper)
+		os << std::uppercase;
 	if (showbase)
 		os << format << std::showbase << num;
 	else

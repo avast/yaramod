@@ -14,8 +14,8 @@ namespace yaramod {
  *
  * @param units Units of the hex string.
  */
-HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units)
-	: String(String::Type::Hex), _units(units)
+HexString::HexString(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units)
+	: String(ts, String::Type::Hex), _units(units)
 {
 }
 
@@ -24,8 +24,8 @@ HexString::HexString(const std::vector<std::shared_ptr<HexStringUnit>>& units)
  *
  * @param units Units of the hex string.
  */
-HexString::HexString(std::vector<std::shared_ptr<HexStringUnit>>&& units)
-	: String(String::Type::Hex), _units(std::move(units))
+HexString::HexString(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units)
+	: String(ts, String::Type::Hex), _units(std::move(units))
 {
 }
 
@@ -50,6 +50,7 @@ std::string HexString::getPureText() const
 	for (auto itr = _units.begin(), end = _units.end(); itr != end; )
 	{
 		const auto& unit = *itr;
+		assert(unit);
 		// Nibbles and wildcards are always in pairs.
 		if (unit->isNibble() || unit->isWildcard())
 		{
@@ -65,9 +66,18 @@ std::string HexString::getPureText() const
 			++itr;
 		}
 	}
-
 	// Remove last space from the result.
 	return trim(ss.str());
+}
+
+TokenIt HexString::getFirstTokenIt() const
+{
+   if (_id)
+      return _id.value();
+   else if (_assign_token)
+      return _assign_token.value();
+   else
+      return _tokenStream->begin();
 }
 
 /**

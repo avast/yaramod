@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <optional>
 #include <variant>
 
 #include <pybind11/pybind11.h>
@@ -16,7 +15,7 @@
 
 /**
  * Always include this file before anything else in `src/python` folder.
- * Otherwise, you'll get `template spcialization after instantiation` errors.
+ * Otherwise, you'll get `template specialization after instantiation` errors.
  */
 
 namespace pybind11 { namespace detail {

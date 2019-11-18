@@ -68,11 +68,6 @@ void addEnums(py::module& module)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
-	py::enum_<Literal::Type>(module, "LiteralType")
-		.value("String", Literal::Type::String)
-		.value("Int", Literal::Type::Int)
-		.value("Bool", Literal::Type::Bool);
-
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
@@ -111,6 +106,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text", &YaraFile::getText)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
+		.def_property_readonly("text_formatted", [](const YaraFile& self) { return self.getTextFormatted(); })
 		.def("find_symbol", &YaraFile::findSymbol)
 		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
@@ -126,7 +122,7 @@ void addBasicClasses(py::module& module)
 		.def_property("name", &Rule::getName, &Rule::setName)
 		.def_property("metas", py::overload_cast<>(&Rule::getMetas), &Rule::setMetas, py::return_value_policy::reference)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
-		.def_property("tags", py::overload_cast<>(&Rule::getTags), &Rule::setTags, py::return_value_policy::reference)
+		.def_property("tags", &Rule::getTags, &Rule::setTags)
 		.def_property_readonly("modifier", &Rule::getModifier)
 		.def_property_readonly("is_private", &Rule::isPrivate)
 		.def_property_readonly("is_global", &Rule::isGlobal)
@@ -138,7 +134,7 @@ void addBasicClasses(py::module& module)
 		.def("remove_string", &Rule::removeString)
 		.def("get_meta_with_name", &Rule::getMetaWithName, py::return_value_policy::reference)
 		.def("add_tag", &Rule::addTag)
-		.def("remove_tags", &Rule::removeTags);
+		.def("remove_tags", py::overload_cast<const std::string&>(&Rule::removeTags));
 
 	py::class_<Rule::Location>(module, "RuleLocation")
 		.def_readonly("file_path", &Rule::Location::filePath)
@@ -149,13 +145,17 @@ void addBasicClasses(py::module& module)
 		.def_property("value", &Meta::getValue, &Meta::setValue);
 
 	py::class_<Literal>(module, "Literal")
-		.def(py::init<std::string, Literal::Type>())
 		.def(py::init<bool>())
-		.def_property_readonly("text", &Literal::getText)
+		.def_property_readonly("text", [](Literal& self) { return self.getText(); })
 		.def_property_readonly("pure_text", &Literal::getPureText)
-		.def_property_readonly("is_string", &Literal::isString)
-		.def_property_readonly("is_int", &Literal::isInt)
-		.def_property_readonly("is_bool", &Literal::isBool);
+		.def_property_readonly("is_string", &Literal::is<std::string>)
+		.def_property_readonly("is_bool", &Literal::is<bool>)
+		.def_property_readonly("is_int", &Literal::is<int>)
+		.def_property_readonly("is_int64_t", &Literal::is<int64_t>)
+		.def_property_readonly("is_uint64_t", &Literal::is<uint64_t>)
+		.def_property_readonly("is_integral", &Literal::isIntegral)
+		.def_property_readonly("is_float", &Literal::is<double>)
+		.def_property_readonly("is_symbol", &Literal::is<std::shared_ptr<Symbol>>);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
 		.def_property_readonly("name", &Module::getName);
@@ -388,10 +388,15 @@ void addExpressionClasses(py::module& module)
 		.def_property_readonly("value", &LiteralExpression<bool>::getValue);
 	exprClass<LiteralExpression<std::string>>(module, "_StringLiteralExpression")
 		.def_property_readonly("value", &LiteralExpression<std::string>::getValue);
+	exprClass<LiteralExpression<std::uint64_t>>(module, "_IntLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<uint64_t>::getValue);
+	exprClass<LiteralExpression<double>>(module, "_DoubleLiteralExpression")
+		.def_property_readonly("value", &LiteralExpression<double>::getValue);
+
 	exprClass<BoolLiteralExpression, LiteralExpression<bool>>(module, "BoolLiteralExpression");
 	exprClass<StringLiteralExpression, LiteralExpression<std::string>>(module, "StringLiteralExpression");
-	exprClass<IntLiteralExpression, LiteralExpression<std::string>>(module, "IntLiteralExpression");
-	exprClass<DoubleLiteralExpression, LiteralExpression<std::string>>(module, "DoubleLiteralExpression");
+	exprClass<IntLiteralExpression, LiteralExpression<std::uint64_t>>(module, "IntLiteralExpression");
+	exprClass<DoubleLiteralExpression, LiteralExpression<double>>(module, "DoubleLiteralExpression");
 
 	exprClass<KeywordExpression>(module, "KeywordExpression");
 	keywordClass<FilesizeExpression>(module, "FilesizeExpression");
@@ -421,7 +426,9 @@ void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
 		.def(py::init<>())
-		.def("get", &YaraFileBuilder::get, py::arg("recheck") = false)
+		.def("get", [](YaraFileBuilder& self, bool recheck) {
+				return self.get(recheck, nullptr);
+			}, py::arg("recheck") = false)
 		.def("with_module", &YaraFileBuilder::withModule)
 		.def("with_rule", [](YaraFileBuilder& self, const Rule& rule) {
 				return self.withRule(Rule{rule});
@@ -436,6 +443,7 @@ void addBuilderClasses(py::module& module)
 		.def("with_name", &YaraRuleBuilder::withName)
 		.def("with_modifier", &YaraRuleBuilder::withModifier)
 		.def("with_tag", &YaraRuleBuilder::withTag)
+		.def("with_comment", &YaraRuleBuilder::withComment, py::arg("comment"), py::arg("multiline") = true)
 		.def("with_string_meta", &YaraRuleBuilder::withStringMeta)
 		.def("with_int_meta", &YaraRuleBuilder::withIntMeta)
 		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
@@ -443,7 +451,7 @@ void addBuilderClasses(py::module& module)
 		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
 		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"), py::arg("mods") = String::Modifiers::Ascii)
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
-		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = "", py::arg("mods") = String::Modifiers::Ascii)
+		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{}, py::arg("mods") = String::Modifiers::Ascii)
 		.def("with_condition", py::overload_cast<const Expression::Ptr&>(&YaraRuleBuilder::withCondition));
 
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
@@ -528,6 +536,8 @@ void addBuilderClasses(py::module& module)
 
 	module.def("conjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&conjunction), py::arg("terms"), py::arg("linebreaks") = false);
 	module.def("disjunction", py::overload_cast<const std::vector<YaraExpressionBuilder>&, bool>(&disjunction), py::arg("terms"), py::arg("linebreaks") = false);
+	module.def("conjunction", py::overload_cast<const std::vector<std::pair<YaraExpressionBuilder, std::string>>&>(&conjunction), py::arg("terms"));
+	module.def("disjunction", py::overload_cast<const std::vector<std::pair<YaraExpressionBuilder, std::string>>&>(&disjunction), py::arg("terms"));
 
 	module.def("filesize", &filesize);
 	module.def("entrypoint", &entrypoint);
@@ -543,7 +553,9 @@ void addBuilderClasses(py::module& module)
 		.def(py::init<const std::vector<std::uint8_t>&>())
 		.def(py::init<const std::shared_ptr<HexStringUnit>&>())
 		.def(py::init<const std::vector<std::shared_ptr<HexStringUnit>>&>())
-		.def("get", &YaraHexStringBuilder::get)
+		.def("get", [](YaraHexStringBuilder& self) {
+				return self.get();
+			})
 		.def("add", [](YaraHexStringBuilder& self, const YaraHexStringBuilder& unit) {
 				return self.add(unit);
 			});
@@ -560,13 +572,14 @@ void addBuilderClasses(py::module& module)
 	module.def("alt", &alt<std::vector<YaraHexStringBuilder>>);
 }
 
-void addMainFunctions(py::module& module)
+void addMainClass(py::module& module)
 {
-	module.def("parse_file", &parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular);
-	module.def("parse_string",
-			[](const std::string& str, ParserMode parserMode) {
+	py::class_<Yaramod>(module, "Yaramod")
+		.def(py::init<>())
+		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
+		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);
-				return parseStream(stream, parserMode);
+				return self.parseStream(stream, parserMode);
 			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular);
 }
 
@@ -590,7 +603,7 @@ PYBIND11_MODULE(yaramod, module)
 	addEnums(module);
 	addBasicClasses(module);
 	addExpressionClasses(module);
-	addMainFunctions(module);
+	addMainClass(module);
 	addVisitorClasses(module);
 	addRegexpVisitorClasses(module);
 	addBuilderClasses(module);

@@ -4,10 +4,13 @@
 
 # Source files.
 set(SOURCES
+	tokenstream_tests.cpp
+	representation_tests.cpp
 	builder_tests.cpp
 	parser_tests.cpp
 	trie_tests.cpp
 	utils_tests.cpp
+	yaramod_tests.cpp
 )
 
 if(NOT TARGET yaramod_tests)

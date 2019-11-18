@@ -14,8 +14,10 @@ namespace yaramod {
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(const std::string& text) : String(String::Type::Plain), _text(text)
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, const std::string& text)
+	: String(ts, String::Type::Plain)
 {
+	_text = ts->emplace_back(TokenType::STRING_LITERAL, text);
 }
 
 /**
@@ -23,7 +25,29 @@ PlainString::PlainString(const std::string& text) : String(String::Type::Plain),
  *
  * @param text Text of the plain string.
  */
-PlainString::PlainString(std::string&& text) : String(String::Type::Plain), _text(std::move(text))
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, std::string&& text)
+	: String(ts, String::Type::Plain)
+{
+	_text = ts->emplace_back(TokenType::STRING_LITERAL, std::move(text));
+}
+
+/**
+ * Constructor.
+ *
+ * @param text Text of the plain string.
+ */
+PlainString::PlainString(const std::shared_ptr<TokenStream>&  ts, TokenIt text)
+	: String(ts, String::Type::Plain)
+	, _text(text)
+{
+	if (!text->isString())
+		throw YaramodError("String class identifier must be string.");
+	assert(text->getType() == TokenType::STRING_LITERAL);
+}
+
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt assign_token, std::uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
+		: String(ts, String::Type::Plain, id, assign_token, mods, mods_strings)
+		, _text(text)
 {
 }
 
@@ -34,7 +58,7 @@ PlainString::PlainString(std::string&& text) : String(String::Type::Plain), _tex
  */
 std::string PlainString::getText() const
 {
-	return '"' + escapeString(getPureText()) + '"' + getModifiersText();
+	return '"' + _text->getString() + '"' + getModifiersText();
 }
 
 /**
@@ -44,7 +68,17 @@ std::string PlainString::getText() const
  */
 std::string PlainString::getPureText() const
 {
-	return _text;
+	return unescapeString(_text->getString());
+}
+
+TokenIt PlainString::getFirstTokenIt() const
+{
+	if (_id)
+		return _id.value();
+	else if (_assign_token)
+		return _assign_token.value();
+	else
+		return _text;
 }
 
 }

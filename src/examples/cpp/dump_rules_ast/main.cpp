@@ -22,7 +22,9 @@ int main(int argc, char* argv[])
 
 	Dumper dumper;
 
-	auto yaraFile = yaramod::parseFile(args[0]);
+	yaramod::Yaramod yaramod;
+
+	auto yaraFile = yaramod.parseFile(args[0]);
 	for (const auto& rule : yaraFile->getRules())
 	{
 		std::cout << "==== RULE: " << rule->getName() << std::endl;

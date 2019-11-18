@@ -4,12 +4,12 @@ import yaramod
 
 class ParserTests(unittest.TestCase):
     def test_empty_input(self):
-        yara_file = yaramod.parse_string('')
+        yara_file = yaramod.Yaramod().parse_string('')
 
         self.assertEqual(yara_file.text, '')
 
     def test_empty_rule(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule empty_rule {
     condition:
         true
@@ -25,7 +25,7 @@ rule empty_rule {
         self.assertEqual(len(rule.tags), 0)
 
     def test_rule_with_tags(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_tags : Tag1 Tag2 Tag3 {
     condition:
         true
@@ -41,7 +41,7 @@ rule rule_with_tags : Tag1 Tag2 Tag3 {
         self.assertListEqual(rule.tags, ['Tag1', 'Tag2', 'Tag3'])
 
     def test_rule_with_metas(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_metas {
     meta:
         str_meta = "string meta"
@@ -66,7 +66,7 @@ rule rule_with_metas {
         self.assertEqual(rule.metas[0].value.pure_text, 'string meta')
 
         self.assertEqual(rule.metas[1].key, 'int_meta')
-        self.assertTrue(rule.metas[1].value.is_int)
+        self.assertTrue(rule.metas[1].value.is_integral)
         self.assertEqual(rule.metas[1].value.text, '42')
 
         self.assertEqual(rule.metas[2].key, 'bool_meta')
@@ -74,7 +74,7 @@ rule rule_with_metas {
         self.assertEqual(rule.metas[2].value.text, 'true')
 
     def test_rule_with_plain_strings(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_plain_strings {
     strings:
         $1 = "Hello World!"
@@ -105,7 +105,7 @@ rule rule_with_plain_strings {
         self.assertTrue(bye_world.is_ascii)
 
     def test_multiple_rules(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_1 {
     strings:
         $1 = "String from Rule 1"
@@ -148,7 +148,7 @@ rule rule_3 {
         self.assertEqual(rule.strings[0].pure_text, b'String from Rule 3')
 
     def test_plain_strings_with_modifiers(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_plain_strings_with_modifiers {
     strings:
         $1 = "Hello World!" nocase wide
@@ -177,7 +177,7 @@ rule rule_with_plain_strings_with_modifiers {
         self.assertTrue(string.is_fullword)
 
     def test_rule_with_hex_string(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_hex_string {
     strings:
         $1 = { 01 23 45 67 89 AB CD EF }
@@ -198,7 +198,7 @@ rule rule_with_hex_string {
         self.assertEqual(string.text, '{ 01 23 45 67 89 AB CD EF }')
 
     def test_rule_with_regexp(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_regexp {
     strings:
         $1 = /abcd/
@@ -219,7 +219,7 @@ rule rule_with_regexp {
         self.assertEqual(string.text, '/abcd/')
 
     def test_global_rule(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 global rule global_rule {
     condition:
         true
@@ -234,7 +234,7 @@ global rule global_rule {
         self.assertFalse(rule.is_private)
 
     def test_private_rule(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 private rule private_rule {
     condition:
         true
@@ -249,7 +249,7 @@ private rule private_rule {
         self.assertTrue(rule.is_private)
 
     def test_import(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule dummy_rule {
@@ -264,7 +264,7 @@ rule dummy_rule {
         self.assertEqual(module.name, 'pe')
 
     def test_bool_literal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule bool_literal_condition {
     condition:
         false
@@ -277,7 +277,7 @@ rule bool_literal_condition {
         self.assertEqual(rule.condition.text, 'false')
 
     def test_int_literal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule int_literal_condition {
     condition:
         10
@@ -290,7 +290,7 @@ rule int_literal_condition {
         self.assertEqual(rule.condition.text, '10')
 
     def test_double_literal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule double_literal_condition {
     condition:
         1.23
@@ -303,7 +303,7 @@ rule double_literal_condition {
         self.assertEqual(rule.condition.text, '1.23')
 
     def test_string_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule string_condition {
     strings:
         $1 = "Hello World!"
@@ -318,7 +318,7 @@ rule string_condition {
         self.assertEqual(rule.condition.text, '$1')
 
     def test_string_at_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule string_at_condition {
     strings:
         $1 = "Hello World!"
@@ -334,7 +334,7 @@ rule string_at_condition {
         self.assertEqual(rule.condition.text, '$1 at entrypoint')
 
     def test_string_in_range_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule string_in_condition {
     strings:
         $1 = "Hello World!"
@@ -350,7 +350,7 @@ rule string_in_condition {
         self.assertEqual(rule.condition.text, '$1 in (10 .. 20)')
 
     def test_not_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule not_condition {
     condition:
         not true
@@ -364,7 +364,7 @@ rule not_condition {
         self.assertEqual(rule.condition.text, 'not true')
 
     def test_unary_minus_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule unary_minus_condition {
     condition:
         -10
@@ -378,7 +378,7 @@ rule unary_minus_condition {
         self.assertEqual(rule.condition.text, '-10')
 
     def test_and_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule and_condition {
     condition:
         true and not false
@@ -393,7 +393,7 @@ rule and_condition {
         self.assertEqual(rule.condition.text, 'true and not false')
 
     def test_or_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule or_condition {
     condition:
         true or not false
@@ -408,7 +408,7 @@ rule or_condition {
         self.assertEqual(rule.condition.text, 'true or not false')
 
     def test_less_than_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule less_than_condition {
     condition:
         filesize < 10
@@ -423,7 +423,7 @@ rule less_than_condition {
         self.assertEqual(rule.condition.text, 'filesize < 10')
 
     def test_greater_than_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule greater_than_condition {
     condition:
         filesize > 10
@@ -438,7 +438,7 @@ rule greater_than_condition {
         self.assertEqual(rule.condition.text, 'filesize > 10')
 
     def test_less_equal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule less_equal_condition {
     condition:
         filesize <= 10
@@ -453,7 +453,7 @@ rule less_equal_condition {
         self.assertEqual(rule.condition.text, 'filesize <= 10')
 
     def test_greater_equal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule greater_equal_condition {
     condition:
         filesize >= 10
@@ -468,7 +468,7 @@ rule greater_equal_condition {
         self.assertEqual(rule.condition.text, 'filesize >= 10')
 
     def test_equal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule equal_condition {
     condition:
         filesize == 10
@@ -483,7 +483,7 @@ rule equal_condition {
         self.assertEqual(rule.condition.text, 'filesize == 10')
 
     def test_not_equal_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule equal_condition {
     condition:
         filesize != 10
@@ -498,7 +498,7 @@ rule equal_condition {
         self.assertEqual(rule.condition.text, 'filesize != 10')
 
     def test_parentheses_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule parentheses_condition {
     condition:
         (true)
@@ -512,7 +512,7 @@ rule parentheses_condition {
         self.assertEqual(rule.condition.text, '(true)')
 
     def test_plus_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule plus_condition {
     condition:
         filesize + 10
@@ -527,7 +527,7 @@ rule plus_condition {
         self.assertEqual(rule.condition.text, 'filesize + 10')
 
     def test_minus_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule minus_condition {
     condition:
         filesize - 10
@@ -542,7 +542,7 @@ rule minus_condition {
         self.assertEqual(rule.condition.text, 'filesize - 10')
 
     def test_multiply_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule multiply_condition {
     condition:
         filesize * 10
@@ -557,7 +557,7 @@ rule multiply_condition {
         self.assertEqual(rule.condition.text, 'filesize * 10')
 
     def test_divide_condition(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule divide_condition {
     condition:
         filesize \ 10
@@ -572,7 +572,7 @@ rule divide_condition {
         self.assertEqual(rule.condition.text, r'filesize \ 10')
 
     def test_modulo_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule modulo_condition {
     condition:
         filesize % 10
@@ -587,7 +587,7 @@ rule modulo_condition {
         self.assertEqual(rule.condition.text, 'filesize % 10')
 
     def test_shift_left_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule shift_left_condition {
     condition:
         filesize << 10
@@ -602,7 +602,7 @@ rule shift_left_condition {
         self.assertEqual(rule.condition.text, 'filesize << 10')
 
     def test_shift_right_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule shift_right_condition {
     condition:
         filesize >> 10
@@ -617,7 +617,7 @@ rule shift_right_condition {
         self.assertEqual(rule.condition.text, 'filesize >> 10')
 
     def test_bitwise_not_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule xor_condition {
     condition:
         ~10
@@ -631,7 +631,7 @@ rule xor_condition {
         self.assertEqual(rule.condition.text, '~10')
 
     def test_xor_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule xor_condition {
     condition:
         filesize ^ 10
@@ -646,7 +646,7 @@ rule xor_condition {
         self.assertEqual(rule.condition.text, 'filesize ^ 10')
 
     def test_bitwise_and_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule bitwise_and_condition {
     condition:
         filesize & 10
@@ -661,7 +661,7 @@ rule bitwise_and_condition {
         self.assertEqual(rule.condition.text, 'filesize & 10')
 
     def test_bitwise_or_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule bitwise_or_condition {
     condition:
         filesize | 10
@@ -676,7 +676,7 @@ rule bitwise_or_condition {
         self.assertEqual(rule.condition.text, 'filesize | 10')
 
     def test_int_function_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule int_function_condition {
     condition:
         int32be(5)
@@ -691,7 +691,7 @@ rule int_function_condition {
         self.assertEqual(rule.condition.text, 'int32be(5)')
 
     def test_contains_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule contains_condition {
     condition:
         "Hello" contains "Hell"
@@ -706,7 +706,7 @@ rule contains_condition {
         self.assertEqual(rule.condition.text, '"Hello" contains "Hell"')
 
     def test_matches_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule matches_condition {
     condition:
         "Hello" matches /^Hell.*$/
@@ -721,7 +721,7 @@ rule matches_condition {
         self.assertEqual(rule.condition.text, '"Hello" matches /^Hell.*$/')
 
     def test_match_count_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule match_count_condition {
     strings:
         $1 = "Hello World"
@@ -736,7 +736,7 @@ rule match_count_condition {
         self.assertEqual(rule.condition.text, '#1')
 
     def test_match_offset_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule match_offset_condition {
     strings:
         $1 = "Hello World"
@@ -752,7 +752,7 @@ rule match_offset_condition {
         self.assertEqual(rule.condition.text, '@1')
 
     def test_match_offset_with_index_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule match_offset_with_index_condition {
     strings:
         $1 = "Hello World"
@@ -768,7 +768,7 @@ rule match_offset_with_index_condition {
         self.assertEqual(rule.condition.text, '@1[0]')
 
     def test_match_length_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule match_length_condition {
     strings:
         $1 = "Hello World"
@@ -784,7 +784,7 @@ rule match_length_condition {
         self.assertEqual(rule.condition.text, '!1')
 
     def test_match_length_with_index_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 rule match_length_with_index_condition {
     strings:
         $1 = "Hello World"
@@ -800,7 +800,7 @@ rule match_length_with_index_condition {
         self.assertEqual(rule.condition.text, '!1[0]')
 
     def test_function_call_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule function_call_condition {
@@ -815,7 +815,7 @@ rule function_call_condition {
         self.assertEqual(rule.condition.text, 'pe.is_dll()')
 
     def test_structure_access_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule structure_access_condition {
@@ -831,7 +831,7 @@ rule structure_access_condition {
         self.assertEqual(rule.condition.text, 'pe.linker_version.major')
 
     def test_array_access_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule array_access_condition {
@@ -847,7 +847,7 @@ rule array_access_condition {
         self.assertEqual(rule.condition.text, 'pe.sections[0]')
 
     def test_for_integer_set_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule for_integer_set_condition {
@@ -866,7 +866,7 @@ rule for_integer_set_condition {
         self.assertEqual(rule.condition.text, 'for all i in (1, 2, 3) : ( i )')
 
     def test_for_string_set_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule for_string_set_condition {
@@ -887,7 +887,7 @@ rule for_string_set_condition {
         self.assertEqual(rule.condition.text, 'for any of ($a, $b) : ( $ at entrypoint )')
 
     def test_of_condition(self):
-        yara_file = yaramod.parse_string('''
+        yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
 
 rule of_condition {
@@ -908,7 +908,7 @@ rule of_condition {
         self.assertEqual(rule.condition.text, '1 of ($a, $b)')
 
     def test_string_with_invalid_utf8_sequences(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_invalid_utf8_sequence {
     strings:
         $1 = "eKfI+`fKyD\xf4X h\xff\xf7\x98"
@@ -932,10 +932,10 @@ rule rule_with_invalid_utf8_sequence {
         self.assertTrue(hello_world.is_ascii)
 
     def test_parser_error(self):
-        self.assertRaises(yaramod.ParserError, yaramod.parse_string, 'rule {')
+        self.assertRaises(yaramod.ParserError, yaramod.Yaramod().parse_string, 'rule {')
 
     def test_simple_regular_expression_in_strings(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp {
     strings:
         $1 = /asd/
@@ -966,7 +966,7 @@ rule rule_with_regexp {
         self.assertEqual(regexp_string.unit.units[2].text, 'd')
 
     def test_complex_regular_expression_in_strings(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_complex_regexp {
     strings:
         $1 = /asd|1234/ nocase ascii wide fullword
@@ -1027,7 +1027,7 @@ rule rule_with_complex_regexp {
         self.assertEqual(regexp_string.unit.units[5].operand.characters, '0-9a-zA-Z')
 
     def test_regular_expression_meta_characters(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_metachars {
     strings:
         $1 = /^\\\/\|\(\)\[\]$/
@@ -1062,7 +1062,7 @@ rule rule_with_regexp_metachars {
         self.assertEqual(regexp.unit.units[8].text, '$')
 
     def test_regular_expression_quantifiers(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_quantifiers {
     strings:
         $1 = /a*b+c?d{100}e{200,}f{,300}g{400,500}/
@@ -1112,7 +1112,7 @@ rule rule_with_regexp_quantifiers {
         self.assertEqual(regexp.unit.units[6].range[1], 500)
 
     def test_regular_expression_quantifiers_nongreedy(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_quantifiers_nongreedy {
     strings:
         $1 = /a*?b+?c??d{100}?e{200,}?f{,300}?g{400,500}?/
@@ -1162,7 +1162,7 @@ rule rule_with_regexp_quantifiers_nongreedy {
         self.assertEqual(regexp.unit.units[6].range[1], 500)
 
     def test_regular_expression_escape_sequences(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_escape_sequences {
     strings:
         $1 = /\t\n\r\f\a/
@@ -1191,7 +1191,7 @@ rule rule_with_regexp_escape_sequences {
         self.assertEqual(regexp.unit.units[4].text, '\\a')
 
     def test_regular_expression_character_classes(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_character_classes {
     strings:
         $1 = /\w\W\s\S\d\D\b\B./
@@ -1213,27 +1213,27 @@ rule rule_with_regexp_character_classes {
         self.assertTrue(isinstance(regexp.unit, yaramod.RegexpConcat))
         self.assertEqual(len(regexp.unit.units), 9)
         self.assertTrue(all(isinstance(u, yaramod.RegexpText) for u in regexp.unit.units))
-        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpWordChar))
+        self.assertTrue(isinstance(regexp.unit.units[0], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[0].text, '\\w')
-        self.assertTrue(isinstance(regexp.unit.units[1], yaramod.RegexpNonWordChar))
+        self.assertTrue(isinstance(regexp.unit.units[1], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[1].text, '\\W')
-        self.assertTrue(isinstance(regexp.unit.units[2], yaramod.RegexpSpace))
+        self.assertTrue(isinstance(regexp.unit.units[2], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[2].text, '\\s')
-        self.assertTrue(isinstance(regexp.unit.units[3], yaramod.RegexpNonSpace))
+        self.assertTrue(isinstance(regexp.unit.units[3], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[3].text, '\\S')
-        self.assertTrue(isinstance(regexp.unit.units[4], yaramod.RegexpDigit))
+        self.assertTrue(isinstance(regexp.unit.units[4], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[4].text, '\\d')
-        self.assertTrue(isinstance(regexp.unit.units[5], yaramod.RegexpNonDigit))
+        self.assertTrue(isinstance(regexp.unit.units[5], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[5].text, '\\D')
-        self.assertTrue(isinstance(regexp.unit.units[6], yaramod.RegexpWordBoundary))
+        self.assertTrue(isinstance(regexp.unit.units[6], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[6].text, '\\b')
-        self.assertTrue(isinstance(regexp.unit.units[7], yaramod.RegexpNonWordBoundary))
+        self.assertTrue(isinstance(regexp.unit.units[7], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[7].text, '\\B')
-        self.assertTrue(isinstance(regexp.unit.units[8], yaramod.RegexpAnyChar))
+        self.assertTrue(isinstance(regexp.unit.units[8], yaramod.RegexpUnit))
         self.assertEqual(regexp.unit.units[8].text, '.')
 
     def test_complex_regular_expression_in_fnc_call(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 import "cuckoo"
 
 rule rule_with_regexp_in_fnc_call {
@@ -1261,7 +1261,7 @@ rule rule_with_regexp_in_fnc_call {
         self.assertEqual(len(cond.arguments[0].regexp_string.unit.units), 28)
 
     def test_regular_expression_suffix_modifiers(self):
-        yara_file = yaramod.parse_string(r'''
+        yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_suffix_modifiers {
     strings:
         $1 = /none/
@@ -1297,3 +1297,58 @@ rule rule_with_regexp_suffix_modifiers {
         self.assertEqual(rule.strings[4].suffix_modifiers, 'i')
         self.assertEqual(rule.strings[4].modifiers_text, ' ascii wide nocase fullword')
         self.assertEqual(rule.strings[4].text, '/all/i ascii wide nocase fullword')
+
+    def test_multiple_parse_phases_with_single_yaramod_instance(self):
+        ymod = yaramod.Yaramod();
+        yara_file = ymod.parse_string(r'''
+rule rule1 : Tag1 {
+    meta:
+        author = "Mr. Avastian"
+    strings:
+        $1 = /abc/is
+        $2 = "Hello World!"
+    condition:
+        all of them
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule1')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 1)
+        self.assertEqual(len(rule.strings), 2)
+        self.assertEqual(len(rule.tags), 1)
+        self.assertEqual(rule.strings[0].identifier, '$1')
+        self.assertEqual(rule.strings[0].suffix_modifiers, 'is')
+        self.assertEqual(rule.strings[0].modifiers_text, '')
+        self.assertEqual(rule.strings[0].text, '/abc/is')
+
+        self.assertEqual(rule.strings[1].identifier, '$2')
+        self.assertEqual(rule.strings[1].text, '"Hello World!"')
+        self.assertEqual(rule.strings[1].pure_text, b'Hello World!')
+        self.assertTrue(rule.strings[1].is_ascii)
+
+        yara_file = ymod.parse_string(r'''
+rule rule2 : Tag1 {
+    strings:
+        $3 = /def/
+        $4 = "Good bye world!"
+    condition:
+        true
+}''')
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule2')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 2)
+        self.assertEqual(len(rule.tags), 1)
+        self.assertEqual(rule.strings[0].identifier, '$3')
+        self.assertEqual(rule.strings[0].suffix_modifiers, '')
+        self.assertEqual(rule.strings[0].modifiers_text, '')
+        self.assertEqual(rule.strings[0].text, '/def/')
+
+        self.assertEqual(rule.strings[1].identifier, '$4')
+        self.assertEqual(rule.strings[1].text, '"Good bye world!"')
+        self.assertEqual(rule.strings[1].pure_text, b'Good bye world!')
+        self.assertTrue(rule.strings[1].is_ascii)

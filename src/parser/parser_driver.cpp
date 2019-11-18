@@ -4,12 +4,1496 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
-#include <string>
-
 #include "yaramod/parser/parser_driver.h"
 #include "yaramod/utils/filesystem.h"
+#include "yaramod/types/expressions.h"
+
+// Uncomment for advanced debugging with HtmlReport:
+// #include <pog/html_report.h>
+
 
 namespace yaramod {
+
+void error_handle(const Location& location, const std::string& msg)
+{
+	std::stringstream err;
+	err << "Error at " << location << ": " << msg;
+	throw ParserError(err.str());
+}
+
+template <typename... Args>
+TokenIt ParserDriver::emplace_back(Args&&... args)
+{
+	TokenIt tokenIt = currentTokenStream()->emplace_back(args...);
+	tokenIt->setLocation(currentLocation());
+	return tokenIt;
+}
+
+void ParserDriver::defineTokens()
+{
+	//define global action for counting the line/character position
+	_parser.global_tokenizer_action([&](std::string_view str) {
+		currentLocation().addColumn(str.length());
+	});
+
+	_parser.token("\n").action([&](std::string_view str) -> Value {
+		TokenIt t = emplace_back(NEW_LINE, std::string{str});
+		_indent.clear();
+		currentLocation().addLine();
+		return t;
+	});
+	_parser.token("[ \t\r]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
+		_indent += std::string{str};
+		return {};
+	});
+
+	_parser.token(R"(\.\.)").symbol("RANGE").description("integer range").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE_DOT, std::string{str}); });
+	_parser.token(R"(\.)").symbol("DOT").description(".").action([&](std::string_view str) -> Value { return emplace_back(DOT, std::string{str}); })
+		.precedence(15, pog::Associativity::Left);
+	_parser.token("<").symbol("LT").description("<").action([&](std::string_view str) -> Value { return emplace_back(LT, std::string{str}); })
+		.precedence(10, pog::Associativity::Left);
+	_parser.token(">").symbol("GT").description(">").action([&](std::string_view str) -> Value { return emplace_back(GT, std::string{str}); })
+		.precedence(10, pog::Associativity::Left);
+	_parser.token("<=").symbol("LE").description("<=").action([&](std::string_view str) -> Value { return emplace_back(LE, std::string{str}); })
+		.precedence(10, pog::Associativity::Left);
+	_parser.token(">=").symbol("GE").description(">=").action([&](std::string_view str) -> Value { return emplace_back(GE, std::string{str}); })
+		.precedence(10, pog::Associativity::Left);
+	_parser.token("==").symbol("EQ").description("==").action([&](std::string_view str) -> Value { return emplace_back(EQ, std::string{str}); })
+		.precedence(9, pog::Associativity::Left);
+	_parser.token("!=").symbol("NEQ").description("!=").action([&](std::string_view str) -> Value { return emplace_back(NEQ, std::string{str}); })
+		.precedence(9, pog::Associativity::Left);
+	_parser.token("<<").symbol("SHIFT_LEFT").description("<<").action([&](std::string_view str) -> Value { return emplace_back(SHIFT_LEFT, std::string{str}); })
+		.precedence(11, pog::Associativity::Left);
+	_parser.token(">>").symbol("SHIFT_RIGHT").description(">>").action([&](std::string_view str) -> Value { return emplace_back(SHIFT_RIGHT, std::string{str}); })
+		.precedence(11, pog::Associativity::Left);
+	_parser.token(R"(-)").symbol("MINUS").description("-").action([&](std::string_view str) -> Value { return emplace_back(MINUS, std::string{str}); })
+		.precedence(12, pog::Associativity::Left);
+	_parser.token(R"(\+)").symbol("PLUS").description("+").action([&](std::string_view str) -> Value { return emplace_back(PLUS, std::string{str}); })
+		.precedence(12, pog::Associativity::Left);
+	_parser.token(R"(\*)").symbol("MULTIPLY").description("*").action([&](std::string_view str) -> Value { return emplace_back(MULTIPLY, std::string{str}); })
+		.precedence(13, pog::Associativity::Left);
+	_parser.token(R"(\\)").symbol("DIVIDE").description("\\").action([&](std::string_view str) -> Value { return emplace_back(DIVIDE, std::string{str}); })
+		.precedence(13, pog::Associativity::Left);
+	_parser.token(R"(\%)").symbol("MODULO").description("%").action([&](std::string_view str) -> Value { return emplace_back(MODULO, std::string{str}); })
+		.precedence(13, pog::Associativity::Left);
+	_parser.token(R"(\^)").symbol("BITWISE_XOR").description("^").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_XOR, std::string{str}); })
+		.precedence(7, pog::Associativity::Left);
+	_parser.token(R"(\&)").symbol("BITWISE_AND").description("&").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_AND, std::string{str}); })
+		.precedence(8, pog::Associativity::Left);
+	_parser.token(R"(\|)").symbol("BITWISE_OR").description("|").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_OR, std::string{str}); })
+		.precedence(6, pog::Associativity::Left);
+	_parser.token(R"(\~)").symbol("BITWISE_NOT").description("~").action([&](std::string_view str) -> Value { return emplace_back(BITWISE_NOT, std::string{str}); })
+		.precedence(14, pog::Associativity::Right);
+	_parser.token("\\(").symbol("LP").description("(").action([&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); });
+	_parser.token("\\)").symbol("RP").description(")").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); })
+		.precedence(1, pog::Associativity::Left);
+	_parser.token("\\{").symbol("LCB").description("{").action([&](std::string_view str) -> Value {
+		if (sectionStrings())
+			enter_state("$hexstr");
+		return emplace_back(LCB, std::string{str});
+	});
+	_parser.token("\\}").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(RCB, std::string{str}); });
+	_parser.token("\\[").symbol("LSQB").description("[").action([&](std::string_view str) -> Value { return emplace_back(LSQB, std::string{str}); });
+	_parser.token("\\]").symbol("RSQB").description("]").action([&](std::string_view str) -> Value { return emplace_back(RSQB, std::string{str}); });
+	_parser.token("=").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(ASSIGN, std::string{str}); });
+	_parser.token(":").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(COLON, std::string{str}); });
+	_parser.token(",").symbol("COMMA").description(",").action([&](std::string_view str) -> Value { return emplace_back(COMMA, std::string{str}); })
+		.precedence(1, pog::Associativity::Left);
+	_parser.token("/").states("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
+		enter_state("$regexp");
+		return std::string{str};
+	});
+	_parser.token("global").symbol("GLOBAL").description("global").action([&](std::string_view str) -> Value { return emplace_back(GLOBAL, std::string{str}); });
+	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(PRIVATE, std::string{str}); });
+	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(RULE, std::string{str}); });
+	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(META, std::string{str}); });
+	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(STRINGS, std::string{str}); });
+	_parser.token("condition").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(CONDITION, std::string{str}); });
+	_parser.token("ascii").symbol("ASCII").description("ascii").action([&](std::string_view str) -> Value { return emplace_back(ASCII, std::string{str}); });
+	_parser.token("nocase").symbol("NOCASE").description("nocase").action([&](std::string_view str) -> Value { return emplace_back(NOCASE, std::string{str}); });
+	_parser.token("wide").symbol("WIDE").description("wide").action([&](std::string_view str) -> Value { return emplace_back(WIDE, std::string{str}); });
+	_parser.token("fullword").symbol("FULLWORD").description("fullword").action([&](std::string_view str) -> Value { return emplace_back(FULLWORD, std::string{str}); });
+	_parser.token("xor").symbol("XOR").description("xor").action([&](std::string_view str) -> Value { return emplace_back(XOR, std::string{str}); });
+	_parser.token("true").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(BOOL_TRUE, true); });
+	_parser.token("false").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(BOOL_FALSE, false); });
+	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(IMPORT_KEYWORD, std::string{str}); });
+	_parser.token("not").symbol("NOT").description("not").action([&](std::string_view str) -> Value { return emplace_back(NOT, std::string{str}); })
+		.precedence(14, pog::Associativity::Right);
+	_parser.token("and").symbol("AND").description("and").action([&](std::string_view str) -> Value { return emplace_back(AND, std::string{str}); })
+		.precedence(5, pog::Associativity::Left);
+	_parser.token("or").symbol("OR").description("or").action([&](std::string_view str) -> Value { return emplace_back(OR, std::string{str}); })
+		.precedence(4, pog::Associativity::Left);
+	_parser.token("all").symbol("ALL").description("all").action([&](std::string_view str) -> Value { return emplace_back(ALL, std::string{str}); });
+	_parser.token("any").symbol("ANY").description("any").action([&](std::string_view str) -> Value { return emplace_back(ANY, std::string{str}); });
+	_parser.token("of").symbol("OF").description("of").action([&](std::string_view str) -> Value { return emplace_back(OF, std::string{str}); });
+	_parser.token("them").symbol("THEM").description("them").action([&](std::string_view str) -> Value { return emplace_back(THEM, std::string{str}); });
+	_parser.token("for").symbol("FOR").description("for").action([&](std::string_view str) -> Value { return emplace_back(FOR, std::string{str}); });
+	_parser.token("entrypoint").symbol("ENTRYPOINT").description("entrypoint").action([&](std::string_view str) -> Value { return emplace_back(ENTRYPOINT, std::string{str}); });
+	_parser.token("at").symbol("AT").description("at").action([&](std::string_view str) -> Value { return emplace_back(OP_AT, std::string{str}); });
+	_parser.token("in").symbol("IN").description("in").action([&](std::string_view str) -> Value { return emplace_back(OP_IN, std::string{str}); });
+	_parser.token("filesize").symbol("FILESIZE").description("filesize").action([&](std::string_view str) -> Value { return emplace_back(FILESIZE, std::string{str}); });
+	_parser.token("contains").symbol("CONTAINS").description("contains").action([&](std::string_view str) -> Value { return emplace_back(CONTAINS, std::string{str}); });
+	_parser.token("matches").symbol("MATCHES").description("matches").action([&](std::string_view str) -> Value { return emplace_back(MATCHES, std::string{str}); });
+
+	// $include
+	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
+		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
+	});
+	_parser.token("\n").states("$include").action([&](std::string_view str) -> Value {
+		currentLocation().addLine();
+		return Value(emplace_back(NEW_LINE, std::string{str}));
+	});
+	_parser.token(R"([ \v\r\t])").states("$include");
+	_parser.token(R"(\")").states("$include").enter_state("$include_file");
+	//$include_file
+	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action([&](std::string_view str) -> Value {
+		std::string filePath = std::string{str}.substr(0, str.size()-1);
+		if (!includeFile(filePath))
+	 		error_handle(currentLocation(), "Unable to include file '" + filePath + "'");
+
+		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
+		const auto& ts = includeToken->initializeSubTokenStream();
+		pushTokenStream(ts);
+		pushLocation();
+
+		return Value(includeToken);
+	});
+	//$include_file end
+
+	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, static_cast<int64_t>(std::stol(std::string{str}.substr(2), 0, 16)), std::make_optional(std::string{str}));
+	});
+	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000 * static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
+	});
+	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, 1000000 * static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
+	});
+	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		return emplace_back(INTEGER, static_cast<int64_t>(std::stol(std::string{str})), std::make_optional(std::string{str}));
+	});
+
+	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
+		auto it = emplace_back(ONELINE_COMMENT, std::string{str}, _indent);
+		addComment(it);
+		return {};
+	});
+	// $multiline_comment
+	// Comment tokens are not delegated with return Value but stored in _comment
+	_parser.token(R"(/\*)").states("@default").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	_parser.token(R"(\*/)").states("$multiline_comment").enter_state("@default").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		auto it = emplace_back(COMMENT, _comment, _indent);
+		addComment(it);
+		_indent.clear();
+		_comment.clear();
+		return {};
+	});
+	_parser.token(R"(\n)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+		currentLocation().addLine();
+		_comment.append(std::string{str});
+		return {};
+	});
+	_parser.token(R"(.)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	// $multiline_comment end
+
+	// $str
+	// $str tokens are not delegated with return Value but stored in _strLiteral
+	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
+		_strLiteral.clear();
+		return {};
+	});
+
+	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action([&](std::string_view str) -> Value {
+		_strLiteral += "\\x";
+		_strLiteral += std::string{str}.substr(2);
+		return {};
+	});
+	_parser.token(R"(\\[tn\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
+	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value {error_handle(currentLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
+	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value { return emplace_back(STRING_LITERAL, _strLiteral); });
+
+	// $str end
+
+	_parser.token("u?int(8|16|32)(be)?").symbol("INTEGER_FUNCTION").description("fixed-width integer function").action([&](std::string_view str) -> Value { return emplace_back(INTEGER_FUNCTION, std::string{str}); });
+	_parser.token(R"(\$[0-9a-zA-Z_]*)").symbol("STRING_ID").description("string identifier").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID, std::string{str}); });
+
+	_parser.token(R"(\$[0-9a-zA-Z_]*\*)").symbol("STRING_ID_WILDCARD").description("string wildcard").action([&](std::string_view str) -> Value { return emplace_back(STRING_ID_WILDCARD, std::string{str}); });
+	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").description("string count").action([&](std::string_view str) -> Value { return emplace_back(STRING_COUNT, std::string{str}); });
+	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").description("string offset").action([&](std::string_view str) -> Value { return emplace_back(STRING_OFFSET, std::string{str}); });
+	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").description("string length").action([&](std::string_view str) -> Value { return emplace_back(STRING_LENGTH, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").description("identifier").action([&](std::string_view str) -> Value { return emplace_back(ID, std::string{str}); });
+
+	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").description("float").action([&](std::string_view str) -> Value { return emplace_back(DOUBLE, std::stod(std::string(str))); });
+
+	// $hexstr
+	_parser.token(R"(\|)").states("$hexstr").symbol("HEX_OR").description("hex string |").action([&](std::string_view str) -> Value { return emplace_back(HEX_ALT, std::string{str}); });
+	_parser.token(R"(\()").states("$hexstr").symbol("LP").description("hex string (").action([&](std::string_view str) -> Value { return emplace_back(LP, std::string{str}); });
+	_parser.token(R"(\))").states("$hexstr").symbol("RP").description("hex string )").action([&](std::string_view str) -> Value { return emplace_back(RP, std::string{str}); });
+	_parser.token(R"(\?)").states("$hexstr").symbol("HEX_WILDCARD").description("hex string ?").action([&](std::string_view str) -> Value { return emplace_back(HEX_WILDCARD, std::string{str}); });
+	_parser.token(R"(\})").states("$hexstr").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view) -> Value { return emplace_back(RCB, "}"); });
+	_parser.token("[0-9a-fA-F]").states("$hexstr").symbol("HEX_NIBBLE").description("hex string nibble").action([&](std::string_view str) -> Value {
+		uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
+		return emplace_back(HEX_NIBBLE, digit, std::string{str});
+	});
+	_parser.token(R"(\[)").states("$hexstr").enter_state("$hexstr_jump").symbol("LSQB").description("hex string [").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_LEFT_BRACKET, std::string{str}); });
+	_parser.token("[0-9]*").states("$hexstr_jump").symbol("HEX_INTEGER").description("hex string integer").action([&](std::string_view str) -> Value {
+		std::string numStr = std::string{str};
+		std::uint64_t num = 0;
+		strToNum(numStr, num, std::dec);
+		return emplace_back(INTEGER, num, numStr);
+	});
+	_parser.token(R"(\-)").states("$hexstr_jump").symbol("DASH").description("hex string -").action([&](std::string_view str) -> Value { return emplace_back(DASH, std::string{str}); });
+	_parser.token(R"(\])").states("$hexstr_jump").symbol("RSQB").description("hex string ]").enter_state("$hexstr").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_RIGHT_BRACKET, std::string{str}); });
+
+	// tokens are not delegated with return Value but created in grammar rules actions
+	_parser.token(R"(//[^\n]*)").states("$hexstr_jump").action([](std::string_view str) -> Value { return std::string{str}; });
+	// $hexstr multiline comment
+	_parser.token(R"(/\*)").states("$hexstr").enter_state("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	_parser.token(R"(\*/)").states("$hexstr_multiline_comment").enter_state("$hexstr").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		auto it = emplace_back(COMMENT, _comment, _indent);
+		addComment(it);
+		_indent.clear();
+		_comment.clear();
+		return {};
+	});
+	_parser.token(R"(\n)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
+		currentLocation().addLine();
+		_comment.append(std::string{str});
+		return {};
+	});
+	_parser.token(R"(.)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	// $hexstr multiline comment end
+
+	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
+	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
+		currentLocation().addLine();
+		return emplace_back(NEW_LINE, "\n");
+	});
+	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
+	// $hexstr end
+
+	// $regexp
+	// $regexp tokens are delegated as strings and then emplaced to TokenStream in grammar rules actions
+	_parser.token(R"(/i?s?)").states("$regexp").enter_state("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
+		return std::string{str};
+	});
+	_parser.token(R"(\()").states("$regexp").symbol("LP").description("(").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\))").states("$regexp").symbol("RP").description(")").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\|)").states("$regexp").symbol("REGEXP_OR").description("regexp |").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\*)").states("$regexp").symbol("REGEXP_ITER").description("regexp *").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\+)").states("$regexp").symbol("REGEXP_PITER").description("regexp +").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\?)").states("$regexp").symbol("REGEXP_OPTIONAL").description("regexp ?").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
+		std::string rangeStr = std::string{str};
+		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
+		std::string highStr = rangeStr.substr(rangeStr.find(',') + 1);
+		highStr.pop_back(); // Remove '}' at the end
+
+		std::uint64_t lowNum = 0;
+		std::optional<std::uint64_t> low;
+		if (strToNum(lowStr, lowNum, std::dec))
+			low = lowNum;
+
+		std::uint64_t highNum = 0;
+		std::optional<std::uint64_t> high;
+		if (strToNum(highStr, highNum, std::dec))
+			high = highNum;
+
+		return std::make_pair(low, high);
+	});
+	_parser.token(R"({[0-9]+})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
+		std::string numStr = std::string(str.substr(1, str.size()-2));
+
+		std::optional<std::uint64_t> range;
+		std::uint64_t num = 0;
+		if (strToNum(numStr, num, std::dec))
+			range = num;
+
+		return std::make_pair(range, range);
+	});
+	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([&](std::string_view str) -> Value {
+		return std::string{str};
+	});
+	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\S)").states("$regexp").symbol("REGEXP_NON_SPACE").description("regexp \\S").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\d)").states("$regexp").symbol("REGEXP_DIGIT").description("regexp \\d").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([&](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([&](std::string_view str) -> Value {
+		return std::string{str};
+	});
+	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass = "^]";
+		return {};
+	});
+	_parser.token(R"(\[\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass = "]";
+		return {};
+	});
+	_parser.token(R"(\[\^)").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass = "^";
+		return {};
+}	);
+	_parser.token(R"(\[)").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass.clear();
+		return {};
+}	);
+	_parser.token(R"(\])").states("$regexp_class").symbol("REGEXP_CLASS").description("regexp class").enter_state("$regexp").action([&](std::string_view) -> Value {
+		return _regexpClass;
+	});
+	_parser.token(R"(\\w)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\w"; return {};});
+	_parser.token(R"(\\W)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\W"; return {};});
+	_parser.token(R"(\\s)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\s"; return {};});
+	_parser.token(R"(\\S)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\S"; return {};});
+	_parser.token(R"(\\d)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\d"; return {};});
+	_parser.token(R"(\\D)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\D"; return {};});
+	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
+	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
+	_parser.token(R"([^]])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
+	// $regexp end
+
+	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) {
+  		_parser.pop_input_stream();
+  		if (currentTokenStreamCount() > 1)
+			popTokenStream();
+		if (currentLocationCount() > 1)
+			popLocation();
+  		return 0;
+	});
+}
+
+void ParserDriver::defineGrammar()
+{
+	_parser.rule("rules")
+		.production("rules", "rule")
+		.production("rules", "import")
+		.production("rules", "include")
+		.production()
+		;
+
+	_parser.rule("import") // {}
+		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
+			TokenIt import = args[1].getTokenIt();
+			import->setType(IMPORT_MODULE);
+			if (!_file.addImport(import))
+				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
+			return {};
+		})
+		;
+
+	_parser.rule("include") // {}
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&&) -> Value { return {}; })
+		;
+
+	_parser.rule("rule") // {}
+		.production(
+			"rule_mod", "RULE", "ID", [&](auto&& args) -> Value {
+				args[2].getTokenIt()->setType(RULE_NAME);
+				if (ruleExists(args[2].getTokenIt()->getString()))
+					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of rule '" + args[2].getTokenIt()->getString() + "'");
+				return {};
+			},
+			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
+				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
+				TokenIt name = args[2].getTokenIt();
+				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
+				args[5].getTokenIt()->setType(RULE_BEGIN);
+				std::vector<Meta> metas = std::move(args[6].getMetas());
+				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[7].getStringsTrie());
+				Expression::Ptr condition = std::move(args[8].getExpression());
+				args[9].getTokenIt()->setType(RULE_END);
+
+				addRule(Rule(currentTokenStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				return {};
+			});
+
+	_parser.rule("rule_mod") // optional<TokenIt>
+		.production("GLOBAL", [&](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
+		.production("PRIVATE", [&](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
+		.production([&](auto&&) -> Value { return Value(std::nullopt); })
+		;
+
+	_parser.rule("tags") // vector<TokenIt>
+		.production("COLON", "tag_list", [](auto&& args) -> Value {	return std::move(args[1]); })
+		.production([](auto&&) -> Value { return std::vector<TokenIt>(); })
+		;
+
+	_parser.rule("tag_list") // vector<TokenIt>
+		.production("tag_list", "ID", [&](auto&& args) -> Value {
+			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
+			TokenIt tag = args[1].getTokenIt();
+			tag->setType(TAG);
+			tags.emplace_back(std::move(tag));
+			return Value(std::move(tags));
+		})
+		.production("ID", [&](auto&& args) -> Value {
+			std::vector<TokenIt> tags;
+			TokenIt tag = args[0].getTokenIt();
+			tag->setType(TAG);
+			tags.emplace_back(std::move(tag));
+			return Value(std::move(tags));
+		})
+		;
+
+	_parser.rule("metas") // vector<Meta>
+		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
+		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
+		;
+
+	_parser.rule("metas_body") // vector<Meta>
+		.production("metas_body", "ID", "ASSIGN", "literal", [&](auto&& args) -> Value {
+			std::vector<Meta> body = std::move(args[0].getMetas());
+			TokenIt key = args[1].getTokenIt();
+			key->setType(META_KEY);
+			TokenIt val = args[3].getTokenIt();
+			val->setType(META_VALUE);
+			body.emplace_back(key, val);
+			return Value(std::move(body));
+		})
+		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
+		;
+
+	_parser.rule("literal") //TokenIt
+		.production("STRING_LITERAL", [](auto&& args) -> Value { return std::move(args[0]); })
+		.production("INTEGER", [](auto&& args) -> Value { return std::move(args[0]); })
+		.production("boolean", [](auto&& args) -> Value { return std::move(args[0]); })
+		;
+
+	_parser.rule("boolean") // TokenIt
+		.production("BOOL_TRUE", [](auto&& args) -> Value { return std::move(args[0]); })
+		.production("BOOL_FALSE", [](auto&& args) -> Value { return std::move(args[0]); })
+		;
+
+	_parser.rule("strings") // shared_ptr<StringsTrie>
+		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value { return std::move(args[2]); })
+		.production([&](auto&&) -> Value {
+			auto strings = std::make_shared<Rule::StringsTrie>();
+			setCurrentStrings(strings);
+			return std::move(strings);
+		})
+		;
+
+	_parser.rule("strings_body") // shared_ptr<StringsTrie>
+		.production(
+			"strings_body", "STRING_ID", "ASSIGN", [&](auto&&) -> Value {
+				return {};
+			},
+			"string", [&](auto&& args) -> Value {
+				const std::string& id = args[1].getTokenIt()->getPureText();
+				const std::string& trieId = isAnonymousStringId(id) ? generateAnonymousStringPseudoId() : id;
+				auto string = std::move(args[4].getYaramodString());
+				string->setIdentifier(args[1].getTokenIt(), args[2].getTokenIt());
+				auto strings = std::move(args[0].getStringsTrie());
+				if (!strings->insert(trieId, std::move(string)))
+				{
+					error_handle(args[1].getTokenIt()->getLocation(), "Redefinition of string '" + trieId + "'");
+				}
+				return std::move(strings);
+			}
+		)
+		.production([&](auto&&) -> Value {
+			auto strings = std::make_shared<Rule::StringsTrie>();
+			setCurrentStrings(strings);
+			return std::move(strings);
+		})
+		;
+
+	_parser.rule("string")
+		.production("STRING_LITERAL", "string_mods", [&](auto&& args) -> Value {
+			auto string = std::make_shared<PlainString>(currentTokenStream(), std::move(args[0].getTokenIt()));
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
+			string->setModifiers(mods.first, std::move(mods.second));
+			return Value(std::move(string));
+		})
+		.production("LCB", [&](auto&& args) -> Value {
+				args[0].getTokenIt()->setType(HEX_START_BRACKET);
+				return {};
+			},
+		 	"hex_string", "RCB", [&](auto&& args) -> Value {
+				args[3].getTokenIt()->setType(HEX_END_BRACKET);
+			 	return Value(std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits())));
+			}
+		)
+		.production("regexp", "string_mods", [&](auto&& args) -> Value {
+			auto regexp_string = std::move(args[0].getYaramodString());
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[1].getStringMods());
+			std::static_pointer_cast<Regexp>(regexp_string)->setModifiers(mods.first, std::move(mods.second));
+			return Value(std::move(regexp_string));
+		})
+		;
+
+	_parser.rule("string_mods") // pair<std::uint32_t, vector<TokenIt>>
+		.production("string_mods", "ASCII", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Ascii;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "WIDE", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Wide;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "NOCASE", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Nocase;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "FULLWORD", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Fullword;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production("string_mods", "XOR", [](auto&& args) -> Value {
+			std::pair<std::uint32_t, std::vector<TokenIt>> mods = std::move(args[0].getStringMods());
+			mods.first = mods.first | String::Modifiers::Xor;
+			mods.second.push_back(args[1].getTokenIt());
+			return Value(std::move(mods));
+		})
+		.production([](auto&&) -> Value {
+			return Value(std::make_pair(String::Modifiers::None, std::move(std::vector<TokenIt>())));
+		})
+		;
+
+	_parser.rule("hex_string") // vector<shared_ptr<HexStringUnit>>
+		.production("hex_string_edge", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("hex_string_edge", "hex_string_body", "hex_string_edge", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output = std::move(args[0].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[1].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> edge = std::move(args[2].getMultipleHexUnits());
+			output.reserve(output.size() + body.size() + edge.size());
+			std::move(body.begin(), body.end(), std::back_inserter(output));
+			std::move(edge.begin(), edge.end(), std::back_inserter(output));
+			return output;
+		})
+		;
+
+	_parser.rule("hex_string_edge") // vector<shared_ptr<HexStringUnit>>
+		.production("hex_byte", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("hex_or", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<yaramod::HexStringUnit>> units;
+			units.push_back(std::move(args[0].getHexUnit()));
+			return std::move(units);
+		})
+		;
+
+	_parser.rule("hex_byte") // vector<shared_ptr<HexStringUnit>>
+		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
+			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_NIBBLE", "HEX_WILDCARD", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
+			args[1].getTokenIt()->setType(HEX_WILDCARD_HIGH);
+			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_WILDCARD", "HEX_NIBBLE", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			args[0].getTokenIt()->setType(HEX_WILDCARD_LOW);
+			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
+			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		.production("HEX_WILDCARD", "HEX_WILDCARD", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			args[0].getTokenIt()->setType(HEX_WILDCARD_LOW);
+			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
+			args[1].getTokenIt()->setType(HEX_WILDCARD_HIGH);
+			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return std::move(output);
+		})
+		;
+
+	_parser.rule("hex_string_body") // vector<shared_ptr<HexStringUnit>>
+		.production("hex_string_body", "hex_byte", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			std::vector<std::shared_ptr<HexStringUnit>> byte = std::move(args[1].getMultipleHexUnits());
+			std::move(byte.begin(), byte.end(), std::back_inserter(body));
+			return Value(std::move(body));
+		})
+		.production("hex_string_body", "hex_or", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			body.push_back(std::move(args[1].getHexUnit()));
+			return std::move(body);
+		})
+		.production("hex_string_body", "hex_jump", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> body = std::move(args[0].getMultipleHexUnits());
+			body.push_back(std::move(args[1].getHexUnit()));
+			return std::move(body);
+		})
+		.production([](auto&&) -> Value { return std::vector<std::shared_ptr<HexStringUnit>>(); })
+		;
+
+	_parser.rule("hex_or") // shared_ptr<HexStringUnit>
+		.production("LP", "hex_or_body", "RP", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_ALT_LEFT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_ALT_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringOr>(std::move(args[1].getMultipleHexStrings())));
+		})
+		;
+
+	_parser.rule("hex_or_body") // vector<shared_ptr<yaramod::String>>
+		.production("hex_string_body", [&](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexString>> output;
+			auto hexStr = std::make_shared<HexString>(currentTokenStream(), std::move(args[0].getMultipleHexUnits()));
+			output.push_back(std::move(hexStr));
+			return std::move(output);
+		})
+		.production("hex_or_body", "HEX_OR", "hex_string_body", [&](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleHexStrings());
+			auto hexStr = std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
+			output.push_back(hexStr);
+			return std::move(output);
+		})
+		;
+
+	_parser.rule("hex_jump") // shared_ptr<HexStringUnit>
+		.production("LSQB", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[1].getTokenIt()));
+		})
+		.production("LSQB", "HEX_INTEGER", "DASH", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[4].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt(), args[3].getTokenIt()));
+		})
+		.production("LSQB", "HEX_INTEGER", "DASH", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>(args[1].getTokenIt()));
+		})
+		.production("LSQB", "DASH", "RSQB", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
+			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
+			return Value(std::make_shared<HexStringJump>());
+		})
+		;
+
+	_parser.rule("regexp") // shared_ptr<yaramod::String>
+		.production("SLASH", "regexp_body", "SLASH", [&](auto&& args) -> Value {
+			auto regexp_string = std::move(args[1].getYaramodString());
+			std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(args[2].getString().substr(1));
+			return Value(std::move(regexp_string));
+		})
+		;
+
+	_parser.rule("regexp_body") // shared_ptr<yaramod::String>
+		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(currentTokenStream(), std::move(args[0].getRegexpUnit()))); });
+
+	_parser.rule("regexp_or") // shared_ptr<RegexpUnit>
+		.production("regexp_concat", [](auto&& args) -> Value { return Value(std::make_shared<RegexpConcat>(std::move(args[0].getMultipleRegexpUnits()))); })
+		.production("regexp_or", "REGEXP_OR", "regexp_concat", [](auto&& args) -> Value {
+			std::shared_ptr<RegexpUnit> arg = std::move(args[0].getRegexpUnit());
+			std::shared_ptr<RegexpUnit> concat = std::make_shared<RegexpConcat>(args[2].getMultipleRegexpUnits());
+			return Value(std::make_shared<RegexpOr>(std::move(arg), std::move(concat)));
+		})
+		;
+
+	_parser.rule("regexp_concat") // vector<shared_ptr<RegexpUnit>>
+		.production("regexp_repeat", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<yaramod::RegexpUnit>> output;
+			output.push_back(std::move(args[0].getRegexpUnit()));
+			return Value(std::move(output));
+		})
+		.production("regexp_concat", "regexp_repeat", [](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleRegexpUnits());
+			output.push_back(std::move(args[1].getRegexpUnit()));
+			return Value(std::move(output));
+		})
+		;
+
+	_parser.rule("regexp_repeat") // shared_ptr<RegexpUnit>
+		.production("regexp_single", "REGEXP_ITER", "regexp_greedy", [](auto&& args) -> Value {
+			return Value(std::make_shared<RegexpIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
+		})
+		.production("regexp_single", "REGEXP_PITER", "regexp_greedy", [](auto&& args) -> Value {
+			return Value(std::make_shared<RegexpPositiveIteration>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
+		})
+		.production("regexp_single", "REGEXP_OPTIONAL", "regexp_greedy", [](auto&& args) -> Value {
+			return Value(std::make_shared<RegexpOptional>(std::move(args[0].getRegexpUnit()), args[2].getBool()));
+		})
+		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [&](auto&& args) -> Value {
+			auto pair = std::move(args[1].getRegexpRangePair());
+			if (!pair.first && !pair.second)
+				error_handle(currentLocation(), "Range in regular expression does not have defined lower bound nor higher bound");
+			if (pair.first && pair.second && pair.first.value() > pair.second.value())
+				error_handle(currentLocation(), "Range in regular expression has greater lower bound than higher bound");
+			return Value(std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool()));
+		})
+		.production("regexp_single", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("REGEXP_WORD_BOUNDARY", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpWordBoundary>());
+		})
+		.production("REGEXP_NON_WORD_BOUNDARY", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpNonWordBoundary>());
+		})
+		.production("REGEXP_START_OF_LINE", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpStartOfLine>());
+		})
+		.production("REGEXP_END_OF_LINE", [](auto&&) -> Value {
+			return Value(std::make_shared<RegexpEndOfLine>());
+		})
+		;
+
+	_parser.rule("regexp_greedy") // bool
+		.production([](auto&&) -> Value { return true; })
+		.production("REGEXP_OPTIONAL", [](auto&&) -> Value { return false; })
+		;
+
+	_parser.rule("regexp_single") // shared_ptr<yaramod::RegexpUnit>
+		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return Value(std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit()))); })
+		.production("REGEXP_ANY_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpAnyChar>()); })
+		.production("REGEXP_CHAR", [](auto&& args) -> Value { return Value(std::make_shared<RegexpText>(std::move(args[0].getString()))); })
+		.production("REGEXP_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpWordChar>()); })
+		.production("REGEXP_NON_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonWordChar>()); })
+		.production("REGEXP_SPACE", [](auto&&) -> Value { return Value(std::make_shared<RegexpSpace>()); })
+		.production("REGEXP_NON_SPACE", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonSpace>()); })
+		.production("REGEXP_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpDigit>()); })
+		.production("REGEXP_NON_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonDigit>()); })
+		.production("REGEXP_CLASS", [](auto&& args) -> Value {
+			std::string c = std::move(args[0].getString());
+			if (c[0] == '^')
+				return Value(std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true));
+			else
+				return Value(std::make_shared<RegexpClass>(std::move(c), false));
+		})
+		;
+
+	_parser.rule("condition") // Expression::Ptr
+		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
+			return std::move(args[2]);
+		})
+		;
+
+	_parser.rule("expression") // Expression::Ptr
+		.production("boolean", [&](auto&& args) -> Value {
+			auto output = std::make_shared<BoolLiteralExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("STRING_ID", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getString()))
+				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			auto output = std::make_shared<StringExpression>(std::move(id));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("STRING_ID", "AT", "primary_expression", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getString()))
+				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			TokenIt op = args[1].getTokenIt();
+			Expression::Ptr expr = args[2].getExpression();
+			if (!expr->isInt())
+				error_handle(args[1].getTokenIt()->getLocation(), "Operator 'at' expects integer on the right-hand side of the expression");
+			auto output = std::make_shared<StringAtExpression>(id, op, std::move(expr));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("STRING_ID", "IN", "range", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getString()))
+				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			TokenIt op = args[1].getTokenIt();
+			Expression::Ptr range = args[2].getExpression();
+
+			auto output = std::make_shared<StringInRangeExpression>(id, op, std::move(range));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production(
+			"FOR", "for_expression", "ID", [&](auto&& args) -> Value {
+				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
+				if (!addLocalSymbol(symbol))
+					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
+				return {};
+			},
+			"IN", "integer_set", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+				TokenIt for_token = args[0].getTokenIt();
+				auto for_expr = std::move(args[1].getExpression());
+				TokenIt id = args[2].getTokenIt();
+
+				TokenIt op_in = args[4].getTokenIt();
+				auto set = std::move(args[5].getExpression());
+				TokenIt lp = args[7].getTokenIt();
+				auto expr = args[8].getExpression();
+				TokenIt rp = args[9].getTokenIt();
+
+				removeLocalSymbol(id->getString());
+				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+				auto output = std::make_shared<ForIntExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+				output->setType(Expression::Type::Bool);
+				return Value(std::move(output));
+			}
+		)
+		.production(
+			"FOR", "for_expression", "OF", "string_set", [&](auto&& args) -> Value {
+				if (isInStringLoop())
+					error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
+				stringLoopEnter();
+				return {};
+			},
+			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+				TokenIt for_token = args[0].getTokenIt();
+				auto for_expr = std::move(args[1].getExpression());
+				TokenIt of = args[2].getTokenIt();
+				auto set = std::move(args[3].getExpression());
+
+				TokenIt lp = args[6].getTokenIt();
+				auto expr = args[7].getExpression();
+				TokenIt rp = args[8].getTokenIt();
+
+				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+				auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
+				output->setType(Expression::Type::Bool);
+				stringLoopLeave();
+				return Value(std::move(output));
+			}
+		)
+		.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto set = std::move(args[2].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("NOT", "expression", [&](auto&& args) -> Value {
+			TokenIt not_token = args[0].getTokenIt();
+			auto expr = std::move(args[1].getExpression());
+			auto output = std::make_shared<NotExpression>(not_token, std::move(expr));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt and_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<AndExpression>(std::move(left), and_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("expression", "OR", "expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt or_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<OrExpression>(std::move(left), or_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "LT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<LtExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "GT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<GtExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "LE", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<LeExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "GE", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<GeExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "EQ", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<EqExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "NEQ", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			auto output = std::make_shared<NeqExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "CONTAINS", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'contains' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'contains' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<ContainsExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "MATCHES", "regexp", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getYaramodString());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
+			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
+			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
+			output->setType(Expression::Type::Bool);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", [&](auto&& args) -> Value {
+			return std::move(args[0]);
+		}).precedence(0, pog::Associativity::Left)
+		.production("LP", "expression", "RP", [&](auto&& args) -> Value {
+			auto expr = std::move(args[1].getExpression());
+			auto type = expr->getType();
+			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(expr), args[2].getTokenIt());
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		;
+
+	_parser.rule("primary_expression") // Expression::Ptr
+		.production("LP", "primary_expression", "RP", [&](auto&& args) -> Value {
+			auto type = args[1].getExpression()->getType();
+			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(args[1].getExpression()), args[2].getTokenIt());
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		.production("FILESIZE", [&](auto&& args) -> Value {
+			auto output = std::make_shared<FilesizeExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("ENTRYPOINT", [&](auto&& args) -> Value {
+			auto output = std::make_shared<EntrypointExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("INTEGER", [&](auto&& args) -> Value {
+			auto output = std::make_shared<IntLiteralExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("DOUBLE", [&](auto&& args) -> Value {
+			auto output = std::make_shared<DoubleLiteralExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Float);
+			return Value(std::move(output));
+		})
+		.production("STRING_LITERAL", [&](auto&& args) -> Value {
+			auto output = std::make_shared<StringLiteralExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::String);
+			return Value(std::move(output));
+		})
+		.production("STRING_COUNT", [&](auto&& args) -> Value {
+			// Replace '#' for '$' to get string id
+			auto stringId = args[0].getTokenIt()->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+
+			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("STRING_OFFSET", [&](auto&& args) -> Value {
+			// Replace '@' for '$' to get string id
+			auto stringId = args[0].getTokenIt()->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+
+			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("STRING_OFFSET", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
+			// Replace '@' for '$' to get string id
+			auto stringId = args[0].getTokenIt()->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+
+			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("STRING_LENGTH", [&](auto&& args) -> Value {
+			// Replace '!' for '$' to get string id
+			auto stringId = args[0].getTokenIt()->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+
+			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("STRING_LENGTH", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
+			// Replace '!' for '$' to get string id
+			auto stringId = args[0].getTokenIt()->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
+
+			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("MINUS", "primary_expression", [&](auto&& args) -> Value {
+			auto right = args[1].getExpression();
+			if (!right->isInt() && !right->isFloat())
+			{
+				error_handle(args[0].getTokenIt()->getLocation(), "unary minus expects integer or float type");
+			}
+			auto type = right->getType();
+			args[0].getTokenIt()->setType(UNARY_MINUS);
+			auto output = std::make_shared<UnaryMinusExpression>(args[0].getTokenIt(), std::move(right));
+			output->setType(type);
+			return Value(std::move(output));
+		}).precedence(3, pog::Associativity::Right)
+		.production("primary_expression", "PLUS", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '+' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '+' expects integer or float on the right-hand side");
+			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			auto output = std::make_shared<PlusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "MINUS", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '-' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '-' expects integer or float on the right-hand side");
+			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			auto output = std::make_shared<MinusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "MULTIPLY", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '*' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '*' expects integer or float on the right-hand side");
+			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			auto output = std::make_shared<MultiplyExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "DIVIDE", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '\\' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '\\' expects integer or float on the right-hand side");
+			auto type = (left->isInt() && right->isInt()) ? Expression::Type::Int : Expression::Type::Float;
+			auto output = std::make_shared<DivideExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(type);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '%' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '%' expects integer or float on the right-hand side");
+			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_XOR", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '^' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '^' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_AND", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '&' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '&' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "BITWISE_OR", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '|' expects integer or float on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '|' expects integer or float on the right-hand side");
+			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
+			auto right = args[1].getExpression();
+			if (!right->isInt())
+				error_handle(args[0].getTokenIt()->getLocation(), "bitwise not expects integer");
+			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "SHIFT_LEFT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '<<' expects integer on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '<<' expects integer on the right-hand side");
+			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("primary_expression", "SHIFT_RIGHT", "primary_expression", [&](auto&& args) -> Value {
+			auto left = args[0].getExpression();
+			auto right = args[2].getExpression();
+			if (!left->isInt() && !left->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '>>' expects integer on the left-hand side");
+			if (!right->isInt() && !right->isFloat())
+				error_handle(args[1].getTokenIt()->getLocation(), "operator '>>' expects integer on the right-hand side");
+			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("INTEGER_FUNCTION", "LP", "primary_expression", "RP", [&](auto&& args) -> Value {
+			if (!args[2].getExpression()->isInt())
+				error_handle(args[0].getTokenIt()->getLocation(), "operator '" + args[0].getTokenIt()->getString() + "' expects integer");
+			auto output = std::make_shared<IntFunctionExpression>(std::move(args[0].getTokenIt()), std::move(args[1].getTokenIt()), std::move(args[2].getExpression()), std::move(args[3].getTokenIt()));
+			output->setType(Expression::Type::Int);
+			return Value(std::move(output));
+		})
+		.production("identifier", [&](auto&& args) -> Value {
+			return Value(std::move(args[0]));
+		})
+		.production("regexp", [&](auto&& args) -> Value {
+			auto output = std::make_shared<RegexpExpression>(std::move(args[0].getYaramodString()));
+			output->setType(Expression::Type::Regexp);
+			return Value(std::move(output));
+		})
+		;// end of primary_expression
+
+	_parser.rule("identifier") // Expression::Ptr
+		.production("ID", [&](auto&& args) -> Value {
+			auto symbol = findSymbol(args[0].getTokenIt()->getString());
+			if (!symbol)
+				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
+			TokenIt symbol_token = args[0].getTokenIt();
+			symbol_token->setValue(symbol, symbol->getName());
+			auto output = std::make_shared<IdExpression>(symbol_token);
+			output->setType(symbol->getDataType());
+			return Value(std::move(output));
+		})
+		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
+			const auto& expr = args[0].getExpression();
+			if (!expr->isObject())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			if (!parentSymbol->isStructure())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
+			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
+
+			TokenIt symbol_token = args[2].getTokenIt();
+			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
+			if (!attr)
+				error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+
+			auto symbol = attr.value();
+			symbol_token->setValue(symbol, symbol->getName());
+			symbol_token->setType(symbol->getTokenType());
+			auto output = std::make_shared<StructAccessExpression>(std::move(expr), args[1].getTokenIt(), symbol_token);
+			output->setType(symbol->getDataType());
+			return Value(std::move(output));
+		})
+		.production("identifier", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
+			const auto& expr = args[0].getExpression();
+			if (!expr->isObject())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+
+			auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
+
+			auto output = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move(expr), std::move(args[2].getExpression()));
+			output->setType(iterParentSymbol->getElementType());
+			return Value(std::move(output));
+		})
+		.production("identifier", "LP", "arguments", "RP", [&](auto&& args) -> Value {
+			const auto& expr = args[0].getExpression();
+			if (!expr->isObject())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+
+			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			if (!parentSymbol->isFunction())
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
+
+			auto funcParentSymbol = std::static_pointer_cast<const FunctionSymbol>(parentSymbol);
+
+			// Make copy of just argument types because symbols are not aware of expressions
+			std::vector<Expression::Type> argTypes;
+			auto arguments = std::move(args[2].getMultipleExpressions());
+			std::for_each(arguments.begin(), arguments.end(),
+				[&argTypes](const Expression::Ptr& e)
+				{
+					argTypes.push_back(e->getType());
+				});
+
+			if (!funcParentSymbol->overloadExists(argTypes))
+			{
+				std::stringstream ss;
+				ss << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
+				std::for_each(arguments.begin(), arguments.end(),
+					[&ss](const Expression::Ptr& e)
+					{
+						ss << e->getTypeString() << " ";
+					});
+				ss << ")" << std::endl;
+				error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters:\n" + ss.str());
+			}
+
+			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
+			output->setType(funcParentSymbol->getReturnType());
+			return Value(std::move(output));
+		})
+		;
+
+	_parser.rule("arguments") // vector<Expression::Ptr>
+		.production("arguments", "COMMA", "expression", [&](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(args[2].getExpression()));
+			return Value(std::move(output));
+		})
+		.production("expression", [&](auto&& args) -> Value {
+			std::vector<Expression::Ptr> output;
+			output.push_back(std::move(args[0].getExpression()));
+			return Value(std::move(output));
+		})
+		.production([&](auto&&) -> Value {
+			std::vector<Expression::Ptr> output;
+			return Value(std::move(output));
+		})
+		;
+
+	_parser.rule("range") // Expression::Ptr
+		.production("LP", "primary_expression", "RANGE", "primary_expression", "RP", [&](auto&& args) -> Value {
+			auto left = args[1].getExpression();
+			auto right = args[3].getExpression();
+			if (!left->isInt())
+				error_handle(args[2].getTokenIt()->getLocation(), "operator '..' expects integer as lower bound of the interval");
+			if (!right->isInt())
+				error_handle(args[2].getTokenIt()->getLocation(), "operator '..' expects integer as upper bound of the interval");
+			return Value(std::make_shared<RangeExpression>(args[0].getTokenIt(), std::move(left), args[2].getTokenIt(), std::move(right), args[4].getTokenIt()));
+		})
+		;
+
+	_parser.rule("for_expression") // Expression::Ptr
+		.production("primary_expression", [](auto&& args) -> Value { return std::move(args[0]); })
+		.production("ALL", [](auto&& args) -> Value { return Value(std::make_shared<AllExpression>(args[0].getTokenIt())); })
+		.production("ANY", [](auto&& args) -> Value { return Value(std::make_shared<AnyExpression>(args[0].getTokenIt())); })
+		;
+	_parser.rule("integer_set") // Expression::Ptr
+		.production("LP", "integer_enumeration", "RP", [&](auto&& args) -> Value {
+			auto lp = args[0].getTokenIt();
+			auto rp = args[2].getTokenIt();
+			lp->setType(LP_ENUMERATION);
+			rp->setType(RP_ENUMERATION);
+			return Value(std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp));
+		})
+		.production("range", [&](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		;
+
+	_parser.rule("integer_enumeration") // vector<Expression::Ptr>
+		.production("primary_expression", [&](auto&& args) -> Value {
+			auto expr = args[0].getExpression();
+			if (!expr->isInt())
+				error_handle(currentLocation(), "integer set expects integer type");
+			return Value(std::vector<Expression::Ptr> {std::move(expr)});
+		})
+		.production("integer_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
+			auto expr = args[2].getExpression();
+			if (!expr->isInt())
+				error_handle(currentLocation(), "integer set expects integer type");
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(expr));
+			return Value(std::move(output));
+		})
+		;
+
+	_parser.rule("string_set") // Expression::Ptr
+		.production("LP", "string_enumeration", "RP", [&](auto&& args) -> Value {
+			TokenIt lp = args[0].getTokenIt();
+			lp->setType(LP_ENUMERATION);
+			TokenIt rp = args[2].getTokenIt();
+			rp->setType(RP_ENUMERATION);
+			return Value(std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp));
+		})
+		.production("THEM", [&](auto&& args) -> Value {
+			return Value(std::make_shared<ThemExpression>(args[0].getTokenIt()));
+		})
+		;
+
+	_parser.rule("string_enumeration") // vector<Expression::Ptr>
+		.production("STRING_ID", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getPureText()))
+				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
+			return std::vector<Expression::Ptr>{std::make_shared<StringExpression>(id)};
+		})
+		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getPureText()))
+				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
+			return std::vector<Expression::Ptr>{std::make_shared<StringWildcardExpression>(id)};
+		})
+		.production("string_enumeration", "COMMA", "STRING_ID", [&](auto&& args) -> Value {
+			TokenIt id = args[2].getTokenIt();
+			if (!stringExists(id->getPureText()))
+				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::make_shared<StringExpression>(id));
+			return Value(std::move(output));
+		})
+		.production("string_enumeration", "COMMA", "STRING_ID_WILDCARD", [&](auto&& args) -> Value {
+			TokenIt id = args[2].getTokenIt();
+			if (!stringExists(id->getPureText()))
+				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::make_shared<StringWildcardExpression>(id));
+			return std::move(output);
+		})
+		;
+}
+
+bool ParserDriver::prepareParser()
+{
+	auto report = _parser.prepare();
+	// Uncomment for advanced debugging with HtmlReport:
+	// pog::HtmlReport html(_parser);
+	// html.save("html_index.html");
+	if (!report)
+	{
+		// Uncomment for debugging:
+		// fmt::print("{}\n", report.to_string());
+		throw YaramodError("Error: Parser initialization failed");
+		return false;
+	}
+	return true;
+}
+
+void ParserDriver::enter_state(const std::string& state)
+{
+	_parser.enter_tokenizer_state(state);
+}
+
+void ParserDriver::initialize()
+{
+	defineTokens();
+	defineGrammar();
+	_parser.set_start_symbol("rules");
+	bool prepared = prepareParser();
+	if (!prepared)
+		throw YaramodError("Error: Parser initialization failed");
+}
+
+/**
+ * Constructor.
+ *
+ * @param parserMode Parsing mode.
+ */
+ParserDriver::ParserDriver(ParserMode parserMode)
+{
+	reset(parserMode);
+	initialize();
+}
 
 /**
  * Constructor.
@@ -17,18 +1501,15 @@ namespace yaramod {
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode), _lexer(*this), _parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols(),
-	_startOfRule(0), _anonStringCounter(0)
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode),
+	_valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
-	// Uncomment for debugging
-	// See also occurrences of 'debugging' in parser.y to enable it
-	//_parser.set_debug_level(1);
-
-	// When creating ParserDriver from real file (not from some stringstream) we need to somehow tell lexer which file to process
-	// yy::Lexer is not copyable nor assignable so we need to hack it through includes
+	initialize();
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	_locations.emplace();
 	if (!includeFileImpl(filePath))
 		_valid = false;
+	_file = YaraFile(currentTokenStream());
 }
 
 /**
@@ -37,42 +1518,13 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode), _lexer(*this, &input), _parser(*this),
-	_loc(nullptr), _valid(true), _filePath(), _inputFile(), _file(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode),
+	_optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
-	// Uncomment for debugging
-	// See also occurrences of 'debugging' in parser.y to enable it
-	//_parser.set_debug_level(1);
-}
-
-/**
- * Returns the lexer.
- *
- * @return Lexer.
- */
-yy::Lexer& ParserDriver::getLexer()
-{
-	return _lexer;
-}
-
-/**
- * Returns the parser.
- *
- * @return parser.
- */
-yy::Parser& ParserDriver::getParser()
-{
-	return _parser;
-}
-
-/**
- * Returns the location in the file.
- *
- * @return Location.
- */
-const yy::location& ParserDriver::getLocation() const
-{
-	return _loc;
+	initialize();
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	_locations.emplace();
+	_file = YaraFile(currentTokenStream());
 }
 
 /**
@@ -104,8 +1556,58 @@ bool ParserDriver::parse()
 {
 	if (!_valid)
 		return false;
+	try
+	{
+		auto result = _parser.parse(*currentInputStream());
+		if (!result)
+			throw YaramodError("Error: Parser failed to parse input.");
+		return result.has_value();
+	}
+	catch(const pog::SyntaxError& err)
+	{
+		error_handle(currentLocation(), err.what());
+		return false;
+	}
+}
 
-	return _parser.parse() == 0;
+void ParserDriver::reset(ParserMode parserMode)
+{
+	_mode = parserMode;
+
+	_strLiteral.clear();
+	_indent.clear();
+	_comment.clear();
+	_regexpClass.clear();
+	_sectionStrings = false;
+
+	_tokenStreams = std::stack<std::shared_ptr<TokenStream>>();
+	_tokenStreams.emplace(std::make_shared<TokenStream>());
+	_locations = std::stack<Location>();
+	_locations.emplace();
+	_comments.clear();
+	_includedFiles.clear();
+	_includedFileNames.clear();
+	_includedFilesCache.clear();
+	_optionalFirstInput = nullptr;
+	_valid = true;
+	_filePath.clear();
+	_file = YaraFile(currentTokenStream());
+	_currentStrings = std::weak_ptr<Rule::StringsTrie>();
+	_stringLoop = false;
+	_localSymbols.clear();
+	_startOfRule = 0;
+	_anonStringCounter = 0;
+}
+
+void ParserDriver::setInput(std::istream& input)
+{
+	_optionalFirstInput = &input;
+}
+
+void ParserDriver::setInput(const std::string& filePath)
+{
+	if (!includeFileImpl(filePath))
+		_valid = false;
 }
 
 /**
@@ -116,25 +1618,6 @@ bool ParserDriver::parse()
 bool ParserDriver::isValid() const
 {
 	return _valid;
-}
-
-/**
- * Moves one line further and resets the counter of columns.
- */
-void ParserDriver::moveLineLocation()
-{
-	_loc.lines();
-}
-
-/**
- * Moves given number of columns further.
- *
- * @param moveLength Number of columns to move.
- */
-void ParserDriver::moveLocation(std::uint64_t moveLength)
-{
-	_loc.step();
-	_loc += moveLength;
 }
 
 /**
@@ -163,6 +1646,23 @@ bool ParserDriver::includeFile(const std::string& includePath)
 }
 
 /**
+ * Returns  the currently included file. This should normally happen when end-of-file is reached.
+ * End of include may fail if there are no more files to pop from include stack.
+ *
+ * @return @c true if end of include succeeded, otherwise @c false.
+ */
+std::istream* ParserDriver::currentInputStream()
+{
+	if (_includedFiles.empty())
+	{
+		assert(_optionalFirstInput);
+		return _optionalFirstInput;
+	}
+	else
+		return _includedFiles.back().get();
+}
+
+/**
  * Ends the include of the currently included file. This should normally happen when end-of-file is reached.
  * End of include may fail if there are no more files to pop from include stack.
  *
@@ -172,13 +1672,12 @@ bool ParserDriver::includeEnd()
 {
 	if (!_includedFileNames.empty())
 	{
+		assert(!_tokenStreams.empty());
 		_includedFiles.pop_back();
 		_includedFileNames.pop_back();
-		_loc = _includedFileLocs.back();
-		_includedFileLocs.pop_back();
 	}
 
-	return _lexer.includeEnd();
+	return true;
 }
 
 /**
@@ -204,17 +1703,23 @@ bool ParserDriver::ruleExists(const std::string& name) const
  */
 void ParserDriver::addRule(Rule&& rule)
 {
-	if (!_includedFileNames.empty())
-		rule.setLocation(_includedFileNames.back(), _startOfRule);
-	_file.addRule(std::move(rule));
+	addRule(std::make_unique<Rule>(std::move(rule)));
 }
 
 /**
- * Marks the line number where the rule starts.
+ * Adds the rule into the YARA file and properly sets up its location.
+ *
+ * @param rule Rule to add.
  */
-void ParserDriver::markStartOfRule()
+void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 {
-	_startOfRule = getLocation().end.line;
+	if (!_includedFileNames.empty())
+		rule->setLocation(_includedFileNames.back(), _startOfRule);
+	bool success = !ruleExists(rule->getName());
+	if (!success)
+		throw ParserError(std::string("Error: Redefinition of rule "+rule->getName()));
+	else
+		_file.addRule(std::move(rule));
 }
 
 /**
@@ -327,6 +1832,13 @@ void ParserDriver::removeLocalSymbol(const std::string& name)
 	_localSymbols.erase(name);
 }
 
+
+void ParserDriver::addComment(TokenIt comment)
+{
+	assert(comment->getType() == TokenType::COMMENT || comment->getType() == TokenType::ONELINE_COMMENT);
+	_comments.push_back(comment);
+}
+
 /**
  * Indicates whether the string identifier is anonymous string
  * identifier. That means just '$' alone.
@@ -363,20 +1875,16 @@ bool ParserDriver::includeFileImpl(const std::string& includePath)
 
 	// We need to allocate ifstreams dynamically because they are not copyable and we need to store them
 	// in vector to prolong their lifetime because of flex.
-	auto includedFile = std::make_unique<std::ifstream>(includePath);
-	if (!includedFile->is_open())
+	auto file_stream = std::make_shared<std::ifstream>(includePath);
+	if (!file_stream->is_open())
 		return false;
+	_parser.push_input_stream(*file_stream);
+	_includedFiles.push_back(std::move(file_stream));
 
-	_lexer.includeFile(includedFile.get());
-	_includedFiles.push_back(std::move(includedFile));
 	_includedFileNames.push_back(includePath);
-	_includedFileLocs.push_back(_loc);
 	_includedFilesCache.emplace(absolutePath(includePath));
 
-	// Reset location se we can keep track of line numbers in included files
-	_loc.begin.initialize(_loc.begin.filename, 1, 1);
-	_loc.end.initialize(_loc.end.filename, 1, 1);
 	return true;
 }
 
-}
+} //namespace yaramod

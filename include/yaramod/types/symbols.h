@@ -148,7 +148,7 @@ public:
 	{
 		auto itr = _attributes.find(name);
 		if (itr == _attributes.end())
-			return {};
+			return std::nullopt;
 
 		return { itr->second };
 	}

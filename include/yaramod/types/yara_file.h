@@ -23,22 +23,26 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraFile();
+	YaraFile(const std::shared_ptr<TokenStream>& tokenStream);
 	YaraFile(YaraFile&&) noexcept = default;
+
+	YaraFile& operator=(YaraFile&&) noexcept = default;
 	/// @}
 
 	/// @name String representation
 	/// @{
 	std::string getText() const;
+	std::string getTextFormatted(bool withIncludes = false) const;
 	/// @}
 
 	/// @name Addition methods
 	/// @{
-	bool addImport(const std::string& import);
+	bool addImport(TokenIt import);
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
 	void addRule(const std::shared_ptr<Rule>& rule);
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
-	bool addImports(const std::vector<std::string>& imports);
+	bool addImports(const std::vector<TokenIt>& imports);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}
@@ -47,6 +51,7 @@ public:
 	/// @{
 	const std::vector<std::shared_ptr<Module>>& getImports() const;
 	const std::vector<std::shared_ptr<Rule>>& getRules() const;
+	TokenStream* getTokenStream() const;
 	/// @}
 
 	/// @name Removing methods
@@ -78,6 +83,7 @@ public:
 	/// @}
 
 private:
+	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 

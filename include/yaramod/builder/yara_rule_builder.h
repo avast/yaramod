@@ -10,8 +10,19 @@
 
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/rule.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
+
+/**
+ * Represents error during building.
+ */
+class RuleBuilderError : public YaramodError
+{
+public:
+	RuleBuilderError(const std::string& errorMsg) : YaramodError("YaraRuleBuilder error: " + errorMsg) {}
+	RuleBuilderError(const RuleBuilderError&) = default;
+};
 
 /**
  * Class representing builder of YARA rules. You use this builder
@@ -26,6 +37,7 @@ public:
 	/// @name Constructor
 	/// @{
 	YaraRuleBuilder();
+	YaraRuleBuilder(const std::shared_ptr<TokenStream>& tokenStream);
 	/// @}
 
 	/// @name Build method
@@ -38,6 +50,7 @@ public:
 	YaraRuleBuilder& withName(const std::string& name);
 	YaraRuleBuilder& withModifier(Rule::Modifier mod);
 	YaraRuleBuilder& withTag(const std::string& tag);
+	YaraRuleBuilder& withComment(const std::string& comment, bool multiline = false);
 
 	YaraRuleBuilder& withStringMeta(const std::string& key, const std::string& value);
 	YaraRuleBuilder& withIntMeta(const std::string& key, std::int64_t value);
@@ -48,19 +61,30 @@ public:
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value, std::uint32_t mods = String::Modifiers::Ascii);
 	YaraRuleBuilder& withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString);
 	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value,
-			const std::string& suffixMods = "", std::uint32_t mods = String::Modifiers::Ascii);
+			const std::string& suffixMods = std::string{}, std::uint32_t mods = String::Modifiers::Ascii);
 
 	YaraRuleBuilder& withCondition(Expression::Ptr&& condition);
 	YaraRuleBuilder& withCondition(const Expression::Ptr& condition);
 	/// @}
 
 private:
-	std::string _name; ///< Name
-	Rule::Modifier _mod; ///< Modifier
-	std::vector<std::string> _tags; ///< Tags
+	void resetTokens();
+	void initializeStrings();
+
+	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
+	std::optional<TokenIt> _mod; ///< Modifier
+	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
+
+	TokenIt _rule_it; ///< iterator pointing at 'rule' token
+	TokenIt _name_it; ///< iterator pointing at name token
+	TokenIt _lcb; ///< iterator pointing at '{' token
+	std::optional<TokenIt> _strings_it; ///< iterator pointing at 'strings' token
+	TokenIt _condition_it; ///< iterator pointing at 'condition' token
+	TokenIt _colon_it; ///< iterator pointing at ':' token
+	TokenIt _rcb; ///< iterator pointing at '}' token
 };
 
 }

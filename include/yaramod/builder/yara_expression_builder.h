@@ -10,7 +10,9 @@
 #include <string>
 
 #include "yaramod/types/expression.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/types/symbol.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -35,6 +37,16 @@ enum class IntFunctionEndianness
 };
 
 /**
+ * Represents error during parsing.
+ */
+class YaraExpressionBuilderError : public YaramodError
+{
+public:
+	YaraExpressionBuilderError(const std::string& errorMsg) : YaramodError("YaraExpressionBuilder error: " + errorMsg) {}
+	YaraExpressionBuilderError(const YaraExpressionBuilderError&) = default;
+};
+
+/**
  * Class representing builder of condition expression. You use this builder
  * to specify what you want in your condition expression and then you can obtain
  * your condition expression by calling method @c get. As soon as @c get is called,
@@ -47,9 +59,51 @@ class YaraExpressionBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraExpressionBuilder();
-	YaraExpressionBuilder(const Expression::Ptr& expr);
-	YaraExpressionBuilder(Expression::Ptr&& expr);
+	YaraExpressionBuilder()
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _expr()
+	{
+	}
+	YaraExpressionBuilder(const Expression::Ptr& expr)
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _expr(expr)
+	{
+	}
+	YaraExpressionBuilder(Expression::Ptr&& expr)
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _expr(std::move(expr))
+	{
+	}
+	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _expr(expr)
+	{
+		setType(type);
+	}
+	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _expr(std::move(expr))
+	{
+		setType(type);
+	}
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts)
+		: _tokenStream(ts)
+		, _expr()
+	{
+	}
+	template <typename ExpPtr>
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr)
+		: _tokenStream(ts)
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+	}
+	template <typename ExpPtr>
+	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts, ExpPtr&& expr, const Expression::Type& type)
+		: _tokenStream(ts)
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+		setType(type);
+	}
 	YaraExpressionBuilder(const YaraExpressionBuilder&) = default;
 	YaraExpressionBuilder(YaraExpressionBuilder&&) = default;
 	/// @}
@@ -60,9 +114,25 @@ public:
 	YaraExpressionBuilder& operator=(YaraExpressionBuilder&&) = default;
 	/// @}
 
+	/// @name Getter methods
+	/// @{
+	Expression::Type getType() const { return _expr->getType(); }
+	/// @}
+
+	/// @name Setter methods
+	/// @{
+	void setType(Expression::Type type) { _expr->setType(type); }
+	/// @}
+
+	/// @name Detection methods
+	/// @{
+	bool canBeBool() const { return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isUndefined(); }
+	/// @}
+
 	/// @name Builder method
 	/// @{
 	Expression::Ptr get() const;
+	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	/// @}
 
 	/// @name Building methods
@@ -92,6 +162,7 @@ public:
 	YaraExpressionBuilder& operator<<(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& operator>>(const YaraExpressionBuilder& other);
 
+	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = "\t\t");
 	YaraExpressionBuilder& call(const std::vector<YaraExpressionBuilder>& args);
 	/**
 	 * Calls function from an expression
@@ -137,6 +208,9 @@ protected:
 	}
 
 private:
+	YaraExpressionBuilder& readIntegerFunction(const std::string& function_name);
+
+	std::shared_ptr<TokenStream> _tokenStream;
 	Expression::Ptr _expr;
 };
 
@@ -174,6 +248,8 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak = false);
 YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
 YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
+YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms);
+YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms);
 
 YaraExpressionBuilder filesize();
 YaraExpressionBuilder entrypoint();
@@ -181,7 +257,7 @@ YaraExpressionBuilder all();
 YaraExpressionBuilder any();
 YaraExpressionBuilder them();
 
-YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = "");
+YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = std::string{});
 /// @}
 
 }

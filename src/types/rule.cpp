@@ -22,11 +22,48 @@ namespace yaramod {
  * @param condition Condition expression.
  * @param tags Tags.
  */
+Rule::Rule()
+	: _tokenStream(std::make_shared<TokenStream>())
+{
+	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, "unknown");
+}
+
 Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		Expression::Ptr&& condition, std::vector<std::string>&& tags)
-	: _name(std::move(name)), _mod(mod), _metas(std::move(metas)), _strings(std::move(strings)),
-		_condition(std::move(condition)), _tags(std::move(tags)), _symbol(std::make_shared<ValueSymbol>(_name, Expression::Type::Bool)),
-		_location({"[stream]", 0})
+		Expression::Ptr&& condition, const std::vector<std::string>& tags)
+	:  _tokenStream(std::make_shared<TokenStream>())
+	, _metas(std::move(metas))
+	, _strings(std::move(strings))
+	, _condition(std::move(condition))
+	, _location({"[stream]", 0})
+{
+	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, std::move(name));
+	_symbol = std::make_shared<ValueSymbol>(_name->getPureText(), Expression::Type::Bool);
+
+	for (const std::string& tag : tags)
+	{
+		TokenIt tagIt = _tokenStream->emplace_back(TokenType::TAG, tag);
+		_tags.push_back(tagIt);
+	}
+
+	if (mod == Modifier::Global)
+		_mod = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
+	else if (mod == Modifier::Private)
+		_mod = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
+	else
+		_mod = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+}
+
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
+	: _tokenStream(tokenStream)
+	, _name(name)
+	, _mod(mod)
+	, _metas(std::move(metas))
+	, _strings(std::move(strings))
+	, _condition(std::move(condition))
+	, _tags(tags)
+	, _symbol(std::make_shared<ValueSymbol>(name->getPureText(), Expression::Type::Bool))
+	, _location({"[stream]", 0})
 {
 }
 
@@ -47,10 +84,11 @@ std::string Rule::getText() const
 
 	ss << "rule " << getName() << ' ';
 
-	if (!getTags().empty())
+	if (!_tags.empty())
 	{
+		const auto& tags = getTags();
 		ss << ": ";
-		std::for_each(getTags().begin(), getTags().end(),
+		std::for_each(tags.begin(), tags.end(),
 				[&ss](const std::string& tag)
 				{
 					ss << tag << ' ';
@@ -79,7 +117,6 @@ std::string Rule::getText() const
 					ss << indent << string->getIdentifier() << " = " << string->getText() << '\n';
 				});
 	}
-
 	ss << "\tcondition:\n" << indent << getCondition()->getText(indent) << "\n}";
 	return ss.str();
 }
@@ -89,9 +126,9 @@ std::string Rule::getText() const
  *
  * @return Name.
  */
-const std::string& Rule::getName() const
+std::string Rule::getName() const
 {
-	return _name;
+	return _name->getPureText();
 }
 
 /**
@@ -101,7 +138,12 @@ const std::string& Rule::getName() const
  */
 Rule::Modifier Rule::getModifier() const
 {
-	return _mod;
+	if (isGlobal())
+		return Rule::Modifier::Global;
+	else if (isPrivate())
+		return Rule::Modifier::Private;
+	else
+		return Rule::Modifier::None;
 }
 
 /**
@@ -165,19 +207,13 @@ const Expression::Ptr& Rule::getCondition() const
  *
  * @return Tags.
  */
-std::vector<std::string>& Rule::getTags()
+std::vector<std::string> Rule::getTags() const
 {
-	return _tags;
-}
-
-/**
- * Returns the tags of the YARA rule.
- *
- * @return Tags.
- */
-const std::vector<std::string>& Rule::getTags() const
-{
-	return _tags;
+	std::vector<std::string> output;
+	output.reserve(_tags.size());
+	for (const TokenIt& item : _tags)
+		output.push_back(item->getPureText());
+	return output;
 }
 
 /**
@@ -228,7 +264,7 @@ const Rule::Location& Rule::getLocation() const
  */
 void Rule::setName(const std::string& name)
 {
-	_name = name;
+	_name->setValue(name);
 }
 
 /**
@@ -248,7 +284,17 @@ void Rule::setMetas(const std::vector<Meta>& metas)
  */
 void Rule::setTags(const std::vector<std::string>& tags)
 {
-	_tags = tags;
+	TokenIt last;
+	//delete all tags from tokenStream
+	for (const TokenIt& it : _tags)
+		last = _tokenStream->erase(it);
+	_tags = std::vector<TokenIt>();
+	// Insert new tags into TokenStream
+	for (const auto& tag : tags)
+	{
+		TokenIt tagIt = _tokenStream->insert(last, TokenType::TAG, Literal(tag));
+		_tags.push_back(tagIt);
+	}
 }
 
 /**
@@ -278,7 +324,7 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
  */
 bool Rule::isGlobal() const
 {
-	return _mod == Rule::Modifier::Global;
+	return _mod.has_value() && (*_mod)->getType() == TokenType::GLOBAL;
 }
 
 /**
@@ -288,7 +334,7 @@ bool Rule::isGlobal() const
  */
 bool Rule::isPrivate() const
 {
-	return _mod == Rule::Modifier::Private;
+	return _mod.has_value() && (*_mod)->getType() == TokenType::PRIVATE;
 }
 
 /**
@@ -299,7 +345,16 @@ bool Rule::isPrivate() const
  */
 void Rule::addMeta(const std::string& name, const Literal& value)
 {
-	_metas.emplace_back(name, value);
+	// first we need to find a proper placing for the meta within the tokenstream:
+	auto metaIt = _tokenStream->find(TokenType::LCB);
+	assert(metaIt != _tokenStream->end() && "Called addMeta on rule that does not contain '{' for the meta to be placed in");
+	++metaIt;
+
+	auto itKey = _tokenStream->insert(metaIt, TokenType::META_KEY, Literal(name));
+	_tokenStream->insert(metaIt, TokenType::EQ, Literal(" = "));
+	auto itValue = _tokenStream->insert(metaIt, TokenType::META_VALUE, value);
+
+	_metas.emplace_back(itKey, itValue);
 }
 
 /**
@@ -332,18 +387,36 @@ void Rule::removeString(const std::string& id)
  */
 void Rule::addTag(const std::string& tag)
 {
-	_tags.push_back(tag);
+	//find iterator behind tags in TokenStream
+	TokenIt end = ++_tags.back();
+	TokenIt newTagIt = _tokenStream->insert(end, TokenType::TAG, Literal(tag));
+	_tags.push_back(newTagIt);
 }
 
 /**
  * Removes tag from the rule.
  *
  * @param tag Tag to remove.
+ * @return true iff there was corresponding tag and it was removed
  */
 void Rule::removeTags(const std::string& tag)
 {
-	auto new_end = std::remove(_tags.begin(), _tags.end(), tag);
-	_tags.erase(new_end, _tags.end());
+	auto found = std::find_if(_tags.begin(), _tags.end(), [&tag](TokenIt it){ return it->getText() == tag; });
+	if (found != _tags.end())
+	{
+		_tokenStream->erase(*found);
+		_tags.erase(found);
+	}
+}
+
+void Rule::removeTags(TokenType type)
+{
+	auto found = std::find_if(_tags.begin(), _tags.end(), [&type](TokenIt it){ return it->getType() == type; });
+	if (found != _tags.end())
+	{
+		_tokenStream->erase(*found);
+		_tags.erase(found);
+	}
 }
 
 }

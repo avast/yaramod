@@ -9,9 +9,20 @@
 #include <memory>
 #include <vector>
 
+#include "yaramod/parser/parser_driver.h"
 #include "yaramod/types/yara_file.h"
 
 namespace yaramod {
+
+/**
+ * Represents error during parsing.
+ */
+class YaraFileBuilderError : public YaramodError
+{
+public:
+	YaraFileBuilderError(const std::string& errorMsg) : YaramodError("YaraExpressionBuilder error: " + errorMsg) {}
+	YaraFileBuilderError(const YaraFileBuilderError&) = default;
+};
 
 /**
  * Class representing builder of YARA files. You use this builder
@@ -23,9 +34,17 @@ namespace yaramod {
 class YaraFileBuilder
 {
 public:
+	/// @name Constructors
+	/// @{
+	YaraFileBuilder()
+		: _tokenStream(std::make_shared<TokenStream>())
+	{
+	}
+	/// @}
+
 	/// @name Build method
 	/// @{
-	std::unique_ptr<YaraFile> get(bool recheck = true);
+	std::unique_ptr<YaraFile> get(bool recheck = false, ParserDriver* external_driver = nullptr);
 	/// @}
 
 	/// @name Building methods
@@ -37,7 +56,9 @@ public:
 	/// @}
 
 private:
-	std::vector<std::string> _modules; ///< Modules
+	bool _lastAddedWasImport = false; ///< Flag to determine newlines
+	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
+	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 };
 
