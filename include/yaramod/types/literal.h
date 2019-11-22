@@ -20,6 +20,8 @@ namespace yaramod {
 
 class Symbol;
 
+enum TextFormat{Raw, Pure, RawWithoutQuotes};
+
 /**
  * Class representing literal. Literal can be either
  * string, integer or boolean. This class can only bear
@@ -102,8 +104,9 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText(bool pure = false) const;
+	std::string getText(TextFormat = Raw) const;
 	std::string getPureText() const;
+	std::string getTextWithoutQuotes() const;
 	/// @}
 
 	/// @name Detection methods

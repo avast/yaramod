@@ -405,8 +405,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 	}
 
 	if (ss)
-		for (const auto& c : it->getPureText())
-			*ss << c;
+		*ss << it->getTextWithoutQuotes();
 	return columnCounter;
 }
 

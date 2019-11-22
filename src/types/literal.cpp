@@ -194,19 +194,25 @@ std::string Literal::getFormattedValue() const
 }
 
 /**
- * Returns the string representation of the literal in the form it was created in, enclosed in double quotes.
+ * Returns the string representation of the literal in a specified format:
  *
+ * @param format:
+ *     Raw  -  in the form it was created in, enclosed in double quotes.
+ *     RawWithoutQuotes  -  in the form it was created in, without quotes.
+ *     Pure  -  unescaped text without quotes
  * @return String representation.
  */
-std::string Literal::getText(bool pure) const
+std::string Literal::getText(TextFormat format/* = Raw*/) const
 {
 	if (is<std::string>())
 	{
 		const std::string& output = get<std::string>();
-		if (pure)
+		if (format == Pure)
 			return unescapeString(output);
-		else
+		else if(format == Raw)
 			return '"' + output + '"';
+		else
+			return output;
 	}
 	else if (is<bool>())
 	{
@@ -265,7 +271,17 @@ std::string Literal::getText(bool pure) const
  */
 std::string Literal::getPureText() const
 {
-	return getText(true);
+	return getText(Pure);
+}
+
+/**
+ * Returns the string in the exact form it was written in.
+ *
+ * @return String representation.
+ */
+std::string Literal::getTextWithoutQuotes() const
+{
+	return getText(RawWithoutQuotes);
 }
 
 bool Literal::isIntegral() const

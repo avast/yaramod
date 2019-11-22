@@ -1298,6 +1298,39 @@ rule rule_with_regexp_suffix_modifiers {
         self.assertEqual(rule.strings[4].modifiers_text, ' ascii wide nocase fullword')
         self.assertEqual(rule.strings[4].text, '/all/i ascii wide nocase fullword')
 
+    def test_nonutf_comments(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/* /내/ and Pop\x83\xe9 */
+	strings:
+		$s1 = "a" // /내/
+		$s3 = "c" // // pe.rich_signature == "Pop\x83\xe9"
+	condition:
+		false or // /내/
+		true // // pe.rich_signature == "Pop\x00\x83\x00\xe9"
+}
+''')
+        rule = yara_file.rules[0]
+
+        expected =r'''
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/* /내/ and Pop\x83\xe9 */
+	strings:
+		$s1 = "a" // /내/
+		$s3 = "c" // // pe.rich_signature == "Pop\x83\xe9"
+	condition:
+		false or // /내/
+		true     // // pe.rich_signature == "Pop\x00\x83\x00\xe9"
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_multiple_parse_phases_with_single_yaramod_instance(self):
         ymod = yaramod.Yaramod();
         yara_file = ymod.parse_string(r'''
