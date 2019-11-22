@@ -405,7 +405,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 	}
 
 	if (ss)
-		*ss << it->getTextWithoutQuotes();
+		*ss << it->getPureText();
 	return columnCounter;
 }
 
@@ -462,8 +462,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			else
 				helper.insertIntoStream(os, this, it);
 		}
-		else if ((current == ONELINE_COMMENT || current == COMMENT))
+		else if (current == ONELINE_COMMENT || current == COMMENT)
+		{
 			helper.printComment(os, this, it, alignComments);
+		}
 		else
 			helper.insertIntoStream(os, this, it);
 

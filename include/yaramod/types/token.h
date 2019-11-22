@@ -184,7 +184,6 @@ public:
 	/// @{
 	std::string getText() const { return _value->getText(); }
 	std::string getPureText() const { return _value->getPureText(); }
-	std::string getTextWithoutQuotes() const { return _value->getTextWithoutQuotes(); }
 	/// @}
 
 	/// @name Setter methods
@@ -205,6 +204,7 @@ public:
 	void setFlag(bool flag) { _flag = flag; }
 	void setLocation(const Location& location) { _location = location; }
 	void setIndentation(std::size_t wanted_column) { _wanted_column = wanted_column; }
+	void markEscaped() { _value->markEscaped(); }
 	/// @}
 
 	/// @name Detection methods

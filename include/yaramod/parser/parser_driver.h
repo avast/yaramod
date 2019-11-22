@@ -366,6 +366,7 @@ private:
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser; ///< used pog parser
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
+	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 
 	ParserMode _mode; ///< Parser mode.
 

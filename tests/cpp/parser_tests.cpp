@@ -190,7 +190,7 @@ rule hex_and_decimal_integers_are_preserved {
 
 	EXPECT_EQ("dec_meta", decMeta.getKey());
 	EXPECT_TRUE(decMeta.getValue().isIntegral());
-	EXPECT_EQ("42", decMeta.getValue().getText(TextFormat::Pure));
+	EXPECT_EQ("42", decMeta.getValue().getText(true));
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2804,9 +2804,9 @@ rule rule_with_hex_escaped_works {
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	auto simple_meta = rule->getMetaWithName("simple_string_meta");
-	auto expected = R"("Simple is \x11")";
-	EXPECT_EQ(expected, simple_meta->getValue().getText());
+	EXPECT_EQ(R"("Simple is \x11")", simple_meta->getValue().getText());
 	EXPECT_EQ("Simple is \x11", simple_meta->getValue().getPureText());
+	EXPECT_EQ(R"(simple_string_meta = "Simple is \x11")", simple_meta->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2819,6 +2819,7 @@ import "pe"
 
 rule rule_with_escaped_meta_works {
 	meta:
+		str_meta_0 = "Here are a@t"
 		str_meta_1 = "Here are a\x40t"
 		str_meta_2 = "Here are \\,\x0A"
 	condition:
@@ -2830,12 +2831,18 @@ rule rule_with_escaped_meta_works {
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
+	auto strMeta0 = rule->getMetaWithName("str_meta_0");
 	auto strMeta1 = rule->getMetaWithName("str_meta_1");
 	auto strMeta2 = rule->getMetaWithName("str_meta_2");
+
+	ASSERT_NE(strMeta0, nullptr);
+	EXPECT_EQ("\"Here are a@t\"", strMeta0->getValue().getText());
+	EXPECT_EQ( R"(Here are a@t)", strMeta0->getValue().getPureText());
+
 	ASSERT_NE(strMeta1, nullptr);
 	EXPECT_EQ(R"("Here are a\x40t")", strMeta1->getValue().getText());
 	EXPECT_EQ( R"(Here are a@t)", strMeta1->getValue().getPureText());
-	EXPECT_EQ(   "Here are a\x40t", strMeta1->getValue().getPureText());
+	EXPECT_EQ(   "Here are a@t", strMeta1->getValue().getPureText());
 
 	ASSERT_NE(strMeta2, nullptr);
 	EXPECT_EQ(R"("Here are \\,\x0A")", strMeta2->getValue().getText());
@@ -3504,7 +3511,6 @@ rule nonutf_condition
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
-	const auto& rule = driver.getParsedFile().getRules()[0];
 	std::string expected =
 R"(
 import "cuckoo"
@@ -3545,7 +3551,6 @@ rule nonutf_condition
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
-	const auto& rule = driver.getParsedFile().getRules()[0];
 	std::string expected =
 R"(
 import "cuckoo"
