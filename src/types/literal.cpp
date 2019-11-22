@@ -198,15 +198,17 @@ std::string Literal::getFormattedValue() const
  *
  * @return String representation.
  */
-std::string Literal::getText(bool pure) const
+std::string Literal::getText(TextFormat format/* = Raw*/) const
 {
 	if (is<std::string>())
 	{
 		const std::string& output = get<std::string>();
-		if (pure)
+		if (format == Pure)
 			return unescapeString(output);
-		else
+		else if(format == Raw)
 			return '"' + output + '"';
+		else
+			return output;
 	}
 	else if (is<bool>())
 	{
@@ -265,7 +267,17 @@ std::string Literal::getText(bool pure) const
  */
 std::string Literal::getPureText() const
 {
-	return getText(true);
+	return getText(Pure);
+}
+
+/**
+ * Returns the string representation readable, so instead of '\x40' prints '@', instead of '\x0a' or '\n' prints new line.
+ *
+ * @return String representation.
+ */
+std::string Literal::getTextWithoutQuotes() const
+{
+	return getText(RawWithoutQuotes);
 }
 
 bool Literal::isIntegral() const

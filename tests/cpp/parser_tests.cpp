@@ -190,7 +190,7 @@ rule hex_and_decimal_integers_are_preserved {
 
 	EXPECT_EQ("dec_meta", decMeta.getKey());
 	EXPECT_TRUE(decMeta.getValue().isIntegral());
-	EXPECT_EQ("42", decMeta.getValue().getText(true));
+	EXPECT_EQ("42", decMeta.getValue().getText(TextFormat::Pure));
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3480,6 +3480,88 @@ rule nonutf_condition
 {
 	condition:
 		cuckoo.filesystem.file_write(/내/)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+NonUTFcommentWorks) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/*\x83*/
+	strings:
+		$s1 = "text" // \x83\xe9
+	condition:
+		true
+}
+)");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/*\x83*/
+	strings:
+		$s1 = "text" // \x83\xe9
+	condition:
+		true
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+NonUTFcommentsWork) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/*  */
+	/* /내/ */
+	strings:
+		$s1 = "a"    // /내/
+		$s2 = "b" // pe.rich_signature == "Pop\x83\xe9"
+		$s3 = "c"    // // pe.rich_signature == "Pop\x83\xe9"
+	condition:
+		false or // /내/
+		false or // pe.rich_signature == "Pop\x00\x83\x00\xe9POP"
+		true // // pe.rich_signature == "Pop\x00\x83\x00\xe9POP"
+}
+)");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	std::string expected =
+R"(
+import "cuckoo"
+
+rule nonutf_condition
+{
+	/*  */
+	/* /내/ */
+	strings:
+		$s1 = "a" // /내/
+		$s2 = "b" // pe.rich_signature == "Pop\x83\xe9"
+		$s3 = "c" // // pe.rich_signature == "Pop\x83\xe9"
+	condition:
+		false or // /내/
+		false or // pe.rich_signature == "Pop\x00\x83\x00\xe9POP"
+		true     // // pe.rich_signature == "Pop\x00\x83\x00\xe9POP"
 }
 )";
 

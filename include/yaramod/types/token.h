@@ -182,8 +182,9 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText() const {	return _value->getText(); }
+	std::string getText() const { return _value->getText(); }
 	std::string getPureText() const { return _value->getPureText(); }
+	std::string getTextWithoutQuotes() const { return _value->getTextWithoutQuotes(); }
 	/// @}
 
 	/// @name Setter methods
