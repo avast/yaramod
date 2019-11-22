@@ -161,22 +161,22 @@ void ParserDriver::defineTokens()
 	//$include_file end
 
 	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
-		int64_t n;
+		int64_t n = 0;
 		strToNum(std::string{str}, n, std::hex);
 		return emplace_back(INTEGER, n, std::make_optional(std::string{str}));
 	});
 	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
-		int64_t n;
+		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(INTEGER, 1000 * n, std::make_optional(std::string{str}));
 	});
 	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
-		int64_t n;
+		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(INTEGER, 1000000 * n, std::make_optional(std::string{str}));
 	});
 	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
-		int64_t n;
+		int64_t n = 0;
 		strToNum(std::string{str}, n);
 		return emplace_back(INTEGER, n, std::make_optional(std::string{str}));
 	});
