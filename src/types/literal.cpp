@@ -194,8 +194,12 @@ std::string Literal::getFormattedValue() const
 }
 
 /**
- * Returns the string representation of the literal in the form it was created in, enclosed in double quotes.
+ * Returns the string representation of the literal in a specified format:
  *
+ * @param format:
+ *     Raw  -  in the form it was created in, enclosed in double quotes.
+ *     RawWithoutQuotes  -  in the form it was created in, without quotes.
+ *     Pure  -  unescaped text without quotes
  * @return String representation.
  */
 std::string Literal::getText(TextFormat format/* = Raw*/) const
@@ -271,7 +275,7 @@ std::string Literal::getPureText() const
 }
 
 /**
- * Returns the string representation readable, so instead of '\x40' prints '@', instead of '\x0a' or '\n' prints new line.
+ * Returns the string in the exact form it was written in.
  *
  * @return String representation.
  */
