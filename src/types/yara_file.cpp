@@ -117,7 +117,28 @@ YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream)
 	: _tokenStream(std::move(tokenStream))
 	, _imports()
 	, _rules()
+	, _importTable()
+	, _ruleTable()
 {
+}
+
+YaraFile::YaraFile(YaraFile&& o) noexcept
+	: _tokenStream(std::move(o._tokenStream))
+	, _imports(std::move(o._imports))
+	, _rules(std::move(o._rules))
+	, _importTable(std::move(o._importTable))
+	, _ruleTable(std::move(o._ruleTable))
+{
+}
+
+YaraFile& YaraFile::operator=(YaraFile&& o) noexcept
+{
+	std::swap(_tokenStream, o._tokenStream);
+	std::swap(_imports, o._imports);
+	std::swap(_rules, o._rules);
+	std::swap(_importTable, o._importTable);
+	std::swap(_ruleTable, o._ruleTable);
+	return *this;
 }
 
 /**

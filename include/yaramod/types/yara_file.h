@@ -24,9 +24,9 @@ public:
 	/// @{
 	YaraFile();
 	YaraFile(const std::shared_ptr<TokenStream>& tokenStream);
-	YaraFile(YaraFile&&) noexcept = default;
+	YaraFile(YaraFile&&) noexcept;
 
-	YaraFile& operator=(YaraFile&&) noexcept = default;
+	YaraFile& operator=(YaraFile&&) noexcept;
 	/// @}
 
 	/// @name String representation
