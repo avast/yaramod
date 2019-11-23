@@ -1701,11 +1701,7 @@ bool ParserDriver::includeEnd()
  */
 bool ParserDriver::ruleExists(const std::string& name) const
 {
-	return std::any_of(_file.getRules().begin(), _file.getRules().end(),
-			[&name](const auto& rule)
-			{
-				return rule->getName() == name;
-			});
+	return _file.hasRule(name);
 }
 
 /**
@@ -1727,11 +1723,11 @@ void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 {
 	if (!_includedFileNames.empty())
 		rule->setLocation(_includedFileNames.back(), _startOfRule);
-	bool success = !ruleExists(rule->getName());
-	if (!success)
-		throw ParserError(std::string("Error: Redefinition of rule "+rule->getName()));
-	else
-		_file.addRule(std::move(rule));
+
+	if (ruleExists(rule->getName()))
+		throw ParserError("Error: Redefinition of rule " + rule->getName());
+
+	_file.addRule(std::move(rule));
 }
 
 /**

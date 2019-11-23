@@ -59,14 +59,18 @@ public:
 	template <typename Fn>
 	void removeImports(Fn&& fn)
 	{
-		auto itr = std::remove_if(_imports.begin(), _imports.end(), fn);
+		auto itr = std::stable_partition(_imports.begin(), _imports.end(), [&](const auto& i) { return !fn(i); });
+		for (auto rem_itr = itr; rem_itr != _imports.end(); ++rem_itr)
+			_importTable.erase(_importTable.find((*rem_itr)->getName()));
 		_imports.erase(itr, _imports.end());
 	}
 
 	template <typename Fn>
 	void removeRules(Fn&& fn)
 	{
-		auto itr = std::remove_if(_rules.begin(), _rules.end(), fn);
+		auto itr = std::stable_partition(_rules.begin(), _rules.end(), [&](const auto& i) { return !fn(i); });
+		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
+			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
 		_rules.erase(itr, _rules.end());
 	}
 	/// @}
@@ -80,12 +84,16 @@ public:
 	/// @{
 	bool hasImports() const;
 	bool hasRules() const;
+	bool hasRule(const std::string& name) const;
 	/// @}
 
 private:
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
+
+	std::unordered_map<std::string, Module*> _importTable;
+	std::unordered_map<std::string, Rule*> _ruleTable;
 
 	static const std::vector<std::shared_ptr<Symbol>> globalVariables; ///< Global variables
 };

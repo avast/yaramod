@@ -168,14 +168,11 @@ bool YaraFile::addImport(TokenIt import)
 		return false;
 
 	// We don't want duplicates.
-	auto itr = std::find_if(_imports.begin(), _imports.end(),
-			[&import](const auto& loadedModule) {
-				return loadedModule->getName() == import->getPureText();
-			});
-	if (itr != _imports.end())
+	if (_importTable.find(import->getPureText()) != _importTable.end())
 		return true;
 
 	_imports.push_back(std::move(module));
+	_importTable.emplace(_imports.back()->getName(), _imports.back().get());
 	return true;
 }
 
@@ -197,6 +194,7 @@ void YaraFile::addRule(Rule&& rule)
 void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
 {
 	_rules.emplace_back(std::move(rule));
+	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
 }
 
 /**
@@ -207,6 +205,7 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
 void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
 {
 	_rules.emplace_back(rule);
+	_ruleTable.emplace(rule->getName(), _rules.back().get());
 }
 
 /**
@@ -216,7 +215,8 @@ void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
  */
 void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
 {
-	std::copy(rules.begin(), rules.end(), std::back_inserter(_rules));
+	for (const auto& rule : rules)
+		addRule(rule);
 }
 
 /**
@@ -248,6 +248,7 @@ void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 {
 	position = std::min(position, _rules.size());
 	_rules.insert(_rules.begin() + position, std::move(rule));
+	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
 }
 
 /**
@@ -260,6 +261,7 @@ void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rul
 {
 	position = std::min(position, _rules.size());
 	_rules.insert(_rules.begin() + position, rule);
+	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
 }
 
 /**
@@ -302,17 +304,11 @@ const std::vector<std::shared_ptr<Rule>>& YaraFile::getRules() const
 std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 {
 	// @todo Should rules have priority over imported modules?
-	for (const auto& rule : _rules)
-	{
-		if (rule->getName() == name)
-			return rule->getSymbol();
-	}
+	if (auto itr = _ruleTable.find(name); itr != _ruleTable.end())
+		return itr->second->getSymbol();
 
-	for (const auto& import : _imports)
-	{
-		if (import->getName() == name)
-			return import->getStructure();
-	}
+	if (auto itr = _importTable.find(name); itr != _importTable.end())
+		return itr->second->getStructure();
 
 	for (const auto& globalVar : YaraFile::globalVariables)
 	{
@@ -341,6 +337,16 @@ bool YaraFile::hasImports() const
 bool YaraFile::hasRules() const
 {
 	return !_rules.empty();
+}
+
+/**
+ * Returns whether the YARA file contains specified rule.
+ *
+ * @return @c true if it contains, otherwise @c false.
+ */
+bool YaraFile::hasRule(const std::string& name) const
+{
+	return _ruleTable.find(name) != _ruleTable.end();
 }
 
 }
