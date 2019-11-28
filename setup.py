@@ -83,11 +83,10 @@ class BuildExtCommand(build_ext):
                 configure_cmd.append('-G{}'.format(os.environ['CMAKE_GENERATOR']))
             if 'win' in self.plat_name:
                 configure_cmd.append('-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(config_name.upper(), module_output_dir))
-                if 'CMAKE_GENERATOR' not in os.environ:
-                    if self.plat_name == 'win-amd64':
-                        configure_cmd.extend(['-A', 'x64'])
-                    elif self.plat_name == 'win32':
-                        configure_cmd.extend(['-A', 'x86'])
+                if self.plat_name == 'win-amd64':
+                    configure_cmd.extend(['-A', 'x64'])
+                elif self.plat_name == 'win32':
+                    configure_cmd.extend(['-A', 'x86'])
             else:
                 configure_cmd.extend([
                     '-DCMAKE_BUILD_TYPE={}'.format(config_name),
