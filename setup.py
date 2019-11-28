@@ -80,15 +80,17 @@ class BuildExtCommand(build_ext):
         with WorkingDirectory(build_dir):
             configure_cmd = ['cmake', '-DYARAMOD_PYTHON=ON', '-DPYTHON_EXECUTABLE={}'.format(sys.executable)]
             cmake_generator = os.environ.get('CMAKE_GENERATOR', get_default_cmake_generator())
-            configure_cmd.append('-G{}'.format(cmake_generator))
+            if cmake_generator is not None:
+                configure_cmd.append('-G{}'.format(cmake_generator))
             if 'win' in self.plat_name:
                 configure_cmd.append('-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(config_name.upper(), module_output_dir))
-                vs_version = get_visual_studio_version(cmake_generator)
-                if vs_version is not None and vs_version >= 2019:
-                    if self.plat_name == 'win-amd64':
-                        configure_cmd.extend(['-A', 'x64'])
-                    elif self.plat_name == 'win32':
-                        configure_cmd.extend(['-A', 'Win32'])
+                if cmake_generator is not None:
+                    vs_version = get_visual_studio_version(cmake_generator)
+                    if vs_version is not None and vs_version >= 2019:
+                        if self.plat_name == 'win-amd64':
+                            configure_cmd.extend(['-A', 'x64'])
+                        elif self.plat_name == 'win32':
+                            configure_cmd.extend(['-A', 'Win32'])
             else:
                 configure_cmd.extend([
                     '-DCMAKE_BUILD_TYPE={}'.format(config_name),
