@@ -1,32 +1,31 @@
 version: '{build}'
 
 environment:
-  WINFLEXBISON_ARCHIVE: winflexbison-2.5.16.zip
   PANDOC_VERSION: 2.2.2.1
   PANDOC_ARCHIVE: pandoc-%PANDOC_VERSION%-windows-x86_64.zip
   PYPI_USERNAME: yaramod
   PYPI_PASSWORD:
     secure: rqIEDKQDpYkovDQpxHABjjAXnULbrLiwEWa1mwYWKis=
   matrix:
-    - PYTHON: "C:\\Python36-x64"
-      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      DEPLOY_TO_PYPI: true
-    - PYTHON: "C:\\Python37-x64"
-      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      DEPLOY_TO_PYPI: true
-    - PYTHON: "C:\\Python36"
-      CMAKE_GENERATOR: Visual Studio 15 2017
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      DEPLOY_TO_PYPI: true
-    - PYTHON: "C:\\Python37"
-      CMAKE_GENERATOR: Visual Studio 15 2017
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      DEPLOY_TO_PYPI: true
-    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python38-x64"
       CMAKE_GENERATOR: Visual Studio 16 2019
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      DEPLOY_TO_PYPI: true
+    - PYTHON: "C:\\Python37-x64"
+      CMAKE_GENERATOR: Visual Studio 16 2019
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      DEPLOY_TO_PYPI: true
+    - PYTHON: "C:\\Python38"
+      CMAKE_GENERATOR: Visual Studio 16 2019
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      DEPLOY_TO_PYPI: true
+    - PYTHON: "C:\\Python37"
+      CMAKE_GENERATOR: Visual Studio 16 2019
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      DEPLOY_TO_PYPI: true
+    - PYTHON: "C:\\Python38-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
 configuration:
   - Release
@@ -36,11 +35,9 @@ matrix:
   fast_finish: true
 
 install:
-  - appveyor DownloadFile "https://downloads.sourceforge.net/project/winflexbison/old_versions/%WINFLEXBISON_ARCHIVE%"
-  - 7z x -y -owinflexbison\ "%WINFLEXBISON_ARCHIVE%" > nul
   - appveyor DownloadFile "https://github.com/jgm/pandoc/releases/download/%PANDOC_VERSION%/%PANDOC_ARCHIVE%"
   - 7z x -y "%PANDOC_ARCHIVE%" > nul
-  - set Path=%CD%\winflexbison;%CD%\pandoc-%PANDOC_VERSION%;%PYTHON%\Scripts;%Path%
+  - set Path=%CD%\pandoc-%PANDOC_VERSION%;%PYTHON%\Scripts;%Path%
 
 before_build:
   - cmd: '%PYTHON%\Scripts\pip install -r requirements.txt'
