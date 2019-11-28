@@ -86,7 +86,7 @@ class BuildExtCommand(build_ext):
                 if self.plat_name == 'win-amd64':
                     configure_cmd.extend(['-A', 'x64'])
                 elif self.plat_name == 'win32':
-                    configure_cmd.extend(['-A', 'x86'])
+                    configure_cmd.extend(['-A', 'Win32'])
             else:
                 configure_cmd.extend([
                     '-DCMAKE_BUILD_TYPE={}'.format(config_name),
