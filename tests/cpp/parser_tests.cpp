@@ -4086,5 +4086,94 @@ rule rule1 {
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+AutoformattingNewlines) {
+	prepareInput(
+R"(/*
+This is a comment at the beginning
+*/
+
+rule cruel_rule
+{
+	meta:
+		author = "Mr. Avastien"
+		description = "reliability_test"
+		reliability = "brief" // comment
+		strain = "Krakonos"  // comment
+		type = "roof"  // comment
+		severity = "virus"    // comment
+		hash = "596EAF3CDD47A710743016E0C032A6EFD0922BA3010C899277E80AA6B6226F85"    // comment
+		rule_type = "typical" // comment
+	strings:
+		$h00 = {
+				b8 17 ?? 01
+				b8 17 ?? 02
+				b8 17 ?? 03 04 //COMMENTARY 1
+				b8 17 ?? 23 55       //COMMENTARY 1
+				b8 17 ?? 24 a1 //COMMENTARY 1
+				b8 17 ?? 25 b5 c6 c1 //COMMENTARY 1
+				b8 17 ?? 35
+				b8 17 ?? 36 04 //COMMENTARY 2
+				b8 17 ?? 37 05 06 //COMMENTARY 2
+				b8 17 ?? 47 07 //COMMENTARY 2
+				b8 17 ?? 48
+				b8 17 ?? 49 11 //COMMENTARY 3
+				b8 17 ?? 57 //COMMENTARY 3
+				b8 17 ?? 58
+				} // 0x00000852 preparing bytes for sending semi-valid SMB response
+		$s00 = "str 123" // 0x17
+		$s01 = "string 234567"  // 0x005
+		$s02 = "basic for loop" // 0
+	condition:
+		any of ($s0*) or
+		$h00
+})");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(/*
+This is a comment at the beginning
+*/
+
+rule cruel_rule
+{
+	meta:
+		author = "Mr. Avastien"
+		description = "reliability_test"
+		reliability = "brief"                                                     // comment
+		strain = "Krakonos"                                                       // comment
+		type = "roof"                                                             // comment
+		severity = "virus"                                                        // comment
+		hash = "596EAF3CDD47A710743016E0C032A6EFD0922BA3010C899277E80AA6B6226F85" // comment
+		rule_type = "typical"                                                     // comment
+	strings:
+		$h00 = {
+			b8 17 ?? 01
+			b8 17 ?? 02
+			b8 17 ?? 03 04       //COMMENTARY 1
+			b8 17 ?? 23 55       //COMMENTARY 1
+			b8 17 ?? 24 a1       //COMMENTARY 1
+			b8 17 ?? 25 b5 c6 c1 //COMMENTARY 1
+			b8 17 ?? 35
+			b8 17 ?? 36 04    //COMMENTARY 2
+			b8 17 ?? 37 05 06 //COMMENTARY 2
+			b8 17 ?? 47 07    //COMMENTARY 2
+			b8 17 ?? 48
+			b8 17 ?? 49 11 //COMMENTARY 3
+			b8 17 ?? 57    //COMMENTARY 3
+			b8 17 ?? 58
+		}                       // 0x00000852 preparing bytes for sending semi-valid SMB response
+		$s00 = "str 123"        // 0x17
+		$s01 = "string 234567"  // 0x005
+		$s02 = "basic for loop" // 0
+	condition:
+		any of ($s0*) or
+		$h00
+})";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+
 }
 }
