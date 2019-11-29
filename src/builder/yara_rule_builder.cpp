@@ -185,6 +185,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, escapeString(value));
+	itValue->markEscaped();
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
 	_metas.emplace_back(itKey, itValue);

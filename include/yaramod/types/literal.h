@@ -20,8 +20,6 @@ namespace yaramod {
 
 class Symbol;
 
-enum TextFormat{Raw, Pure, RawWithoutQuotes};
-
 /**
  * Class representing literal. Literal can be either
  * string, integer or boolean. This class can only bear
@@ -65,6 +63,8 @@ public:
 	void setValue(double f, const std::optional<std::string>& integral_formated_value = std::nullopt);
 	void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
 	void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
+
+	void markEscaped() {  _escaped = true; }
 	/// @}
 
 	/// @name Getter methods
@@ -104,9 +104,8 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText(TextFormat = Raw) const;
+	std::string getText(bool pure = false) const;
 	std::string getPureText() const;
-	std::string getTextWithoutQuotes() const;
 	/// @}
 
 	/// @name Detection methods
@@ -135,6 +134,7 @@ public:
 	}
 
 private:
+	bool _escaped = false;
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted:	_formated_value is empty  AND  _value contains x
 	/// ii. x it is formatted:	  _formated_value contains x's string representation  AND  _value contains pure x

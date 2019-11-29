@@ -196,23 +196,18 @@ std::string Literal::getFormattedValue() const
 /**
  * Returns the string representation of the literal in a specified format:
  *
- * @param format:
- *     Raw  -  in the form it was created in, enclosed in double quotes.
- *     RawWithoutQuotes  -  in the form it was created in, without quotes.
- *     Pure  -  unescaped text without quotes
+ * @param pure Flag only used for string literals. If set, the exact form this was created in is returned -- without quotes.
  * @return String representation.
  */
-std::string Literal::getText(TextFormat format/* = Raw*/) const
+std::string Literal::getText(bool pure/* = false*/) const
 {
 	if (is<std::string>())
 	{
-		const std::string& output = get<std::string>();
-		if (format == Pure)
-			return unescapeString(output);
-		else if(format == Raw)
-			return '"' + output + '"';
+		const auto& output = get<std::string>();
+		if (pure)
+			return _escaped ? unescapeString(output) : output;
 		else
-			return output;
+			return '"' + output + '"';
 	}
 	else if (is<bool>())
 	{
@@ -265,23 +260,13 @@ std::string Literal::getText(TextFormat format/* = Raw*/) const
 }
 
 /**
- * Returns the string representation readable, so instead of '\x40' prints '@', instead of '\x0a' or '\n' prints new line.
+ * Returns the string in the exact form it was written in.
  *
  * @return String representation.
  */
 std::string Literal::getPureText() const
 {
-	return getText(Pure);
-}
-
-/**
- * Returns the string in the exact form it was written in.
- *
- * @return String representation.
- */
-std::string Literal::getTextWithoutQuotes() const
-{
-	return getText(RawWithoutQuotes);
+	return getText(true);
 }
 
 bool Literal::isIntegral() const

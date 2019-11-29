@@ -733,6 +733,7 @@ YaraExpressionBuilder stringVal(const std::string& value)
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt token = ts->emplace_back(STRING_LITERAL, escapeString(value));
+	token->markEscaped();
 	auto expression = std::make_shared<StringLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::String);
 }

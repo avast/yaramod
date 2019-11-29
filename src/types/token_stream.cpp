@@ -387,25 +387,25 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment)
 {
 	auto prevIt = ts->predecessor(it);
+	auto indentation = it->getIndentation() + 1;
 
 	const std::string& indent = it->getLiteral().getFormattedValue();
-	// print indent part 1
-	if (prevIt && (*prevIt)->getType() == NEW_LINE)
+	// Comment at a beginning of a line
+	if(ss)
 	{
-		if (ss)
+		if (!prevIt || (*prevIt)->getType() == NEW_LINE)
+		{
 			*ss << indent;
-	}// print indent part 2
-	else if (ss && alignComment && columnCounter < it->getIndentation() && (!prevIt || (*prevIt)->getType() != COLON))
-		*ss << std::string(it->getIndentation() - columnCounter + 1, ' ');
-	// remember oneline comments
-	if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
+		}
+		else if(alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
+			*ss << std::string(indentation - columnCounter, ' ');
+		*ss << it->getPureText();
+	}
+	else if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;
 		commentPool.push_back(it);
 	}
-
-	if (ss)
-		*ss << it->getTextWithoutQuotes();
 	return columnCounter;
 }
 
@@ -462,8 +462,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			else
 				helper.insertIntoStream(os, this, it);
 		}
-		else if ((current == ONELINE_COMMENT || current == COMMENT))
+		else if (current == ONELINE_COMMENT || current == COMMENT)
+		{
 			helper.printComment(os, this, it, alignComments);
+		}
 		else
 			helper.insertIntoStream(os, this, it);
 

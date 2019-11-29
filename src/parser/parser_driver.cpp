@@ -219,18 +219,25 @@ void ParserDriver::defineTokens()
 	// $str tokens are not delegated with return Value but stored in _strLiteral
 	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
 		_strLiteral.clear();
+		_escapedContent = false;
 		return {};
 	});
 
 	_parser.token(R"(\\x[0-9a-fA-F]{2})").states("$str").action([&](std::string_view str) -> Value {
 		_strLiteral += "\\x";
 		_strLiteral += std::string{str}.substr(2);
+		_escapedContent = true;
 		return {};
 	});
 	_parser.token(R"(\\[tn\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
-	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value {error_handle(currentLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
-	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value { return emplace_back(STRING_LITERAL, _strLiteral); });
+	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
+		auto strIt = emplace_back(STRING_LITERAL, _strLiteral);
+		if (_escapedContent)
+			strIt->markEscaped();
+		return strIt;
+	});
 
 	// $str end
 
