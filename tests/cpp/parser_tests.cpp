@@ -2428,14 +2428,57 @@ rule math_module {
 }
 
 TEST_F(ParserTests,
-PeModuleWorks) {
+PeModuleWorks1) {
 	prepareInput(
 R"(
 import "pe"
 
 rule pe_module {
 	condition:
-		pe.exports("ExitProcess") and pe.characteristics & pe.DLL
+		pe.version_info["CompanyName"] == "company"
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	Expression::Ptr condition = rule->getCondition();
+	EXPECT_TRUE(condition->isBool());
+	auto expEq = std::static_pointer_cast<const EqExpression>(condition);
+	EXPECT_EQ(R"(pe.version_info["CompanyName"] == "company")", expEq->getText());
+
+	auto expLeft = std::static_pointer_cast<const ArrayAccessExpression>(expEq->getLeftOperand());
+	EXPECT_EQ(R"(pe.version_info["CompanyName"])", expLeft->getText());
+	auto expItem = expLeft->getAccessor();
+	EXPECT_EQ(R"("CompanyName")", expItem->getText());
+	auto arraySymbol = expLeft->getSymbol();
+	EXPECT_NE(arraySymbol, nullptr);
+	EXPECT_EQ("pe.version_info", arraySymbol->getName());
+
+	auto expArray = std::static_pointer_cast<const StructAccessExpression>(expLeft->getArray());
+	EXPECT_EQ(R"(pe.version_info)", expArray->getText());
+	auto expPeStructure = expArray->getStructure();
+	EXPECT_EQ(R"(pe)", expPeStructure->getText());
+	auto accessedSymbol = expArray->getSymbol();
+	EXPECT_NE(accessedSymbol, nullptr);
+	EXPECT_EQ(R"(version_info)", accessedSymbol->getName());
+	EXPECT_EQ(Symbol::Type::Dictionary, accessedSymbol->getType());
+	EXPECT_TRUE(accessedSymbol->isDictionary());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+PeModuleWorks2) {
+	prepareInput(
+R"(
+import "pe"
+
+rule pe_module {
+	condition:
+		pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL
 }
 )");
 
@@ -2443,7 +2486,7 @@ rule pe_module {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(pe.exports("ExitProcess") and pe.characteristics & pe.DLL)", rule->getCondition()->getText());
+	EXPECT_EQ(R"(pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL)", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

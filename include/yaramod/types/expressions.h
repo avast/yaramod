@@ -1189,17 +1189,14 @@ public:
 	/**
 	 * Constructors
 	 */
-	IdExpression() = default;
 	IdExpression(const std::shared_ptr<Symbol>& symbol)
+		: _symbol(symbol)
 	{
-		if (symbol)
-			_symbol = _tokenStream->emplace_back(ID, symbol, symbol->getName());
 	}
 
 	IdExpression(TokenIt symbol)
-		: _symbol(symbol)
+		: _symbol(symbol->getSymbol())
 	{
-		assert(symbol->isSymbol());
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1209,25 +1206,17 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
-		if (_symbol)
-			return _symbol.value()->getSymbol()->getName();
-		return std::string();
+		assert(_symbol);
+		return _symbol->getName();
 	}
 
 	const std::shared_ptr<Symbol>& getSymbol() const
 	{
-		assert(_symbol.has_value());
-		return _symbol.value()->getSymbol();
-	}
-
-	void setSymbol(const std::shared_ptr<Symbol>& symbol)
-	{
-		assert(_symbol.has_value());
-	 	_symbol.value()->setValue(symbol, symbol->getName());
+		return _symbol;
 	}
 
 protected:
-	std::optional<TokenIt> _symbol; ///< Symbol of the identifier
+	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
 };
 
 /**
@@ -1259,7 +1248,7 @@ public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		if (_symbol)
-			return _structure->getText(indent) + _dot->getString() + _symbol.value()->getSymbol()->getName();
+			return _structure->getText(indent) + _dot->getString() + _symbol->getName();
 		return _structure->getText(indent) + _dot->getString();
 	}
 
@@ -1287,18 +1276,7 @@ class ArrayAccessExpression : public IdExpression
 {
 public:
 	template <typename ExpPtr1, typename ExpPtr2>
-	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, ExpPtr1&& array, ExpPtr2&& accessor)
-		: IdExpression(symbol)
-		, _array(std::forward<ExpPtr1>(array))
-		, _accessor(std::forward<ExpPtr2>(accessor))
-	{
-		_tokenStream->move_append(_array->getTokenStream());
-		_left_bracket = _tokenStream->emplace_back(LSQB, "[");
-		_tokenStream->move_append(_accessor->getTokenStream());
-		_right_bracket = _tokenStream->emplace_back(RSQB, "]");
-	}
-	template <typename ExpPtr1, typename ExpPtr2>
-	ArrayAccessExpression(TokenIt symbol, ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
+	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
 		: IdExpression(symbol)
 		, _array(std::forward<ExpPtr1>(array))
 		, _left_bracket(left_bracket)
@@ -1308,7 +1286,7 @@ public:
 	}
 	template <typename ExpPtr1, typename ExpPtr2>
 	ArrayAccessExpression(ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
-		: IdExpression()
+		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbol())
 		, _array(std::forward<ExpPtr1>(array))
 		, _left_bracket(left_bracket)
 		, _accessor(std::forward<ExpPtr2>(accessor))
@@ -1355,7 +1333,7 @@ class FunctionCallExpression : public IdExpression
 public:
 	template <typename ExpPtr, typename ExpPtrVector>
 	FunctionCallExpression(ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
-		: IdExpression()
+		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbol())
 		, _func(std::forward<ExpPtr>(func))
 		, _left_bracket(left_bracket)
 		, _args(std::forward<ExpPtrVector>(args))

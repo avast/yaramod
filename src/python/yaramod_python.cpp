@@ -364,7 +364,7 @@ void addExpressionClasses(py::module& module)
 				&RangeExpression::getHigh,
 				py::overload_cast<const Expression::Ptr&>(&RangeExpression::setHigh));
 	exprClass<IdExpression>(module, "IdExpression")
-		.def_property("symbol", &IdExpression::getSymbol, &IdExpression::setSymbol);
+		.def_property_readonly("symbol", &IdExpression::getSymbol);
 	exprClass<StructAccessExpression, IdExpression>(module, "StructAccessExpression")
 		.def_property("structure",
 				&StructAccessExpression::getStructure,
