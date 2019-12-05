@@ -43,7 +43,7 @@ bool pathIsRelative(const std::string& path)
 std::string parentPath(const std::string& path)
 {
 	char parentPathStr[MAX_PATH] = { '\0' };
-	strncpy(parentPathStr, path.c_str(), MAX_PATH - 1);
+	strncpy_s(parentPathStr, path.c_str(), MAX_PATH - 1);
 	PathRemoveFileSpec(parentPathStr);
 	return parentPathStr;
 }
