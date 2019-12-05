@@ -406,19 +406,19 @@ public:
 		_leftBracket = _tokenStream->emplace_back(TokenType::LCB, '{');
 
 		// If both start and end are defined and they are equal, it is fixed range.
-		if (range.first && range.second && range.first.value() == range.second.value())
+		if (range.first && range.first == range.second)
 		{
-			_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
+			_first = _tokenStream->emplace_back(TokenType::DOUBLE, range.first.value());
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, std::string());
 			_second = _first;
 		}
 		else
 		{
 			if (range.first)
-			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, *range.first);
+			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, range.first.value());
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
 			if (range.second)
-				_second = _tokenStream->emplace_back(TokenType::DOUBLE, *range.second);
+				_second = _tokenStream->emplace_back(TokenType::DOUBLE, range.second.value());
 		}
 
 		_rightBracket = _tokenStream->emplace_back(TokenType::RCB, '}');
