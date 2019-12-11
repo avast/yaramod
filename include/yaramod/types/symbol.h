@@ -44,6 +44,7 @@ public:
 	/// @{
 	const std::string& getName() const { return _name; }
 	Expression::Type getDataType() const { return _dataType; }
+	Symbol::Type getType() const { return _type; }
 	TokenType getTokenType() const
 	{
 		switch(_type)

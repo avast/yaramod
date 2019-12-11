@@ -1278,10 +1278,10 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("identifier") // Expression::Ptr
 		.production("ID", [&](auto&& args) -> Value {
-			auto symbol = findSymbol(args[0].getTokenIt()->getString());
+			TokenIt symbol_token = args[0].getTokenIt();
+			auto symbol = findSymbol(symbol_token->getString());
 			if (!symbol)
 				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
-			TokenIt symbol_token = args[0].getTokenIt();
 			symbol_token->setValue(symbol, symbol->getName());
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
@@ -1313,14 +1313,21 @@ void ParserDriver::defineGrammar()
 			const auto& expr = args[0].getExpression();
 			if (!expr->isObject())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
-
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			assert(parentSymbol);
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+			
+			std::shared_ptr<const IterableSymbol> iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
 
-			auto iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
+			std::shared_ptr<Symbol> arraySymbol;
+			if (iterParentSymbol->isStructured())
+				arraySymbol = iterParentSymbol->getStructuredElementType();
+			else
+				arraySymbol = std::make_shared<ValueSymbol>(expr->getText(), iterParentSymbol->getElementType());
+			auto output = std::make_shared<ArrayAccessExpression>(arraySymbol, std::move(expr), args[1].getTokenIt(), std::move(args[2].getExpression()), args[3].getTokenIt());
+			
 
-			auto output = std::make_shared<ArrayAccessExpression>(iterParentSymbol->getStructuredElementType(), std::move(expr), std::move(args[2].getExpression()));
 			output->setType(iterParentSymbol->getElementType());
 			return Value(std::move(output));
 		})
