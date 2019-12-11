@@ -4218,5 +4218,18 @@ rule cruel_rule
 }
 
 
+
+TEST_F(ParserTests,
+AutoformattingOfOnelineRule) {
+	prepareInput(
+R"(rule oneline_rule { meta: author = "Mr. Avastien"     description = "reliability_test"      strings: $s00 = "str 123"     $s01 = "string 234567"    condition:   any of ($s0*) })");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule oneline_rule { meta: author = "Mr. Avastien" description = "reliability_test" strings: $s00 = "str 123" $s01 = "string 234567" condition: any of ($s0*) })";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
