@@ -1,9 +1,10 @@
 # Changelog
 
-# dev
+# v3.0.0 (2019-12-13)
 
 * Replaced `flex` and `bison` with `pog`.
 * Added autoformatting of YARA rules.
+* Added `cuckoo.process.scheduled_task()`.
 
 # v2.12.1 (2019-10-29)
 
