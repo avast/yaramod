@@ -4231,5 +4231,28 @@ std::string expected = R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Av
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
+
+TEST_F(ParserTests,
+CuckooScheduledTaskModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_scheduled {
+	condition:
+		cuckoo.process.scheduled_task(/SomeEvilTask/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.scheduled_task(/SomeEvilTask/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+
 }
 }
