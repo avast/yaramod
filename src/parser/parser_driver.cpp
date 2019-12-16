@@ -36,14 +36,14 @@ void ParserDriver::defineTokens()
 		currentLocation().addColumn(str.length());
 	});
 
-	_parser.token("[\n\r]").action([&](std::string_view str) -> Value {
-		currentTokenStream()->setNewLineChar(std::string{str}.front());
+	_parser.token("\r\n|\r|\n").action([&](std::string_view str) -> Value {
+		currentTokenStream()->setNewLineChar(std::string{str});
 		TokenIt t = emplace_back(NEW_LINE, std::string{str});
 		_indent.clear();
 		currentLocation().addLine();
 		return t;
 	});
-	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
+	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
 		_indent += std::string{str};
 		return {};
 	});
@@ -140,9 +140,9 @@ void ParserDriver::defineTokens()
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
-	_parser.token("[\n\r]").states("$include").action([&](std::string_view str) -> Value {
+	_parser.token("\r\n|\r|\n").states("$include").action([&](std::string_view str) -> Value {
 		currentLocation().addLine();
-		currentTokenStream()->setNewLineChar(std::string{str}.front());
+		currentTokenStream()->setNewLineChar(std::string{str});
 		return Value(emplace_back(NEW_LINE, std::string{str}));
 	});
 	_parser.token(R"([ \v\r\t])").states("$include");
@@ -303,7 +303,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
 		currentLocation().addLine();
-		return emplace_back(NEW_LINE, currentTokenStream()->getNewLineChar());
+		return emplace_back(NEW_LINE, currentTokenStream()->getNewLineStyle());
 	});
 	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
 	// $hexstr end

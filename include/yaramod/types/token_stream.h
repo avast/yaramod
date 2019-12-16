@@ -125,8 +125,8 @@ public:
 
 	/// @name New Line Characters
 	/// @{
-	char getNewLineChar() const { return new_line_char; }
-	void setNewLineChar(char c) { new_line_char = c; }
+	const std::string& getNewLineStyle() const { return new_line_style; }
+	void setNewLineChar(std::string line) { new_line_style = std::move(line); }
 	/// @}
 
 	/// @name Reseting method
@@ -142,7 +142,7 @@ protected:
 private:
 	std::list<Token> _tokens; ///< All tokens off the rule
 	bool formatted = false; ///< The flag is set once autoformat has been called
-	char new_line_char = '\n'; ///< The character used for line endings: usually '\n' on Unix or '\r' on Windows
+	std::string new_line_style = "\n"; ///< The character used for line endings: usually '\n' on Unix or '\r' on MacOs or '\r\n' on Windows
 };
 
 } //namespace yaramod
