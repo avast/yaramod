@@ -305,7 +305,7 @@ void TokenStream::addMissingNewLines()
 			brackets.addLeftBracket(lineCounter, it->getFlag());
 			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, new_line_char);
 				next = nextIt->getType();
 			}
 		}
@@ -313,7 +313,7 @@ void TokenStream::addMissingNewLines()
 		{
 			if (brackets.putNewlineInCurrentSector() && current != NEW_LINE)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, "\n");
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, new_line_char);
 				next = nextIt->getType();
 			}
 			else

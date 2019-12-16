@@ -123,6 +123,12 @@ public:
 	std::vector<std::string> getTokensAsText() const;
 	/// @}
 
+	/// @name New Line Characters
+	/// @{
+	char getNewLineChar() const { return new_line_char; }
+	void setNewLineChar(char c) { new_line_char = c; }
+	/// @}
+
 	/// @name Reseting method
 	void clear();
 	/// @}
@@ -136,6 +142,7 @@ protected:
 private:
 	std::list<Token> _tokens; ///< All tokens off the rule
 	bool formatted = false; ///< The flag is set once autoformat has been called
+	char new_line_char = '\n'; ///< The character used for line endings: usually '\n' on Unix or '\r' on Windows
 };
 
 } //namespace yaramod

@@ -3968,6 +3968,19 @@ rule public_rule {
 }
 
 TEST_F(ParserTests,
+AutoformattingAddCRLF) {
+	prepareInput(
+"import \"cuckoo\"\r\rrule public_rule {\r	condition:\r		false or\r		(true and\r			(\r				true or\r				false\r				))\r}");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+"import \"cuckoo\"\r\rrule public_rule {\r	condition:\r		false or\r		(\r			true and\r			(\r				true or\r				false\r			)\r		)\r}";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingNoSpaceBeforeArrayAccess) {
 	prepareInput(
 R"(
@@ -4216,8 +4229,6 @@ rule cruel_rule
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
-
-
 
 TEST_F(ParserTests,
 AutoformattingOfOnelineRule) {

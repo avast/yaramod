@@ -36,13 +36,14 @@ void ParserDriver::defineTokens()
 		currentLocation().addColumn(str.length());
 	});
 
-	_parser.token("\n").action([&](std::string_view str) -> Value {
+	_parser.token("[\n\r]").action([&](std::string_view str) -> Value {
+		currentTokenStream()->setNewLineChar(std::string{str}.front());
 		TokenIt t = emplace_back(NEW_LINE, std::string{str});
 		_indent.clear();
 		currentLocation().addLine();
 		return t;
 	});
-	_parser.token("[ \t\r]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
+	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators, carrige-returns
 		_indent += std::string{str};
 		return {};
 	});
@@ -139,8 +140,9 @@ void ParserDriver::defineTokens()
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
-	_parser.token("\n").states("$include").action([&](std::string_view str) -> Value {
+	_parser.token("[\n\r]").states("$include").action([&](std::string_view str) -> Value {
 		currentLocation().addLine();
+		currentTokenStream()->setNewLineChar(std::string{str}.front());
 		return Value(emplace_back(NEW_LINE, std::string{str}));
 	});
 	_parser.token(R"([ \v\r\t])").states("$include");
@@ -301,7 +303,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
 		currentLocation().addLine();
-		return emplace_back(NEW_LINE, "\n");
+		return emplace_back(NEW_LINE, currentTokenStream()->getNewLineChar());
 	});
 	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
 	// $hexstr end
