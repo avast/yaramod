@@ -4244,6 +4244,43 @@ rule cruel_rule
 }
 
 TEST_F(ParserTests,
+AutoformattingCommentInsideHexstringOnNewline) {
+	prepareInput(
+R"(rule cruel_rule
+{
+	strings:
+		$h00 = {
+			// comment inside hex on the beginning
+			b8 17 ?? 01
+			// comment inside hex in the middle
+			b8 17 ?? 03 04
+			b8 17 ?? 23 55
+			// comment inside hex in the end
+			}
+	condition:
+		true
+})");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule cruel_rule
+{
+	strings:
+		$h00 = {
+			// comment inside hex on the beginning
+			b8 17 ?? 01
+			// comment inside hex in the middle
+			b8 17 ?? 03 04
+			b8 17 ?? 23 55
+			// comment inside hex in the end
+		}
+	condition:
+		true
+})";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingOfOnelineRule) {
 	prepareInput(
 R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Avastien"    /*COMMENT*/    description = "reliability_test"    /*COMMENT*/      strings: $s00 = "str 123"     /*COMMENT*/    $s01 = "string 234567"   /*COMMENT*/    condition:   any of ($s0*) /*COMMENT*/ })");
@@ -4254,7 +4291,6 @@ std::string expected = R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Av
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
-
 
 TEST_F(ParserTests,
 CuckooScheduledTaskModuleFunction) {

@@ -303,6 +303,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
 		currentLocation().addLine();
+		_indent.clear();
 		return emplace_back(NEW_LINE, currentTokenStream()->getNewLineStyle());
 	});
 	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
