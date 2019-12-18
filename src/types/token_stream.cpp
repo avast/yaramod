@@ -590,7 +590,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		}
 		else if (inside_enumeration_brackets)
 		{
-			if (current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA)
+			if (current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA && next != NEW_LINE)
 				helper.insertIntoStream(os, ' ');
 		}
 		else if (current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)

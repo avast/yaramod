@@ -4367,6 +4367,46 @@ std::string expected = R"(rule cruel_rule
 }
 
 TEST_F(ParserTests,
+AutoformattingNoSpaceBeforeNewLine) {
+	prepareInput(
+R"(import "math"
+
+rule rule1
+{
+	condition:
+		true and
+		(
+			for any i in (	1, 2, 3,
+									4, 5, 6,
+									7 ):
+		(
+			true)
+		)
+})");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(import "math"
+
+rule rule1
+{
+	condition:
+		true and
+		(
+			for any i in (
+				1, 2, 3,
+				4, 5, 6,
+				7
+			) :
+			(
+				true
+			)
+		)
+})";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+TEST_F(ParserTests,
 AutoformattingOfOnelineRule) {
 	prepareInput(
 R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Avastien"    /*COMMENT*/    description = "reliability_test"    /*COMMENT*/      strings: $s00 = "str 123"     /*COMMENT*/    $s01 = "string 234567"   /*COMMENT*/    condition:   any of ($s0*) /*COMMENT*/ })");
