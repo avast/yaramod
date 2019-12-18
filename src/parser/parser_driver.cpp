@@ -36,7 +36,7 @@ void ParserDriver::defineTokens()
 		currentLocation().addColumn(str.length());
 	});
 
-	_parser.token("\r\n|\r|\n").action([&](std::string_view str) -> Value {
+	_parser.token("\r\n|\n").action([&](std::string_view str) -> Value {
 		currentTokenStream()->setNewLineChar(std::string{str});
 		TokenIt t = emplace_back(NEW_LINE, std::string{str});
 		_indent.clear();
@@ -140,12 +140,12 @@ void ParserDriver::defineTokens()
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
-	_parser.token("\r\n|\r|\n").states("$include").action([&](std::string_view str) -> Value {
+	_parser.token("\r\n|\n").states("$include").action([&](std::string_view str) -> Value {
 		currentLocation().addLine();
 		currentTokenStream()->setNewLineChar(std::string{str});
 		return Value(emplace_back(NEW_LINE, std::string{str}));
 	});
-	_parser.token(R"([ \v\r\t])").states("$include");
+	_parser.token(R"([ \v\t])").states("$include");
 	_parser.token(R"(\")").states("$include").enter_state("$include_file");
 	//$include_file
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action([&](std::string_view str) -> Value {
@@ -300,7 +300,7 @@ void ParserDriver::defineTokens()
 	});
 	// $hexstr multiline comment end
 
-	_parser.token(R"({[ \v\r\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
+	_parser.token(R"({[ \v\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
 		currentLocation().addLine();
 		_indent.clear();
