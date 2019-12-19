@@ -10,8 +10,6 @@
 #include "yaramod/types/symbols.h"
 #include "yaramod/utils/utils.h"
 
-#include <iostream>
-
 namespace yaramod {
 
 namespace {
