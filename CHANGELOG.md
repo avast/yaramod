@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.0.1 (2019-12-19)
+
+* Make autoformatting use LF or CRLF depending on what is used in the file ([#48](https://github.com/avast/yaramod/issues/48)).
+* Added missing getter IdExpression::getSymbol().
+
 # v3.0.0 (2019-12-13)
 
 * Replaced `flex` and `bison` with `pog`.
