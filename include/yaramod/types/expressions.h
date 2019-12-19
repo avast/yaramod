@@ -1194,8 +1194,9 @@ public:
 	{
 	}
 
-	IdExpression(TokenIt symbol)
-		: _symbol(symbol->getSymbol())
+	IdExpression(TokenIt symbolToken)
+		: _symbol(symbolToken->getSymbol())
+		, _symbolToken(symbolToken)
 	{
 	}
 
@@ -1215,8 +1216,16 @@ public:
 		return _symbol;
 	}
 
+	void setSymbol(const std::shared_ptr<Symbol>& symbol)
+	{
+		_symbol = symbol;
+		if (_symbolToken)
+			_symbolToken.value()->setValue(_symbol, _symbol->getName());
+	}
+
 protected:
 	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
+	std::optional<TokenIt> _symbolToken; ///< Token of the 
 };
 
 /**

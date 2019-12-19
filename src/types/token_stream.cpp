@@ -305,7 +305,7 @@ void TokenStream::addMissingNewLines()
 			brackets.addLeftBracket(lineCounter, it->getFlag());
 			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, new_line_style);
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 		}
@@ -313,7 +313,7 @@ void TokenStream::addMissingNewLines()
 		{
 			if (brackets.putNewlineInCurrentSector() && current != NEW_LINE)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, new_line_style);
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 			else
@@ -328,7 +328,7 @@ void TokenStream::autoformat()
 {
 	determineNewlineSectors();
 	addMissingNewLines();
-	formatted = true;
+	_formatted = true;
 }
 
 std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, char what)
@@ -434,7 +434,7 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
  */
 void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
-	if (!formatted)
+	if (!_formatted)
 		autoformat();
 	BracketStack brackets;
 	int current_line_tabs = 0;
