@@ -1,8 +1,6 @@
 version: '{build}'
 
 environment:
-  PANDOC_VERSION: 2.2.2.1
-  PANDOC_ARCHIVE: pandoc-%PANDOC_VERSION%-windows-x86_64.zip
   PYPI_USERNAME: yaramod
   PYPI_PASSWORD:
     secure: rqIEDKQDpYkovDQpxHABjjAXnULbrLiwEWa1mwYWKis=
@@ -35,9 +33,7 @@ matrix:
   fast_finish: true
 
 install:
-  - appveyor DownloadFile "https://github.com/jgm/pandoc/releases/download/%PANDOC_VERSION%/%PANDOC_ARCHIVE%"
-  - 7z x -y "%PANDOC_ARCHIVE%" > nul
-  - set Path=%CD%\pandoc-%PANDOC_VERSION%;%PYTHON%\Scripts;%Path%
+  - set Path=%PYTHON%\Scripts;%Path%
 
 before_build:
   - cmd: '%PYTHON%\Scripts\pip install -r requirements.txt'

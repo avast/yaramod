@@ -11,7 +11,6 @@ matrix:
             - build-essential
             - coreutils
             - python3-venv
-            - pandoc
       env:
         - DEPLOY_TO_PYPI=true  # Deploy to PyPI only from Linux build.
       before_script:
