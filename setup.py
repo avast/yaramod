@@ -129,11 +129,9 @@ def get_visual_studio_version(vs_name):
 
 def get_long_description():
     if len(sys.argv) > 1 and 'dist' in sys.argv[1]:
-        try:
-            import pypandoc
-            return pypandoc.convert_file(os.path.join(script_dir, 'README.md'), 'rst')
-        except (ImportError, OSError):
-            print('===> PANDOC is not installed on the system!', file=sys.stderr)
+        with open('README.md') as readme_file:
+            readme = readme_file.read()
+        return readme
     return ''
 
 
@@ -162,6 +160,7 @@ setup(
     name='yaramod',
     description='Library for manipulation of YARA files.',
     long_description=get_long_description(),
+    long_description_content_type='text/markdown',
     author='Marek Milkovic',
     author_email='marek.milkovic@avast.com',
     url='https://github.com/avast/yaramod',
