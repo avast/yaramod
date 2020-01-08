@@ -25,6 +25,7 @@ PhishModule::PhishModule() : Module("phish")
 bool PhishModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto phishStruct = std::make_shared<StructureSymbol>("phish");
 	phishStruct->addAttribute(std::make_shared<ValueSymbol>("source_url", Type::String));

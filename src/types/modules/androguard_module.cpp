@@ -25,6 +25,7 @@ AndroguardModule::AndroguardModule() : Module("androguard")
 bool AndroguardModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto androguardStruct = std::make_shared<StructureSymbol>("androguard");
 

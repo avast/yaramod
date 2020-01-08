@@ -25,6 +25,7 @@ MathModule::MathModule() : Module("math")
 bool MathModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto mathStruct = std::make_shared<StructureSymbol>("math");
 	mathStruct->addAttribute(std::make_shared<ValueSymbol>("MEAN_BYTES", Type::Float));

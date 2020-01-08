@@ -25,6 +25,7 @@ MagicModule::MagicModule() : Module("magic")
 bool MagicModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto magicStruct = std::make_shared<StructureSymbol>("magic");
 	magicStruct->addAttribute(std::make_shared<FunctionSymbol>("mime_type", Type::String));

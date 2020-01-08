@@ -25,6 +25,7 @@ PeModule::PeModule() : Module("pe")
 bool PeModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto peStruct = std::make_shared<StructureSymbol>("pe");
 

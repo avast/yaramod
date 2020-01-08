@@ -25,7 +25,8 @@ DexModule::DexModule() : Module("dex")
 bool DexModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
-
+	(void) needed_symbols;
+	
 	auto dexStruct = std::make_shared<StructureSymbol>("dex");
 
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_035", Type::String));
@@ -107,7 +108,6 @@ bool DexModule::initialize(NeededSymbols needed_symbols)
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("offset", Type::Int));
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("size", Type::Int));
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("value", Type::String));
-	stringIdsStruct->addAttribute(std::make_shared<ArraySymbol>("string_ids", stringIdsStruct));
 	dexStruct->addAttribute(std::make_shared<ArraySymbol>("string_ids", stringIdsStruct));
 
 	auto typeIdsStruct = std::make_shared<StructureSymbol>("type_ids");

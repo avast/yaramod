@@ -25,6 +25,7 @@ DotnetModule::DotnetModule() : Module("dotnet")
 bool DotnetModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto dotnetStruct = std::make_shared<StructureSymbol>("dotnet");
 
@@ -84,6 +85,9 @@ bool DotnetModule::initialize(NeededSymbols needed_symbols)
 
 	dotnetStruct->addAttribute(std::make_shared<ArraySymbol>("constants", Type::String));
 	dotnetStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_constants", Type::Int));
+
+	dotnetStruct->addAttribute(std::make_shared<ArraySymbol>("field_offsets", Type::Int));
+	dotnetStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_field_offsets", Type::Int));
 
 	_structure = dotnetStruct;
 	return true;

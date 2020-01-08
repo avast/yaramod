@@ -25,6 +25,7 @@ HashModule::HashModule() : Module("hash")
 bool HashModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto hashStruct = std::make_shared<StructureSymbol>("hash");
 
@@ -39,6 +40,9 @@ bool HashModule::initialize(NeededSymbols needed_symbols)
 
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("checksum32", Type::Int, Type::Int, Type::Int));
 	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("checksum32", Type::Int, Type::String));
+
+	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("crc32", Type::Int, Type::Int, Type::Int));
+	hashStruct->addAttribute(std::make_shared<FunctionSymbol>("crc32", Type::Int, Type::String));
 
 	_structure = hashStruct;
 	return true;

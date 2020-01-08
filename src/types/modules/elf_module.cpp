@@ -25,6 +25,7 @@ ElfModule::ElfModule() : Module("elf")
 bool ElfModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto elfStruct = std::make_shared<StructureSymbol>("elf");
 

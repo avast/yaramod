@@ -87,7 +87,7 @@ bool Module::isInitialized() const
  */
 std::shared_ptr<Module> Module::load(const std::string& name, NeededSymbols needed_symbols)
 {
-	if(!needed_symbols.avast_specific() && (name == "androguard")) // the androguard module is completely avast-specific
+	if (!needed_symbols.avast_specific() && (name == "androguard" || name == "phish")) // the androguard and phish modules are completely avast-specific
 		return nullptr;
 	auto itr = knownModules.find(name);
 	if (itr == knownModules.end())

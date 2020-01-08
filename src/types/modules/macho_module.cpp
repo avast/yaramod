@@ -73,6 +73,7 @@ MachoModule::MachoModule() : Module("macho")
 bool MachoModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto machoStruct = std::make_shared<StructureSymbol>("macho");
 

@@ -25,6 +25,7 @@ TimeModule::TimeModule() : Module("time")
 bool TimeModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
+	(void) needed_symbols;
 
 	auto timeStruct = std::make_shared<StructureSymbol>("time");
 
