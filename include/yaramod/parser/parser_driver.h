@@ -253,9 +253,9 @@ public:
 	/// @name Constructors
 	/// @{
 	ParserDriver() = delete;
-  	ParserDriver(ParserMode parserMode);
-	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular);
-	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular);
+  	ParserDriver(ParserMode parserMode, bool avastSpecific = true, bool vtSpecific = true);
+	explicit ParserDriver(const std::string& filePath, ParserMode parserMode = ParserMode::Regular, bool avastSpecific = true, bool vtSpecific = true);
+	explicit ParserDriver(std::istream& input, ParserMode parserMode = ParserMode::Regular, bool avastSpecific = true, bool vtSpecific = true);
 	void initialize();
 	/// @}
 
@@ -369,6 +369,7 @@ private:
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 
 	ParserMode _mode; ///< Parser mode.
+	NeededSymbols _neededSymbols; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or skip them
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams; ///< _tokenStream contains all parsed tokens
 	std::stack<Location> _locations; ///< the top location tracks position of currently parsed token within current input file

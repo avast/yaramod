@@ -38,6 +38,7 @@ public:
 	/// @{
 	YaraFileBuilder()
 		: _tokenStream(std::make_shared<TokenStream>())
+		, _neededSymbols(true, true)
 	{
 	}
 	/// @}
@@ -60,6 +61,7 @@ private:
 	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
 	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
+	NeededSymbols _neededSymbols;
 };
 
 }

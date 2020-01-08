@@ -20,7 +20,7 @@ namespace yaramod {
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
 	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
-	yaraFile->addImports(_modules);
+	yaraFile->addImports(_modules, _neededSymbols);
 	yaraFile->addRules(_rules);
 
 	_modules.clear();

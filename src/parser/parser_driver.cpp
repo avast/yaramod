@@ -418,7 +418,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if (!_file.addImport(import))
+			if (!_file.addImport(import, _neededSymbols))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})
@@ -1518,7 +1518,8 @@ void ParserDriver::initialize()
  *
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(ParserMode parserMode)
+ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpecific)
+	: _neededSymbols(avastSpecific, vtSpecific)
 {
 	reset(parserMode);
 	initialize();
@@ -1530,7 +1531,7 @@ ParserDriver::ParserDriver(ParserMode parserMode)
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) : _mode(parserMode),
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
 	_valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	initialize();
@@ -1547,7 +1548,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode) :
  * @param input Input stream.
  * @param parserMode Parsing mode.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode) : _mode(parserMode),
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
 	_optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	initialize();
