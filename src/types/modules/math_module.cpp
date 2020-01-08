@@ -39,6 +39,8 @@ bool MathModule::initialize()
 	mathStruct->addAttribute(std::make_shared<FunctionSymbol>("monte_carlo_pi", Type::Float, Type::String));
 	mathStruct->addAttribute(std::make_shared<FunctionSymbol>("entropy", Type::Float, Type::Int, Type::Int));
 	mathStruct->addAttribute(std::make_shared<FunctionSymbol>("entropy", Type::Float, Type::String));
+	mathStruct->addAttribute(std::make_shared<FunctionSymbol>("min", Type::Int, Type::Int, Type::Int));
+	mathStruct->addAttribute(std::make_shared<FunctionSymbol>("max", Type::Int, Type::Int, Type::Int));
 
 	_structure = mathStruct;
 	return true;
