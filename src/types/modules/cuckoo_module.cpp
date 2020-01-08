@@ -83,7 +83,6 @@ bool CuckooModule::initialize()
 	cuckooStruct->addAttribute(processStruct);
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");
-	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
