@@ -22,7 +22,7 @@ AndroguardModule::AndroguardModule() : Module("androguard")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool AndroguardModule::initialize()
+bool AndroguardModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

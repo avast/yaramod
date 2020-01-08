@@ -22,7 +22,7 @@ DotnetModule::DotnetModule() : Module("dotnet")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DotnetModule::initialize()
+bool DotnetModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

@@ -22,7 +22,7 @@ MathModule::MathModule() : Module("math")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MathModule::initialize()
+bool MathModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

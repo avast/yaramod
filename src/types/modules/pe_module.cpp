@@ -22,7 +22,7 @@ PeModule::PeModule() : Module("pe")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PeModule::initialize()
+bool PeModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

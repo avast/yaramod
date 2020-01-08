@@ -28,7 +28,7 @@ public:
 
 	/// @name Initialization method
 	/// @{
-	virtual bool initialize() override;
+	virtual bool initialize(NeededSymbols needed_symbols) override;
 	/// @}
 };
 

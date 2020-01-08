@@ -35,6 +35,13 @@ public:
 		Structure,
 	};
 
+	enum class Origin
+	{
+		Upstream,
+		Avast,
+		VirusTotal
+	};
+
 	/// @name Destructor
 	/// @{
 	virtual ~Symbol() = default;
@@ -72,10 +79,13 @@ protected:
 	/// @name Constructors
 	/// @{
 	Symbol(Symbol::Type type, const std::string& name, Expression::Type dataType)
-		: _type(type), _name(name), _dataType(dataType) {}
+		: _type(type), _origin(Origin::Upstream), _name(name), _dataType(dataType) {}
+	Symbol(Symbol::Type type, Symbol::Origin origin, const std::string& name, Expression::Type dataType)
+		: _type(type), _origin(origin), _name(name), _dataType(dataType) {}
 	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol
+	Symbol::Origin _origin; ///< Origin of the symbol - is this symbol known by yara upstream or is it Avast-specific or VT-specific?
 	std::string _name; ///< Name
 	Expression::Type _dataType; ///< Data type of the symbol
 };

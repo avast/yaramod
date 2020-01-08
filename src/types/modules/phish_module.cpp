@@ -22,7 +22,7 @@ PhishModule::PhishModule() : Module("phish")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PhishModule::initialize()
+bool PhishModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

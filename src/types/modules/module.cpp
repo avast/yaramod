@@ -85,15 +85,17 @@ bool Module::isInitialized() const
  *
  * @return Module if found, @c nullptr otherwise.
  */
-std::shared_ptr<Module> Module::load(const std::string& name)
+std::shared_ptr<Module> Module::load(const std::string& name, NeededSymbols needed_symbols)
 {
+	if(!needed_symbols.avast_specific() && (name == "androguard")) // the androguard module is completely avast-specific
+		return nullptr;
 	auto itr = knownModules.find(name);
 	if (itr == knownModules.end())
 		return nullptr;
 
 	// Module haven't been initialized yet, initialize it.
 	if (!itr->second->isInitialized())
-		itr->second->initialize();
+		itr->second->initialize(needed_symbols);
 
 	return itr->second;
 }

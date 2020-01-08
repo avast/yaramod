@@ -22,7 +22,7 @@ DexModule::DexModule() : Module("dex")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DexModule::initialize()
+bool DexModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

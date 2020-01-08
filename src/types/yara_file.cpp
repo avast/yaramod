@@ -184,7 +184,7 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  */
 bool YaraFile::addImport(TokenIt import)
 {
-	auto module = Module::load(import->getPureText());
+	auto module = Module::load(import->getPureText(), NeededSymbols(true, true));
 	if (!module)
 		return false;
 

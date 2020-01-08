@@ -22,7 +22,7 @@ HashModule::HashModule() : Module("hash")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool HashModule::initialize()
+bool HashModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

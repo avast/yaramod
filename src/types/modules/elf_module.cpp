@@ -22,7 +22,7 @@ ElfModule::ElfModule() : Module("elf")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool ElfModule::initialize()
+bool ElfModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

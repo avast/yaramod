@@ -22,7 +22,7 @@ MagicModule::MagicModule() : Module("magic")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MagicModule::initialize()
+bool MagicModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

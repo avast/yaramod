@@ -70,7 +70,7 @@ MachoModule::MachoModule() : Module("macho")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MachoModule::initialize()
+bool MachoModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 

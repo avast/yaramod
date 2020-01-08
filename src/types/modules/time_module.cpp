@@ -22,7 +22,7 @@ TimeModule::TimeModule() : Module("time")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool TimeModule::initialize()
+bool TimeModule::initialize(NeededSymbols needed_symbols)
 {
 	using Type = Expression::Type;
 
