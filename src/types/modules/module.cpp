@@ -78,10 +78,18 @@ bool Module::isInitialized() const
 	return _structure != nullptr;
 }
 
+void Module::reset(const std::string& name)
+{
+	auto itr = knownModules.find(name);
+	if (itr != knownModules.end())
+		itr->second->_structure = nullptr;
+}
+
 /**
  * Loads the module based on its name from the table of known modules.
  *
  * @param name Name of the module to load
+ * @param needed_symbols Determines which symbols to import
  *
  * @return Module if found, @c nullptr otherwise.
  */

@@ -1517,6 +1517,10 @@ void ParserDriver::initialize()
  * Constructor.
  *
  * @param parserMode Parsing mode.
+ * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
+ * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
+ * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
+ * Module::reset method appropriately.
  */
 ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpecific)
 	: _neededSymbols(avastSpecific, vtSpecific)
@@ -1530,6 +1534,10 @@ ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpe
  *
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
+ * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
+ * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
+ * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
+ * Module::reset method appropriately.
  */
 ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
 	_valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
@@ -1547,6 +1555,10 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, b
  *
  * @param input Input stream.
  * @param parserMode Parsing mode.
+ * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
+ * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
+ * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
+ * Module::reset method appropriately.
  */
 ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
 	_optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()

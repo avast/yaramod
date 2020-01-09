@@ -35,8 +35,8 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request", Type::Int, Type::Regexp));
 	if (avast_specific)
 	{
-		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp)); // avast-specific: not in upstream
-		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int)); // avast-specific: not in upstream
+		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp));
+		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp));

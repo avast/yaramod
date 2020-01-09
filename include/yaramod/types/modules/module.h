@@ -67,6 +67,7 @@ public:
 
 	/// @name Static module loading
 	/// @{
+	static void reset(const std::string& name);
 	static std::shared_ptr<Module> load(const std::string& name, NeededSymbols needed_symbols);
 	/// @}
 
