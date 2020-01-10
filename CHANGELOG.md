@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Target `install` is now properly installing yaramod again.
+
 # v3.0.1 (2019-12-19)
 
 * Make autoformatting use LF or CRLF depending on what is used in the file ([#48](https://github.com/avast/yaramod/issues/48)).
