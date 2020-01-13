@@ -2349,7 +2349,7 @@ import "androguard"
 
 rule dummy_rule {
 	condition:
-		androguard.max_sdk > androguard.signature.hits("dummy")
+		androguard.max_sdk > androguard.signature.hits("dummy") and androguard.min_sdk == androguard.max_sdk
 }
 )");
 
@@ -2357,7 +2357,7 @@ rule dummy_rule {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(androguard.max_sdk > androguard.signature.hits("dummy"))", rule->getCondition()->getText());
+	EXPECT_EQ(R"(androguard.max_sdk > androguard.signature.hits("dummy") and androguard.min_sdk == androguard.max_sdk)", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2401,7 +2401,7 @@ import "phish"
 
 rule dummy_rule {
 	condition:
-		phish.file_contents.input.ids_hashed == "dummy_hash"
+		phish.file_contents.input.ids_hash("x") == "dummy_hash" and phish.source_url == "a" and phish.file_contents.a.class("y") == 5
 }
 )");
 
@@ -2409,7 +2409,7 @@ rule dummy_rule {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(phish.file_contents.input.ids_hashed == "dummy_hash")", rule->getCondition()->getText());
+	EXPECT_EQ(R"(phish.file_contents.input.ids_hash("x") == "dummy_hash" and phish.source_url == "a" and phish.file_contents.a.class("y") == 5)", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2422,7 +2422,7 @@ import "phish"
 
 rule dummy_rule {
 	condition:
-		phish.file_contents.button.classes_hashed == "dummy_hash"
+		phish.file_contents.input.ids_hash == "dummy_hash"
 }
 )");
 
