@@ -160,6 +160,48 @@ rule rule_with_metas {
 }
 
 TEST_F(ParserTests,
+RuleWithRepetitiveMetasWorks) {
+	prepareInput(
+R"(
+rule rule_with_repetitive_metas {
+	meta:
+		author = "me"
+		hash = "cryptic"
+		hash = "rat"
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_repetitive_metas", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_TRUE(rule->getStrings().empty());
+	ASSERT_EQ(3u, rule->getMetas().size());
+
+	const auto& meta1 = rule->getMetas()[0];
+	const auto& meta2 = rule->getMetas()[1];
+	const auto& meta3 = rule->getMetas()[2];
+
+	EXPECT_EQ("author", meta1.getKey());
+	EXPECT_TRUE(meta1.getValue().is<std::string>());
+	EXPECT_EQ(R"("me")", meta1.getValue().getText());
+
+	EXPECT_EQ("hash", meta2.getKey());
+	EXPECT_TRUE(meta2.getValue().is<std::string>());
+	EXPECT_EQ(R"("cryptic")", meta2.getValue().getText());
+
+	EXPECT_EQ("hash", meta3.getKey());
+	EXPECT_TRUE(meta3.getValue().is<std::string>());
+	EXPECT_EQ(R"("rat")", meta3.getValue().getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 HexAndDecimalIntegersArePreservedWorks) {
 	prepareInput(
 R"(
@@ -2424,8 +2466,22 @@ rule cuckoo_module {
 	EXPECT_EQ(R"($some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/))", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());	
+}
 
-	// Test that cuckoo module has some avast-specific symbols like cuckoo.network.http_request_body that are not in upstream
+TEST_F(ParserTests,
+CuckooModuleUnrecognized) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_module {
+	strings:
+		$some_string = { 01 02 03 04 05 05 }
+	condition:
+		$some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
+}
+)");
+
 	Module::reset("cuckoo");
 	ParserDriver driverNoAvastSymbols(ParserMode::Regular, false, true);
 	std::stringstream input2(input_text);
@@ -2613,6 +2669,52 @@ rule pe_module {
 	EXPECT_EQ(R"(pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL)", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+VirusTotalSymbolsWork) {
+	prepareInput(
+R"(
+rule virus_total_specific {
+	condition:
+		positives > 5 and bytehero == "hero"
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(positives > 5 and bytehero == "hero")", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+VirusTotalSymbolsUnrecognized) {
+	prepareInput(
+R"(
+rule virus_total_specific {
+	condition:
+		positives > 5 and bytehero == "hero"
+}
+)");
+
+	ParserDriver driverNoVTSymbols(ParserMode::Regular, true, false);
+	std::stringstream input2(input_text);
+	driverNoVTSymbols.setInput(input2);
+
+	try
+	{
+		driverNoVTSymbols.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driverNoVTSymbols.getParsedFile().getRules().size());
+		ASSERT_EQ(0u, driverNoVTSymbols.getParsedFile().getImports().size());
+		EXPECT_EQ("Error at 4.3-11: Unrecognized identifier 'positives' referenced", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,

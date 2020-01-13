@@ -70,10 +70,10 @@ MachoModule::MachoModule() : Module("macho")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MachoModule::initialize(NeededSymbols needed_symbols)
+bool MachoModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto machoStruct = std::make_shared<StructureSymbol>("macho");
 

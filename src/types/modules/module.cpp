@@ -89,13 +89,13 @@ void Module::reset(const std::string& name)
  * Loads the module based on its name from the table of known modules.
  *
  * @param name Name of the module to load
- * @param needed_symbols Determines which symbols to import
+ * @param avastSpecific Determines which symbols to import
  *
  * @return Module if found, @c nullptr otherwise.
  */
-std::shared_ptr<Module> Module::load(const std::string& name, NeededSymbols needed_symbols)
+std::shared_ptr<Module> Module::load(const std::string& name, bool avastSpecific)
 {
-	if (!needed_symbols.avast_specific() && (name == "androguard" || name == "phish")) // the androguard and phish modules are completely avast-specific
+	if (!avastSpecific && (name == "androguard" || name == "phish")) // the androguard and phish modules are completely avast-specific
 		return nullptr;
 	auto itr = knownModules.find(name);
 	if (itr == knownModules.end())
@@ -103,7 +103,7 @@ std::shared_ptr<Module> Module::load(const std::string& name, NeededSymbols need
 
 	// Module haven't been initialized yet, initialize it.
 	if (!itr->second->isInitialized())
-		itr->second->initialize(needed_symbols);
+		itr->second->initialize(avastSpecific);
 
 	return itr->second;
 }

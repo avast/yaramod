@@ -22,10 +22,10 @@ TimeModule::TimeModule() : Module("time")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool TimeModule::initialize(NeededSymbols needed_symbols)
+bool TimeModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto timeStruct = std::make_shared<StructureSymbol>("time");
 

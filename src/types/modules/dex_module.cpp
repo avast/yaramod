@@ -22,10 +22,10 @@ DexModule::DexModule() : Module("dex")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DexModule::initialize(NeededSymbols needed_symbols)
+bool DexModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 	
 	auto dexStruct = std::make_shared<StructureSymbol>("dex");
 

@@ -418,7 +418,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if (!_file.addImport(import, _neededSymbols))
+			if (!_file.addImport(import, _avastSpecific))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})
@@ -1523,7 +1523,8 @@ void ParserDriver::initialize()
  * Module::reset method appropriately.
  */
 ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpecific)
-	: _neededSymbols(avastSpecific, vtSpecific)
+	: _avastSpecific(avastSpecific)
+	, _vtSpecific(vtSpecific)
 {
 	reset(parserMode);
 	initialize();
@@ -1539,8 +1540,8 @@ ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpe
  * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
  * Module::reset method appropriately.
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
-	_valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _avastSpecific(avastSpecific)
+	, _vtSpecific(vtSpecific), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	initialize();
 	_tokenStreams.emplace(std::make_shared<TokenStream>());
@@ -1560,8 +1561,8 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, b
  * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
  * Module::reset method appropriately.
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _neededSymbols(avastSpecific, vtSpecific),
-	_optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _avastSpecific(avastSpecific)
+	, _vtSpecific(vtSpecific), _optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	initialize();
 	_tokenStreams.emplace(std::make_shared<TokenStream>());
@@ -1841,7 +1842,7 @@ std::shared_ptr<Symbol> ParserDriver::findSymbol(const std::string& name) const
 	if (itr != _localSymbols.end())
 		return itr->second;
 
-	return _file.findSymbol(name);
+	return _file.findSymbol(name, _vtSpecific);
 }
 
 /**

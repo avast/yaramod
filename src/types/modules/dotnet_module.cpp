@@ -22,10 +22,10 @@ DotnetModule::DotnetModule() : Module("dotnet")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DotnetModule::initialize(NeededSymbols needed_symbols)
+bool DotnetModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto dotnetStruct = std::make_shared<StructureSymbol>("dotnet");
 

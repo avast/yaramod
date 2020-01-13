@@ -22,10 +22,10 @@ ElfModule::ElfModule() : Module("elf")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool ElfModule::initialize(NeededSymbols needed_symbols)
+bool ElfModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto elfStruct = std::make_shared<StructureSymbol>("elf");
 

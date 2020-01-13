@@ -22,10 +22,10 @@ PhishModule::PhishModule() : Module("phish")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PhishModule::initialize(NeededSymbols needed_symbols)
+bool PhishModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto phishStruct = std::make_shared<StructureSymbol>("phish");
 	phishStruct->addAttribute(std::make_shared<ValueSymbol>("source_url", Type::String));

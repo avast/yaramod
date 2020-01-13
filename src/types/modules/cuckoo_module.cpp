@@ -22,9 +22,8 @@ CuckooModule::CuckooModule() : Module("cuckoo")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool CuckooModule::initialize(NeededSymbols needed_symbols)
+bool CuckooModule::initialize(bool avastSpecific)
 {
-	bool avast_specific = needed_symbols.avast_specific();
 	using Type = Expression::Type;
 
 	auto cuckooStruct = std::make_shared<StructureSymbol>("cuckoo");
@@ -33,7 +32,7 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_get", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_post", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request", Type::Int, Type::Regexp));
-	if (avast_specific)
+	if (avastSpecific)
 	{
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int));
@@ -49,7 +48,7 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 
 	auto registryStruct = std::make_shared<StructureSymbol>("registry");
 	registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_access", Type::Int, Type::Regexp));
-	if (avast_specific)
+	if (avastSpecific)
 	{
 		registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_read", Type::Int, Type::Regexp));
 		registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_write", Type::Int, Type::Regexp));
@@ -60,7 +59,7 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 
 	auto filesystemStruct = std::make_shared<StructureSymbol>("filesystem");
 	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_access", Type::Int, Type::Regexp));
-	if (avast_specific)
+	if (avastSpecific)
 	{
 		filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_read", Type::Int, Type::Regexp));
 		filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_write", Type::Int, Type::Regexp));
@@ -72,7 +71,7 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 
 	auto syncStruct = std::make_shared<StructureSymbol>("sync");
 	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("mutex", Type::Int, Type::Regexp));
-	if (avast_specific)
+	if (avastSpecific)
 	{
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("event", Type::Int, Type::Regexp));
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("semaphore", Type::Int, Type::Regexp));
@@ -82,7 +81,7 @@ bool CuckooModule::initialize(NeededSymbols needed_symbols)
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("timer", Type::Int, Type::Regexp));
 	}
 	cuckooStruct->addAttribute(syncStruct);
-	if (avast_specific)
+	if (avastSpecific)
 	{
 		auto processStruct = std::make_shared<StructureSymbol>("process");
 		processStruct->addAttribute(std::make_shared<FunctionSymbol>("executed_command", Type::Int, Type::Regexp));

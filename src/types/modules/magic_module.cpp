@@ -22,10 +22,10 @@ MagicModule::MagicModule() : Module("magic")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MagicModule::initialize(NeededSymbols needed_symbols)
+bool MagicModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto magicStruct = std::make_shared<StructureSymbol>("magic");
 	magicStruct->addAttribute(std::make_shared<FunctionSymbol>("mime_type", Type::String));

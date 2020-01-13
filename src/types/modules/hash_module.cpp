@@ -22,10 +22,10 @@ HashModule::HashModule() : Module("hash")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool HashModule::initialize(NeededSymbols needed_symbols)
+bool HashModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto hashStruct = std::make_shared<StructureSymbol>("hash");
 

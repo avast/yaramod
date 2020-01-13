@@ -22,10 +22,10 @@ MathModule::MathModule() : Module("math")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MathModule::initialize(NeededSymbols needed_symbols)
+bool MathModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto mathStruct = std::make_shared<StructureSymbol>("math");
 	mathStruct->addAttribute(std::make_shared<ValueSymbol>("MEAN_BYTES", Type::Float));

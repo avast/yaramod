@@ -22,10 +22,10 @@ AndroguardModule::AndroguardModule() : Module("androguard")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool AndroguardModule::initialize(NeededSymbols needed_symbols)
+bool AndroguardModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto androguardStruct = std::make_shared<StructureSymbol>("androguard");
 

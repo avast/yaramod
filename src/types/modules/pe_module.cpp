@@ -22,10 +22,10 @@ PeModule::PeModule() : Module("pe")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PeModule::initialize(NeededSymbols needed_symbols)
+bool PeModule::initialize(bool avastSpecific)
 {
 	using Type = Expression::Type;
-	(void) needed_symbols;
+	(void) avastSpecific;
 
 	auto peStruct = std::make_shared<StructureSymbol>("pe");
 

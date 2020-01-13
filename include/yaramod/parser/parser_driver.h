@@ -369,7 +369,8 @@ private:
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 
 	ParserMode _mode; ///< Parser mode.
-	NeededSymbols _neededSymbols; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or skip them
+	bool _avastSpecific; ///< Used to determine whether to include Avast-specific symbols or skip them
+	bool _vtSpecific; ///< Used to determine whether to include VirusTotal-specific symbols or skip them
 
 	std::stack<std::shared_ptr<TokenStream>> _tokenStreams; ///< _tokenStream contains all parsed tokens
 	std::stack<Location> _locations; ///< the top location tracks position of currently parsed token within current input file
