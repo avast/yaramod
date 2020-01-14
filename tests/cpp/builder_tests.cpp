@@ -254,7 +254,7 @@ RuleWithPlainStringWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule
 		.withName("rule_with_plain_string")
-		.withPlainString("$1", "This is plain string.", String::Modifiers::Ascii | String::Modifiers::Wide)
+		.withPlainString("$1", "This is plain string.").ascii().wide()
 		.get();
 
 	YaraFileBuilder newFile;
@@ -284,7 +284,7 @@ RuleWithPlainStringPureWideWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule
 		.withName("rule_with_plain_string")
-		.withPlainString("$1", "This is plain string.", String::Modifiers::Wide)
+		.withPlainString("$1", "This is plain string.").wide()
 		.get();
 
 	YaraFileBuilder newFile;
@@ -1374,6 +1374,66 @@ rule rule_with_double_quotes {
 }
 )";
 	EXPECT_EQ(expected_with_newline, yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithStringsWithDifferentKindsOfModifiers) {
+	auto cond = of(all(), them()).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_strings_with_different_kinds_of_modifiers")
+		.withPlainString("$1", "Hello").ascii()
+		.withPlainString("$2", "Cruel").wide()
+		.withPlainString("$3", "World").ascii().wide()
+		.withHexString("$4", YaraHexStringBuilder{std::vector<std::uint8_t>{0x01, 0x02, 0x03, 0x04}}.get())
+		.withRegexp("$5", "abc", "i").wide().nocase()
+		.withPlainString("$6", "Bye").nocase().xor_()
+		.withPlainString("$7", "Bye").fullword().xor_()
+		.withPlainString("$8", "Bye").xor_(12)
+		.withPlainString("$9", "Bye").xor_(1, 255)
+		.withPlainString("$10", "Bye").xor_(128).xor_(1, 255)
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers {
+	strings:
+		$1 = "Hello"
+		$2 = "Cruel" wide
+		$3 = "World" ascii wide
+		$4 = { 01 02 03 04 }
+		$5 = /abc/i wide nocase
+		$6 = "Bye" nocase xor
+		$7 = "Bye" fullword xor
+		$8 = "Bye" xor(12)
+		$9 = "Bye" xor(1-255)
+		$10 = "Bye" xor(128)
+	condition:
+		all of them
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers {
+	strings:
+		$1 = "Hello"
+		$2 = "Cruel" wide
+		$3 = "World" ascii wide
+		$4 = { 01 02 03 04 }
+		$5 = /abc/i wide nocase
+		$6 = "Bye" nocase xor
+		$7 = "Bye" fullword xor
+		$8 = "Bye" xor(12)
+		$9 = "Bye" xor(1-255)
+		$10 = "Bye" xor(128)
+	condition:
+		all of them
+}
+)", yaraFile->getTextFormatted());
 }
 
 }

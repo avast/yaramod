@@ -45,8 +45,8 @@ PlainString::PlainString(const std::shared_ptr<TokenStream>&  ts, TokenIt text)
 	assert(text->getType() == TokenType::STRING_LITERAL);
 }
 
-PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt assign_token, std::uint32_t mods, std::vector<TokenIt> mods_strings, TokenIt text)
-		: String(ts, String::Type::Plain, id, assign_token, mods, mods_strings)
+PlainString::PlainString(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt assignToken, TokenIt text)
+		: String(ts, String::Type::Plain, id, assignToken)
 		, _text(text)
 {
 }
@@ -75,8 +75,8 @@ TokenIt PlainString::getFirstTokenIt() const
 {
 	if (_id)
 		return _id.value();
-	else if (_assign_token)
-		return _assign_token.value();
+	else if (_assignToken)
+		return _assignToken.value();
 	else
 		return _text;
 }

@@ -58,18 +58,29 @@ public:
 	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value);
 	YaraRuleBuilder& withBoolMeta(const std::string& key, bool value);
 
-	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value, std::uint32_t mods = String::Modifiers::Ascii);
+	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value);
 	YaraRuleBuilder& withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString);
-	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value,
-			const std::string& suffixMods = std::string{}, std::uint32_t mods = String::Modifiers::Ascii);
+	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value, const std::string& suffixMods = std::string{});
 
 	YaraRuleBuilder& withCondition(Expression::Ptr&& condition);
 	YaraRuleBuilder& withCondition(const Expression::Ptr& condition);
 	/// @}
 
+	/// @name Method modifying last string
+	/// @{
+	YaraRuleBuilder& ascii();
+	YaraRuleBuilder& wide();
+	YaraRuleBuilder& nocase();
+	YaraRuleBuilder& fullword();
+	YaraRuleBuilder& xor_();
+	YaraRuleBuilder& xor_(std::uint64_t key);
+	YaraRuleBuilder& xor_(std::uint64_t low, std::uint64_t high);
+	/// @}
+
 private:
 	void resetTokens();
 	void initializeStrings();
+	void createLastString();
 
 	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
 	std::optional<TokenIt> _mod; ///< Modifier
@@ -85,6 +96,10 @@ private:
 	TokenIt _condition_it; ///< iterator pointing at 'condition' token
 	TokenIt _colon_it; ///< iterator pointing at ':' token
 	TokenIt _rcb; ///< iterator pointing at '}' token
+
+	std::shared_ptr<String> _lastString; ///< Points to the last defined string.
+	std::vector<std::shared_ptr<StringModifier>> _stringMods; ///< String modifiers for last defined string.
+	std::shared_ptr<TokenStream> _stringModsTokens;
 };
 
 }

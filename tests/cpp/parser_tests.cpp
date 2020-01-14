@@ -4439,6 +4439,52 @@ rule cuckoo_scheduled {
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+StringXorModifierWithArguments) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_arguments {
+	strings:
+		$s01 = "Hello" xor
+		$s02 = "Hello" xor(123)
+		$s03 = "Hello" xor(1-255)
+		$s04 = "Hello" xor /* Comment */ (1-255)
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(4u, strings.size());
+
+	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiersText(), " xor");
+
+	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiersText(), " xor(123)");
+
+	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiersText(), " xor(1-255)");
+
+	auto string4 = strings[3];
+	EXPECT_EQ(string4->getModifiersText(), " xor(1-255)");
+
+	EXPECT_EQ(R"(
+rule string_xor_modifier_with_arguments {
+	strings:
+		$s01 = "Hello" xor
+		$s02 = "Hello" xor(123)
+		$s03 = "Hello" xor(1-255)
+		$s04 = "Hello" xor /* Comment */(1-255)
+	condition:
+		all of them
+}
+)", driver.getParsedFile().getTextFormatted());
+}
 
 }
 }

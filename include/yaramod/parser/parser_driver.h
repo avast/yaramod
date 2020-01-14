@@ -24,18 +24,19 @@
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/hex_string.h"
-#include "yaramod/types/token_stream.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/types/rule.h"
 #include "yaramod/types/symbol.h"
+#include "yaramod/types/token_stream.h"
 #include "yaramod/types/yara_file.h"
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
 using RegexpRangePair = std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>;
+using StringModifiers = std::vector<std::shared_ptr<StringModifier>>;
 
 // Value is the type of all tokens produced by POG parser. Both token and rule actions return Value. The rule action parameters are also Values.
 class Value
@@ -49,19 +50,20 @@ public:
 		Rule, //4
 		std::vector<Meta>,
 		std::shared_ptr<Rule::StringsTrie>, //6
-		std::pair<std::uint32_t, std::vector<TokenIt>>,
-		Literal, //8
-		Expression::Ptr,
-		std::vector<Expression::Ptr>, //10
-		std::vector<TokenIt>,
-		std::vector<std::shared_ptr<HexStringUnit>>, //12
-		std::shared_ptr<HexStringUnit>,
-		std::vector<std::shared_ptr<HexString>>, //14
-		std::shared_ptr<String>,
-		std::shared_ptr<RegexpUnit>, //16
-		std::vector<std::shared_ptr<RegexpUnit>>,
-		TokenIt, //18
-		RegexpRangePair
+		std::shared_ptr<StringModifier>,
+		StringModifiers, //8
+		Literal,
+		Expression::Ptr, //10
+		std::vector<Expression::Ptr>,
+		std::vector<TokenIt>, //12
+		std::vector<std::shared_ptr<HexStringUnit>>,
+		std::shared_ptr<HexStringUnit>, //14
+		std::vector<std::shared_ptr<HexString>>,
+		std::shared_ptr<String>, //16
+		std::shared_ptr<RegexpUnit>,
+		std::vector<std::shared_ptr<RegexpUnit>>, //18
+		TokenIt,
+		RegexpRangePair //20
 	>;
 
 	/// @name Constructors
@@ -116,9 +118,14 @@ public:
 		return std::move(moveValue<std::shared_ptr<Rule::StringsTrie>>());
 	}
 
-	std::pair<std::uint32_t, std::vector<TokenIt>>&& getStringMods()
+	std::shared_ptr<StringModifier>&& getStringMod()
 	{
-		return std::move(moveValue<std::pair<std::uint32_t, std::vector<TokenIt>>>());
+		return std::move(moveValue<std::shared_ptr<StringModifier>>());
+	}
+
+	StringModifiers&& getStringMods()
+	{
+		return std::move(moveValue<StringModifiers>());
 	}
 
 	const Literal& getLiteral() const

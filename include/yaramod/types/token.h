@@ -41,7 +41,6 @@ enum TokenType
 	HEX_END_BRACKET, // '}'
 	NEW_LINE,
 	META, // 'meta'
-	MODIFIER,
 	LQUOTE,
 	RQUOTE,
 	RULE_END, // '}'
@@ -222,23 +221,33 @@ public:
 	bool isIncludeToken() const { return _subTokenStream != nullptr; }
 	bool isLeftBracket() const
 	{
-		return _type == TokenType::LP ||
-				 _type == TokenType::LP_ENUMERATION ||
-				 _type == TokenType::HEX_JUMP_LEFT_BRACKET ||
-				 _type == TokenType::REGEXP_START_SLASH ||
-				 _type == TokenType::HEX_START_BRACKET ||
-				 _type == TokenType::LP_WITH_SPACE_AFTER ||
-				 _type == TokenType::LP_WITH_SPACES;
+		return _type == TokenType::LP
+			|| _type == TokenType::LP_ENUMERATION
+			|| _type == TokenType::HEX_JUMP_LEFT_BRACKET
+			|| _type == TokenType::REGEXP_START_SLASH
+			|| _type == TokenType::HEX_START_BRACKET
+			|| _type == TokenType::LP_WITH_SPACE_AFTER
+			|| _type == TokenType::LP_WITH_SPACES;
 	}
+
 	bool isRightBracket() const
 	{
-		return _type == TokenType::RP ||
-				 _type == TokenType::RP_ENUMERATION ||
-				 _type == TokenType::HEX_JUMP_RIGHT_BRACKET ||
-				 _type == TokenType::REGEXP_END_SLASH ||
-				 _type == TokenType::HEX_END_BRACKET ||
-				 _type == TokenType::RP_WITH_SPACE_BEFORE ||
-				 _type == TokenType::RP_WITH_SPACES;
+		return _type == TokenType::RP
+			|| _type == TokenType::RP_ENUMERATION
+			|| _type == TokenType::HEX_JUMP_RIGHT_BRACKET
+			|| _type == TokenType::REGEXP_END_SLASH
+			|| _type == TokenType::HEX_END_BRACKET
+			|| _type == TokenType::RP_WITH_SPACE_BEFORE
+			|| _type == TokenType::RP_WITH_SPACES;
+	}
+
+	bool isStringModifier() const
+	{
+		return _type == ASCII
+			|| _type == WIDE
+			|| _type == FULLWORD
+			|| _type == NOCASE
+			|| _type == XOR;
 	}
 	/// @}
 

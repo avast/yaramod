@@ -18,7 +18,7 @@ constexpr unsigned tabulator_length = 8;
 
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
-	_tokens.emplace_back(type, std::move(Literal(std::string(1, value))));
+	_tokens.emplace_back(type, Literal(std::string(1, value)));
 	return --_tokens.end();
 }
 
@@ -36,7 +36,7 @@ TokenIt TokenStream::emplace_back(TokenType type, Literal&& literal)
 
 TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, char value)
 {
-	_tokens.emplace(before, type, std::move(Literal(std::string(1, value))));
+	_tokens.emplace(before, type, Literal(std::string(1, value)));
 	auto output = before;
 	return --output;
 }
@@ -69,12 +69,12 @@ TokenIt TokenStream::push_back(Token&& t)
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, const Literal& literal)
 {
-	return _tokens.insert(before, std::move(Token(type, literal)));
+	return _tokens.insert(before, Token(type, literal));
 }
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, Literal&& literal)
 {
-	return _tokens.insert(before, std::move(Token(type, std::move(literal))));
+	return _tokens.insert(before, Token(type, std::move(literal)));
 }
 
 TokenIt TokenStream::erase(TokenIt element)
@@ -95,6 +95,11 @@ void TokenStream::move_append(TokenStream* donor)
 void TokenStream::move_append(TokenStream* donor, TokenIt before)
 {
 	_tokens.splice(before, donor->_tokens);
+}
+
+void TokenStream::move_append(TokenStream* donor, TokenIt first, TokenIt last)
+{
+	_tokens.splice(_tokens.end(), donor->_tokens, first, last);
 }
 
 TokenIt TokenStream::begin()
@@ -391,7 +396,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 
 	const std::string& indent = it->getLiteral().getFormattedValue();
 	// Comment at a beginning of a line
-	if(ss)
+	if (ss)
 	{
 		if (!prevIt || (*prevIt)->getType() == NEW_LINE)
 		{
@@ -401,11 +406,12 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 			*ss << std::string(indentation - columnCounter, ' ');
 		*ss << it->getPureText();
 	}
-	else if(it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
+	else if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;
 		commentPool.push_back(it);
 	}
+
 	return columnCounter;
 }
 
@@ -443,7 +449,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	bool inside_hex_jump = false;
 	bool inside_regexp = false;
 	bool inside_enumeration_brackets = false;
+	bool inside_string_modifiers = false;
+	bool inside_string_modifiers_arguments = false;
 	bool second_nibble = true;
+
 	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
@@ -493,6 +502,20 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			inside_enumeration_brackets = true;
 		else if (current == RP_ENUMERATION)
 			inside_enumeration_brackets = false;
+		else if (it->isStringModifier())
+			inside_string_modifiers = true;
+
+		if (inside_string_modifiers)
+		{
+			if (next == LP)
+				inside_string_modifiers_arguments = true;
+
+			if (inside_string_modifiers_arguments && current == RP)
+				inside_string_modifiers_arguments = false;
+
+			if (!inside_string_modifiers_arguments && !it->isStringModifier())
+				inside_string_modifiers = false;
+		}
 
 		if (it->isLeftBracket())
 		{
@@ -546,7 +569,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					helper.insertIntoStream(os, ' ');
 			}
 		}
-		else if (!inside_regexp && !inside_enumeration_brackets)
+		else if (!inside_regexp && !inside_enumeration_brackets && !inside_string_modifiers_arguments)
 		{
 			switch(current)
 			{

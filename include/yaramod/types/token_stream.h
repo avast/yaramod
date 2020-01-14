@@ -86,6 +86,7 @@ public:
 	TokenIt erase(TokenIt first, TokenIt last);
 	void move_append(TokenStream* donor);
 	void move_append(TokenStream* donor, TokenIt before);
+	void move_append(TokenStream* donor, TokenIt first, TokenIt last);
 	/// @}
 
 	/// @name Iterators

@@ -630,8 +630,8 @@ public:
 	{
 		if (_id)
 			return _id.value();
-		else if (_assign_token)
-			return _assign_token.value();
+		else if (_assignToken)
+			return _assignToken.value();
 		else
 			return _leftSlash;
 	}
