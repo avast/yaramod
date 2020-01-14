@@ -78,14 +78,12 @@ void addEnums(py::module& module)
 		.value("Hex", String::Type::Hex)
 		.value("Regexp", String::Type::Regexp);
 
-	py::enum_<String::Modifiers>(module, "StringModifiers", py::arithmetic())
-		.value("Empty", String::Modifiers::None)
-		.value("Ascii", String::Modifiers::Ascii)
-		.value("Wide", String::Modifiers::Wide)
-		.value("Nocase", String::Modifiers::Nocase)
-		.value("Fullword", String::Modifiers::Fullword)
-		.value("Xor", String::Modifiers::Xor)
-		.export_values();
+	py::enum_<StringModifier::Type>(module, "StringModifierType")
+		.value("Ascii", StringModifier::Type::Ascii)
+		.value("Wide", StringModifier::Type::Wide)
+		.value("Fullword", StringModifier::Type::Fullword)
+		.value("Nocase", StringModifier::Type::Nocase)
+		.value("Xor", StringModifier::Type::Xor);
 
 	py::enum_<Expression::Type>(module, "ExpressionType")
 		.value("Undefined", Expression::Type::Undefined)
@@ -184,6 +182,24 @@ void addBasicClasses(py::module& module)
 				&Regexp::getUnit,
 				py::overload_cast<const std::shared_ptr<RegexpUnit>&>(&Regexp::setUnit))
 		.def_property_readonly("suffix_modifiers", &Regexp::getSuffixModifiers);
+
+	py::class_<StringModifier, std::shared_ptr<StringModifier>>(module, "StringModifier")
+		.def_property_readonly("type", &StringModifier::getType)
+		.def_property_readonly("name", &StringModifier::getName)
+		.def_property_readonly("is_ascii", &StringModifier::isAscii)
+		.def_property_readonly("is_wide", &StringModifier::isWide)
+		.def_property_readonly("is_fullword", &StringModifier::isFullword)
+		.def_property_readonly("is_nocase", &StringModifier::isNocase)
+		.def_property_readonly("is_xor", &StringModifier::isXor)
+		.def_property_readonly("text", &StringModifier::getText);
+
+	py::class_<AsciiStringModifier, StringModifier, std::shared_ptr<AsciiStringModifier>>(module, "AsciiStringModifier");
+	py::class_<WideStringModifier, StringModifier, std::shared_ptr<WideStringModifier>>(module, "WideStringModifier");
+	py::class_<FullwordStringModifier, StringModifier, std::shared_ptr<FullwordStringModifier>>(module, "FullwordStringModifier");
+	py::class_<NocaseStringModifier, StringModifier, std::shared_ptr<NocaseStringModifier>>(module, "NocaseStringModifier");
+	py::class_<XorStringModifier, StringModifier, std::shared_ptr<XorStringModifier>>(module, "XorStringModifier")
+		.def_property_readonly("is_range", &XorStringModifier::isRange)
+		.def_property_readonly("is_single_key", &XorStringModifier::isSingleKey);
 
 	py::class_<RegexpUnit, std::shared_ptr<RegexpUnit>>(module, "RegexpUnit")
 		.def("accept", &RegexpUnit::accept)
@@ -451,10 +467,23 @@ void addBuilderClasses(py::module& module)
 		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
 		.def("with_hex_int_meta", &YaraRuleBuilder::withHexIntMeta)
 		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
-		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"), py::arg("mods") = String::Modifiers::Ascii)
+		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"))
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
-		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{}, py::arg("mods") = String::Modifiers::Ascii)
-		.def("with_condition", py::overload_cast<const Expression::Ptr&>(&YaraRuleBuilder::withCondition));
+		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{})
+		.def("with_condition", py::overload_cast<const Expression::Ptr&>(&YaraRuleBuilder::withCondition))
+		.def("ascii", &YaraRuleBuilder::ascii)
+		.def("wide", &YaraRuleBuilder::wide)
+		.def("fullword", &YaraRuleBuilder::fullword)
+		.def("nocase", &YaraRuleBuilder::nocase)
+		.def("xor", [](YaraRuleBuilder& self, py::args args) {
+			if (args.size() == 0)
+				return self.xor_();
+			else if (args.size() == 1)
+				return self.xor_(args[0].cast<int>());
+			else if (args.size() == 2)
+				return self.xor_(args[0].cast<int>(), args[1].cast<int>());
+			throw std::invalid_argument("xor() expects either 0, 1 or 2 arguments");
+		});
 
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
 		.def(py::init<>())
