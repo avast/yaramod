@@ -56,6 +56,8 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 		throw RuleBuilderError("Error: Invalid key identifier");
 	}
 
+	createLastString();
+
 	if (!_condition)
 	{
 		_condition = std::make_shared<BoolLiteralExpression>(_tokenStream->emplace(_rcb, BOOL_TRUE, true));
@@ -71,6 +73,10 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	_tags.clear();
 	_metas.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
+
+	_lastString.reset();
+	_stringMods.clear();
+	_stringModsTokens->clear();
 
 	return rule;
 }
@@ -323,30 +329,27 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
  *
  * @param id Identifier of the string.
  * @param value Plain string text.
- * @param mods Modifiers.
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const std::string& value, std::uint32_t mods)
+YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const std::string& value)
 {
-	//Must insert into tokenstream: id, =, ", value, ", mods
+	createLastString();
+
 	if (id == std::string{} || value == std::string{})
 		throw RuleBuilderError("Error: Plain string id and value must be non-empty.");
+
 	if (!_strings_it.has_value())
 		initializeStrings();
 
-	TokenIt id_token = _tokenStream->emplace(_condition_it, TokenType::STRING_KEY, id);
-	_tokenStream->emplace(_condition_it, TokenType::ASSIGN, "=");
-
-	auto temporary = std::make_shared<TokenStream>();
-	auto plainString = std::make_shared<PlainString>(temporary, escapeString(value));
-	plainString->setModifiers(mods, true);
-	plainString->setIdentifier(id_token);
-
-	_tokenStream->move_append(temporary.get(), _condition_it);
-	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
+	auto stringTokenStream = std::make_shared<TokenStream>();
+	auto plainString = std::make_shared<PlainString>(stringTokenStream, escapeString(value));
+	plainString->setIdentifier(id);
 
 	_strings->insert(id, std::static_pointer_cast<String>(plainString));
+
+	_lastString = plainString;
+	_stringMods.clear();
 	return *this;
 }
 
@@ -360,16 +363,20 @@ YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const s
  */
 YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString)
 {
+	createLastString();
+
 	if (id == std::string{} || hexString->getText() == std::string{})
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
+
 	if (!_strings_it.has_value())
 		initializeStrings();
 
 	hexString->setIdentifier(id);
-	_tokenStream->move_append(hexString->getTokenStream().get(), _condition_it);
-	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 
 	_strings->insert(id, std::static_pointer_cast<String>(hexString));
+
+	_lastString = hexString;
+	_stringMods.clear();
 	return *this;
 }
 
@@ -382,27 +389,27 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
  * @param id Identifier of the string.
  * @param value Regular expression.
  * @param suffixMods Suffix modifiers of regular expression.
- * @param mods Modifiers.
  *
  * @return Builder.
  */
-YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::string& value,
-		const std::string& suffixMods, std::uint32_t mods)
+YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::string& value, const std::string& suffixMods)
 {
+	createLastString();
+
 	if (id == std::string{} || value == std::string{})
 		throw RuleBuilderError("Error: Regexp id and value must be non-empty.");
+
 	if (!_strings_it.has_value())
 		initializeStrings();
 
-	auto temporary = std::make_shared<TokenStream>();
-	auto regexp = std::make_shared<Regexp>(temporary, std::make_shared<RegexpText>(value));
+	auto stringTokenStream = std::make_shared<TokenStream>();
+	auto regexp = std::make_shared<Regexp>(stringTokenStream, std::make_shared<RegexpText>(value));
 	regexp->setIdentifier(id);
-	regexp->setModifiers(mods, true);
 	regexp->setSuffixModifiers(suffixMods);
 
-	_tokenStream->move_append(temporary.get(), _condition_it);
-	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 	_strings->insert(id, std::static_pointer_cast<String>(regexp));
+
+	_lastString = regexp;
 	return *this;
 }
 
@@ -436,6 +443,70 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(const Expression::Ptr& condition
 	return *this;
 }
 
+YaraRuleBuilder& YaraRuleBuilder::ascii()
+{
+	auto token = _stringModsTokens->emplace_back(ASCII, "ascii");
+	_stringMods.push_back(std::make_shared<AsciiStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::wide()
+{
+	auto token = _stringModsTokens->emplace_back(WIDE, "wide");
+	_stringMods.push_back(std::make_shared<WideStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::nocase()
+{
+	auto token = _stringModsTokens->emplace_back(NOCASE, "nocase");
+	_stringMods.push_back(std::make_shared<NocaseStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::fullword()
+{
+	auto token = _stringModsTokens->emplace_back(FULLWORD, "fullword");
+	_stringMods.push_back(std::make_shared<FullwordStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::private_()
+{
+	auto token = _stringModsTokens->emplace_back(PRIVATE, "private");
+	_stringMods.push_back(std::make_shared<PrivateStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::xor_()
+{
+	auto token = _stringModsTokens->emplace_back(XOR, "xor");
+	_stringMods.push_back(std::make_shared<XorStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t key)
+{
+	auto firstToken = _stringModsTokens->emplace_back(XOR, "xor");
+	_stringModsTokens->emplace_back(LP, "(");
+	_stringModsTokens->emplace_back(INTEGER, key, numToStr(key));
+	auto lastToken = _stringModsTokens->emplace_back(RP, ")");
+	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, key));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t low, std::uint64_t high)
+{
+	auto firstToken = _stringModsTokens->emplace_back(XOR, "xor");
+	_stringModsTokens->emplace_back(LP, "(");
+	_stringModsTokens->emplace_back(INTEGER, low, numToStr(low));
+	_stringModsTokens->emplace_back(MINUS, "-");
+	_stringModsTokens->emplace_back(INTEGER, high, numToStr(high));
+	auto lastToken = _stringModsTokens->emplace_back(RP, ")");
+	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, low, high));
+	return *this;
+}
+
 void YaraRuleBuilder::initializeStrings()
 {
 	_strings_it = _tokenStream->emplace(_condition_it, STRINGS, "strings");
@@ -454,6 +525,20 @@ void YaraRuleBuilder::resetTokens()
 	_colon_it = _tokenStream->emplace_back(COLON, ":");
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_rcb = _tokenStream->emplace_back(RULE_END, "}");
+
+	_stringModsTokens = std::make_shared<TokenStream>();
+}
+
+void YaraRuleBuilder::createLastString()
+{
+	if (_lastString)
+	{
+		_lastString->setModifiersWithTokens(_stringMods, _stringModsTokens, true);
+		_tokenStream->move_append(_lastString->getTokenStream().get(), _condition_it);
+		_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
+		_lastString.reset();
+		_stringMods.clear();
+	}
 }
 
 } //namespace yaramod

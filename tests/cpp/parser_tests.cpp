@@ -4439,6 +4439,178 @@ rule cuckoo_scheduled {
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+StringXorModifierWithArguments) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_arguments {
+	strings:
+		$s01 = "Hello" xor
+		$s02 = "Hello" xor(123)
+		$s03 = "Hello" xor(1-255)
+		$s04 = "Hello" xor /* Comment */ (1-255)
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(4u, strings.size());
+
+	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiersText(), " xor");
+
+	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiersText(), " xor(123)");
+
+	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiersText(), " xor(1-255)");
+
+	auto string4 = strings[3];
+	EXPECT_EQ(string4->getModifiersText(), " xor(1-255)");
+
+	EXPECT_EQ(R"(
+rule string_xor_modifier_with_arguments {
+	strings:
+		$s01 = "Hello" xor
+		$s02 = "Hello" xor(123)
+		$s03 = "Hello" xor(1-255)
+		$s04 = "Hello" xor /* Comment */(1-255)
+	condition:
+		all of them
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_key {
+	strings:
+		$s01 = "Hello" xor(256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsLowerKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_lower_key {
+	strings:
+		$s01 = "Hello" xor(256-256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsHigherKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_higher_key {
+	strings:
+		$s01 = "Hello" xor(1-256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithLowerBoundGreaterThanHigherBound) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_higher_key {
+	strings:
+		$s01 = "Hello" xor(2-1)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier has lower bound of key greater then higher bound", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+PrivateStringModifier) {
+	prepareInput(
+R"(
+rule private_string_modifier {
+	strings:
+		$s01 = "Hello" private
+		$s02 = { AA BB CC DD } private
+		$s03 = /Hello/i private
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(3u, strings.size());
+
+	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiersText(), " private");
+	EXPECT_TRUE(string1->isPrivate());
+
+	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiersText(), " private");
+	EXPECT_TRUE(string2->isPrivate());
+
+	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiersText(), " private");
+	EXPECT_TRUE(string3->isPrivate());
+}
 
 }
 }

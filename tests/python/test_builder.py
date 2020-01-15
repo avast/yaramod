@@ -140,7 +140,7 @@ private rule private_rule {
     def test_rule_with_plain_string(self):
         rule = self.new_rule \
             .with_name('rule_with_plain_string') \
-            .with_plain_string('$1', 'This is plain string.', yaramod.StringModifiers.Ascii | yaramod.StringModifiers.Wide) \
+            .with_plain_string('$1', 'This is plain string.').ascii().wide() \
             .get()
         yara_file = self.new_file \
             .with_rule(rule) \
@@ -1076,4 +1076,39 @@ rule rule_with_dictionary_access_condition {
 		$1 = "This is plain string."
 	condition:
 		for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )
+}''')
+
+    def test_rule_with_string_modifiers(self):
+        rule = self.new_rule \
+            .with_name('rule_with_string_modifiers') \
+            .with_plain_string('$1', 'Hello').ascii().wide() \
+            .with_plain_string('$2', 'Hello').wide().fullword().nocase() \
+            .with_plain_string('$3', 'Hello').xor() \
+            .with_plain_string('$4', 'Hello').xor(128) \
+            .with_plain_string('$5', 'Hello').wide().xor(1, 255) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_modifiers {
+	strings:
+		$1 = "Hello" ascii wide
+		$2 = "Hello" wide fullword nocase
+		$3 = "Hello" xor
+		$4 = "Hello" xor(128)
+		$5 = "Hello" wide xor(1-255)
+	condition:
+		true
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_string_modifiers {
+	strings:
+		$1 = "Hello" ascii wide
+		$2 = "Hello" wide nocase fullword
+		$3 = "Hello" xor
+		$4 = "Hello" xor(128)
+		$5 = "Hello" wide xor(1-255)
+	condition:
+		true
 }''')
