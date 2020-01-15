@@ -38,6 +38,10 @@ public:
 
 	Type getType() const { return _type; }
 	const std::string& getName() const { return _name; }
+
+	/**
+	 * Returns token range [first, last]. It is a closed interval.
+	 */
 	const std::pair<TokenIt, TokenIt>& getTokenRange() const { return _tokens; }
 
 	bool isAscii() const { return _type == Type::Ascii; }
@@ -90,10 +94,30 @@ class XorStringModifier : public StringModifier
 {
 public:
 	XorStringModifier(TokenIt token) : StringModifier(Type::Xor, "xor", token, token), _low(), _high() {}
-	XorStringModifier(TokenIt firstToken, TokenIt lastToken, std::uint32_t key) : StringModifier(Type::Xor, "xor", firstToken, lastToken), _low(key), _high() {}
-	XorStringModifier(TokenIt firstToken, TokenIt lastToken, std::uint32_t low, std::uint32_t high) : StringModifier(Type::Xor, "xor", firstToken, lastToken), _low(low), _high(high) {}
 
+	XorStringModifier(TokenIt firstToken, TokenIt lastToken, std::uint32_t key) : StringModifier(Type::Xor, "xor", firstToken, lastToken), _low(key), _high()
+	{
+		if (key > 255)
+			throw YaramodError("Error: XOR string modifier key is out of allowed range");
+	}
+
+	XorStringModifier(TokenIt firstToken, TokenIt lastToken, std::uint32_t low, std::uint32_t high) : StringModifier(Type::Xor, "xor", firstToken, lastToken), _low(low), _high(high)
+	{
+		if (low > 255 || high > 255)
+			throw YaramodError("Error: XOR string modifier key is out of allowed range");
+
+		if (low > high)
+			throw YaramodError("Error: XOR string modifier has lower bound of key greater then higher bound");
+	}
+
+	/**
+	 * Indicates whether it is xor modifier with range of keys from N to M.
+	 */
 	bool isRange() const { return _low && _high; }
+
+	/**
+	 * Indicates whether it is xor modifier with single key N.
+	 */
 	bool isSingleKey() const { return _low && !_high; }
 
 	virtual std::string getText() const override

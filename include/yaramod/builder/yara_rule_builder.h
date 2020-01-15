@@ -99,7 +99,7 @@ private:
 
 	std::shared_ptr<String> _lastString; ///< Points to the last defined string.
 	std::vector<std::shared_ptr<StringModifier>> _stringMods; ///< String modifiers for last defined string.
-	std::shared_ptr<TokenStream> _stringModsTokens;
+	std::shared_ptr<TokenStream> _stringModsTokens; ///< Token stream for building string modifiers.
 };
 
 }

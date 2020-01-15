@@ -593,15 +593,11 @@ void ParserDriver::defineGrammar()
 		})
 		.production("XOR", "LP", "INTEGER", "RP", [](auto&& args) -> Value {
 			auto key = args[2].getTokenIt()->getInt64();
-			if (key < 0 || 255 < key)
-				throw YaramodError("Error: XOR string modifier key is out of allowed range");
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), key);
 		})
 		.production("XOR", "LP", "INTEGER", "MINUS", "INTEGER", "RP", [](auto&& args) -> Value {
 			auto low = args[2].getTokenIt()->getInt64();
 			auto high = args[4].getTokenIt()->getInt64();
-			if (low < 0 || 255 < low || high < 0 || 255 < high || low > high)
-				throw YaramodError("Error: XOR string modifier key is out of allowed range");
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), low, high);
 		})
 		.production("string_mod", [](auto&& args) -> Value {

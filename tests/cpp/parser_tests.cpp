@@ -4486,5 +4486,97 @@ rule string_xor_modifier_with_arguments {
 )", driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_key {
+	strings:
+		$s01 = "Hello" xor(256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsLowerKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_lower_key {
+	strings:
+		$s01 = "Hello" xor(256-256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithOutOfBoundsHigherKey) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_higher_key {
+	strings:
+		$s01 = "Hello" xor(1-256)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+StringXorModifierWithLowerBoundGreaterThanHigherBound) {
+	prepareInput(
+R"(
+rule string_xor_modifier_with_out_of_bounds_higher_key {
+	strings:
+		$s01 = "Hello" xor(2-1)
+	condition:
+		all of them
+}
+)");
+
+	try
+	{
+		driver.parse();
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier has lower bound of key greater then higher bound", err.getErrorMessage());
+	}
+}
+
 }
 }

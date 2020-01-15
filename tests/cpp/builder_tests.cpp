@@ -1436,5 +1436,109 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+RuleWithXorStringModifierOutOfBounds) {
+	auto cond = of(all(), them()).get();
+
+	try
+	{
+		YaraRuleBuilder newRule;
+		auto rule = newRule
+			.withName("rule_with_xor_string_modifier_out_of_bounds")
+			.withPlainString("$1", "Hello").xor_(256)
+			.withCondition(cond)
+			.get();
+
+		YaraFileBuilder newFile;
+		auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+		FAIL() << "Builder did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(BuilderTests,
+RuleWithXorStringModifierOutOfBoundsLowerKey) {
+	auto cond = of(all(), them()).get();
+
+	try
+	{
+		YaraRuleBuilder newRule;
+		auto rule = newRule
+			.withName("rule_with_xor_string_modifier_out_of_bounds")
+			.withPlainString("$1", "Hello").xor_(256, 256)
+			.withCondition(cond)
+			.get();
+
+		YaraFileBuilder newFile;
+		auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+		FAIL() << "Builder did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(BuilderTests,
+RuleWithXorStringModifierOutOfBoundsHigherKey) {
+	auto cond = of(all(), them()).get();
+
+	try
+	{
+		YaraRuleBuilder newRule;
+		auto rule = newRule
+			.withName("rule_with_xor_string_modifier_out_of_bounds")
+			.withPlainString("$1", "Hello").xor_(1, 256)
+			.withCondition(cond)
+			.get();
+
+		YaraFileBuilder newFile;
+		auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+		FAIL() << "Builder did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier key is out of allowed range", err.getErrorMessage());
+	}
+}
+
+TEST_F(BuilderTests,
+RuleWithXorStringModifierLowerBoundGreaterThanHigherBound) {
+	auto cond = of(all(), them()).get();
+
+	try
+	{
+		YaraRuleBuilder newRule;
+		auto rule = newRule
+			.withName("rule_with_xor_string_modifier_lower_bound_greater_than_higher_bound")
+			.withPlainString("$1", "Hello").xor_(2, 1)
+			.withCondition(cond)
+			.get();
+
+		YaraFileBuilder newFile;
+		auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+		FAIL() << "Builder did not throw an exception.";
+	}
+	catch (const YaramodError& err)
+	{
+		EXPECT_EQ("Error: XOR string modifier has lower bound of key greater then higher bound", err.getErrorMessage());
+	}
+}
+
 }
 }

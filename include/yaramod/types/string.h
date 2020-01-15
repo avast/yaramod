@@ -44,7 +44,6 @@ public:
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods()
-		//, _mods_tokens()
 	{
 		assert(_tokenStream);
 	}
@@ -53,7 +52,6 @@ public:
 		: _tokenStream(ts)
 		, _type(type)
 		, _mods()
-		//, _modsTokens()
 	{
 		assert(_tokenStream);
 		_id = _tokenStream->emplace_back(STRING_KEY, id);
@@ -66,7 +64,6 @@ public:
 		, _id(id)
 		, _assignToken(assignToken)
 		, _mods()
-		//, _mods_strings(mods_strings)
 	{
 		assert(_tokenStream);
 	}
@@ -232,7 +229,6 @@ protected:
 	std::optional<TokenIt> _id; ///< Identifier //string
 	std::optional<TokenIt> _assignToken; ///< Identifier //string
 	std::unordered_map<StringModifier::Type, std::shared_ptr<StringModifier>> _mods; ///< String modifiers
-	//std::vector<std::pair<TokenIt, TokenIt>> _modsTokens; //This is ambiguous with _mods, but for performance. This class alone is responsible for coherent representation of _mods.
 };
 
 }
