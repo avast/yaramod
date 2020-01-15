@@ -471,6 +471,13 @@ YaraRuleBuilder& YaraRuleBuilder::fullword()
 	return *this;
 }
 
+YaraRuleBuilder& YaraRuleBuilder::private_()
+{
+	auto token = _stringModsTokens->emplace_back(PRIVATE, "private");
+	_stringMods.push_back(std::make_shared<PrivateStringModifier>(token));
+	return *this;
+}
+
 YaraRuleBuilder& YaraRuleBuilder::xor_()
 {
 	auto token = _stringModsTokens->emplace_back(XOR, "xor");

@@ -4578,5 +4578,39 @@ rule string_xor_modifier_with_out_of_bounds_higher_key {
 	}
 }
 
+TEST_F(ParserTests,
+PrivateStringModifier) {
+	prepareInput(
+R"(
+rule private_string_modifier {
+	strings:
+		$s01 = "Hello" private
+		$s02 = { AA BB CC DD } private
+		$s03 = /Hello/i private
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(3u, strings.size());
+
+	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiersText(), " private");
+	EXPECT_TRUE(string1->isPrivate());
+
+	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiersText(), " private");
+	EXPECT_TRUE(string2->isPrivate());
+
+	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiersText(), " private");
+	EXPECT_TRUE(string3->isPrivate());
+}
+
 }
 }

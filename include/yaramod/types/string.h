@@ -103,6 +103,7 @@ public:
 			StringModifier::Type::Wide,
 			StringModifier::Type::Nocase,
 			StringModifier::Type::Fullword,
+			StringModifier::Type::Private,
 			StringModifier::Type::Xor
 		};
 
@@ -220,6 +221,7 @@ public:
 	bool isWide() const { return _mods.find(StringModifier::Type::Wide) != _mods.end(); }
 	bool isNocase() const { return _mods.find(StringModifier::Type::Nocase) != _mods.end(); }
 	bool isFullword() const { return _mods.find(StringModifier::Type::Fullword) != _mods.end(); }
+	bool isPrivate() const { return _mods.find(StringModifier::Type::Private) != _mods.end(); }
 	bool isXor() const { return _mods.find(StringModifier::Type::Xor) != _mods.end(); }
 	/// @}
 

@@ -72,6 +72,7 @@ public:
 	YaraRuleBuilder& wide();
 	YaraRuleBuilder& nocase();
 	YaraRuleBuilder& fullword();
+	YaraRuleBuilder& private_();
 	YaraRuleBuilder& xor_();
 	YaraRuleBuilder& xor_(std::uint64_t key);
 	YaraRuleBuilder& xor_(std::uint64_t low, std::uint64_t high);

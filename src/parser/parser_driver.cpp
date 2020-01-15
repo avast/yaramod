@@ -552,12 +552,14 @@ void ParserDriver::defineGrammar()
 				args[0].getTokenIt()->setType(HEX_START_BRACKET);
 				return {};
 			},
-		 	"hex_string", "RCB", [&](auto&& args) -> Value {
+			"hex_string", "RCB", "hex_string_mods", [&](auto&& args) -> Value {
 				args[3].getTokenIt()->setType(HEX_END_BRACKET);
-			 	return std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
+				auto hexString = std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
+				hexString->setModifiers(std::move(args[4].getStringMods()));
+				return hexString;
 			}
 		)
-		.production("regexp", "string_mods", [&](auto&& args) -> Value {
+		.production("regexp", "regexp_mods", [&](auto&& args) -> Value {
 			auto regexp_string = std::move(args[0].getYaramodString());
 			auto mods = std::move(args[1].getStringMods());
 			regexp_string->setModifiers(std::move(mods));
@@ -576,8 +578,19 @@ void ParserDriver::defineGrammar()
 		});
 		;
 
-	_parser.rule("string_mods") // std::vector<std::shared_ptr<StringModifier>>
-		.production("string_mods", "string_mod", [](auto&& args) -> Value {
+	_parser.rule("regexp_mods") // std::vector<std::shared_ptr<StringModifier>>
+		.production("regexp_mods", "regexp_mod", [](auto&& args) -> Value {
+			auto stringMods = std::move(args[0].getStringMods());
+			stringMods.push_back(std::move(args[1].getStringMod()));
+			return stringMods;
+		})
+		.production([](auto&&) -> Value {
+			return StringModifiers{};
+		});
+		;
+
+	_parser.rule("hex_string_mods") // std::vector<std::shared_ptr<StringModifier>>
+		.production("hex_string_mods", "hex_string_mod", [](auto&& args) -> Value {
 			auto stringMods = std::move(args[0].getStringMods());
 			stringMods.push_back(std::move(args[1].getStringMod()));
 			return stringMods;
@@ -600,12 +613,12 @@ void ParserDriver::defineGrammar()
 			auto high = args[4].getTokenIt()->getInt64();
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), low, high);
 		})
-		.production("string_mod", [](auto&& args) -> Value {
+		.production("regexp_mod", [](auto&& args) -> Value {
 			return std::move(args[0]);
 		})
 		;
 
-	_parser.rule("string_mod") // std::shared_ptr<StringModifier>
+	_parser.rule("regexp_mod") // std::shared_ptr<StringModifier>
 		.production("ASCII", [](auto&& args) -> Value {
 			return std::make_shared<AsciiStringModifier>(args[0].getTokenIt());
 		})
@@ -617,6 +630,15 @@ void ParserDriver::defineGrammar()
 		})
 		.production("FULLWORD", [](auto&& args) -> Value {
 			return std::make_shared<FullwordStringModifier>(args[0].getTokenIt());
+		})
+		.production("hex_string_mod", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		;
+
+	_parser.rule("hex_string_mod") // std::shared_ptr<StringModifier>
+		.production("PRIVATE", [](auto&& args) -> Value {
+			return std::make_shared<PrivateStringModifier>(args[0].getTokenIt());
 		})
 		;
 

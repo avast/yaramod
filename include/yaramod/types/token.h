@@ -247,7 +247,8 @@ public:
 			|| _type == WIDE
 			|| _type == FULLWORD
 			|| _type == NOCASE
-			|| _type == XOR;
+			|| _type == XOR
+			|| _type == PRIVATE;
 	}
 	/// @}
 

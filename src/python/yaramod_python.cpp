@@ -83,6 +83,7 @@ void addEnums(py::module& module)
 		.value("Wide", StringModifier::Type::Wide)
 		.value("Fullword", StringModifier::Type::Fullword)
 		.value("Nocase", StringModifier::Type::Nocase)
+		.value("Private", StringModifier::Type::Private)
 		.value("Xor", StringModifier::Type::Xor);
 
 	py::enum_<Expression::Type>(module, "ExpressionType")
@@ -172,6 +173,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_wide", &String::isWide)
 		.def_property_readonly("is_fullword", &String::isFullword)
 		.def_property_readonly("is_nocase", &String::isNocase)
+		.def_property_readonly("is_private", &String::isPrivate)
 		.def_property_readonly("is_xor", &String::isXor)
 		.def_property_readonly("modifiers_text", &String::getModifiersText);
 
@@ -190,6 +192,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_wide", &StringModifier::isWide)
 		.def_property_readonly("is_fullword", &StringModifier::isFullword)
 		.def_property_readonly("is_nocase", &StringModifier::isNocase)
+		.def_property_readonly("is_private", &StringModifier::isPrivate)
 		.def_property_readonly("is_xor", &StringModifier::isXor)
 		.def_property_readonly("text", &StringModifier::getText);
 
@@ -197,6 +200,7 @@ void addBasicClasses(py::module& module)
 	py::class_<WideStringModifier, StringModifier, std::shared_ptr<WideStringModifier>>(module, "WideStringModifier");
 	py::class_<FullwordStringModifier, StringModifier, std::shared_ptr<FullwordStringModifier>>(module, "FullwordStringModifier");
 	py::class_<NocaseStringModifier, StringModifier, std::shared_ptr<NocaseStringModifier>>(module, "NocaseStringModifier");
+	py::class_<PrivateStringModifier, StringModifier, std::shared_ptr<PrivateStringModifier>>(module, "PrivateStringModifier");
 	py::class_<XorStringModifier, StringModifier, std::shared_ptr<XorStringModifier>>(module, "XorStringModifier")
 		.def_property_readonly("is_range", &XorStringModifier::isRange)
 		.def_property_readonly("is_single_key", &XorStringModifier::isSingleKey);
@@ -475,6 +479,7 @@ void addBuilderClasses(py::module& module)
 		.def("wide", &YaraRuleBuilder::wide)
 		.def("fullword", &YaraRuleBuilder::fullword)
 		.def("nocase", &YaraRuleBuilder::nocase)
+		.def("private", &YaraRuleBuilder::private_)
 		.def("xor", [](YaraRuleBuilder& self, py::args args) {
 			if (args.size() == 0)
 				return self.xor_();

@@ -25,6 +25,7 @@ public:
 		Wide,
 		Nocase,
 		Fullword,
+		Private,
 		Xor
 	};
 
@@ -48,6 +49,7 @@ public:
 	bool isWide() const { return _type == Type::Wide; }
 	bool isNocase() const { return _type == Type::Nocase; }
 	bool isFullword() const { return _type == Type::Fullword; }
+	bool isPrivate() const { return _type == Type::Private; }
 	bool isXor() const { return _type == Type::Xor; }
 
 	virtual std::string getText() const = 0;
@@ -86,6 +88,14 @@ class FullwordStringModifier : public StringModifier
 {
 public:
 	FullwordStringModifier(TokenIt token) : StringModifier(Type::Fullword, "fullword", token, token) {}
+
+	virtual std::string getText() const override { return getName(); }
+};
+
+class PrivateStringModifier : public StringModifier
+{
+public:
+	PrivateStringModifier(TokenIt token) : StringModifier(Type::Private, "private", token, token) {}
 
 	virtual std::string getText() const override { return getName(); }
 };

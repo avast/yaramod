@@ -1385,7 +1385,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		.withName("rule_with_strings_with_different_kinds_of_modifiers")
 		.withPlainString("$1", "Hello").ascii()
 		.withPlainString("$2", "Cruel").wide()
-		.withPlainString("$3", "World").ascii().wide()
+		.withPlainString("$3", "World").ascii().wide().private_()
 		.withHexString("$4", YaraHexStringBuilder{std::vector<std::uint8_t>{0x01, 0x02, 0x03, 0x04}}.get())
 		.withRegexp("$5", "abc", "i").wide().nocase()
 		.withPlainString("$6", "Bye").nocase().xor_()
@@ -1406,7 +1406,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 	strings:
 		$1 = "Hello"
 		$2 = "Cruel" wide
-		$3 = "World" ascii wide
+		$3 = "World" ascii wide private
 		$4 = { 01 02 03 04 }
 		$5 = /abc/i wide nocase
 		$6 = "Bye" nocase xor
@@ -1422,7 +1422,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 	strings:
 		$1 = "Hello"
 		$2 = "Cruel" wide
-		$3 = "World" ascii wide
+		$3 = "World" ascii wide private
 		$4 = { 01 02 03 04 }
 		$5 = /abc/i wide nocase
 		$6 = "Bye" nocase xor
