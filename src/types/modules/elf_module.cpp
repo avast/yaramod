@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-ElfModule::ElfModule() : Module("elf")
+ElfModule::ElfModule() : Module("elf", ImportFeatures::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ ElfModule::ElfModule() : Module("elf")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool ElfModule::initialize()
+bool ElfModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
 

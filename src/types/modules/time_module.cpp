@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-TimeModule::TimeModule() : Module("time")
+TimeModule::TimeModule() : Module("time", ImportFeatures::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ TimeModule::TimeModule() : Module("time")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool TimeModule::initialize()
+bool TimeModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
 

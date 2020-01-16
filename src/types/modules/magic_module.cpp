@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MagicModule::MagicModule() : Module("magic")
+MagicModule::MagicModule() : Module("magic", ImportFeatures::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ MagicModule::MagicModule() : Module("magic")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MagicModule::initialize()
+bool MagicModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
 

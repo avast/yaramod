@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DotnetModule::DotnetModule() : Module("dotnet")
+DotnetModule::DotnetModule() : Module("dotnet", ImportFeatures::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ DotnetModule::DotnetModule() : Module("dotnet")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DotnetModule::initialize()
+bool DotnetModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
 
@@ -84,6 +84,9 @@ bool DotnetModule::initialize()
 
 	dotnetStruct->addAttribute(std::make_shared<ArraySymbol>("constants", Type::String));
 	dotnetStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_constants", Type::Int));
+
+	dotnetStruct->addAttribute(std::make_shared<ArraySymbol>("field_offsets", Type::Int));
+	dotnetStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_field_offsets", Type::Int));
 
 	_structure = dotnetStruct;
 	return true;

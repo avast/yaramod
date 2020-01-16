@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DexModule::DexModule() : Module("dex")
+DexModule::DexModule() : Module("dex", ImportFeatures::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ DexModule::DexModule() : Module("dex")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DexModule::initialize()
+bool DexModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
 
@@ -107,7 +107,6 @@ bool DexModule::initialize()
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("offset", Type::Int));
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("size", Type::Int));
 	stringIdsStruct->addAttribute(std::make_shared<ValueSymbol>("value", Type::String));
-	stringIdsStruct->addAttribute(std::make_shared<ArraySymbol>("string_ids", stringIdsStruct));
 	dexStruct->addAttribute(std::make_shared<ArraySymbol>("string_ids", stringIdsStruct));
 
 	auto typeIdsStruct = std::make_shared<StructureSymbol>("type_ids");

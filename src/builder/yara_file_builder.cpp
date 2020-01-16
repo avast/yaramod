@@ -20,10 +20,10 @@ namespace yaramod {
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
 	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
-	yaraFile->addImports(_modules);
+	yaraFile->addImports(_module_tokens, _import_features, _modules_pool);
 	yaraFile->addRules(_rules);
 
-	_modules.clear();
+	_module_tokens.clear();
 	_rules.clear();
 	_tokenStream = std::make_shared<TokenStream>();
 
@@ -78,7 +78,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
  */
 YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 {
-	if (!_modules.empty())
+	if (!_module_tokens.empty())
 	{
 		if (!_lastAddedWasImport)
 			_tokenStream->emplace_back(NEW_LINE, "\n");
@@ -86,7 +86,7 @@ YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 	_tokenStream->emplace_back(TokenType::IMPORT_KEYWORD, "import");
 	TokenIt moduleToken = _tokenStream->emplace_back(TokenType::IMPORT_MODULE, moduleName);
 	_tokenStream->emplace_back(NEW_LINE, "\n");
-	_modules.push_back(moduleToken);
+	_module_tokens.push_back(moduleToken);
 	_lastAddedWasImport = true;
 	return *this;
 }

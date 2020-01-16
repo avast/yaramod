@@ -182,9 +182,9 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  *
  * @return @c true if module was found, @c false otherwise.
  */
-bool YaraFile::addImport(TokenIt import)
+bool YaraFile::addImport(TokenIt import, ImportFeatures features, ModulesPool& modules)
 {
-	auto module = Module::load(import->getPureText());
+	auto module = modules.load(import->getPureText(), features);
 	if (!module)
 		return false;
 
@@ -248,11 +248,11 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
  *
  * @return @c true if modules were found, @c false otherwise.
  */
-bool YaraFile::addImports(const std::vector<TokenIt>& imports)
+bool YaraFile::addImports(const std::vector<TokenIt>& imports, ImportFeatures features, ModulesPool& modules)
 {
 	for (const TokenIt& module : imports)
 	{
-		if (!addImport(module))
+		if (!addImport(module, features, modules))
 			return false;
 	}
 
@@ -322,7 +322,7 @@ const std::vector<std::shared_ptr<Rule>>& YaraFile::getRules() const
  *
  * @return Returns valid symbol if it was found, @c nullptr otherwise.
  */
-std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
+std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name, ImportFeatures features) const
 {
 	// @todo Should rules have priority over imported modules?
 	if (auto itr = _ruleTable.find(name); itr != _ruleTable.end())
@@ -331,10 +331,13 @@ std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 	if (auto itr = _importTable.find(name); itr != _importTable.end())
 		return itr->second->getStructure();
 
-	for (const auto& globalVar : YaraFile::globalVariables)
+	if (features & ImportFeatures::VirusTotalOnly)
 	{
-		if (globalVar->getName() == name)
-			return globalVar;
+		for (const auto& globalVar : YaraFile::globalVariables)
+		{
+			if (globalVar->getName() == name)
+				return globalVar;
+		}
 	}
 
 	return nullptr;
