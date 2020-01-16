@@ -418,7 +418,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if (!_file.addImport(import, _avastSpecific))
+			if (!_file.addImport(import, _import_features))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})
@@ -1517,14 +1517,10 @@ void ParserDriver::initialize()
  * Constructor.
  *
  * @param parserMode Parsing mode.
- * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
- * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
- * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
- * Module::reset method appropriately.
+ * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpecific)
-	: _avastSpecific(avastSpecific)
-	, _vtSpecific(vtSpecific)
+ParserDriver::ParserDriver(ParserMode parserMode, ImportFeatures features)
+	: _import_features(features)
 {
 	reset(parserMode);
 	initialize();
@@ -1535,13 +1531,10 @@ ParserDriver::ParserDriver(ParserMode parserMode, bool avastSpecific, bool vtSpe
  *
  * @param filePath Input file path.
  * @param parserMode Parsing mode.
- * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
- * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
- * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
- * Module::reset method appropriately.
+ * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _avastSpecific(avastSpecific)
-	, _vtSpecific(vtSpecific), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
+ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, ImportFeatures features) : _mode(parserMode), _import_features(features)
+	, _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
 {
 	initialize();
 	_tokenStreams.emplace(std::make_shared<TokenStream>());
@@ -1556,13 +1549,10 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, b
  *
  * @param input Input stream.
  * @param parserMode Parsing mode.
- * @param avastSpecific set iff we want to use aditional Avast-specific symbols in the imported modules
- * @param vtSpecific set iff we want to use aditional VirusTotal-specific symbols in the imported modules
- * If you need to use more instances of ParserDriver with different avastSpecific or vtSpecific flags, use
- * Module::reset method appropriately.
+ * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode, bool avastSpecific, bool vtSpecific) : _mode(parserMode), _avastSpecific(avastSpecific)
-	, _vtSpecific(vtSpecific), _optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
+ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode,  ImportFeatures features) : _mode(parserMode), _import_features(features)
+	, _optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
 {
 	initialize();
 	_tokenStreams.emplace(std::make_shared<TokenStream>());
@@ -1842,7 +1832,7 @@ std::shared_ptr<Symbol> ParserDriver::findSymbol(const std::string& name) const
 	if (itr != _localSymbols.end())
 		return itr->second;
 
-	return _file.findSymbol(name, _vtSpecific);
+	return _file.findSymbol(name, _import_features);
 }
 
 /**

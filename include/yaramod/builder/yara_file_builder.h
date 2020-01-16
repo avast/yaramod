@@ -36,12 +36,11 @@ class YaraFileBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraFileBuilder() : YaraFileBuilder(true, true) {}
+	YaraFileBuilder() : YaraFileBuilder(ImportFeatures::All) {}
 
-	YaraFileBuilder(bool avastSpecific, bool vtSpecific)
+	YaraFileBuilder(ImportFeatures features)
 		: _tokenStream(std::make_shared<TokenStream>())
-		, _avastSpecific(avastSpecific)
-		, _vtSpecific(vtSpecific)
+		, _import_features(features)
 	{
 	}
 	/// @}
@@ -64,8 +63,7 @@ private:
 	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
 	std::vector<TokenIt> _modules; ///< Modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
-	bool _avastSpecific;
-	bool _vtSpecific;
+	ImportFeatures _import_features;
 };
 
 }

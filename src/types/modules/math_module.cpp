@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MathModule::MathModule() : Module("math")
+MathModule::MathModule() : Module("math", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ MathModule::MathModule() : Module("math")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MathModule::initialize(bool avastSpecific)
+bool MathModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto mathStruct = std::make_shared<StructureSymbol>("math");
 	mathStruct->addAttribute(std::make_shared<ValueSymbol>("MEAN_BYTES", Type::Float));

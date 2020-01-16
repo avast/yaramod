@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-AndroguardModule::AndroguardModule() : Module("androguard")
+AndroguardModule::AndroguardModule() : Module("androguard", ImportFeatures::AvastOnly)
 {
 }
 
@@ -22,10 +22,9 @@ AndroguardModule::AndroguardModule() : Module("androguard")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool AndroguardModule::initialize(bool avastSpecific)
+bool AndroguardModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto androguardStruct = std::make_shared<StructureSymbol>("androguard");
 

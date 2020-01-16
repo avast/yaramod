@@ -37,7 +37,7 @@ std::unordered_map<std::string, std::shared_ptr<Module>> knownModules =
  *
  * @param name Name of the module
  */
-Module::Module(const std::string& name) : _name(name), _structure()
+Module::Module(const std::string& name, ImportFeatures needed_features) : _name(name), _structure(), _needed_features(needed_features)
 {
 }
 
@@ -69,6 +69,16 @@ const std::shared_ptr<StructureSymbol>& Module::getStructure() const
 }
 
 /**
+ * Returns the needed features of the module.
+ *
+ * @return Module Import Features.
+ */
+ImportFeatures Module::getFeatures() const
+{
+	return _needed_features;
+}
+
+/**
  * Returns whether the module is already initialized.
  *
  * @return @c true if initialized, otherwise @c false.
@@ -93,17 +103,17 @@ void Module::reset(const std::string& name)
  *
  * @return Module if found, @c nullptr otherwise.
  */
-std::shared_ptr<Module> Module::load(const std::string& name, bool avastSpecific)
+std::shared_ptr<Module> Module::load(const std::string& name, ImportFeatures features)
 {
-	if (!avastSpecific && (name == "androguard" || name == "phish")) // the androguard and phish modules are completely avast-specific
-		return nullptr;
 	auto itr = knownModules.find(name);
 	if (itr == knownModules.end())
 		return nullptr;
 
+	if (!(itr->second->getFeatures() & features))
+		return nullptr;
 	// Module haven't been initialized yet, initialize it.
 	if (!itr->second->isInitialized())
-		itr->second->initialize(avastSpecific);
+		itr->second->initialize(features);
 
 	return itr->second;
 }

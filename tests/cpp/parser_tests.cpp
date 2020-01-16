@@ -2375,7 +2375,7 @@ rule dummy_rule {
 )");
 
 	Module::reset("androguard");
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, false, true);
+	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
 
@@ -2427,7 +2427,7 @@ rule dummy_rule {
 )");
 
 	Module::reset("phish");
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, false, true);
+	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
 
@@ -2483,7 +2483,7 @@ rule cuckoo_module {
 )");
 
 	Module::reset("cuckoo");
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, false, true);
+	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
 
@@ -2700,7 +2700,7 @@ rule virus_total_specific {
 }
 )");
 
-	ParserDriver driverNoVTSymbols(ParserMode::Regular, true, false);
+	ParserDriver driverNoVTSymbols(ParserMode::Regular, ImportFeatures::Avast);
 	std::stringstream input2(input_text);
 	driverNoVTSymbols.setInput(input2);
 

@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-PhishModule::PhishModule() : Module("phish")
+PhishModule::PhishModule() : Module("phish", ImportFeatures::AvastOnly)
 {
 }
 
@@ -22,10 +22,9 @@ PhishModule::PhishModule() : Module("phish")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PhishModule::initialize(bool avastSpecific)
+bool PhishModule::initialize(ImportFeatures features)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto phishStruct = std::make_shared<StructureSymbol>("phish");
 	phishStruct->addAttribute(std::make_shared<ValueSymbol>("source_url", Type::String));

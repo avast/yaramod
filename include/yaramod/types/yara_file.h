@@ -37,12 +37,12 @@ public:
 
 	/// @name Addition methods
 	/// @{
-	bool addImport(TokenIt import, bool avastSpecific);
+	bool addImport(TokenIt import, ImportFeatures features);
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
 	void addRule(const std::shared_ptr<Rule>& rule);
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
-	bool addImports(const std::vector<TokenIt>& imports, bool avastSpecific);
+	bool addImports(const std::vector<TokenIt>& imports, ImportFeatures features);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}
@@ -77,7 +77,7 @@ public:
 
 	/// @name Symbol methods
 	/// @{
-	std::shared_ptr<Symbol> findSymbol(const std::string& name, bool vtSpecific) const;
+	std::shared_ptr<Symbol> findSymbol(const std::string& name, ImportFeatures features) const;
 	/// @}
 
 	/// @name Detection methods

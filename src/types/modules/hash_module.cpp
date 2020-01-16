@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-HashModule::HashModule() : Module("hash")
+HashModule::HashModule() : Module("hash", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ HashModule::HashModule() : Module("hash")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool HashModule::initialize(bool avastSpecific)
+bool HashModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto hashStruct = std::make_shared<StructureSymbol>("hash");
 

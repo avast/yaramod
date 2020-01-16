@@ -61,7 +61,7 @@ void initializeCommonAttributes(const std::shared_ptr<StructureSymbol>& rootStru
 /**
  * Constructor.
  */
-MachoModule::MachoModule() : Module("macho")
+MachoModule::MachoModule() : Module("macho", ImportFeatures::Basic)
 {
 }
 
@@ -70,10 +70,9 @@ MachoModule::MachoModule() : Module("macho")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MachoModule::initialize(bool avastSpecific)
+bool MachoModule::initialize(ImportFeatures /*features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto machoStruct = std::make_shared<StructureSymbol>("macho");
 

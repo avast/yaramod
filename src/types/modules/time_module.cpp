@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-TimeModule::TimeModule() : Module("time")
+TimeModule::TimeModule() : Module("time", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ TimeModule::TimeModule() : Module("time")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool TimeModule::initialize(bool avastSpecific)
+bool TimeModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto timeStruct = std::make_shared<StructureSymbol>("time");
 

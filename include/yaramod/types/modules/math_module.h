@@ -28,7 +28,7 @@ public:
 
 	/// @name Initialization method
 	/// @{
-	virtual bool initialize(bool avastSpecific) override;
+	virtual bool initialize(ImportFeatures features) override;
 	/// @}
 };
 

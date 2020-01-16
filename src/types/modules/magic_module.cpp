@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MagicModule::MagicModule() : Module("magic")
+MagicModule::MagicModule() : Module("magic", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ MagicModule::MagicModule() : Module("magic")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MagicModule::initialize(bool avastSpecific)
+bool MagicModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto magicStruct = std::make_shared<StructureSymbol>("magic");
 	magicStruct->addAttribute(std::make_shared<FunctionSymbol>("mime_type", Type::String));

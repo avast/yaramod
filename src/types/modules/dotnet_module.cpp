@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DotnetModule::DotnetModule() : Module("dotnet")
+DotnetModule::DotnetModule() : Module("dotnet", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ DotnetModule::DotnetModule() : Module("dotnet")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DotnetModule::initialize(bool avastSpecific)
+bool DotnetModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto dotnetStruct = std::make_shared<StructureSymbol>("dotnet");
 

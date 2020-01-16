@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DexModule::DexModule() : Module("dex")
+DexModule::DexModule() : Module("dex", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ DexModule::DexModule() : Module("dex")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DexModule::initialize(bool avastSpecific)
+bool DexModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 	
 	auto dexStruct = std::make_shared<StructureSymbol>("dex");
 

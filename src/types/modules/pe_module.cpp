@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-PeModule::PeModule() : Module("pe")
+PeModule::PeModule() : Module("pe", ImportFeatures::Basic)
 {
 }
 
@@ -22,10 +22,9 @@ PeModule::PeModule() : Module("pe")
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PeModule::initialize(bool avastSpecific)
+bool PeModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	(void) avastSpecific;
 
 	auto peStruct = std::make_shared<StructureSymbol>("pe");
 
