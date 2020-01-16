@@ -22,7 +22,7 @@ PhishModule::PhishModule() : Module("phish", ImportFeatures::AvastOnly)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PhishModule::initialize(ImportFeatures features)
+bool PhishModule::initialize(ImportFeatures)
 {
 	using Type = Expression::Type;
 

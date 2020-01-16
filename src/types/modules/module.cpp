@@ -9,29 +9,6 @@
 
 namespace yaramod {
 
-namespace {
-
-/**
- * Table of all known modules.
- */
-std::unordered_map<std::string, std::shared_ptr<Module>> knownModules =
-{
-	{ "androguard", std::make_shared<AndroguardModule>() },
-	{ "cuckoo",     std::make_shared<CuckooModule>()     },
-	{ "dex",        std::make_shared<DexModule>()        },
-	{ "dotnet",     std::make_shared<DotnetModule>()     },
-	{ "elf",        std::make_shared<ElfModule>()        },
-	{ "hash",       std::make_shared<HashModule>()       },
-	{ "macho",      std::make_shared<MachoModule>()      },
-	{ "magic",      std::make_shared<MagicModule>()      },
-	{ "math",       std::make_shared<MathModule>()       },
-	{ "pe",         std::make_shared<PeModule>()         },
-	{ "phish",      std::make_shared<PhishModule>()      },
-	{ "time",       std::make_shared<TimeModule>()       }
-};
-
-}
-
 /**
  * Constructor.
  *
@@ -86,36 +63,6 @@ ImportFeatures Module::getFeatures() const
 bool Module::isInitialized() const
 {
 	return _structure != nullptr;
-}
-
-void Module::reset(const std::string& name)
-{
-	auto itr = knownModules.find(name);
-	if (itr != knownModules.end())
-		itr->second->_structure = nullptr;
-}
-
-/**
- * Loads the module based on its name from the table of known modules.
- *
- * @param name Name of the module to load
- * @param avastSpecific Determines which symbols to import
- *
- * @return Module if found, @c nullptr otherwise.
- */
-std::shared_ptr<Module> Module::load(const std::string& name, ImportFeatures features)
-{
-	auto itr = knownModules.find(name);
-	if (itr == knownModules.end())
-		return nullptr;
-
-	if (!(itr->second->getFeatures() & features))
-		return nullptr;
-	// Module haven't been initialized yet, initialize it.
-	if (!itr->second->isInitialized())
-		itr->second->initialize(features);
-
-	return itr->second;
 }
 
 }

@@ -22,7 +22,7 @@ AndroguardModule::AndroguardModule() : Module("androguard", ImportFeatures::Avas
  *
  * @return @c true if success, otherwise @c false.
  */
-bool AndroguardModule::initialize(ImportFeatures/* features*/)
+bool AndroguardModule::initialize(ImportFeatures)
 {
 	using Type = Expression::Type;
 

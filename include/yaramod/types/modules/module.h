@@ -61,12 +61,6 @@ public:
 	bool isInitialized() const;
 	/// @}
 
-	/// @name Static module loading
-	/// @{
-	static void reset(const std::string& name);
-	static std::shared_ptr<Module> load(const std::string& name, ImportFeatures features);
-	/// @}
-
 protected:
 	std::string _name; ///< Name of the module
 	std::shared_ptr<StructureSymbol> _structure; ///< Structure of the module

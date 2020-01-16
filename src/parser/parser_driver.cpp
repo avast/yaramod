@@ -418,7 +418,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if (!_file.addImport(import, _import_features))
+			if (!_file.addImport(import, _import_features, _modules))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})

@@ -182,9 +182,9 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  *
  * @return @c true if module was found, @c false otherwise.
  */
-bool YaraFile::addImport(TokenIt import, ImportFeatures features)
+bool YaraFile::addImport(TokenIt import, ImportFeatures features, ModulesPool& modules)
 {
-	auto module = Module::load(import->getPureText(), features);
+	auto module = modules.load(import->getPureText(), features);
 	if (!module)
 		return false;
 
@@ -248,11 +248,11 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
  *
  * @return @c true if modules were found, @c false otherwise.
  */
-bool YaraFile::addImports(const std::vector<TokenIt>& imports, ImportFeatures features)
+bool YaraFile::addImports(const std::vector<TokenIt>& imports, ImportFeatures features, ModulesPool& modules)
 {
 	for (const TokenIt& module : imports)
 	{
-		if (!addImport(module, features))
+		if (!addImport(module, features, modules))
 			return false;
 	}
 

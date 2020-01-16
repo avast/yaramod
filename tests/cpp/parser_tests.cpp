@@ -2374,7 +2374,6 @@ rule dummy_rule {
 }
 )");
 
-	Module::reset("androguard");
 	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
@@ -2390,7 +2389,6 @@ rule dummy_rule {
 		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
 		EXPECT_EQ("Error at 2.19: Unrecognized module 'androguard' imported", err.getErrorMessage());
 	}
-	Module::reset("androguard");
 }
 
 TEST_F(ParserTests,
@@ -2426,7 +2424,6 @@ rule dummy_rule {
 }
 )");
 
-	Module::reset("phish");
 	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
@@ -2442,7 +2439,6 @@ rule dummy_rule {
 		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
 		EXPECT_EQ("Error at 2.14: Unrecognized module 'phish' imported", err.getErrorMessage());
 	}
-	Module::reset("phish");
 }
 
 TEST_F(ParserTests,
@@ -2482,7 +2478,6 @@ rule cuckoo_module {
 }
 )");
 
-	Module::reset("cuckoo");
 	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
 	driverNoAvastSymbols.setInput(input2);
@@ -2498,8 +2493,6 @@ rule cuckoo_module {
 		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
 		EXPECT_EQ("Error at 8.35-51: Unrecognized identifier 'http_request_body' referenced", err.getErrorMessage());
 	}
-
-	Module::reset("cuckoo");
 }
 
 TEST_F(ParserTests,
