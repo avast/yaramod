@@ -25,7 +25,7 @@ DexModule::DexModule() : Module("dex", ImportFeatures::Basic)
 bool DexModule::initialize(ImportFeatures/* features*/)
 {
 	using Type = Expression::Type;
-	
+
 	auto dexStruct = std::make_shared<StructureSymbol>("dex");
 
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_035", Type::String));

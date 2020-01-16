@@ -5,7 +5,6 @@
  */
 
 #include "yaramod/types/modules/module.h"
-#include "yaramod/types/modules/modules.h"
 
 namespace yaramod {
 
@@ -14,7 +13,10 @@ namespace yaramod {
  *
  * @param name Name of the module
  */
-Module::Module(const std::string& name, ImportFeatures needed_features) : _name(name), _structure(), _needed_features(needed_features)
+Module::Module(const std::string& name, ImportFeatures needed_features)
+	: _name(name)
+	, _structure()
+	, _needed_features(needed_features)
 {
 }
 
