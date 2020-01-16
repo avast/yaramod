@@ -303,14 +303,18 @@ void TokenStream::addMissingNewLines()
 		auto current = it->getType();
 		auto nextIt = std::next(it);
 		if (nextIt == end())
-			 break;
+		{
+			if(current != NEW_LINE)
+				emplace(nextIt, NEW_LINE, _new_line_style);
+			break;
+		}
 		auto next = nextIt->getType();
 		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
 		{
 			brackets.addLeftBracket(lineCounter, it->getFlag());
 			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
+				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 		}
@@ -318,11 +322,51 @@ void TokenStream::addMissingNewLines()
 		{
 			if (brackets.putNewlineInCurrentSector() && current != NEW_LINE)
 			{
-				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
+				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 			else
 				brackets.addRightBracket();
+		}
+		if (current != NEW_LINE && (next == CONDITION || next == STRINGS || next == STRING_ID_BEFORE_NEWLINE || next == META || next == META_KEY || next == RULE_END || next == RULE_BEGIN))
+		{
+			nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+			next = nextIt->getType();
+		}
+		if ((next == RULE || next == GLOBAL || next == PRIVATE) && it != begin())
+		{
+			if (current != GLOBAL && current != PRIVATE)
+			{
+				if (current != NEW_LINE)
+				{
+					nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+					nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+					next = nextIt->getType();
+				}
+				else
+				{
+					auto prev = std::prev(it)->getType();
+					if( prev != NEW_LINE && prev != COMMENT && prev != ONELINE_COMMENT)
+					{
+						nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+						next = nextIt->getType();
+					}
+				}
+			}
+		}
+		if (current == COLON_BEFORE_NEWLINE && next != NEW_LINE)
+		{
+			if (next == COMMENT)
+			{
+				auto nextNextIt = std::next(nextIt);
+				if ((nextNextIt != end()) && (nextNextIt->getType() != NEW_LINE))
+					emplace(nextNextIt, NEW_LINE, _new_line_style);
+			}
+			else if (next != ONELINE_COMMENT)
+			{
+				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+				next = nextIt->getType();
+			}
 		}
 		if (current == NEW_LINE)
 			++lineCounter;

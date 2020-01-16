@@ -49,7 +49,8 @@ TEST_F(ParserTests,
 EmptyRuleWorks) {
 	prepareInput(
 R"(
-rule empty_rule {
+rule empty_rule
+{
 	condition:
 		true
 }
@@ -111,17 +112,25 @@ rule rule_with_tags : Tag1 Tag2 Tag3 {
 	EXPECT_EQ(0u, rule->getMetas().size());
 	EXPECT_TRUE(rule->getStrings().empty());
 
-	std::vector<std::string> expected = { "Tag1", "Tag2", "Tag3" };
-	EXPECT_EQ(expected, rule->getTags());
+	std::vector<std::string> expected_tags = { "Tag1", "Tag2", "Tag3" };
+	EXPECT_EQ(expected_tags, rule->getTags());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::string expected = R"(
+rule rule_with_tags : Tag1 Tag2 Tag3
+{
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
 RuleWithMetasWorks) {
 	prepareInput(
 R"(
-rule rule_with_metas {
+rule rule_with_metas
+{
 	meta:
 		str_meta = "string meta"
 		int_meta = 42
@@ -163,7 +172,8 @@ TEST_F(ParserTests,
 RuleWithRepetitiveMetasWorks) {
 	prepareInput(
 R"(
-rule rule_with_repetitive_metas {
+rule rule_with_repetitive_metas
+{
 	meta:
 		author = "me"
 		hash = "cryptic"
@@ -205,7 +215,8 @@ TEST_F(ParserTests,
 HexAndDecimalIntegersArePreservedWorks) {
 	prepareInput(
 R"(
-rule hex_and_decimal_integers_are_preserved {
+rule hex_and_decimal_integers_are_preserved
+{
 	meta:
 		hex_meta = 0x42
 		dec_meta = 42
@@ -241,7 +252,8 @@ TEST_F(ParserTests,
 RuleWithPlainTextStringsWorks) {
 	prepareInput(
 R"(
-rule rule_with_plain_strings {
+rule rule_with_plain_strings
+{
 	strings:
 		$1 = "Hello World!"
 		$2 = "Bye World."
@@ -280,21 +292,24 @@ TEST_F(ParserTests,
 MultipleRulesWorks) {
 	prepareInput(
 R"(
-rule rule_1 {
+rule rule_1
+{
 	strings:
 		$1 = "String from Rule 1"
 	condition:
 		true
 }
 
-rule rule_2 {
+rule rule_2
+{
 	strings:
 		$1 = "String from Rule 2"
 	condition:
 		true
 }
 
-rule rule_3 {
+rule rule_3
+{
 	strings:
 		$1 = "String from Rule 3"
 	condition:
@@ -336,7 +351,8 @@ TEST_F(ParserTests,
 RuleWithPlainTextStringWithModifiersWorks) {
 	prepareInput(
 R"(
-rule rule_with_plain_strings {
+rule rule_with_plain_strings
+{
 	strings:
 		$1 = "Hello World!" nocase wide
 		$2 = "Bye World." fullword
@@ -380,7 +396,8 @@ TEST_F(ParserTests,
 HexStringWithPlainNibbleWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_plain_nibble {
+rule hex_string_with_plain_nibble
+{
 	strings:
 		$1 = { 11 }
 	condition:
@@ -410,7 +427,8 @@ TEST_F(ParserTests,
 HexStringWithPlainNibblesWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_plain_nibbles {
+rule hex_string_with_plain_nibbles
+{
 	strings:
 		$1 = { 01 23 45 67 89 AB CD EF }
 	condition:
@@ -440,7 +458,8 @@ TEST_F(ParserTests,
 HexStringWithLowHighJumpWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_low_high_jump {
+rule hex_string_with_low_high_jump
+{
 	strings:
 		$1 = { 01 23 [5-6] 45 56 }
 	condition:
@@ -470,7 +489,8 @@ TEST_F(ParserTests,
 HexStringWithLowJumpWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_low_jump {
+rule hex_string_with_low_jump
+{
 	strings:
 		$1 = { 01 23 [5-] 45 56 }
 	condition:
@@ -500,7 +520,8 @@ TEST_F(ParserTests,
 HexStringWithUnrestrictedJumpWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_unrestricted_jump {
+rule hex_string_with_unrestricted_jump
+{
 	strings:
 		$1 = { 01 23 [-] 45 56 }
 	condition:
@@ -530,7 +551,8 @@ TEST_F(ParserTests,
 HexStringWithConstantJumpWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_constant_jump {
+rule hex_string_with_constant_jump
+{
 	strings:
 		$1 = { 01 23 [5] 45 56 }
 	condition:
@@ -560,7 +582,8 @@ TEST_F(ParserTests,
 HexStringWithSimpleOrWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_simple_or_jump {
+rule hex_string_with_simple_or_jump
+{
 	strings:
 		$1 = { 01 23 ( AB | CD ) 45 56 }
 	condition:
@@ -590,7 +613,8 @@ TEST_F(ParserTests,
 HexStringWithMultibyteSimpleOrWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_multibyte_simple_or_jump {
+rule hex_string_with_multibyte_simple_or_jump
+{
 	strings:
 		$1 = { 01 23 ( AB CD EF | AA BB | EE | FF FF ) 45 56 }
 	condition:
@@ -620,7 +644,8 @@ TEST_F(ParserTests,
 HexStringWithNestedOrWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_nested_or {
+rule hex_string_with_nested_or
+{
 	strings:
 		$1 = { 01 23 ( AB ( EE | FF ( 11 | 22 ) FF | ( 11 22 | 33 ) ) | DD ) 45 56 }
 	condition:
@@ -650,7 +675,8 @@ TEST_F(ParserTests,
 HexStringWithOrAndJumpWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_or_and_jump {
+rule hex_string_with_or_and_jump
+{
 	strings:
 		$1 = { 01 23 ( AA DD | FF [5-7] FF ) 45 56 }
 	condition:
@@ -680,7 +706,8 @@ TEST_F(ParserTests,
 HexStringWithOrOnTheBeginningAndEnd) {
 	prepareInput(
 R"(
-rule hex_string_with_or_on_the_beginning_and_end {
+rule hex_string_with_or_on_the_beginning_and_end
+{
 	strings:
 		$1 = { ( 11 | 22 ) 33 44 ( 55 | 66 ) }
 	condition:
@@ -710,7 +737,8 @@ TEST_F(ParserTests,
 HexStringWithJumpAtBeginningForbidden) {
 	prepareInput(
 R"(
-rule hex_string_with_jump_at_beginning {
+rule hex_string_with_jump_at_beginning
+{
 	strings:
 		$1 = { [5-6] 11 22 33 }
 	condition:
@@ -726,7 +754,7 @@ rule hex_string_with_jump_at_beginning {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -734,7 +762,8 @@ TEST_F(ParserTests,
 HexStringWithJumpAtEndForbidden) {
 	prepareInput(
 R"(
-rule hex_string_with_jump_at_end {
+rule hex_string_with_jump_at_end
+{
 	strings:
 		$1 = { 11 22 33 [5-6] }
 	condition:
@@ -750,7 +779,7 @@ rule hex_string_with_jump_at_end {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -758,21 +787,24 @@ TEST_F(ParserTests,
 MultipleRulesWithHexStrings) {
 	prepareInput(
 R"(
-rule rule_0 {
+rule rule_0
+{
 	strings:
 		$1 = { ( 11 | 22 ) 33 44 ( 55 | 66 ) }
 	condition:
 		true
 }
 
-rule rule_1 {
+rule rule_1
+{
 	strings:
 		$1 = { 01 23 ( AA DD | FF [5-7] FF ) 45 56 }
 	condition:
 		true
 }
 
-rule rule_2 {
+rule rule_2
+{
 	strings:
 		$1 = { 01 [-] ( AA DD | EE ) }
 	condition:
@@ -810,7 +842,8 @@ TEST_F(ParserTests,
 InvalidHexStringAtom1) {
 	prepareInput(
 R"(
-rule invalid_hex_string {
+rule invalid_hex_string
+{
 	strings:
 	  	$1 = { 01 0X } }
 	condition:
@@ -826,7 +859,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.15: Syntax error: Unknown symbol on input, expected one of hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.15: Syntax error: Unknown symbol on input, expected one of hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -834,7 +867,8 @@ TEST_F(ParserTests,
 InvalidHexStringAtom2) {
 	prepareInput(
 R"(
-rule invalid_hex_string {
+rule invalid_hex_string
+{
 	strings:
 	  	$1 = { 01 0 } }
 	condition:
@@ -850,7 +884,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.17: Syntax error: Unexpected }, expected one of hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.17: Syntax error: Unexpected }, expected one of hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -858,7 +892,8 @@ TEST_F(ParserTests,
 InvalidHexStringOr) {
 	prepareInput(
 R"(
-rule invalid_hex_string {
+rule invalid_hex_string
+{
 	strings:
 	  	$1 = { 01 | } }
 	condition:
@@ -874,7 +909,7 @@ rule invalid_hex_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string nibble", err.getErrorMessage());
 	}
 }
 
@@ -882,7 +917,8 @@ TEST_F(ParserTests,
 RegexpWithJustCharsWorks) {
 	prepareInput(
 R"(
-rule regexp_with_just_chars {
+rule regexp_with_just_chars
+{
 	strings:
 		$1 = /ab/
 	condition:
@@ -912,7 +948,8 @@ TEST_F(ParserTests,
 MultipleRegexpsWithJustCharsWorks) {
 	prepareInput(
 R"(
-rule regexp_with_just_chars {
+rule regexp_with_just_chars
+{
 	strings:
 		$1 = /a/
 		$2 = /ab/
@@ -957,7 +994,8 @@ TEST_F(ParserTests,
 RegexpLimitedToWholeLineWorks) {
 	prepareInput(
 R"(
-rule regexp_limited_to_whole_line {
+rule regexp_limited_to_whole_line
+{
 	strings:
 		$1 = /^abcd$/
 	condition:
@@ -987,7 +1025,8 @@ TEST_F(ParserTests,
 RegexpWithPredefinedClassesWorks) {
 	prepareInput(
 R"(
-rule regexp_with_predefined_classes {
+rule regexp_with_predefined_classes
+{
 	strings:
 		$1 = /\w\W\s\S\d\D\babc\B/
 	condition:
@@ -1017,7 +1056,8 @@ TEST_F(ParserTests,
 RegexpWithCustomClassWorks) {
 	prepareInput(
 R"(
-rule regexp_with_custom_class {
+rule regexp_with_custom_class
+{
 	strings:
 		$1 = /abc[xyz]def/
 	condition:
@@ -1047,7 +1087,8 @@ TEST_F(ParserTests,
 RegexpWithCustomNegativeClassWorks) {
 	prepareInput(
 R"(
-rule regexp_with_custom_negative_class {
+rule regexp_with_custom_negative_class
+{
 	strings:
 		$1 = /abc[^xyz]def/
 	condition:
@@ -1077,7 +1118,8 @@ TEST_F(ParserTests,
 RegexpWithIterationWorks) {
 	prepareInput(
 R"(
-rule regexp_with_iteration {
+rule regexp_with_iteration
+{
 	strings:
 		$1 = /ab*c/
 	condition:
@@ -1107,7 +1149,8 @@ TEST_F(ParserTests,
 RegexpWithPositiveIterationWorks) {
 	prepareInput(
 R"(
-rule regexp_with_positive_iteration {
+rule regexp_with_positive_iteration
+{
 	strings:
 		$1 = /ab+c/
 	condition:
@@ -1137,7 +1180,8 @@ TEST_F(ParserTests,
 RegexpWithOptionalWorks) {
 	prepareInput(
 R"(
-rule regexp_with_optional {
+rule regexp_with_optional
+{
 	strings:
 		$1 = /ab?c/
 	condition:
@@ -1167,7 +1211,8 @@ TEST_F(ParserTests,
 RegexpWithRangesWorks) {
 	prepareInput(
 R"(
-rule regexp_with_ranges {
+rule regexp_with_ranges
+{
 	strings:
 		$1 = /a{5}b{2,3}c{4,}d{,5}/
 	condition:
@@ -1197,7 +1242,8 @@ TEST_F(ParserTests,
 RegexpWithGreedyOperatorsWorks) {
 	prepareInput(
 R"(
-rule regexp_with_greedy_operators {
+rule regexp_with_greedy_operators
+{
 	strings:
 		$1 = /a*?b+?c??d{5,6}?/
 	condition:
@@ -1227,7 +1273,8 @@ TEST_F(ParserTests,
 RegexpWithGroupsWorks) {
 	prepareInput(
 R"(
-rule regexp_with_groups {
+rule regexp_with_groups
+{
 	strings:
 		$1 = /ab(cd(ef)gh(i))/
 	condition:
@@ -1257,7 +1304,8 @@ TEST_F(ParserTests,
 RegexpWithOrWorks) {
 	prepareInput(
 R"(
-rule regexp_with_or {
+rule regexp_with_or
+{
 	strings:
 		$1 = /(abc|def|xyz)/
 	condition:
@@ -1287,7 +1335,8 @@ TEST_F(ParserTests,
 RegexpWithModifiersWorks) {
 	prepareInput(
 R"(
-rule regexp_with_modifiers {
+rule regexp_with_modifiers
+{
 	strings:
 		$1 = /(abc|def|xyz)/ wide
 		$2 = /(abc|def|xyz)/ nocase fullword
@@ -1323,7 +1372,8 @@ TEST_F(ParserTests,
 RegexpWithUndefinedRangeForbidden) {
 	prepareInput(
 R"(
-rule regexp_with_undefined_range {
+rule regexp_with_undefined_range
+{
 	strings:
 		$1 = /ab{,}/
 	condition:
@@ -1339,7 +1389,7 @@ rule regexp_with_undefined_range {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.14: Range in regular expression does not have defined lower bound nor higher bound", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.14: Range in regular expression does not have defined lower bound nor higher bound", err.getErrorMessage());
 	}
 }
 
@@ -1347,7 +1397,8 @@ TEST_F(ParserTests,
 RegexpWithInvalidRangeForbidden) {
 	prepareInput(
 R"(
-rule regexp_with_invalid_range {
+rule regexp_with_invalid_range
+{
 	strings:
 		$1 = /ab{6,5}/
 	condition:
@@ -1363,7 +1414,7 @@ rule regexp_with_invalid_range {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.16: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.16: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
 	}
 }
 
@@ -1371,7 +1422,8 @@ TEST_F(ParserTests,
 GlobalRuleModifierWorks) {
 	prepareInput(
 R"(
-global rule global_rule {
+global rule global_rule
+{
 	condition:
 		true
 }
@@ -1392,7 +1444,8 @@ TEST_F(ParserTests,
 PrivateRuleModifierWorks) {
 	prepareInput(
 R"(
-private rule private_rule {
+private rule private_rule
+{
 	condition:
 		true
 }
@@ -1415,7 +1468,8 @@ ImportWorks) {
 R"(
 import "pe"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		true
 }
@@ -1435,7 +1489,8 @@ ImportOfUnrecognizedModuleForbidden) {
 R"(
 import "module"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		true
 }
@@ -1458,7 +1513,8 @@ TEST_F(ParserTests,
 TrueConditionWorks) {
 	prepareInput(
 R"(
-rule true_condition {
+rule true_condition
+{
 	condition:
 		true
 }
@@ -1477,7 +1533,8 @@ TEST_F(ParserTests,
 FalseConditionWorks) {
 	prepareInput(
 R"(
-rule false_condition {
+rule false_condition
+{
 	condition:
 		false
 }
@@ -1496,7 +1553,8 @@ TEST_F(ParserTests,
 StringIdConditionWorks) {
 	prepareInput(
 R"(
-rule string_id_condition {
+rule string_id_condition
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -1517,7 +1575,8 @@ TEST_F(ParserTests,
 StringAtEntryPointConditionWorks) {
 	prepareInput(
 R"(
-rule string_at_entrypoint_condition {
+rule string_at_entrypoint_condition
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -1538,7 +1597,8 @@ TEST_F(ParserTests,
 StringInRangeConditionWorks) {
 	prepareInput(
 R"(
-rule string_in_range_condition {
+rule string_in_range_condition
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -1559,7 +1619,8 @@ TEST_F(ParserTests,
 StringInRangeConditionWorks2) {
 	prepareInput(
 R"(
-rule string_in_range_condition2 {
+rule string_in_range_condition2
+{
 	strings:
 		$a = "dummy1"
 		$b = "dummy2"
@@ -1581,7 +1642,8 @@ TEST_F(ParserTests,
 NotConditionWorks) {
 	prepareInput(
 R"(
-rule not_condition {
+rule not_condition
+{
 	condition:
 		not true
 }
@@ -1600,7 +1662,8 @@ TEST_F(ParserTests,
 AndConditionWorks) {
 	prepareInput(
 R"(
-rule and_condition {
+rule and_condition
+{
 	condition:
 		true and not false
 }
@@ -1620,7 +1683,8 @@ TEST_F(ParserTests,
 AndConditionWorks2) {
 	prepareInput(
 R"(
-rule and_condition {
+rule and_condition
+{
 	strings:
 		$1 = "Hello World!"
 		$2 = "Bye World."
@@ -1642,7 +1706,8 @@ TEST_F(ParserTests,
 OrConditionWorks) {
 	prepareInput(
 R"(
-rule or_condition {
+rule or_condition
+{
 	condition:
 		true or not false
 }
@@ -1661,7 +1726,8 @@ TEST_F(ParserTests,
 EscapedOrConditionWorks) {
 	prepareInput(
 R"(
-rule or_condition {
+rule or_condition
+{
 	condition:
 		true or
 		not false or
@@ -1682,7 +1748,8 @@ TEST_F(ParserTests,
 RelationalConditionWorks) {
 	prepareInput(
 R"(
-rule relational_condition {
+rule relational_condition
+{
 	condition:
 		filesize < 10 or filesize > 20 or filesize <= 10 or filesize >= 20 or filesize != 15 or filesize == 16
 }
@@ -1701,7 +1768,8 @@ TEST_F(ParserTests,
 ParenthesesConditionWorks) {
 	prepareInput(
 R"(
-rule relational_condition {
+rule relational_condition
+{
 	strings:
 		$1 = "Hello World"
 	condition:
@@ -1722,7 +1790,8 @@ TEST_F(ParserTests,
 ArithmeticOpConditionWorksSimple) {
 	prepareInput(
 R"(
-rule arithmetic_op_condition {
+rule arithmetic_op_condition
+{
 	condition:
 		(10 + 20 < 200 - 100)
 }
@@ -1741,7 +1810,8 @@ TEST_F(ParserTests,
 ArithmeticOpConditionWorks) {
 	prepareInput(
 R"(
-rule arithmetic_op_condition {
+rule arithmetic_op_condition
+{
 	condition:
 		(10 + 20 < 200 - 100) and (10 * 20 > 20 \ 10) and (10 % 2) and (-5)
 }
@@ -1760,7 +1830,8 @@ TEST_F(ParserTests,
 ArithmeticOpConditionWorks2) {
 	prepareInput(
 R"(
-rule rule_with_arithmetic_operations {
+rule rule_with_arithmetic_operations
+{
 	condition:
 		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
 }
@@ -1779,7 +1850,8 @@ TEST_F(ParserTests,
 BitwiseOpConditionNegation) {
 	prepareInput(
 R"(
-rule bitwise_op_condition_negation {
+rule bitwise_op_condition_negation
+{
 	condition:
 		(~2 == 0)
 }
@@ -1798,7 +1870,8 @@ TEST_F(ParserTests,
 BitwiseOpConditionWorks) {
 	prepareInput(
 R"(
-rule bitwise_op_condition {
+rule bitwise_op_condition
+{
 	condition:
 		(3 & 2 == 2) and (7 ^ 7 == 0) and (3 | 4 == 7) and (~5) and (8 >> 2 == 2) and (1 << 3 == 8)
 }
@@ -1817,7 +1890,8 @@ TEST_F(ParserTests,
 IntFunctionConditionWorks) {
 	prepareInput(
 R"(
-rule int_function_condition {
+rule int_function_condition
+{
 	condition:
 		int8(uint32(int32be(5))) == 64
 }
@@ -1836,7 +1910,8 @@ TEST_F(ParserTests,
 DoubleInConditionWorks) {
 	prepareInput(
 R"(
-rule double_in_condition {
+rule double_in_condition
+{
 	condition:
 		1.23 + 4.56 > 10.5
 }
@@ -1855,7 +1930,8 @@ TEST_F(ParserTests,
 ContainsInConditionWorks) {
 	prepareInput(
 R"(
-rule contains_in_condition {
+rule contains_in_condition
+{
 	condition:
 		"Hello" contains "Hell"
 }
@@ -1874,7 +1950,8 @@ TEST_F(ParserTests,
 MatchesInConditionWorks) {
 	prepareInput(
 R"(
-rule matches_in_condition {
+rule matches_in_condition
+{
 	condition:
 		"Hello" matches /^Hell.*$/
 }
@@ -1894,7 +1971,8 @@ TEST_F(ParserTests,
 StringCountConditionWorks) {
 	prepareInput(
 R"(
-rule string_count_condition {
+rule string_count_condition
+{
 	strings:
 		$1 = "Hello World"
 	condition:
@@ -1915,7 +1993,8 @@ TEST_F(ParserTests,
 StringOffsetConditionWorks) {
 	prepareInput(
 R"(
-rule string_offset_condition {
+rule string_offset_condition
+{
 	strings:
 		$1 = "Hello World"
 		$2 = "Hello World2"
@@ -1937,7 +2016,8 @@ TEST_F(ParserTests,
 HexadecimalNumbersInConditionWorks) {
 	prepareInput(
 R"(
-rule string_offset_condition {
+rule string_offset_condition
+{
 	strings:
 		$1 = "Hello World"
 		$2 = "Hello World2"
@@ -1959,7 +2039,8 @@ TEST_F(ParserTests,
 StringLengthConditionWorks) {
 	prepareInput(
 R"(
-rule string_length_condition {
+rule string_length_condition
+{
 	strings:
 		$1 = "Hello World"
 	condition:
@@ -1982,7 +2063,8 @@ FunctionCallConditionWorks) {
 R"(
 import "pe"
 
-rule function_call_condition {
+rule function_call_condition
+{
 	condition:
 		(pe.is_dll()) and (pe.section_index(".text") == 0)
 }
@@ -2003,7 +2085,8 @@ StructureAccessConditionWorks) {
 R"(
 import "pe"
 
-rule structure_access_condition {
+rule structure_access_condition
+{
 	condition:
 		(pe.linker_version.major > 0) and (pe.linker_version.minor > 0)
 }
@@ -2024,7 +2107,8 @@ ArrayAccessConditionWorks) {
 R"(
 import "pe"
 
-rule array_access_condition {
+rule array_access_condition
+{
 	condition:
 		(pe.number_of_sections > 0) and (pe.sections[0].name == ".text")
 }
@@ -2043,7 +2127,8 @@ TEST_F(ParserTests,
 ForIntegerSetConditionWorks) {
 	prepareInput(
 R"(
-rule for_integer_set_condition {
+rule for_integer_set_condition
+{
 	strings:
 		$a = "dummy1"
 		$b = "dummy2"
@@ -2065,7 +2150,8 @@ TEST_F(ParserTests,
 ForStringSetConditionWorks) {
 	prepareInput(
 R"(
-rule for_string_set_condition {
+rule for_string_set_condition
+{
 	strings:
 		$a = "dummy1"
 		$b = "dummy2"
@@ -2087,7 +2173,8 @@ TEST_F(ParserTests,
 OfConditionWorks) {
 	prepareInput(
 R"(
-rule of_condition {
+rule of_condition
+{
 	strings:
 		$a = "dummy1"
 		$b = "dummy2"
@@ -2182,7 +2269,8 @@ TEST_F(ParserTests,
 StringsAndArithmeticOperationsForbidden) {
 	prepareInput(
 R"(
-rule strings_and_arithmetic_operations {
+rule strings_and_arithmetic_operations
+{
 	condition:
 		10 + "hello"
 }
@@ -2196,7 +2284,7 @@ rule strings_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.6: operator '+' expects integer or float on the right-hand side", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.6: operator '+' expects integer or float on the right-hand side", err.getErrorMessage());
 	}
 }
 
@@ -2204,7 +2292,8 @@ TEST_F(ParserTests,
 BoolAndArithmeticOperationsForbidden) {
 	prepareInput(
 R"(
-rule bool_and_arithmetic_operations {
+rule bool_and_arithmetic_operations
+{
 	condition:
 		10 + true
 }
@@ -2218,7 +2307,7 @@ rule bool_and_arithmetic_operations {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.8-11: Syntax error: Unexpected true, expected one of -, ~, (, /, entrypoint, filesize, integer, \", fixed-width integer function, string count, string offset, string length, identifier, float", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.8-11: Syntax error: Unexpected true, expected one of -, ~, (, /, entrypoint, filesize, integer, \", fixed-width integer function, string count, string offset, string length, identifier, float", err.getErrorMessage());
 	}
 }
 
@@ -2226,7 +2315,8 @@ TEST_F(ParserTests,
 ContainsAndNonStringForbidden) {
 	prepareInput(
 R"(
-rule contains_and_non_string {
+rule contains_and_non_string
+{
 	condition:
 		"abc" contains 5
 }
@@ -2240,7 +2330,7 @@ rule contains_and_non_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.9-16: operator 'contains' expects string on the right-hand side of the expression", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.9-16: operator 'contains' expects string on the right-hand side of the expression", err.getErrorMessage());
 	}
 }
 
@@ -2272,7 +2362,8 @@ TEST_F(ParserTests,
 StringWildcardConditionWorks) {
 	prepareInput(
 R"(
-rule string_wildcard_condition {
+rule string_wildcard_condition
+{
 	strings:
 		$aaa = "dummy1"
 		$aab = "dummy2"
@@ -2295,7 +2386,8 @@ TEST_F(ParserTests,
 StringWildcardConditionWithNoMatchingStringForbidden) {
 	prepareInput(
 R"(
-rule string_wildcard_condition_with_no_matching_string {
+rule string_wildcard_condition_with_no_matching_string
+{
 	strings:
 		$aaa = "dummy1"
 		$aab = "dummy2"
@@ -2313,7 +2405,7 @@ rule string_wildcard_condition_with_no_matching_string {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 8.15-17: No string matched with wildcard '$c*'", err.getErrorMessage());
+		EXPECT_EQ("Error at 9.15-17: No string matched with wildcard '$c*'", err.getErrorMessage());
 	}
 }
 
@@ -2321,7 +2413,8 @@ TEST_F(ParserTests,
 SameVariableInNestedForLoopsForbidden) {
 	prepareInput(
 R"(
-rule same_variable_in_nested_for_loops {
+rule same_variable_in_nested_for_loops
+{
 	strings:
 		$1 = "hello"
 	condition:
@@ -2337,7 +2430,7 @@ rule same_variable_in_nested_for_loops {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 6.35: Redefinition of identifier 'i'", err.getErrorMessage());
+		EXPECT_EQ("Error at 7.35: Redefinition of identifier 'i'", err.getErrorMessage());
 	}
 }
 
@@ -2347,7 +2440,8 @@ AndroguardModuleWorks) {
 R"(
 import "androguard"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		androguard.max_sdk > androguard.signature.hits("dummy") and androguard.min_sdk == androguard.max_sdk
 }
@@ -2368,7 +2462,8 @@ AndroguardModuleUnrecognized) {
 R"(
 import "androguard"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		androguard.max_sdk > androguard.signature.hits("dummy")
 }
@@ -2397,7 +2492,8 @@ PhishModuleWorks) {
 R"(
 import "phish"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		phish.file_contents.input.ids_hash("x") == "dummy_hash" and phish.source_url == "a" and phish.file_contents.a.class("y") == 5
 }
@@ -2418,7 +2514,8 @@ PhishModuleUnrecognized) {
 R"(
 import "phish"
 
-rule dummy_rule {
+rule dummy_rule
+{
 	condition:
 		phish.file_contents.input.ids_hash == "dummy_hash"
 }
@@ -2447,7 +2544,8 @@ CuckooModuleWorks) {
 R"(
 import "cuckoo"
 
-rule cuckoo_module {
+rule cuckoo_module
+{
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
@@ -2470,10 +2568,12 @@ CuckooModuleUnrecognized) {
 R"(
 import "cuckoo"
 
-rule cuckoo_module {
+rule cuckoo_module
+{
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
+		true and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/) and
 		$some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
 }
 )");
@@ -2491,7 +2591,7 @@ rule cuckoo_module {
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
 		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 8.35-51: Unrecognized identifier 'http_request_body' referenced", err.getErrorMessage());
+		EXPECT_EQ("Error at 10.35-51: Unrecognized identifier 'http_request_body' referenced", err.getErrorMessage());
 	}
 }
 
@@ -2501,7 +2601,8 @@ DotnetModuleWorks) {
 R"(
 import "dotnet"
 
-rule dotnet_module {
+rule dotnet_module
+{
 	condition:
 		dotnet.assembly.version.major > 0 and dotnet.assembly.version.minor > 0
 }
@@ -2522,7 +2623,8 @@ ElfModuleWorks) {
 R"(
 import "elf"
 
-rule elf_module {
+rule elf_module
+{
 	condition:
 		elf.type == elf.ET_EXEC and elf.sections[0].type == elf.SHT_NULL
 }
@@ -2543,7 +2645,8 @@ HashModuleWorks) {
 R"(
 import "hash"
 
-rule hash_module {
+rule hash_module
+{
 	condition:
 		hash.md5("dummy") == "275876e34cf609db118f3d84b799a790"
 }
@@ -2564,7 +2667,8 @@ MagicModuleWorks) {
 R"(
 import "magic"
 
-rule magic_module {
+rule magic_module
+{
 	condition:
 		magic.type() contains "PDF"
 }
@@ -2585,7 +2689,8 @@ MathModuleWorks) {
 R"(
 import "math"
 
-rule math_module {
+rule math_module
+{
 	condition:
 		math.entropy("dummy") > 7
 }
@@ -2606,7 +2711,8 @@ PeModuleWorks1) {
 R"(
 import "pe"
 
-rule pe_module {
+rule pe_module
+{
 	condition:
 		pe.version_info["CompanyName"] == "company"
 }
@@ -2649,7 +2755,8 @@ PeModuleWorks2) {
 R"(
 import "pe"
 
-rule pe_module {
+rule pe_module
+{
 	condition:
 		pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL
 }
@@ -2668,7 +2775,8 @@ TEST_F(ParserTests,
 VirusTotalSymbolsWork) {
 	prepareInput(
 R"(
-rule virus_total_specific {
+rule virus_total_specific
+{
 	condition:
 		positives > 5 and bytehero == "hero"
 }
@@ -2687,7 +2795,8 @@ TEST_F(ParserTests,
 VirusTotalSymbolsUnrecognized) {
 	prepareInput(
 R"(
-rule virus_total_specific {
+rule virus_total_specific
+{
 	condition:
 		positives > 5 and bytehero == "hero"
 }
@@ -2706,7 +2815,7 @@ rule virus_total_specific {
 	{
 		EXPECT_EQ(0u, driverNoVTSymbols.getParsedFile().getRules().size());
 		ASSERT_EQ(0u, driverNoVTSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 4.3-11: Unrecognized identifier 'positives' referenced", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.3-11: Unrecognized identifier 'positives' referenced", err.getErrorMessage());
 	}
 }
 
@@ -2719,7 +2828,8 @@ import "pe"
 /**
  * Random block comment
  */
-rule rule_1 : Tag1 Tag2 {
+rule rule_1 : Tag1 Tag2
+{
 	meta:
 		info = "meta info"
 		version = 2
@@ -2734,7 +2844,8 @@ rule rule_1 : Tag1 Tag2 {
 import "elf"
 
 // Random one-line comment
-rule rule_2 {
+rule rule_2
+{
 	meta:
 		valid = true
 	strings:
@@ -2781,12 +2892,14 @@ TEST_F(ParserTests,
 MultipleRulesWorks2) {
 	prepareInput(
 R"(
-rule rule_1 {
+rule rule_1
+{
 	condition:
 		for any of them : ( $ at entrypoint )
 }
 
-rule rule2 {
+rule rule2
+{
 	meta:
 		valid = "ahoj"
 	condition:
@@ -2817,7 +2930,8 @@ TEST_F(ParserTests,
 KbMbIntegerMultipliersWorks) {
 	prepareInput(
 R"(
-rule kb_mb_integer_multipliers {
+rule kb_mb_integer_multipliers
+{
 	condition:
 		(1KB <= filesize) and (filesize <= 1MB)
 }
@@ -2836,12 +2950,14 @@ TEST_F(ParserTests,
 ReferencingRuleFromOtherRuleWorks) {
 	prepareInput(
 R"(
-rule rule_1 {
+rule rule_1
+{
 	condition:
 		filesize > 100KB
 }
 
-rule rule_2 {
+rule rule_2
+{
 	condition:
 		rule_1 and (filesize < 10MB)
 }
@@ -2865,7 +2981,8 @@ RegexpWithSuffixModifierWorks) {
 R"(
 import "cuckoo"
 
-rule regexp_with_suffix_modifier {
+rule regexp_with_suffix_modifier
+{
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
@@ -2885,7 +3002,8 @@ rule regexp_with_suffix_modifier {
 TEST_F(ParserTests,
 GlobalVariablesWorks) {
 	prepareInput(
-R"(rule rule_with_global_variables {
+R"(rule rule_with_global_variables
+{
 	condition:
 		new_file and positives > 10 and signatures matches /Trojan\.Generic.*/ and file_type contains "pe"
 }
@@ -2902,7 +3020,8 @@ R"(rule rule_with_global_variables {
 TEST_F(ParserTests,
 LengthOfHexStringWorks) {
 	prepareInput(
-R"(rule rule_with_some_hex_string {
+R"(rule rule_with_some_hex_string
+{
 	strings:
 		$hex_string = { 11 ?? 22 [4-5] ( 66 | 77 ) 88 }
 	condition:
@@ -2950,7 +3069,8 @@ R"(rule rule_with_some_hex_string {
 	EXPECT_EQ("{ A1 [8-123] A2 }", string->getText());
 
 	std::string expected =
-R"(rule rule_with_some_hex_string {
+R"(rule rule_with_some_hex_string
+{
 	strings:
 		$hex = { A1 [8-123] A2 }
 	condition:
@@ -2964,7 +3084,8 @@ R"(rule rule_with_some_hex_string {
 TEST_F(ParserTests,
 ComplicatedHexStringAlterationWorks) {
 	prepareInput(
-R"(rule rule_with_complicated_alteration_hex_string {
+R"(rule rule_with_complicated_alteration_hex_string
+{
 	strings:
 		$hex_string = { 11 ( 12 | 22 | 33 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }
 	condition:
@@ -2992,7 +3113,8 @@ R"(rule rule_with_complicated_alteration_hex_string {
 TEST_F(ParserTests,
 ComplicatedHexStringWorks) {
 	prepareInput(
-R"(rule rule_with_complicated_hex_string {
+R"(rule rule_with_complicated_hex_string
+{
 	strings:
 		$hex_string = { ( 11 1? | 22 ?0 19 49 | 33 30 | ( 44 | ( 55 | ?? ) | 66 ) | 77 | 88 ) }
 	condition:
@@ -3022,7 +3144,8 @@ R"(rule rule_with_complicated_hex_string {
 TEST_F(ParserTests,
 NibbleGetterWorks) {
 	prepareInput(
-R"(rule rule_with_some_hex_string {
+R"(rule rule_with_some_hex_string
+{
 	strings:
 		$hex_string = { 9F }
 	condition:
@@ -3053,7 +3176,8 @@ HexEscapeWorks) {
 R"(
 import "pe"
 
-rule rule_with_hex_escaped_works {
+rule rule_with_hex_escaped_works
+{
 	meta:
 		simple_string_meta = "Simple is \x11"
 	condition:
@@ -3079,7 +3203,8 @@ EscapedSequencesInMetaWorks) {
 R"(
 import "pe"
 
-rule rule_with_escaped_meta_works {
+rule rule_with_escaped_meta_works
+{
 	meta:
 		str_meta_0 = "Here are a@t"
 		str_meta_1 = "Here are a\x40t"
@@ -3123,7 +3248,8 @@ EscapedSequencesWorks) {
 R"(
 import "pe"
 
-rule rule_with_escaped_double_quotes_works {
+rule rule_with_escaped_double_quotes_works
+{
 	meta:
 		str_meta = "Here are \t\n\\\x01\xff"
 	strings:
@@ -3209,7 +3335,8 @@ R"(rule rule_with_invalid_escape_sequence {
 TEST_F(ParserTests,
 NewlineInHexString) {
 	prepareInput(
-R"(rule rule_with_hex_string_with_newlines {
+R"(rule rule_with_hex_string_with_newlines
+{
 	strings:
 		$str = {
 			AA
@@ -3266,7 +3393,8 @@ PeDataDirectoryIsArray) {
 	prepareInput(
 R"(import "pe"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0
 }
@@ -3285,7 +3413,8 @@ rule public_rule {
 TEST_F(ParserTests,
 AnonymousStrings) {
 	prepareInput(
-R"(rule public_rule {
+R"(rule public_rule
+{
 	strings:
 		$ = "Hello World"
 		$ = "Bye World"
@@ -3400,7 +3529,8 @@ import "pe"
 /**
  * Random block comment
  */
-rule rule_1 : Tag1 Tag2 {
+rule rule_1 : Tag1 Tag2
+{
 	// Random comment meta
 	meta:
 		// Random comment meta info
@@ -3424,7 +3554,8 @@ rule rule_1 : Tag1 Tag2 {
 import "elf"
 
 // Random one-line comment
-rule rule_2 {
+rule rule_2
+{
 	/*
 	 meta comment*/
 	meta:
@@ -3432,7 +3563,7 @@ rule rule_2 {
 	/*
 	 strings comment
 	*/
-	strings: // COMMENT
+	strings:                                           // COMMENT
 		$abc = "no case full word" nocase fullword // xor
 	/*
 		condition comment
@@ -3475,7 +3606,8 @@ R"(rule rule_name {
 		true
 })", driver.getParsedFile().getText());
 	std::string expected = R"(
-rule rule_name {
+rule rule_name
+{
 	strings:
 		$1 = { AB CD /* comment 1 */ 01 }
 		$2 = { AB CD /* comment 2 */ }
@@ -3497,7 +3629,8 @@ CommentsInCondition) {
 R"(
 import "pe"
 
-rule rule_1 : Tag1 Tag2 {
+rule rule_1 : Tag1 Tag2
+{
 	meta:
 		info = "meta info"
 		version = 2
@@ -3511,7 +3644,8 @@ rule rule_1 : Tag1 Tag2 {
 
 import "elf"
 
-rule rule_2 {
+rule rule_2
+{
 	meta:
 		valid = true
 	strings:
@@ -3662,46 +3796,7 @@ private rule RULE_1
 TEST_F(ParserTests,
 ForCycleMultipleRowsWithCRLF)
 {
-	prepareInput(
-R"(
-import "pe"
-
-private rule RULE_1
-{
-	meta:
-		author = "Mr. Avastian"
-		description = "cool rule"
-		reliability = "test"
-		strain = "strain"
-		type = "type"
-		severity = "severity"
-		rule_type = "type"
-		hash = "9b7eb04d21397a5afb6b96985196453c9af6011578b1a7f8c7dd464875e6b98b"
-		hash = "8399656db73fe734d110e11b01632b1bebb7a7d6fedbefdae1607847092f8628"
-		hash = "517b882a9365026168f72fa88ace14f1976e027e37e5fc27f2a298a6730bb3a7"
-		hash = "fcc2afe8eca464971d96867e7898b4c929cde65e4dab126a3ae48aee48083256"
-	strings:
-		// Comments are super fun!
-		$h0 = { A1 00 01 00 00 01 E1 10 } ///< Freedom . for . comments!
-		$h1 = { B2 00 01 00 00 66 E2 02 }
-		$h2 = { C3 01 00 00 01 5a E1 30 }
-
-		$h3 = { D4 00 00 01 00 5b E2 45 }
-		$h4 = { E5 00 00 00 00 5e E1 66 }
-		$h5 = { F6 00 01 00 01 5f E2 11 }
-	condition:
-		for any of ($h*) : (
-			# < 20 and
-			for any i in (1 .. #) : ( //Comment inside expression
-				uint32be(1) == 5 and // comment right after and
-				filesize >= 10 and
-				all of them and
-				entrypoint and
-				@h1 < pe.overlay.offset
-			)
-		)
-}
-)");
+	prepareInput("\r\nimport \"pe\"\r\n\r\nprivate rule RULE_1\r\n{\r\n\tmeta:\r\n\t\tauthor = \"Mr. Avastian\"\r\n\t\tdescription = \"cool rule\"\r\n\thash = \"hash2\"\r\n\t\thash = \"hash1\"\r\n\tstrings:\r\n\t\t$h0 = \"str0\"\r\n\t\t$h1 = \"str1\"\r\n\tcondition:\r\nfor any of ($h*) : (\r\n\t\t\t# < 20 and\r\n\tfor any i in (1 .. #) : (    //Comment inside expression\r\n\t\tuint32be(1) == 5 and // comment right after and\r\n\t\t\t\tfilesize >= 10 and\r\n\t\t\t\tall of them and\r\n\t\t\t\tentrypoint and\r\n\t\t\t\t@h1 < pe.overlay.offset\r\n\t\t\t)\r\n\t\t)\r\n}\r\n");
 
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
@@ -3709,49 +3804,11 @@ private rule RULE_1
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	auto strings = rule->getStrings();
-	ASSERT_EQ(6u, strings.size());
+	ASSERT_EQ(2u, strings.size());
 
 	EXPECT_EQ("$h0", strings[0]->getIdentifier());
 
-	std::string expected = R"(
-import "pe"
-
-private rule RULE_1
-{
-	meta:
-		author = "Mr. Avastian"
-		description = "cool rule"
-		reliability = "test"
-		strain = "strain"
-		type = "type"
-		severity = "severity"
-		rule_type = "type"
-		hash = "9b7eb04d21397a5afb6b96985196453c9af6011578b1a7f8c7dd464875e6b98b"
-		hash = "8399656db73fe734d110e11b01632b1bebb7a7d6fedbefdae1607847092f8628"
-		hash = "517b882a9365026168f72fa88ace14f1976e027e37e5fc27f2a298a6730bb3a7"
-		hash = "fcc2afe8eca464971d96867e7898b4c929cde65e4dab126a3ae48aee48083256"
-	strings:
-		// Comments are super fun!
-		$h0 = { A1 00 01 00 00 01 E1 10 } ///< Freedom . for . comments!
-		$h1 = { B2 00 01 00 00 66 E2 02 }
-		$h2 = { C3 01 00 00 01 5a E1 30 }
-
-		$h3 = { D4 00 00 01 00 5b E2 45 }
-		$h4 = { E5 00 00 00 00 5e E1 66 }
-		$h5 = { F6 00 01 00 01 5f E2 11 }
-	condition:
-		for any of ($h*) : (
-			# < 20 and
-			for any i in (1 .. #) : (    //Comment inside expression
-				uint32be(1) == 5 and // comment right after and
-				filesize >= 10 and
-				all of them and
-				entrypoint and
-				@h1 < pe.overlay.offset
-			)
-		)
-}
-)";
+	std::string expected = "\r\nimport \"pe\"\r\n\r\nprivate rule RULE_1\r\n{\r\n\tmeta:\r\n\t\tauthor = \"Mr. Avastian\"\r\n\t\tdescription = \"cool rule\"\r\n\t\thash = \"hash2\"\r\n\t\thash = \"hash1\"\r\n\tstrings:\r\n\t\t$h0 = \"str0\"\r\n\t\t$h1 = \"str1\"\r\n\tcondition:\r\n\t\tfor any of ($h*) : (\r\n\t\t\t# < 20 and\r\n\t\t\tfor any i in (1 .. #) : (    //Comment inside expression\r\n\t\t\t\tuint32be(1) == 5 and // comment right after and\r\n\t\t\t\tfilesize >= 10 and\r\n\t\t\t\tall of them and\r\n\t\t\t\tentrypoint and\r\n\t\t\t\t@h1 < pe.overlay.offset\r\n\t\t\t)\r\n\t\t)\r\n}\r\n";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
@@ -3759,7 +3816,8 @@ private rule RULE_1
 TEST_F(ParserTests,
 OneMoreTest) {
 	prepareInput(
-R"(rule public_rule {
+R"(rule public_rule
+{
 	strings:
 		$1 = "Hello World"
 		$2 = "Bye World"
@@ -3957,7 +4015,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		for 2 i in (1 .. 4) : (
 			i == 4 and (
@@ -3994,7 +4053,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		for 2 i in (1 .. 4) : (
 			i == 4 and ((
@@ -4031,7 +4091,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		for 2 i in (1 .. 4) : (
 			i == 4 and (((
@@ -4071,7 +4132,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		for 2 i in (1 .. 4) : (
 			(i == 1) or
@@ -4110,7 +4172,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		false or (
 			true and (false or (true and (
@@ -4129,7 +4192,8 @@ AutoformattingProperAlignmentOrStatement) {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		not false and
 		not false and
@@ -4153,7 +4217,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		not false and
 		not false and
@@ -4180,7 +4245,8 @@ AutoformattingAddNewlinesMinimal) {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 			(false and
 			true )
@@ -4193,7 +4259,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		(
 			false and
@@ -4229,7 +4296,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		false or (
 			true and (
@@ -4269,7 +4337,8 @@ rule public_rule {
 R"(
 import "cuckoo"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		false or
 		(
@@ -4293,7 +4362,7 @@ AutoformattingAddCRLF) {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
-"import \"cuckoo\"\r\n\r\nrule public_rule {\r\n	condition:\r\n		false or\r\n		(\r\n			true and\r\n			(\r\n				true or\r\n				false\r\n			)\r\n		)\r\n}";
+"import \"cuckoo\"\r\n\r\nrule public_rule\r\n{\r\n	condition:\r\n		false or\r\n		(\r\n			true and\r\n			(\r\n				true or\r\n				false\r\n			)\r\n		)\r\n}\r\n";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
@@ -4318,7 +4387,8 @@ R"(
 import "cuckoo"
 import "pe"
 
-rule public_rule {
+rule public_rule
+{
 	condition:
 		pe.version_info["ProductName"] == "Test product name"
 }
@@ -4352,7 +4422,8 @@ rule public_rule { //comment 0
 R"(
 import "cuckoo"
 
-rule public_rule { //comment 0
+rule public_rule
+{ //comment 0
 	condition:
 		false or
 		( //comment 1
@@ -4394,7 +4465,8 @@ rule rule1 {
 R"(
 import "cuckoo"
 
-rule rule1 {
+rule rule1
+{
 	condition:
 		cuckoo.network.http_request(/[\w]/) or
 		cuckoo.network.http_request(/[\W]/) or
@@ -4414,8 +4486,7 @@ rule rule1 {
 TEST_F(ParserTests,
 AutoformattingAlignedComments1) {
 	prepareInput(
-R"(
-import "cuckoo"
+R"(import "cuckoo"
 
 rule rule1 {
 	strings:
@@ -4425,7 +4496,7 @@ rule rule1 {
 		$h3 = { 00 01 02 03 04 05 }
 		$h4 = { C3 [5-6] 00 [5-] 01 5a E1 30 [5-6] 51 } // comment 3
 		$h5 = { C3 01 01 5a E1 A2 A1 } // comment 4
-		$h6 = { C3 01 01 5a E1 [5-6] A1 } // comment 5
+		$h6 = { C3 01 01 5a E1 [5-6] A1 }
 	condition: // this condition is crucial
 		cuckoo.network.http_request(/[\w]/) or // Hello
 			true or // from the
@@ -4437,10 +4508,10 @@ rule rule1 {
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
-R"(
-import "cuckoo"
+R"(import "cuckoo"
 
-rule rule1 {
+rule rule1
+{
 	strings:
 		$h0 = { A1 00 01 00 00 01 E1 10 }                                // comment 0
 		$h1 = { B2 00 00 66 E2 02 }                                      // comment 1
@@ -4448,8 +4519,8 @@ rule rule1 {
 		$h3 = { 00 01 02 03 04 05 }
 		$h4 = { C3 [5-6] 00 [5-] 01 5a E1 30 [5-6] 51 } // comment 3
 		$h5 = { C3 01 01 5a E1 A2 A1 }                  // comment 4
-		$h6 = { C3 01 01 5a E1 [5-6] A1 }               // comment 5
-	condition: // this condition is crucial
+		$h6 = { C3 01 01 5a E1 [5-6] A1 }
+	condition:                                     // this condition is crucial
 		cuckoo.network.http_request(/[\w]/) or // Hello
 		true or                                // from the
 		filesize > 50 or                       // other side!
@@ -4461,14 +4532,14 @@ rule rule1 {
 }
 
 TEST_F(ParserTests,
-AutoformattingNewlines) {
+AutoformattingNewlinesMultipleRules) {
 	prepareInput(
 R"(/*
 This is a comment at the beginning
 */
+import "cuckoo"
 
-rule cruel_rule
-{
+rule cruel_rule {
 	meta:
 		author = "Mr. Avastien"
 		description = "reliability_test"
@@ -4501,13 +4572,26 @@ rule cruel_rule
 	condition:
 		any of ($s0*) or
 		$h00
+}
+
+rule cruel_rule_2 {
+	meta:
+		author = "Mr. Avastien"
+	strings:
+		$s00 = "str 123" // 0x17
+		$s01 = "string 234567"  // 0x005
+		$s02 = "basic for loop" // 0
+	condition:
+		false or ($s00 and $s01 and $s02 and
+		cuckoo.network.http_request(/[\w]/))
 })");
 	EXPECT_TRUE(driver.parse());
-	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(/*
 This is a comment at the beginning
 */
+import "cuckoo"
 
 rule cruel_rule
 {
@@ -4543,7 +4627,23 @@ rule cruel_rule
 	condition:
 		any of ($s0*) or
 		$h00
-})";
+}
+
+rule cruel_rule_2
+{
+	meta:
+		author = "Mr. Avastien"
+	strings:
+		$s00 = "str 123"        // 0x17
+		$s01 = "string 234567"  // 0x005
+		$s02 = "basic for loop" // 0
+	condition:
+		false or (
+			$s00 and $s01 and $s02 and
+			cuckoo.network.http_request(/[\w]/)
+		)
+}
+)";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
@@ -4581,7 +4681,8 @@ std::string expected = R"(rule cruel_rule
 		}
 	condition:
 		true
-})";
+}
+)";
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
@@ -4621,18 +4722,66 @@ rule rule1
 				true
 			)
 		)
-})";
+}
+)";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
+
 TEST_F(ParserTests,
 AutoformattingOfOnelineRule) {
 	prepareInput(
-R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Avastien"    /*COMMENT*/    description = "reliability_test"    /*COMMENT*/      strings: $s00 = "str 123"     /*COMMENT*/    $s01 = "string 234567"   /*COMMENT*/    condition:   any of ($s0*) /*COMMENT*/ })");
+R"(rule oneline_rule { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ })");
 	EXPECT_TRUE(driver.parse());
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
-std::string expected = R"(rule oneline_rule { /*COMMENT*/ meta: author = "Mr. Avastien" /*COMMENT*/ description = "reliability_test" /*COMMENT*/ strings: $s00 = "str 123" /*COMMENT*/ $s01 = "string 234567" /*COMMENT*/ condition: any of ($s0*) /*COMMENT*/ })";
+std::string expected = R"(rule oneline_rule
+{ /*COMMENT 1*/
+	meta:
+		author = "Mr. Avastien" /*COMMENT 2*/
+		description = "reliability_test" /*COMMENT 3*/
+	strings:
+		$s00 = "str 123" /*COMMENT 4*/
+		$s01 = "string 234567" /*COMMENT 5*/
+	condition: /*COMMENT 6*/
+		any of ($s0*) /*COMMENT 7*/
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AutoformattingOfTwoOnelineRules) {
+	prepareInput(
+R"(rule oneline_rule { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ } rule oneline_rule_2 { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ })");
+	EXPECT_TRUE(driver.parse());
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule oneline_rule
+{ /*COMMENT 1*/
+	meta:
+		author = "Mr. Avastien" /*COMMENT 2*/
+		description = "reliability_test" /*COMMENT 3*/
+	strings:
+		$s00 = "str 123" /*COMMENT 4*/
+		$s01 = "string 234567" /*COMMENT 5*/
+	condition: /*COMMENT 6*/
+		any of ($s0*) /*COMMENT 7*/
+}
+
+rule oneline_rule_2
+{ /*COMMENT 1*/
+	meta:
+		author = "Mr. Avastien" /*COMMENT 2*/
+		description = "reliability_test" /*COMMENT 3*/
+	strings:
+		$s00 = "str 123" /*COMMENT 4*/
+		$s01 = "string 234567" /*COMMENT 5*/
+	condition: /*COMMENT 6*/
+		any of ($s0*) /*COMMENT 7*/
+}
+)";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
@@ -4643,7 +4792,8 @@ CuckooScheduledTaskModuleFunction) {
 R"(
 import "cuckoo"
 
-rule cuckoo_scheduled {
+rule cuckoo_scheduled
+{
 	condition:
 		cuckoo.process.scheduled_task(/SomeEvilTask/)
 }
@@ -4693,7 +4843,8 @@ rule string_xor_modifier_with_arguments {
 	EXPECT_EQ(string4->getModifiersText(), " xor(1-255)");
 
 	EXPECT_EQ(R"(
-rule string_xor_modifier_with_arguments {
+rule string_xor_modifier_with_arguments
+{
 	strings:
 		$s01 = "Hello" xor
 		$s02 = "Hello" xor(123)
