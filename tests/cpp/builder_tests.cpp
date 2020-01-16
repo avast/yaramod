@@ -1457,7 +1457,8 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		all of them
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers {
+	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers
+{
 	strings:
 		$1 = "Hello"
 		$2 = "Cruel" wide

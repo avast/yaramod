@@ -645,6 +645,7 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("hex_string_mod") // std::shared_ptr<StringModifier>
 		.production("PRIVATE", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(PRIVATE_STRING_MODIFIER);
 			return std::make_shared<PrivateStringModifier>(args[0].getTokenIt());
 		})
 		;
@@ -878,12 +879,13 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("condition") // Expression::Ptr
 		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
+			args[1].getTokenIt()->setType(COLON_BEFORE_NEWLINE);
 			return std::move(args[2]);
 		})
 		;
 
 	_parser.rule("expression") // Expression::Ptr
-		.production("boolean", [&](auto&& args) -> Value {
+		.production("boolean", [](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Bool);
 			return output;

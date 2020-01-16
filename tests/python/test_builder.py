@@ -1138,7 +1138,8 @@ rule rule_with_dictionary_access_condition {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_modifiers {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_modifiers
+{
 	strings:
 		$1 = "Hello" ascii wide
 		$2 = "Hello" wide fullword nocase
