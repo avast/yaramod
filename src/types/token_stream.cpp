@@ -172,7 +172,7 @@ TokenIt TokenStream::find(TokenType type, TokenIt from)
 
 TokenIt TokenStream::find(TokenType type, TokenIt from, TokenIt to)
 {
-	return std::find_if( from, to, [&type](const Token& t){ return t.getType() == type; });
+	return std::find_if(from, to, [&type](const Token& t){ return t.getType() == type; });
 }
 
 TokenIt TokenStream::findBackwards(TokenType type)
@@ -304,7 +304,7 @@ void TokenStream::addMissingNewLines()
 		auto nextIt = std::next(it);
 		if (nextIt == end())
 		{
-			if(current != NEW_LINE)
+			if (current != NEW_LINE)
 				emplace(nextIt, NEW_LINE, _new_line_style);
 			break;
 		}
@@ -346,7 +346,7 @@ void TokenStream::addMissingNewLines()
 				else
 				{
 					auto prev = std::prev(it)->getType();
-					if( prev != NEW_LINE && prev != COMMENT && prev != ONELINE_COMMENT)
+					if (prev != NEW_LINE && prev != COMMENT && prev != ONELINE_COMMENT)
 					{
 						nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 						next = nextIt->getType();
@@ -446,7 +446,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 		{
 			*ss << indent;
 		}
-		else if(alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
+		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
 			*ss << std::string(indentation - columnCounter, ' ');
 		*ss << it->getPureText();
 	}
