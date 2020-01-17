@@ -3866,18 +3866,7 @@ rule nonutf_meta
 	EXPECT_EQ(R"(내)", rule->getMetas()[0].getValue().getPureText());
 	EXPECT_EQ(R"("내")", rule->getMetas()[0].getValue().getText());
 
-	std::string expected =
-R"(
-import "cuckoo"
-
-rule nonutf_meta
-{
-	meta:
-		author = "내"
-	condition:
-		true
-}
-)";
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -4199,12 +4188,9 @@ rule public_rule
 		not false and
 		false or (
 			true and (
-				(
+				(	false or
 					false or
-					false or
-					false
-				) or (
-					true
+					false) or (true
 				)
 			)
 		)
@@ -4452,10 +4438,10 @@ rule rule1 {
 				cuckoo.network.http_request(/[\s]/) or
 					cuckoo.network.http_request(/[\S]/) or
 						cuckoo.network.http_request(/[\d]/) or
-							cuckoo.network.http_request(/[\D]/) or
-								cuckoo.network.http_request(/[\b]/) or
-									cuckoo.network.http_request(/[\B]/) or
-										cuckoo.network.http_request(/[\wa\sa\da\b]/)
+					cuckoo.network.http_request(/[\D]/) or
+				cuckoo.network.http_request(/[\b]/) or
+			cuckoo.network.http_request(/[\B]/) or
+					cuckoo.network.http_request(/[\wa\sa\da\b]/)
 }
 )");
 	EXPECT_TRUE(driver.parse());
@@ -4952,7 +4938,8 @@ TEST_F(ParserTests,
 PrivateStringModifier) {
 	prepareInput(
 R"(
-rule private_string_modifier {
+rule private_string_modifier
+{
 	strings:
 		$s01 = "Hello" private
 		$s02 = { AA BB CC DD } private
@@ -4980,6 +4967,8 @@ rule private_string_modifier {
 	auto string3 = strings[2];
 	EXPECT_EQ(string3->getModifiersText(), " private");
 	EXPECT_TRUE(string3->isPrivate());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
 }
