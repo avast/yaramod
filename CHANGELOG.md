@@ -1,8 +1,6 @@
 # Changelog
 
-# dev
-
-# v3.1.0 (2019-01-17)
+# v3.1.0 (2020-01-17)
 
 * Target `install` is now properly installing yaramod again.
 * Added support for language YARA features added in 3.11.0 ([#51](https://github.com/avast/yaramod/pull/51), [#52](https://github.com/avast/yaramod/pull/52)).
