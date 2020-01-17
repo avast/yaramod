@@ -3,6 +3,8 @@
 # dev
 
 * Target `install` is now properly installing yaramod again.
+* Added support for language YARA features added in 3.11.0 ([#51](https://github.com/avast/yaramod/pull/51), [#52](https://github.com/avast/yaramod/pull/52)).
+* Autoformatting now automatically adds new lines where needed ([#53](https://github.com/avast/yaramod/pull/53)).
 
 # v3.0.1 (2019-12-19)
 
