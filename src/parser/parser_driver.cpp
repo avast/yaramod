@@ -300,7 +300,7 @@ void ParserDriver::defineTokens()
 	});
 	// $hexstr multiline comment end
 
-	_parser.token(R"({[ \v\t]}*)").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value { return {}; });;
+	_parser.token(R"({[ \v\t]}*)").states("$hexstr", "@hexstr_jump").action([](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
 		currentLocation().addLine();
 		_indent.clear();
@@ -311,18 +311,18 @@ void ParserDriver::defineTokens()
 
 	// $regexp
 	// $regexp tokens are delegated as strings and then emplaced to TokenStream in grammar rules actions
-	_parser.token(R"(/i?s?)").states("$regexp").enter_state("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
+	_parser.token(R"(/i?s?)").states("$regexp").enter_state("@default").symbol("SLASH").description("/").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
-	_parser.token(R"(\()").states("$regexp").symbol("LP").description("(").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\))").states("$regexp").symbol("RP").description(")").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\|)").states("$regexp").symbol("REGEXP_OR").description("regexp |").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\*)").states("$regexp").symbol("REGEXP_ITER").description("regexp *").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\+)").states("$regexp").symbol("REGEXP_PITER").description("regexp +").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\?)").states("$regexp").symbol("REGEXP_OPTIONAL").description("regexp ?").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([&](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([&](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\()").states("$regexp").symbol("LP").description("(").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\))").states("$regexp").symbol("RP").description(")").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\|)").states("$regexp").symbol("REGEXP_OR").description("regexp |").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\*)").states("$regexp").symbol("REGEXP_ITER").description("regexp *").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\+)").states("$regexp").symbol("REGEXP_PITER").description("regexp +").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\?)").states("$regexp").symbol("REGEXP_OPTIONAL").description("regexp ?").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([](std::string_view str) -> Value { return std::string{str}; });
+	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
 		std::string rangeStr = std::string{str};
 		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
@@ -351,18 +351,18 @@ void ParserDriver::defineTokens()
 
 		return std::make_pair(range, range);
 	});
-	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([&](std::string_view str) -> Value {
+	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
-	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\S)").states("$regexp").symbol("REGEXP_NON_SPACE").description("regexp \\S").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\d)").states("$regexp").symbol("REGEXP_DIGIT").description("regexp \\d").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([&](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([&](std::string_view str) -> Value {
+	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\S)").states("$regexp").symbol("REGEXP_NON_SPACE").description("regexp \\S").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\d)").states("$regexp").symbol("REGEXP_DIGIT").description("regexp \\d").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([](std::string_view) -> Value { return {};});
+	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
 	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
@@ -425,7 +425,7 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("include") // {}
-		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&&) -> Value { return {}; })
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [](auto&&) -> Value { return {}; })
 		;
 
 	_parser.rule("rule") // {}
@@ -451,9 +451,9 @@ void ParserDriver::defineGrammar()
 			});
 
 	_parser.rule("rule_mod") // optional<TokenIt>
-		.production("GLOBAL", [&](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
-		.production("PRIVATE", [&](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
-		.production([&](auto&&) -> Value { return Value(std::nullopt); })
+		.production("GLOBAL", [](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
+		.production("PRIVATE", [](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
+		.production([](auto&&) -> Value { return Value(std::nullopt); })
 		;
 
 	_parser.rule("tags") // vector<TokenIt>
@@ -462,14 +462,14 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("tag_list") // vector<TokenIt>
-		.production("tag_list", "ID", [&](auto&& args) -> Value {
+		.production("tag_list", "ID", [](auto&& args) -> Value {
 			std::vector<TokenIt> tags = std::move(args[0].getMultipleTokenIt());
 			TokenIt tag = args[1].getTokenIt();
 			tag->setType(TAG);
 			tags.emplace_back(std::move(tag));
 			return tags;
 		})
-		.production("ID", [&](auto&& args) -> Value {
+		.production("ID", [](auto&& args) -> Value {
 			std::vector<TokenIt> tags;
 			TokenIt tag = args[0].getTokenIt();
 			tag->setType(TAG);
@@ -479,12 +479,15 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("metas") // vector<Meta>
-		.production("META", "COLON", "metas_body", [](auto&& args) -> Value { return std::move(args[2]); })
+		.production("META", "COLON", "metas_body", [](auto&& args) -> Value {
+			args[1].getTokenIt()->setType(COLON_BEFORE_NEWLINE);
+			return std::move(args[2]);
+		})
 		.production([](auto&&) -> Value { return std::vector<yaramod::Meta>(); })
 		;
 
 	_parser.rule("metas_body") // vector<Meta>
-		.production("metas_body", "ID", "ASSIGN", "literal", [&](auto&& args) -> Value {
+		.production("metas_body", "ID", "ASSIGN", "literal", [](auto&& args) -> Value {
 			std::vector<Meta> body = std::move(args[0].getMetas());
 			TokenIt key = args[1].getTokenIt();
 			key->setType(META_KEY);
@@ -508,7 +511,10 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("strings") // shared_ptr<StringsTrie>
-		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value { return std::move(args[2]); })
+		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value {
+			args[1].getTokenIt()->setType(COLON_BEFORE_NEWLINE);
+			return std::move(args[2]);
+		})
 		.production([&](auto&&) -> Value {
 			auto strings = std::make_shared<Rule::StringsTrie>();
 			setCurrentStrings(strings);
@@ -518,7 +524,8 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("strings_body") // shared_ptr<StringsTrie>
 		.production(
-			"strings_body", "STRING_ID", "ASSIGN", [&](auto&&) -> Value {
+			"strings_body", "STRING_ID", "ASSIGN", [](auto&& args) -> Value {
+				args[1].getTokenIt()->setType(STRING_ID_BEFORE_NEWLINE);
 				return {};
 			},
 			"string", [&](auto&& args) -> Value {
@@ -548,7 +555,7 @@ void ParserDriver::defineGrammar()
 			string->setModifiers(std::move(mods));
 			return string;
 		})
-		.production("LCB", [&](auto&& args) -> Value {
+		.production("LCB", [](auto&& args) -> Value {
 				args[0].getTokenIt()->setType(HEX_START_BRACKET);
 				return {};
 			},
@@ -559,7 +566,7 @@ void ParserDriver::defineGrammar()
 				return hexString;
 			}
 		)
-		.production("regexp", "regexp_mods", [&](auto&& args) -> Value {
+		.production("regexp", "regexp_mods", [](auto&& args) -> Value {
 			auto regexp_string = std::move(args[0].getYaramodString());
 			auto mods = std::move(args[1].getStringMods());
 			regexp_string->setModifiers(std::move(mods));
@@ -638,6 +645,7 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("hex_string_mod") // std::shared_ptr<StringModifier>
 		.production("PRIVATE", [](auto&& args) -> Value {
+			args[0].getTokenIt()->setType(PRIVATE_STRING_MODIFIER);
 			return std::make_shared<PrivateStringModifier>(args[0].getTokenIt());
 		})
 		;
@@ -778,7 +786,7 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("regexp") // shared_ptr<yaramod::String>
-		.production("SLASH", "regexp_body", "SLASH", [&](auto&& args) -> Value {
+		.production("SLASH", "regexp_body", "SLASH", [](auto&& args) -> Value {
 			auto regexp_string = std::move(args[1].getYaramodString());
 			std::static_pointer_cast<Regexp>(regexp_string)->setSuffixModifiers(args[2].getString().substr(1));
 			return regexp_string;
@@ -871,12 +879,13 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("condition") // Expression::Ptr
 		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
+			args[1].getTokenIt()->setType(COLON_BEFORE_NEWLINE);
 			return std::move(args[2]);
 		})
 		;
 
 	_parser.rule("expression") // Expression::Ptr
-		.production("boolean", [&](auto&& args) -> Value {
+		.production("boolean", [](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Bool);
 			return output;
@@ -963,7 +972,7 @@ void ParserDriver::defineGrammar()
 				return output;
 			}
 		)
-		.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
+		.production("for_expression", "OF", "string_set", [](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
 			auto set = std::move(args[2].getExpression());
@@ -971,14 +980,14 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("NOT", "expression", [&](auto&& args) -> Value {
+		.production("NOT", "expression", [](auto&& args) -> Value {
 			TokenIt not_token = args[0].getTokenIt();
 			auto expr = std::move(args[1].getExpression());
 			auto output = std::make_shared<NotExpression>(not_token, std::move(expr));
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
+		.production("expression", "AND", "expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt and_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -986,7 +995,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("expression", "OR", "expression", [&](auto&& args) -> Value {
+		.production("expression", "OR", "expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt or_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -994,7 +1003,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "LT", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "LT", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1002,7 +1011,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "GT", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "GT", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1010,7 +1019,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "LE", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "LE", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1018,7 +1027,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "GE", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "GE", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1026,7 +1035,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "EQ", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "EQ", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1034,7 +1043,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", "NEQ", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "NEQ", "primary_expression", [](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
 			auto right = std::move(args[2].getExpression());
@@ -1065,10 +1074,10 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
-		.production("primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", [](auto&& args) -> Value {
 			return std::move(args[0]);
 		}).precedence(0, pog::Associativity::Left)
-		.production("LP", "expression", "RP", [&](auto&& args) -> Value {
+		.production("LP", "expression", "RP", [](auto&& args) -> Value {
 			auto expr = std::move(args[1].getExpression());
 			auto type = expr->getType();
 			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(expr), args[2].getTokenIt());
@@ -1078,33 +1087,33 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("primary_expression") // Expression::Ptr
-		.production("LP", "primary_expression", "RP", [&](auto&& args) -> Value {
+		.production("LP", "primary_expression", "RP", [](auto&& args) -> Value {
 			auto type = args[1].getExpression()->getType();
 			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(args[1].getExpression()), args[2].getTokenIt());
 			output->setType(type);
 			return output;
 		})
-		.production("FILESIZE", [&](auto&& args) -> Value {
+		.production("FILESIZE", [](auto&& args) -> Value {
 			auto output = std::make_shared<FilesizeExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
-		.production("ENTRYPOINT", [&](auto&& args) -> Value {
+		.production("ENTRYPOINT", [](auto&& args) -> Value {
 			auto output = std::make_shared<EntrypointExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
-		.production("INTEGER", [&](auto&& args) -> Value {
+		.production("INTEGER", [](auto&& args) -> Value {
 			auto output = std::make_shared<IntLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
-		.production("DOUBLE", [&](auto&& args) -> Value {
+		.production("DOUBLE", [](auto&& args) -> Value {
 			auto output = std::make_shared<DoubleLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Float);
 			return output;
 		})
-		.production("STRING_LITERAL", [&](auto&& args) -> Value {
+		.production("STRING_LITERAL", [](auto&& args) -> Value {
 			auto output = std::make_shared<StringLiteralExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::String);
 			return output;
@@ -1310,10 +1319,10 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Int);
 			return output;
 		})
-		.production("identifier", [&](auto&& args) -> Value {
+		.production("identifier", [](auto&& args) -> Value {
 			return std::move(args[0]);
 		})
-		.production("regexp", [&](auto&& args) -> Value {
+		.production("regexp", [](auto&& args) -> Value {
 			auto output = std::make_shared<RegexpExpression>(std::move(args[0].getYaramodString()));
 			output->setType(Expression::Type::Regexp);
 			return output;
@@ -1415,17 +1424,17 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("arguments") // vector<Expression::Ptr>
-		.production("arguments", "COMMA", "expression", [&](auto&& args) -> Value {
+		.production("arguments", "COMMA", "expression", [](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(args[2].getExpression()));
 			return output;
 		})
-		.production("expression", [&](auto&& args) -> Value {
+		.production("expression", [](auto&& args) -> Value {
 			std::vector<Expression::Ptr> output;
 			output.push_back(std::move(args[0].getExpression()));
 			return output;
 		})
-		.production([&](auto&&) -> Value {
+		.production([](auto&&) -> Value {
 			return std::vector<Expression::Ptr>{};
 		})
 		;
@@ -1449,14 +1458,14 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("integer_set") // Expression::Ptr
-		.production("LP", "integer_enumeration", "RP", [&](auto&& args) -> Value {
+		.production("LP", "integer_enumeration", "RP", [](auto&& args) -> Value {
 			auto lp = args[0].getTokenIt();
 			auto rp = args[2].getTokenIt();
 			lp->setType(LP_ENUMERATION);
 			rp->setType(RP_ENUMERATION);
 			return std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
 		})
-		.production("range", [&](auto&& args) -> Value {
+		.production("range", [](auto&& args) -> Value {
 			return std::move(args[0]);
 		})
 		;
@@ -1479,14 +1488,14 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("string_set") // Expression::Ptr
-		.production("LP", "string_enumeration", "RP", [&](auto&& args) -> Value {
+		.production("LP", "string_enumeration", "RP", [](auto&& args) -> Value {
 			TokenIt lp = args[0].getTokenIt();
 			lp->setType(LP_ENUMERATION);
 			TokenIt rp = args[2].getTokenIt();
 			rp->setType(RP_ENUMERATION);
 			return std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
 		})
-		.production("THEM", [&](auto&& args) -> Value {
+		.production("THEM", [](auto&& args) -> Value {
 			return std::make_shared<ThemExpression>(args[0].getTokenIt());
 		})
 		;

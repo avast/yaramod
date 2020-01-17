@@ -20,7 +20,8 @@ TEST_F(YaramodTests,
 MultipleParsePhasesWithSingleYaramod) {
    yaramod::Yaramod ymod;
    std::string input_text = R"(
-rule empty_rule {
+rule empty_rule
+{
 	condition:
 		true
 }
@@ -46,7 +47,8 @@ rule rule_1 {
 		true
 }
 
-rule rule_2 {
+rule rule_2
+{
 	strings:
 		$1 = "String from Rule 2"
 	condition:
@@ -90,7 +92,33 @@ rule rule_3 {
       ruleId++;
    }
 
-   EXPECT_EQ(input_text, yarafile->getTokenStream()->getText());
+   std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$1 = "String from Rule 1"
+	condition:
+		true
+}
+
+rule rule_2
+{
+	strings:
+		$1 = "String from Rule 2"
+	condition:
+		true
+}
+
+rule rule_3
+{
+	strings:
+		$1 = "String from Rule 3"
+	condition:
+		true
+}
+)";
+
+   EXPECT_EQ(expected, yarafile->getTokenStream()->getText());
 }
 
 }

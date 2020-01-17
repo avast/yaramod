@@ -48,7 +48,7 @@ template <typename T>
 std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false)
 {
 	std::ostringstream os;
-	if(toUpper)
+	if (toUpper)
 		os << std::uppercase;
 	if (showbase)
 		os << format << std::showbase << num;

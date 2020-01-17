@@ -33,7 +33,8 @@ import "elf"
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule empty_rule {
+        self.assertEqual(yara_file.text_formatted, '''rule empty_rule
+{
 	condition:
 		true
 }
@@ -55,7 +56,8 @@ import "elf"
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_metas {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_metas
+{
 	meta:
 		string_meta = "string value"
 		int_meta = 42
@@ -85,7 +87,8 @@ import "elf"
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_tags : Tag1 Tag2 {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_tags : Tag1 Tag2
+{
 	condition:
 		true
 }
@@ -104,7 +107,8 @@ import "elf"
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''private rule private_rule {
+        self.assertEqual(yara_file.text_formatted, '''private rule private_rule
+{
 	condition:
 		true
 }
@@ -127,7 +131,8 @@ import "elf"
 
         self.assertEqual(yara_file.text_formatted, '''/* multiline comment */
 // oneline comment
-private rule private_rule {
+private rule private_rule
+{
 	condition:
 		true
 }
@@ -146,7 +151,8 @@ private rule private_rule {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_plain_string {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_plain_string
+{
 	strings:
 		$1 = "This is plain string." ascii wide
 	condition:
@@ -169,7 +175,8 @@ private rule private_rule {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_hex_string {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_hex_string
+{
 	strings:
 		$1 = { 10 11 }
 	condition:
@@ -192,7 +199,8 @@ private rule private_rule {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_regexp {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_regexp
+{
 	strings:
 		$1 = /[a-z0-9]{32}/i
 	condition:
@@ -216,7 +224,8 @@ private rule private_rule {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_double_values {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_double_values
+{
 	condition:
 		3.14159 > 2.71828
 }
@@ -242,14 +251,16 @@ private rule private_rule {
             .with_rule(rule2) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_1 : Tag1 {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_1 : Tag1
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
 		true
 }
 
-rule rule_2 : Tag2 {
+rule rule_2 : Tag2
+{
 	strings:
 		$2 = "This is plain string 2."
 	condition:
@@ -281,7 +292,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_id_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_id_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -306,7 +318,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_id_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_id_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -331,7 +344,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_in_range_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_in_range_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -356,7 +370,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_count_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_count_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -381,7 +396,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_length_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_length_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -406,7 +422,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_length_with_index_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_length_with_index_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -431,7 +448,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_offset_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_offset_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -456,7 +474,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_offset_with_index_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_match_offset_with_index_condition
+{
 	strings:
 		$1 = "This is plain string 1."
 	condition:
@@ -480,7 +499,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_gt_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_gt_condition
+{
 	condition:
 		filesize < 100
 }
@@ -500,7 +520,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_ge_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_ge_condition
+{
 	condition:
 		filesize <= 100
 }
@@ -520,7 +541,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_gt_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_gt_condition
+{
 	condition:
 		filesize > 100
 }
@@ -540,7 +562,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_ge_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_ge_condition
+{
 	condition:
 		filesize >= 100
 }
@@ -560,7 +583,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_eq_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_eq_condition
+{
 	condition:
 		filesize == 100
 }
@@ -580,7 +604,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_neq_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_neq_condition
+{
 	condition:
 		filesize != 100
 }
@@ -600,7 +625,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_plus_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_plus_condition
+{
 	condition:
 		filesize + 100
 }
@@ -620,7 +646,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_minus_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_minus_condition
+{
 	condition:
 		filesize - 100
 }
@@ -640,7 +667,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_multiply_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_multiply_condition
+{
 	condition:
 		filesize * 100
 }
@@ -660,7 +688,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, r'''rule rule_with_divide_condition {
+        self.assertEqual(yara_file.text_formatted, r'''rule rule_with_divide_condition
+{
 	condition:
 		filesize \ 100
 }
@@ -680,7 +709,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_modulo_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_modulo_condition
+{
 	condition:
 		filesize % 100
 }
@@ -700,7 +730,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_xor_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_xor_condition
+{
 	condition:
 		filesize ^ 100
 }
@@ -720,7 +751,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_and_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_and_condition
+{
 	condition:
 		filesize & 100
 }
@@ -740,7 +772,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_or_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_or_condition
+{
 	condition:
 		filesize | 100
 }
@@ -760,7 +793,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition
+{
 	condition:
 		filesize > 100 and filesize < 200
 }
@@ -780,7 +814,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition
+{
 	condition:
 		filesize > 100 or filesize < 200
 }
@@ -800,7 +835,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition_with_comments {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition_with_comments
+{
 	condition:
 		/* comment1 */
 		filesize > 100 and
@@ -824,7 +860,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition_with_comments {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition_with_comments
+{
 	condition:
 		/* skip small files */
 		filesize > 100 or
@@ -848,7 +885,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_unary_minus_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_unary_minus_condition
+{
 	condition:
 		-10
 }
@@ -868,7 +906,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_not_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_not_condition
+{
 	condition:
 		not filesize < 100
 }
@@ -888,7 +927,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_not_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_bitwise_not_condition
+{
 	condition:
 		~100
 }
@@ -908,7 +948,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_shift_left_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_shift_left_condition
+{
 	condition:
 		filesize << 100
 }
@@ -928,7 +969,8 @@ rule rule_2 : Tag2 {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_shift_right_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_shift_right_condition
+{
 	condition:
 		filesize >> 100
 }
@@ -951,7 +993,8 @@ rule rule_2 : Tag2 {
 
         self.assertEqual(yara_file.text_formatted, '''import "pe"
 
-rule rule_with_function_call_condition {
+rule rule_with_function_call_condition
+{
 	condition:
 		pe.is_dll()
 }
@@ -976,7 +1019,8 @@ rule rule_with_function_call_condition {
 
         self.assertEqual(yara_file.text_formatted, '''import "pe"
 
-rule rule_with_structure_access_condition {
+rule rule_with_structure_access_condition
+{
 	condition:
 		pe.linker_version.major
 }
@@ -1001,7 +1045,8 @@ rule rule_with_structure_access_condition {
 
         self.assertEqual(yara_file.text_formatted, '''import "pe"
 
-rule rule_with_array_access_condition {
+rule rule_with_array_access_condition
+{
 	condition:
 		pe.sections[0].name
 }
@@ -1026,7 +1071,8 @@ rule rule_with_array_access_condition {
 
         self.assertEqual(yara_file.text_formatted, '''import "pe"
 
-rule rule_with_dictionary_access_condition {
+rule rule_with_dictionary_access_condition
+{
 	condition:
 		pe.version_info["CompanyName"]
 }
@@ -1064,7 +1110,8 @@ rule rule_with_dictionary_access_condition {
             .get()
 
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_complex_condition {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_complex_condition
+{
 	strings:
 		$1 = "This is plain string."
 	condition:
@@ -1091,7 +1138,8 @@ rule rule_with_dictionary_access_condition {
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_modifiers {
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_modifiers
+{
 	strings:
 		$1 = "Hello" ascii wide
 		$2 = "Hello" wide fullword nocase

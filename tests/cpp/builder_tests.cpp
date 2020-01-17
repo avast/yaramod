@@ -67,7 +67,8 @@ UnnamedRuleWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule unknown {
+	EXPECT_EQ(R"(rule unknown
+{
 	condition:
 		true
 }
@@ -92,7 +93,8 @@ RuleWithCustomNameWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_custom_name {
+	EXPECT_EQ(R"(rule rule_with_custom_name
+{
 	condition:
 		true
 }
@@ -126,7 +128,8 @@ RuleWithMetasWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_metas {
+	EXPECT_EQ(R"(rule rule_with_metas
+{
 	meta:
 		string_meta = "string value"
 		int_meta = 42
@@ -158,7 +161,8 @@ RuleWithTagsWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_tags : Tag1 Tag2 {
+	EXPECT_EQ(R"(rule rule_with_tags : Tag1 Tag2
+{
 	condition:
 		true
 }
@@ -184,7 +188,8 @@ RuleWithModifierWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(global rule rule_with_modifier {
+	EXPECT_EQ(R"(global rule rule_with_modifier
+{
 	condition:
 		true
 }
@@ -212,7 +217,8 @@ RuleWithOnelineCommentWorks) {
 })", yaraFile->getText());
 
 	std::string expected = R"(// comment
-global rule rule_with_oneline_comment {
+global rule rule_with_oneline_comment
+{
 	condition:
 		true
 }
@@ -241,7 +247,8 @@ RuleWithMultilineCommentWorks) {
 })", yaraFile->getText());
 
 	std::string expected = R"(/* comment */
-global rule rule_with_multiline_comment {
+global rule rule_with_multiline_comment
+{
 	condition:
 		true
 }
@@ -270,7 +277,8 @@ RuleWithPlainStringWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_plain_string {
+	EXPECT_EQ(R"(rule rule_with_plain_string
+{
 	strings:
 		$1 = "This is plain string." ascii wide
 	condition:
@@ -300,7 +308,8 @@ RuleWithPlainStringPureWideWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_plain_string {
+	EXPECT_EQ(R"(rule rule_with_plain_string
+{
 	strings:
 		$1 = "This is plain string." wide
 	condition:
@@ -350,7 +359,8 @@ rule rule_2 : Tag2 {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_1 : Tag1 {
+	EXPECT_EQ(R"(rule rule_1 : Tag1
+{
 	meta:
 		id = 1
 	strings:
@@ -359,7 +369,8 @@ rule rule_2 : Tag2 {
 		true
 }
 
-rule rule_2 : Tag2 {
+rule rule_2 : Tag2
+{
 	meta:
 		id = 2
 	strings:
@@ -394,7 +405,8 @@ RuleWithCustomConditionWorks) {
 		$1 at entrypoint
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_custom_condition {
+	EXPECT_EQ(R"(rule rule_with_custom_condition
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -427,7 +439,8 @@ RuleWithConditionWithSymbolsWorks) {
 		for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_condition_with_symbols {
+	EXPECT_EQ(R"(rule rule_with_condition_with_symbols
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -475,7 +488,8 @@ RuleWithHexStringWorks) {
 		$1
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_hex_string {
+	EXPECT_EQ(R"(rule rule_with_hex_string
+{
 	strings:
 		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
@@ -510,7 +524,8 @@ RuleWithStringForConditionWorks) {
 		for any of ($1, $2) : ( $ at entrypoint )
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_string_for_condition {
+	EXPECT_EQ(R"(rule rule_with_string_for_condition
+{
 	strings:
 		$1 = "Hello World!"
 		$2 = "Ahoj Svet!"
@@ -546,7 +561,8 @@ RuleWithOfWorks) {
 		all of them
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_of {
+	EXPECT_EQ(R"(rule rule_with_of
+{
 	strings:
 		$1 = "Hello World!"
 		$2 = "Ahoj Svet!"
@@ -580,7 +596,8 @@ RuleWithRangeWorks) {
 		$1 in (0 .. filesize)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_range {
+	EXPECT_EQ(R"(rule rule_with_range
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -615,7 +632,8 @@ rule rule_with_range {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_range {
+rule rule_with_range
+{
 	condition:
 		pe.number_of_sections > 1
 }
@@ -648,7 +666,8 @@ rule rule_with_range {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_range {
+rule rule_with_range
+{
 	condition:
 		// Number of sections needs to exceed 1
 		pe.number_of_sections > 1
@@ -682,7 +701,8 @@ rule rule_with_range {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_range {
+rule rule_with_range
+{
 	condition:
 		/* Number of sections needs to exceed 1,
 		because one is simply not enough. */
@@ -718,7 +738,8 @@ rule rule_with_array_and_structure {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_array_and_structure {
+rule rule_with_array_and_structure
+{
 	condition:
 		pe.sections[0].name contains "text"
 }
@@ -752,7 +773,8 @@ rule rule_with_function_call {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_function_call {
+rule rule_with_function_call
+{
 	condition:
 		pe.exports("ExitProcess")
 }
@@ -781,7 +803,8 @@ RuleWithIntFunctionWorks) {
 		uint16(0) == 0x5a4d
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_int_function {
+	EXPECT_EQ(R"(rule rule_with_int_function
+{
 	condition:
 		uint16(0) == 0x5a4d
 }
@@ -810,7 +833,8 @@ RuleWithArithmeticOperationsWorks) {
 		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_arithmetic_operations {
+	EXPECT_EQ(R"(rule rule_with_arithmetic_operations
+{
 	condition:
 		(entrypoint + 100 * 3) < (filesize - 100 \ 2)
 }
@@ -839,7 +863,8 @@ RuleWithArithmeticOperationsWithDoubleValuesWorks) {
 		(entrypoint + 2.71828 * 10) < (filesize - 1.61803 \ 3.14159)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_arithmetic_operations_with_double_values {
+	EXPECT_EQ(R"(rule rule_with_arithmetic_operations_with_double_values
+{
 	condition:
 		(entrypoint + 2.71828 * 10) < (filesize - 1.61803 \ 3.14159)
 }
@@ -873,7 +898,8 @@ rule rule_with_bitwise_operations {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_bitwise_operations {
+rule rule_with_bitwise_operations
+{
 	condition:
 		pe.characteristics & (pe.DLL | pe.RELOCS_STRIPPED)
 }
@@ -907,7 +933,8 @@ rule rule_with_logic_operations {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_logic_operations {
+rule rule_with_logic_operations
+{
 	condition:
 		pe.is_32bit() and (pe.is_dll() or (pe.number_of_sections > 3))
 }
@@ -936,7 +963,8 @@ RuleWithIntMultpliersWorks) {
 		100KB <= filesize and filesize <= 1MB
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_int_multipliers {
+	EXPECT_EQ(R"(rule rule_with_int_multipliers
+{
 	condition:
 		100KB <= filesize and filesize <= 1MB
 }
@@ -968,7 +996,8 @@ RuleWithStringOperatorsWorks) {
 		#1 > 0 and !1 > 1 and @1 > 100
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_string_operators {
+	EXPECT_EQ(R"(rule rule_with_string_operators
+{
 	strings:
 		$1 = "Hello World!"
 	condition:
@@ -1001,7 +1030,8 @@ RuleWithRegexpWorks) {
 		$1
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_regexp {
+	EXPECT_EQ(R"(rule rule_with_regexp
+{
 	strings:
 		$1 = /md5: [0-9a-zA-Z]{32}/i
 	condition:
@@ -1037,7 +1067,8 @@ rule rule_with_regexp_in_condition {
 
 	EXPECT_EQ(R"(import "pe"
 
-rule rule_with_regexp_in_condition {
+rule rule_with_regexp_in_condition
+{
 	condition:
 		pe.sections[0].name matches /\.(text|data)/i
 }
@@ -1069,7 +1100,8 @@ RuleWithConjunctionInConditionWorks) {
 		$1 and (@1 < 100) and (entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_conjunction {
+	EXPECT_EQ(R"(rule rule_with_conjunction
+{
 	strings:
 		$1 = "Hello"
 	condition:
@@ -1105,7 +1137,8 @@ RuleWithDisjunctionInConditionWorks) {
 		$1 or $2 or (entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_disjunction {
+	EXPECT_EQ(R"(rule rule_with_disjunction
+{
 	strings:
 		$1 = "Hello"
 		$2 = "World"
@@ -1142,7 +1175,8 @@ RuleWithConjunctionWithLinebreaksInConditionWorks) {
 		(entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_conjunction_with_linebreaks {
+	EXPECT_EQ(R"(rule rule_with_conjunction_with_linebreaks
+{
 	strings:
 		$1 = "Hello"
 	condition:
@@ -1182,7 +1216,8 @@ RuleWithDisjunctionWithLinebreaksInConditionWorks) {
 		(entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_disjunction_with_linebreaks {
+	EXPECT_EQ(R"(rule rule_with_disjunction_with_linebreaks
+{
 	strings:
 		$1 = "Hello"
 		$2 = "World"
@@ -1225,7 +1260,8 @@ RuleWithCommentedConjunctionInConditionWorks) {
 		(entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_commented_conjunction {
+	EXPECT_EQ(R"(rule rule_with_commented_conjunction
+{
 	strings:
 		$1 = "Hello"
 	condition:
@@ -1272,7 +1308,8 @@ RuleWithCommentedDisjunctionInConditionWorks) {
 		(entrypoint == 100)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_commented_disjunction {
+	EXPECT_EQ(R"(rule rule_with_commented_disjunction
+{
 	strings:
 		$1 = "Hello"
 		$2 = "World"
@@ -1317,7 +1354,8 @@ RuleWithParenthesesWithLinebreaksInConditionWorks) {
 		)
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_parentheses_with_linebreaks {
+	EXPECT_EQ(R"(rule rule_with_parentheses_with_linebreaks
+{
 	strings:
 		$1 = "Hello"
 		$2 = "Cruel"
@@ -1364,7 +1402,8 @@ rule rule_with_double_quotes {
 
 	std::string expected_with_newline = R"(import "pe"
 
-rule rule_with_double_quotes {
+rule rule_with_double_quotes
+{
 	meta:
 		str_meta = "Double \"\t\n\\\x01\xff quotes"
 	strings:
@@ -1418,7 +1457,8 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		all of them
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers {
+	EXPECT_EQ(R"(rule rule_with_strings_with_different_kinds_of_modifiers
+{
 	strings:
 		$1 = "Hello"
 		$2 = "Cruel" wide
