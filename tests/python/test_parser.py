@@ -251,17 +251,43 @@ private rule private_rule {
     def test_import(self):
         yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
+import "phish"
 
 rule dummy_rule {
     condition:
-        true
+        true and new_file
 }''')
 
-        self.assertEqual(len(yara_file.imports), 1)
+        self.assertEqual(len(yara_file.imports), 2)
         self.assertEqual(len(yara_file.rules), 1)
 
         module = yara_file.imports[0]
         self.assertEqual(module.name, 'pe')
+
+    def test_imports_without_avast_symbols(self):
+        input_text = '''
+import "pe"
+import "phish"
+
+rule dummy_rule {
+    condition:
+        true
+}'''
+        ymod = yaramod.Yaramod(yaramod.ImportFeatures.VirusTotal)
+        with self.assertRaises(yaramod.ParserError):
+            ymod.parse_string(input_text)
+
+    def test_imports_without_virus_total_symbols(self):
+        input_text = '''
+import "pe"
+
+rule dummy_rule {
+    condition:
+        true and new_file
+}'''
+        ymod = yaramod.Yaramod(yaramod.ImportFeatures.Avast)
+        with self.assertRaises(yaramod.ParserError):
+            ymod.parse_string(input_text)
 
     def test_bool_literal_condition(self):
         yara_file = yaramod.Yaramod().parse_string('''

@@ -36,9 +36,7 @@ class YaraFileBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraFileBuilder() : YaraFileBuilder(ImportFeatures::All) {}
-
-	YaraFileBuilder(ImportFeatures features)
+	YaraFileBuilder(ImportFeatures features = ImportFeatures::All)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _import_features(features)
 	{

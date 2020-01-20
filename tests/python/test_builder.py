@@ -4,7 +4,7 @@ import yaramod
 
 class BuilderTests(unittest.TestCase):
     def setUp(self):
-        self.new_file = yaramod.YaraFileBuilder()
+        self.new_file = yaramod.YaraFileBuilder(yaramod.ImportFeatures.All)
         self.new_rule = yaramod.YaraRuleBuilder()
 
     def test_empty_file(self):
@@ -14,14 +14,17 @@ class BuilderTests(unittest.TestCase):
 
     def test_pure_imports(self):
         yara_file = self.new_file \
+            .with_module('phish') \
             .with_module('pe') \
             .with_module('elf') \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''import "pe"
+        self.assertEqual(yara_file.text_formatted, '''import "phish"
+import "pe"
 import "elf"
 ''')
-        self.assertEqual(yara_file.text, '''import "pe"
+        self.assertEqual(yara_file.text, '''import "phish"
+import "pe"
 import "elf"
 ''')
 
