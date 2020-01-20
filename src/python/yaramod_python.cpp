@@ -63,8 +63,10 @@ void addEnums(py::module& module)
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
 
-	py::enum_<ImportFeatures>(module, "ImportFeatures")
+	py::enum_<ImportFeatures>(module, "ImportFeatures", py::arithmetic())
 		.value("Basic", ImportFeatures::Basic)
+		.value("AvastOnly", ImportFeatures::AvastOnly)
+		.value("VirusTotalOnly", ImportFeatures::VirusTotalOnly)
 		.value("Avast", ImportFeatures::Avast)
 		.value("VirusTotal", ImportFeatures::VirusTotal)
 		.value("All", ImportFeatures::All);
