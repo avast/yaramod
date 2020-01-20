@@ -19,8 +19,8 @@ namespace yaramod {
  */
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
-	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
-	yaraFile->addImports(_module_tokens, _import_features, _modules_pool);
+	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream), _import_features);
+	yaraFile->addImports(_module_tokens, _modules_pool);
 	yaraFile->addRules(_rules);
 
 	_module_tokens.clear();
