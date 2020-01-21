@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.2.0 (2020-01-21)
+
+* Added Python bindings for `ImportFeatures`
+* Import features are now specified when creating `Yaramod` instance
+
 # v3.1.0 (2020-01-17)
 
 * Target `install` is now properly installing yaramod again.
