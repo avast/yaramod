@@ -37,7 +37,7 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 		return boolVal(true);
 
 	if (terms.size() == 1)
-		return { terms.front().get() };
+		return terms.front();
 
 	auto formula = op(terms[0], terms[1]);
 	for (std::size_t i = 2; i < terms.size(); ++i)

@@ -1580,5 +1580,34 @@ RuleWithXorStringModifierLowerBoundGreaterThanHigherBound) {
 	}
 }
 
+TEST_F(BuilderTests,
+ConjunctionWithSingleTerm) {
+	auto cond = conjunction({boolVal(false)}).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("conjunction_with_single_term")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule conjunction_with_single_term {
+	condition:
+		false
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule conjunction_with_single_term
+{
+	condition:
+		false
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }
