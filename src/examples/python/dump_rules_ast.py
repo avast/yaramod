@@ -234,8 +234,8 @@ class Dumper(yaramod.ObservingVisitor):
     def visit_RangeExpression(self, expr):
         self.dump('Range', expr)
         self.indent_up()
-        self.low.accept(self)
-        self.high.accept(self)
+        expr.low.accept(self)
+        expr.high.accept(self)
         self.indent_down()
 
     def visit_IdExpression(self, expr):
@@ -338,7 +338,8 @@ def main():
 
     dumper = Dumper()
 
-    yara_file = yaramod.parse_file(sys.argv[1])
+    ymod_parser = yaramod.Yaramod()
+    yara_file = ymod_parser.parse_file(sys.argv[1])
     for rule in yara_file.rules:
         print('==== RULE: {}'.format(rule.name))
         dumper.observe(rule.condition)
