@@ -22,8 +22,8 @@ class YaraFile
 public:
 	/// @name Constructors
 	/// @{
-	YaraFile();
-	YaraFile(const std::shared_ptr<TokenStream>& tokenStream);
+	YaraFile(ImportFeatures features = ImportFeatures::All);
+	YaraFile(const std::shared_ptr<TokenStream>& tokenStream, ImportFeatures features = ImportFeatures::All);
 	YaraFile(YaraFile&&) noexcept;
 
 	YaraFile& operator=(YaraFile&&) noexcept;
@@ -37,12 +37,12 @@ public:
 
 	/// @name Addition methods
 	/// @{
-	bool addImport(TokenIt import, ImportFeatures features, ModulesPool& modules);
+	bool addImport(TokenIt import, ModulesPool& modules);
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
 	void addRule(const std::shared_ptr<Rule>& rule);
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
-	bool addImports(const std::vector<TokenIt>& imports, ImportFeatures features, ModulesPool& modules);
+	bool addImports(const std::vector<TokenIt>& imports, ModulesPool& modules);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}
@@ -77,7 +77,7 @@ public:
 
 	/// @name Symbol methods
 	/// @{
-	std::shared_ptr<Symbol> findSymbol(const std::string& name, ImportFeatures features) const;
+	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
 	/// @}
 
 	/// @name Detection methods
@@ -88,6 +88,8 @@ public:
 	/// @}
 
 private:
+	void initializeVTSymbols();
+
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
@@ -95,7 +97,8 @@ private:
 	std::unordered_map<std::string, Module*> _importTable;
 	std::unordered_map<std::string, Rule*> _ruleTable;
 
-	static const std::vector<std::shared_ptr<Symbol>> globalVariables; ///< Global variables
+	ImportFeatures _importFeatures; ///< Determines which symbols are needed
+	std::vector<std::shared_ptr<Symbol>> _vtSymbols; ///< Virust Total symbols
 };
 
 }

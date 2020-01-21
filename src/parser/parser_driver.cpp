@@ -418,7 +418,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(IMPORT_MODULE);
-			if (!_file.addImport(import, _import_features, _modules))
+			if (!_file.addImport(import, _modules))
 				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
 			return {};
 		})
@@ -1591,7 +1591,7 @@ ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, I
 	_locations.emplace();
 	if (!includeFileImpl(filePath))
 		_valid = false;
-	_file = YaraFile(currentTokenStream());
+	_file = YaraFile(currentTokenStream(), _import_features);
 }
 
 /**
@@ -1607,7 +1607,7 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode,  ImportFe
 	initialize();
 	_tokenStreams.emplace(std::make_shared<TokenStream>());
 	_locations.emplace();
-	_file = YaraFile(currentTokenStream());
+	_file = YaraFile(currentTokenStream(), _import_features);
 }
 
 /**
@@ -1674,7 +1674,7 @@ void ParserDriver::reset(ParserMode parserMode)
 	_optionalFirstInput = nullptr;
 	_valid = true;
 	_filePath.clear();
-	_file = YaraFile(currentTokenStream());
+	_file = YaraFile(currentTokenStream(), _import_features);
 	_currentStrings = std::weak_ptr<Rule::StringsTrie>();
 	_stringLoop = false;
 	_localSymbols.clear();
@@ -1882,7 +1882,7 @@ std::shared_ptr<Symbol> ParserDriver::findSymbol(const std::string& name) const
 	if (itr != _localSymbols.end())
 		return itr->second;
 
-	return _file.findSymbol(name, _import_features);
+	return _file.findSymbol(name);
 }
 
 /**

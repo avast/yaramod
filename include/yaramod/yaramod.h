@@ -33,8 +33,10 @@ public:
 	 * @param ParserMode
 	 * Regular -- regular YARA parser
 	 * IncludeGuarded -- protection against inclusion of the same file multiple times
+	 *
+	 * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
 	 */
-	Yaramod() : _driver(ParserMode::Regular) {}
+	Yaramod(ImportFeatures features = ImportFeatures::All) : _driver(ParserMode::Regular, features) {}
 	/**
 	 * Parses file at given path.
 	 *
