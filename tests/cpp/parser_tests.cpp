@@ -18,18 +18,14 @@ namespace tests {
 class ParserTests : public Test
 {
 public:
-	ParserTests() : driver(ParserMode::Regular) {}
+	ParserTests() : driver() {}
 
 	void prepareInput(const std::string& inputText)
 	{
-		driver.reset();
-
 		input.str(std::string());
 		input.clear();
 		input << inputText;
 		input_text = inputText;
-
-		driver.setInput(input);
 	}
 
 	std::stringstream input;
@@ -41,7 +37,7 @@ TEST_F(ParserTests,
 EmptyInputWorks) {
 	prepareInput("");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 }
 
@@ -56,7 +52,7 @@ rule empty_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("empty_rule", rule->getName());
@@ -84,7 +80,7 @@ rule same_named_rule {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -103,7 +99,7 @@ rule rule_with_tags : Tag1 Tag2 Tag3 {
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -140,7 +136,7 @@ rule rule_with_metas
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -183,7 +179,7 @@ rule rule_with_repetitive_metas
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -225,7 +221,7 @@ rule hex_and_decimal_integers_are_preserved
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -262,7 +258,7 @@ rule rule_with_plain_strings
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -317,7 +313,7 @@ rule rule_3
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(3u, driver.getParsedFile().getRules().size());
 
 	std::uint64_t ruleId = 1;
@@ -361,7 +357,7 @@ rule rule_with_plain_strings
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -405,7 +401,7 @@ rule hex_string_with_plain_nibble
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -436,7 +432,7 @@ rule hex_string_with_plain_nibbles
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -467,7 +463,7 @@ rule hex_string_with_low_high_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -498,7 +494,7 @@ rule hex_string_with_low_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -529,7 +525,7 @@ rule hex_string_with_unrestricted_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -560,7 +556,7 @@ rule hex_string_with_constant_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -591,7 +587,7 @@ rule hex_string_with_simple_or_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -622,7 +618,7 @@ rule hex_string_with_multibyte_simple_or_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -653,7 +649,7 @@ rule hex_string_with_nested_or
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -684,7 +680,7 @@ rule hex_string_with_or_and_jump
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -715,7 +711,7 @@ rule hex_string_with_or_on_the_beginning_and_end
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -748,7 +744,7 @@ rule hex_string_with_jump_at_beginning
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -773,7 +769,7 @@ rule hex_string_with_jump_at_end
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -812,7 +808,7 @@ rule rule_2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(3u, driver.getParsedFile().getRules().size());
 
 	for(int i = 0; i < 3; ++i)
@@ -853,7 +849,7 @@ rule invalid_hex_string
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -878,7 +874,7 @@ rule invalid_hex_string
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -903,7 +899,7 @@ rule invalid_hex_string
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -926,7 +922,7 @@ rule regexp_with_just_chars
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -960,7 +956,7 @@ rule regexp_with_just_chars
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1003,7 +999,7 @@ rule regexp_limited_to_whole_line
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1034,7 +1030,7 @@ rule regexp_with_predefined_classes
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1065,7 +1061,7 @@ rule regexp_with_custom_class
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1096,7 +1092,7 @@ rule regexp_with_custom_negative_class
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1127,7 +1123,7 @@ rule regexp_with_iteration
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1158,7 +1154,7 @@ rule regexp_with_positive_iteration
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1189,7 +1185,7 @@ rule regexp_with_optional
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1220,7 +1216,7 @@ rule regexp_with_ranges
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1251,7 +1247,7 @@ rule regexp_with_greedy_operators
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1282,7 +1278,7 @@ rule regexp_with_groups
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1313,7 +1309,7 @@ rule regexp_with_or
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1345,7 +1341,7 @@ rule regexp_with_modifiers
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1383,7 +1379,7 @@ rule regexp_with_undefined_range
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
  		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -1408,7 +1404,7 @@ rule regexp_with_invalid_range
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
  		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -1429,7 +1425,7 @@ global rule global_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1451,7 +1447,7 @@ private rule private_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1475,7 +1471,7 @@ rule dummy_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	EXPECT_EQ(1u, driver.getParsedFile().getRules().size());
 	ASSERT_EQ(1u, driver.getParsedFile().getImports().size());
 	EXPECT_EQ("pe", driver.getParsedFile().getImports()[0]->getName());
@@ -1498,7 +1494,7 @@ rule dummy_rule
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -1520,7 +1516,7 @@ rule true_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1540,7 +1536,7 @@ rule false_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1562,7 +1558,7 @@ rule string_id_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1584,7 +1580,7 @@ rule string_at_entrypoint_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1606,7 +1602,7 @@ rule string_in_range_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1629,7 +1625,7 @@ rule string_in_range_condition2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1649,7 +1645,7 @@ rule not_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1669,7 +1665,7 @@ rule and_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1693,7 +1689,7 @@ rule and_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1713,7 +1709,7 @@ rule or_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1735,7 +1731,7 @@ rule or_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1755,7 +1751,7 @@ rule relational_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1777,7 +1773,7 @@ rule relational_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1797,7 +1793,7 @@ rule arithmetic_op_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1817,7 +1813,7 @@ rule arithmetic_op_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1837,7 +1833,7 @@ rule rule_with_arithmetic_operations
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1857,7 +1853,7 @@ rule bitwise_op_condition_negation
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1877,7 +1873,7 @@ rule bitwise_op_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1897,7 +1893,7 @@ rule int_function_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1917,7 +1913,7 @@ rule double_in_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1937,7 +1933,7 @@ rule contains_in_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1957,7 +1953,7 @@ rule matches_in_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -1980,7 +1976,7 @@ rule string_count_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2003,7 +1999,7 @@ rule string_offset_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2026,7 +2022,7 @@ rule string_offset_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2048,7 +2044,7 @@ rule string_length_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2070,7 +2066,7 @@ rule function_call_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2092,7 +2088,7 @@ rule structure_access_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2114,7 +2110,7 @@ rule array_access_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2137,7 +2133,7 @@ rule for_integer_set_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2160,7 +2156,7 @@ rule for_string_set_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2183,7 +2179,7 @@ rule of_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2206,7 +2202,7 @@ rule rule_name
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2231,7 +2227,7 @@ rule rule_name
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2256,7 +2252,7 @@ rule rule_name
 		(pe.sections[0].name == "EmptyString" or pe.sections[0].name == "")
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2278,7 +2274,7 @@ rule strings_and_arithmetic_operations
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2301,7 +2297,7 @@ rule bool_and_arithmetic_operations
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2324,7 +2320,7 @@ rule contains_and_non_string
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2348,7 +2344,7 @@ rule contains_and_non_string {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2373,7 +2369,7 @@ rule string_wildcard_condition
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2399,7 +2395,7 @@ rule string_wildcard_condition_with_no_matching_string
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2424,7 +2420,7 @@ rule same_variable_in_nested_for_loops
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2447,7 +2443,7 @@ rule dummy_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2469,13 +2465,12 @@ rule dummy_rule
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
-	driverNoAvastSymbols.setInput(input2);
 
 	try
 	{
-		driverNoAvastSymbols.parse();
+		driverNoAvastSymbols.parse(input2, ParserMode::Regular);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2499,7 +2494,7 @@ rule dummy_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2521,13 +2516,12 @@ rule dummy_rule
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
-	driverNoAvastSymbols.setInput(input2);
 
 	try
 	{
-		driverNoAvastSymbols.parse();
+		driverNoAvastSymbols.parse(input2, ParserMode::Regular);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2553,7 +2547,7 @@ rule cuckoo_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2578,13 +2572,12 @@ rule cuckoo_module
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ParserMode::Regular, ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
 	std::stringstream input2(input_text);
-	driverNoAvastSymbols.setInput(input2);
 
 	try
 	{
-		driverNoAvastSymbols.parse();
+		driverNoAvastSymbols.parse(input2);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2608,7 +2601,7 @@ rule dotnet_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2630,7 +2623,7 @@ rule elf_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2652,7 +2645,7 @@ rule hash_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2674,7 +2667,7 @@ rule magic_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2696,7 +2689,7 @@ rule math_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2718,7 +2711,7 @@ rule pe_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
@@ -2762,7 +2755,7 @@ rule pe_module
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2782,7 +2775,7 @@ rule virus_total_specific
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2802,13 +2795,12 @@ rule virus_total_specific
 }
 )");
 
-	ParserDriver driverNoVTSymbols(ParserMode::Regular, ImportFeatures::Avast);
+	ParserDriver driverNoVTSymbols(ImportFeatures::Avast);
 	std::stringstream input2(input_text);
-	driverNoVTSymbols.setInput(input2);
 
 	try
 	{
-		driverNoVTSymbols.parse();
+		driverNoVTSymbols.parse(input2);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -2857,7 +2849,7 @@ rule rule_2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 	EXPECT_EQ(
@@ -2907,7 +2899,7 @@ rule rule2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 	EXPECT_EQ(
@@ -2937,7 +2929,7 @@ rule kb_mb_integer_multipliers
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -2963,7 +2955,7 @@ rule rule_2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 	const auto& rule1 = driver.getParsedFile().getRules()[0];
@@ -2990,7 +2982,7 @@ rule regexp_with_suffix_modifier
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3008,7 +3000,7 @@ R"(rule rule_with_global_variables
 		new_file and positives > 10 and signatures matches /Trojan\.Generic.*/ and file_type contains "pe"
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3028,7 +3020,7 @@ R"(rule rule_with_some_hex_string
 		$hex_string
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3054,7 +3046,7 @@ R"(rule rule_with_some_hex_string {
 		$hex
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3092,7 +3084,7 @@ R"(rule rule_with_complicated_alteration_hex_string
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3122,7 +3114,7 @@ R"(rule rule_with_complicated_hex_string
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3152,7 +3144,7 @@ R"(rule rule_with_some_hex_string
 		$hex_string
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3184,7 +3176,7 @@ rule rule_with_hex_escaped_works
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3213,7 +3205,7 @@ rule rule_with_escaped_meta_works
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3258,7 +3250,7 @@ rule rule_with_escaped_double_quotes_works
 		pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff"
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3298,7 +3290,7 @@ R"(rule rule_with_invalid_escape_sequence {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -3322,7 +3314,7 @@ R"(rule rule_with_invalid_escape_sequence {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -3349,7 +3341,7 @@ R"(rule rule_with_hex_string_with_newlines
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3378,7 +3370,7 @@ rule public_rule {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const ParserError& err)
@@ -3400,7 +3392,7 @@ rule public_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3423,7 +3415,7 @@ R"(rule public_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3494,7 +3486,7 @@ rule rule_2 {
 // Comment at the end of file
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 	EXPECT_EQ(
@@ -3593,7 +3585,7 @@ rule rule_name {
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	EXPECT_EQ(
@@ -3660,7 +3652,7 @@ rule rule_2
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 	EXPECT_EQ(
@@ -3738,7 +3730,7 @@ private rule RULE_1
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3798,7 +3790,7 @@ ForCycleMultipleRowsWithCRLF)
 {
 	prepareInput("\r\nimport \"pe\"\r\n\r\nprivate rule RULE_1\r\n{\r\n\tmeta:\r\n\t\tauthor = \"Mr. Avastian\"\r\n\t\tdescription = \"cool rule\"\r\n\thash = \"hash2\"\r\n\t\thash = \"hash1\"\r\n\tstrings:\r\n\t\t$h0 = \"str0\"\r\n\t\t$h1 = \"str1\"\r\n\tcondition:\r\nfor any of ($h*) : (\r\n\t\t\t# < 20 and\r\n\tfor any i in (1 .. #) : (    //Comment inside expression\r\n\t\tuint32be(1) == 5 and // comment right after and\r\n\t\t\t\tfilesize >= 10 and\r\n\t\t\t\tall of them and\r\n\t\t\t\tentrypoint and\r\n\t\t\t\t@h1 < pe.overlay.offset\r\n\t\t\t)\r\n\t\t)\r\n}\r\n");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3826,7 +3818,7 @@ R"(rule public_rule
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3857,7 +3849,7 @@ rule nonutf_meta
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3881,7 +3873,7 @@ rule nonutf_condition
 		cuckoo.filesystem.file_write(/내/)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -3916,7 +3908,7 @@ rule nonutf_condition
 		true
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -3956,7 +3948,7 @@ rule nonutf_condition
 		true // // pe.rich_signature == "Pop\x00\x83\x00\xe9POP"
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -3997,7 +3989,7 @@ rule public_rule {
 		)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4035,7 +4027,7 @@ rule public_rule {
 		)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4073,7 +4065,7 @@ rule public_rule {
 		)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4114,7 +4106,7 @@ rule public_rule {
 		)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4154,7 +4146,7 @@ rule public_rule {
 						)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4196,7 +4188,7 @@ rule public_rule
 		)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4238,7 +4230,7 @@ rule public_rule
 			true )
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4275,7 +4267,7 @@ rule public_rule {
 					)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4316,7 +4308,7 @@ rule public_rule {
 				))
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4344,7 +4336,7 @@ TEST_F(ParserTests,
 AutoformattingAddCRLF) {
 	prepareInput(
 "import \"cuckoo\"\r\n\r\nrule public_rule {\r\n	condition:\r\n		false or\r\n		(true and\r\n			(\r\n				true or\r\n				false\r\n				))\r\n}");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4365,7 +4357,7 @@ rule public_rule {
 		pe.version_info["ProductName"] == "Test product name"
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4401,7 +4393,7 @@ rule public_rule { //comment 0
 		)/*comment 4*/
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4444,7 +4436,7 @@ rule rule1 {
 					cuckoo.network.http_request(/[\wa\sa\da\b]/)
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4490,7 +4482,7 @@ rule rule1 {
 					all of them // ~'_'~
 }
 )");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	std::string expected =
@@ -4571,7 +4563,7 @@ rule cruel_rule_2 {
 		false or ($s00 and $s01 and $s02 and
 		cuckoo.network.http_request(/[\w]/))
 })");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(/*
@@ -4651,7 +4643,7 @@ R"(rule cruel_rule
 	condition:
 		true
 })");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(rule cruel_rule
@@ -4689,7 +4681,7 @@ rule rule1
 			true)
 		)
 })");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(import "math"
@@ -4718,7 +4710,7 @@ TEST_F(ParserTests,
 AutoformattingOfOnelineRule) {
 	prepareInput(
 R"(rule oneline_rule { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ })");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(rule oneline_rule
@@ -4741,7 +4733,7 @@ TEST_F(ParserTests,
 AutoformattingOfTwoOnelineRules) {
 	prepareInput(
 R"(rule oneline_rule { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ } rule oneline_rule_2 { /*COMMENT 1*/ meta: author = "Mr. Avastien"    /*COMMENT 2*/    description = "reliability_test"    /*COMMENT 3*/      strings: $s00 = "str 123"     /*COMMENT 4*/    $s01 = "string 234567"   /*COMMENT 5*/    condition: /*COMMENT 6*/  any of ($s0*) /*COMMENT 7*/ })");
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
 std::string expected = R"(rule oneline_rule
@@ -4785,7 +4777,7 @@ rule cuckoo_scheduled
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
@@ -4809,7 +4801,7 @@ rule string_xor_modifier_with_arguments {
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
@@ -4856,7 +4848,7 @@ rule string_xor_modifier_with_out_of_bounds_key {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const YaramodError& err)
@@ -4879,7 +4871,7 @@ rule string_xor_modifier_with_out_of_bounds_lower_key {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const YaramodError& err)
@@ -4902,7 +4894,7 @@ rule string_xor_modifier_with_out_of_bounds_higher_key {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const YaramodError& err)
@@ -4925,7 +4917,7 @@ rule string_xor_modifier_with_out_of_bounds_higher_key {
 
 	try
 	{
-		driver.parse();
+		driver.parse(input);
 		FAIL() << "Parser did not throw an exception.";
 	}
 	catch (const YaramodError& err)
@@ -4949,7 +4941,7 @@ rule private_string_modifier
 }
 )");
 
-	EXPECT_TRUE(driver.parse());
+	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 	const auto& rule = driver.getParsedFile().getRules()[0];
 

@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+#include "yaramod/types/plain_string.h"
 #include "yaramod/yaramod.h"
 
 using namespace ::testing;

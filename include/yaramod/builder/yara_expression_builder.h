@@ -68,23 +68,27 @@ public:
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
+		_tokenStream->move_append(_expr->getTokenStream());
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
+		_tokenStream->move_append(_expr->getTokenStream());
 	}
 	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
 		setType(type);
+		_tokenStream->move_append(_expr->getTokenStream());
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
 		setType(type);
+		_tokenStream->move_append(_expr->getTokenStream());
 	}
 	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts)
 		: _tokenStream(ts)

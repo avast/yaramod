@@ -14,6 +14,7 @@
 #include <yaramod/builder/yara_expression_builder.h>
 #include <yaramod/builder/yara_hex_string_builder.h>
 #include <yaramod/builder/yara_rule_builder.h>
+#include <yaramod/types/plain_string.h>
 #include <yaramod/yaramod.h>
 
 #include "yaramod_python.h"

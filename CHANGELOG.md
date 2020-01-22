@@ -1,5 +1,13 @@
 # Changelog
 
+# dev
+
+* Builders now work properly when you create `YaraExpressionBuilder` out of already existing expression.
+* Calculation of rule locations now works again.
+* Include files are now closed as soon as possible to not exhaust file descriptors.
+* Very last rule in the parsed file is now reported to be located in the correct file.
+* Include guarded parsing mode now works properly again.
+
 # v3.2.0 (2020-01-21)
 
 * Added Python bindings for `ImportFeatures`
