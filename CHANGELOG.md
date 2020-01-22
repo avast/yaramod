@@ -1,6 +1,6 @@
 # Changelog
 
-# dev
+# v3.3.0 (2020-01-23)
 
 * Builders now work properly when you create `YaraExpressionBuilder` out of already existing expression.
 * Calculation of rule locations now works again.
