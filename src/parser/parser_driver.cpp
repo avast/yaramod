@@ -5,12 +5,14 @@
  */
 
 #include "yaramod/parser/parser_driver.h"
-#include "yaramod/utils/filesystem.h"
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/plain_string.h"
+#include "yaramod/types/hex_string.h"
+#include "yaramod/types/regexp.h"
+#include "yaramod/utils/filesystem.h"
 
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
-
 
 namespace yaramod {
 
@@ -24,8 +26,8 @@ void error_handle(const Location& location, const std::string& msg)
 template <typename... Args>
 TokenIt ParserDriver::emplace_back(Args&&... args)
 {
-	TokenIt tokenIt = currentTokenStream()->emplace_back(args...);
-	tokenIt->setLocation(currentLocation());
+	TokenIt tokenIt = currentFileContext()->getTokenStream()->emplace_back(args...);
+	tokenIt->setLocation(currentFileContext()->getLocation());
 	return tokenIt;
 }
 
@@ -33,14 +35,14 @@ void ParserDriver::defineTokens()
 {
 	//define global action for counting the line/character position
 	_parser.global_tokenizer_action([&](std::string_view str) {
-		currentLocation().addColumn(str.length());
+		currentFileContext()->getLocation().addColumn(str.length());
 	});
 
 	_parser.token("\r\n|\n").action([&](std::string_view str) -> Value {
-		currentTokenStream()->setNewLineChar(std::string{str});
+		currentFileContext()->getTokenStream()->setNewLineChar(std::string{str});
 		TokenIt t = emplace_back(NEW_LINE, std::string{str});
 		_indent.clear();
-		currentLocation().addLine();
+		currentFileContext()->getLocation().addLine();
 		return t;
 	});
 	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
@@ -141,24 +143,21 @@ void ParserDriver::defineTokens()
 		return emplace_back(INCLUDE_DIRECTIVE, std::string{str});
 	});
 	_parser.token("\r\n|\n").states("$include").action([&](std::string_view str) -> Value {
-		currentLocation().addLine();
-		currentTokenStream()->setNewLineChar(std::string{str});
-		return Value(emplace_back(NEW_LINE, std::string{str}));
+		currentFileContext()->getLocation().addLine();
+		currentFileContext()->getTokenStream()->setNewLineChar(std::string{str});
+		return emplace_back(NEW_LINE, std::string{str});
 	});
 	_parser.token(R"([ \v\t])").states("$include");
 	_parser.token(R"(\")").states("$include").enter_state("$include_file");
 	//$include_file
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action([&](std::string_view str) -> Value {
-		std::string filePath = std::string{str}.substr(0, str.size()-1);
-		if (!includeFile(filePath))
-	 		error_handle(currentLocation(), "Unable to include file '" + filePath + "'");
-
+		auto filePath = std::string{str}.substr(0, str.size()-1);
 		TokenIt includeToken = emplace_back(INCLUDE_PATH, filePath);
 		const auto& ts = includeToken->initializeSubTokenStream();
-		pushTokenStream(ts);
-		pushLocation();
+		if (!includeFile(filePath, ts))
+			error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
 
-		return Value(includeToken);
+		return includeToken;
 	});
 	//$include_file end
 
@@ -203,7 +202,7 @@ void ParserDriver::defineTokens()
 		return {};
 	});
 	_parser.token(R"(\n)").states("$multiline_comment").action([&](std::string_view str) -> Value {
-		currentLocation().addLine();
+		currentFileContext()->getLocation().addLine();
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -232,7 +231,7 @@ void ParserDriver::defineTokens()
 		return {};
 	});
 	_parser.token(R"(\\[tn\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
-	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentFileContext()->getLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
 		auto strIt = emplace_back(STRING_LITERAL, _strLiteral);
@@ -290,7 +289,7 @@ void ParserDriver::defineTokens()
 		return {};
 	});
 	_parser.token(R"(\n)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
-		currentLocation().addLine();
+		currentFileContext()->getLocation().addLine();
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -302,9 +301,9 @@ void ParserDriver::defineTokens()
 
 	_parser.token(R"({[ \v\t]}*)").states("$hexstr", "@hexstr_jump").action([](std::string_view) -> Value { return {}; });;
 	_parser.token(R"([\n])").states("$hexstr", "@hexstr_jump").action([&](std::string_view) -> Value {
-		currentLocation().addLine();
+		currentFileContext()->getLocation().addLine();
 		_indent.clear();
-		return emplace_back(NEW_LINE, currentTokenStream()->getNewLineStyle());
+		return emplace_back(NEW_LINE, currentFileContext()->getTokenStream()->getNewLineStyle());
 	});
 	_parser.token(R"(\s)").states("$hexstr", "@hexstr_jump");
 	// $hexstr end
@@ -395,13 +394,9 @@ void ParserDriver::defineTokens()
 	_parser.token(R"([^]])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
-	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) {
-  		_parser.pop_input_stream();
-  		if (currentTokenStreamCount() > 1)
-			popTokenStream();
-		if (currentLocationCount() > 1)
-			popLocation();
-  		return 0;
+	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
+		includeEnd();
+		return {};
 	});
 }
 
@@ -425,28 +420,34 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("include") // {}
-		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [](auto&&) -> Value { return {}; })
+		.production("INCLUDE_DIRECTIVE", "INCLUDE_FILE", [&](auto&&) -> Value {
+			return {};
+		})
 		;
 
 	_parser.rule("rule") // {}
 		.production(
-			"rule_mod", "RULE", "ID", [&](auto&& args) -> Value {
-				args[2].getTokenIt()->setType(RULE_NAME);
-				if (ruleExists(args[2].getTokenIt()->getString()))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of rule '" + args[2].getTokenIt()->getString() + "'");
+			"rule_mod", "RULE", [&](auto&&) -> Value {
+				_lastRuleLocation = currentFileContext()->getLocation();
+				_lastRuleTokenStream = currentFileContext()->getTokenStream();
+				return {};
+			}, "ID", [&](auto&& args) -> Value {
+				args[3].getTokenIt()->setType(RULE_NAME);
+				if (ruleExists(args[3].getTokenIt()->getString()))
+					error_handle(args[3].getTokenIt()->getLocation(), "Redefinition of rule '" + args[3].getTokenIt()->getString() + "'");
 				return {};
 			},
 			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
 				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
-				TokenIt name = args[2].getTokenIt();
-				const std::vector<TokenIt> tags = std::move(args[4].getMultipleTokenIt());
-				args[5].getTokenIt()->setType(RULE_BEGIN);
-				std::vector<Meta> metas = std::move(args[6].getMetas());
-				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[7].getStringsTrie());
-				Expression::Ptr condition = std::move(args[8].getExpression());
-				args[9].getTokenIt()->setType(RULE_END);
+				TokenIt name = args[3].getTokenIt();
+				const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
+				args[6].getTokenIt()->setType(RULE_BEGIN);
+				std::vector<Meta> metas = std::move(args[7].getMetas());
+				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
+				Expression::Ptr condition = std::move(args[9].getExpression());
+				args[10].getTokenIt()->setType(RULE_END);
 
-				addRule(Rule(currentTokenStream(), name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				addRule(Rule(_lastRuleTokenStream, name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
 				return {};
 			});
 
@@ -550,7 +551,7 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("string")
 		.production("STRING_LITERAL", "plain_string_mods", [&](auto&& args) -> Value {
-			auto string = std::make_shared<PlainString>(currentTokenStream(), std::move(args[0].getTokenIt()));
+			auto string = std::make_shared<PlainString>(currentFileContext()->getTokenStream(), std::move(args[0].getTokenIt()));
 			auto mods = std::move(args[1].getStringMods());
 			string->setModifiers(std::move(mods));
 			return string;
@@ -561,7 +562,7 @@ void ParserDriver::defineGrammar()
 			},
 			"hex_string", "RCB", "hex_string_mods", [&](auto&& args) -> Value {
 				args[3].getTokenIt()->setType(HEX_END_BRACKET);
-				auto hexString = std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
+				auto hexString = std::make_shared<HexString>(currentFileContext()->getTokenStream(), std::move(args[2].getMultipleHexUnits()));
 				hexString->setModifiers(std::move(args[4].getStringMods()));
 				return hexString;
 			}
@@ -750,13 +751,13 @@ void ParserDriver::defineGrammar()
 	_parser.rule("hex_or_body") // vector<shared_ptr<yaramod::String>>
 		.production("hex_string_body", [&](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexString>> output;
-			auto hexStr = std::make_shared<HexString>(currentTokenStream(), std::move(args[0].getMultipleHexUnits()));
+			auto hexStr = std::make_shared<HexString>(currentFileContext()->getTokenStream(), std::move(args[0].getMultipleHexUnits()));
 			output.push_back(std::move(hexStr));
 			return output;
 		})
 		.production("hex_or_body", "HEX_OR", "hex_string_body", [&](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleHexStrings());
-			auto hexStr = std::make_shared<HexString>(currentTokenStream(), std::move(args[2].getMultipleHexUnits()));
+			auto hexStr = std::make_shared<HexString>(currentFileContext()->getTokenStream(), std::move(args[2].getMultipleHexUnits()));
 			output.push_back(hexStr);
 			return output;
 		})
@@ -794,7 +795,7 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("regexp_body") // shared_ptr<yaramod::String>
-		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(currentTokenStream(), std::move(args[0].getRegexpUnit()))); });
+		.production("regexp_or", [&](auto&& args) -> Value { return Value(std::make_shared<Regexp>(currentFileContext()->getTokenStream(), std::move(args[0].getRegexpUnit()))); });
 
 	_parser.rule("regexp_or") // shared_ptr<RegexpUnit>
 		.production("regexp_concat", [](auto&& args) -> Value { return Value(std::make_shared<RegexpConcat>(std::move(args[0].getMultipleRegexpUnits()))); })
@@ -831,9 +832,9 @@ void ParserDriver::defineGrammar()
 		.production("regexp_single", "REGEXP_RANGE", "regexp_greedy", [&](auto&& args) -> Value {
 			auto pair = std::move(args[1].getRegexpRangePair());
 			if (!pair.first && !pair.second)
-				error_handle(currentLocation(), "Range in regular expression does not have defined lower bound nor higher bound");
+				error_handle(currentFileContext()->getLocation(), "Range in regular expression does not have defined lower bound nor higher bound");
 			if (pair.first && pair.second && pair.first.value() > pair.second.value())
-				error_handle(currentLocation(), "Range in regular expression has greater lower bound than higher bound");
+				error_handle(currentFileContext()->getLocation(), "Range in regular expression has greater lower bound than higher bound");
 			return std::make_shared<RegexpRange>(std::move(args[0].getRegexpUnit()), std::move(pair), args[2].getBool());
 		})
 		.production("regexp_single", [](auto&& args) -> Value {
@@ -1474,13 +1475,13 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[0].getExpression();
 			if (!expr->isInt())
-				error_handle(currentLocation(), "integer set expects integer type");
+				error_handle(currentFileContext()->getLocation(), "integer set expects integer type");
 			return std::vector<Expression::Ptr>{std::move(expr)};
 		})
 		.production("integer_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[2].getExpression();
 			if (!expr->isInt())
-				error_handle(currentLocation(), "integer set expects integer type");
+				error_handle(currentFileContext()->getLocation(), "integer set expects integer type");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(expr));
 			return output;
@@ -1532,22 +1533,6 @@ void ParserDriver::defineGrammar()
 		;
 }
 
-bool ParserDriver::prepareParser()
-{
-	auto report = _parser.prepare();
-	// Uncomment for advanced debugging with HtmlReport:
-	// pog::HtmlReport html(_parser);
-	// html.save("html_index.html");
-	if (!report)
-	{
-		// Uncomment for debugging:
-		// fmt::print("{}\n", report.to_string());
-		throw YaramodError("Error: Parser initialization failed");
-		return false;
-	}
-	return true;
-}
-
 void ParserDriver::enter_state(const std::string& state)
 {
 	_parser.enter_tokenizer_state(state);
@@ -1558,9 +1543,19 @@ void ParserDriver::initialize()
 	defineTokens();
 	defineGrammar();
 	_parser.set_start_symbol("rules");
-	bool prepared = prepareParser();
-	if (!prepared)
+
+	auto report = _parser.prepare();
+	// Uncomment for advanced debugging with HtmlReport:
+	// pog::HtmlReport html(_parser);
+	// html.save("html_index.html");
+	if (!report)
+	{
+		// Uncomment for debugging:
+		// fmt::print("{}\n", report.to_string());
 		throw YaramodError("Error: Parser initialization failed");
+	}
+
+	_valid = true;
 }
 
 /**
@@ -1569,45 +1564,14 @@ void ParserDriver::initialize()
  * @param parserMode Parsing mode.
  * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(ParserMode parserMode, ImportFeatures features)
-	: _import_features(features)
-{
-	reset(parserMode);
-	initialize();
-}
-
-/**
- * Constructor.
- *
- * @param filePath Input file path.
- * @param parserMode Parsing mode.
- * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
- */
-ParserDriver::ParserDriver(const std::string& filePath, ParserMode parserMode, ImportFeatures features) : _mode(parserMode), _import_features(features)
-	, _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols(), _startOfRule(0), _anonStringCounter(0)
+ParserDriver::ParserDriver(ImportFeatures features)
+	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
+	_escapedContent(false), _mode(ParserMode::Regular), _import_features(features), _modules(),
+	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
+	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
+	_lastRuleTokenStream(), _anonStringCounter(0)
 {
 	initialize();
-	_tokenStreams.emplace(std::make_shared<TokenStream>());
-	_locations.emplace();
-	if (!includeFileImpl(filePath))
-		_valid = false;
-	_file = YaraFile(currentTokenStream(), _import_features);
-}
-
-/**
- * Constructor.
- *
- * @param input Input stream.
- * @param parserMode Parsing mode.
- * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
- */
-ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode,  ImportFeatures features) : _mode(parserMode), _import_features(features)
-	, _optionalFirstInput(&input), _valid(true), _filePath(), _currentStrings(), _stringLoop(false), _localSymbols()
-{
-	initialize();
-	_tokenStreams.emplace(std::make_shared<TokenStream>());
-	_locations.emplace();
-	_file = YaraFile(currentTokenStream(), _import_features);
 }
 
 /**
@@ -1615,9 +1579,9 @@ ParserDriver::ParserDriver(std::istream& input, ParserMode parserMode,  ImportFe
  *
  * @return Parsed YARA file.
  */
-YaraFile& ParserDriver::getParsedFile()
+YaraFile&& ParserDriver::getParsedFile()
 {
-	return _file;
+	return std::move(_file);
 }
 
 /**
@@ -1630,25 +1594,51 @@ const YaraFile& ParserDriver::getParsedFile() const
 	return _file;
 }
 
+bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
+{
+	if (!prepareParser(parserMode))
+		return false;
+
+	_fileContexts.emplace_back(&stream);
+	_file = YaraFile(currentFileContext()->getTokenStream(), _import_features);
+	return parseImpl();
+}
+
+bool ParserDriver::parse(const std::string& filePath, ParserMode parserMode)
+{
+	if (!prepareParser(parserMode))
+		return false;
+
+	if (includeFileImpl(filePath) != IncludeResult::Included)
+		return false;
+
+	_file = YaraFile(currentFileContext()->getTokenStream(), _import_features);
+	return parseImpl();
+}
+
+bool ParserDriver::prepareParser(ParserMode parserMode)
+{
+	reset(parserMode);
+	return true;
+}
+
 /**
  * Parses the input stream or file.
  *
  * @return @c true if parsing succeeded, otherwise @c false.
  */
-bool ParserDriver::parse()
+bool ParserDriver::parseImpl()
 {
-	if (!_valid)
-		return false;
 	try
 	{
-		auto result = _parser.parse(*currentInputStream());
+		auto result = _parser.parse(*currentFileContext()->getStream());
 		if (!result)
 			throw YaramodError("Error: Parser failed to parse input.");
 		return result.has_value();
 	}
 	catch(const pog::SyntaxError& err)
 	{
-		error_handle(currentLocation(), err.what());
+		error_handle(currentFileContext()->getLocation(), err.what());
 		return false;
 	}
 }
@@ -1663,34 +1653,17 @@ void ParserDriver::reset(ParserMode parserMode)
 	_regexpClass.clear();
 	_sectionStrings = false;
 
-	_tokenStreams = std::stack<std::shared_ptr<TokenStream>>();
-	_tokenStreams.emplace(std::make_shared<TokenStream>());
-	_locations = std::stack<Location>();
-	_locations.emplace();
+	_fileContexts.clear();
 	_comments.clear();
 	_includedFiles.clear();
-	_includedFileNames.clear();
 	_includedFilesCache.clear();
-	_optionalFirstInput = nullptr;
 	_valid = true;
-	_filePath.clear();
-	_file = YaraFile(currentTokenStream(), _import_features);
 	_currentStrings = std::weak_ptr<Rule::StringsTrie>();
 	_stringLoop = false;
 	_localSymbols.clear();
-	_startOfRule = 0;
+	_lastRuleLocation.reset();
+	_lastRuleTokenStream.reset();
 	_anonStringCounter = 0;
-}
-
-void ParserDriver::setInput(std::istream& input)
-{
-	_optionalFirstInput = &input;
-}
-
-void ParserDriver::setInput(const std::string& filePath)
-{
-	if (!includeFileImpl(filePath))
-		_valid = false;
 }
 
 /**
@@ -1710,39 +1683,28 @@ bool ParserDriver::isValid() const
  *
  * @return @c true if include succeeded, otherwise @c false.
  */
-bool ParserDriver::includeFile(const std::string& includePath)
+bool ParserDriver::includeFile(const std::string& includePath, const std::shared_ptr<TokenStream>& tokenStream)
 {
 	auto totalPath = includePath;
 	if (pathIsRelative(includePath))
 	{
 		// We are not running ParserDriver from file input, just from some unnamed istream, therefore we need to forbid relative includes from
 		// the top of the istream hierarchy
-		if (_includedFileNames.empty() && _filePath.empty())
+		if (currentFileContext()->isUnnamed())
 			return false;
 
 		// Take the topmost file path from the stack.
 		// This allows us to nest includes forming hierarchy of included files.
-		totalPath = absolutePath(joinPaths(parentPath(_includedFileNames.back()), includePath));
+		totalPath = absolutePath(joinPaths(parentPath(currentFileContext()->getLocation().getFilePath()), includePath));
 	}
 
-	return includeFileImpl(totalPath);
-}
+	// If all the underlying mechanisms for including succeeded, push the stream on top of input stack
+	// Push input stream only if the file wasn't already included
+	auto result = includeFileImpl(totalPath, tokenStream);
+	if (result == IncludeResult::Included)
+		_parser.push_input_stream(*_includedFiles.back());
 
-/**
- * Returns  the currently included file. This should normally happen when end-of-file is reached.
- * End of include may fail if there are no more files to pop from include stack.
- *
- * @return @c true if end of include succeeded, otherwise @c false.
- */
-std::istream* ParserDriver::currentInputStream()
-{
-	if (_includedFiles.empty())
-	{
-		assert(_optionalFirstInput);
-		return _optionalFirstInput;
-	}
-	else
-		return _includedFiles.back().get();
+	return result != IncludeResult::Error;
 }
 
 /**
@@ -1753,13 +1715,13 @@ std::istream* ParserDriver::currentInputStream()
  */
 bool ParserDriver::includeEnd()
 {
-	if (!_includedFileNames.empty())
+	_parser.pop_input_stream();
+	if (!_fileContexts.empty())
 	{
-		assert(!_tokenStreams.empty());
-		_includedFiles.pop_back();
-		_includedFileNames.pop_back();
+		popFileContext();
+		if (!_includedFiles.empty())
+			_includedFiles.pop_back(); // Pop _includedFiles to release file descriptor
 	}
-
 	return true;
 }
 
@@ -1792,8 +1754,7 @@ void ParserDriver::addRule(Rule&& rule)
  */
 void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 {
-	if (!_includedFileNames.empty())
-		rule->setLocation(_includedFileNames.back(), _startOfRule);
+	rule->setLocation(_lastRuleLocation.getFilePath(), _lastRuleLocation.begin().first);
 
 	if (ruleExists(rule->getName()))
 		throw ParserError("Error: Redefinition of rule " + rule->getName());
@@ -1947,23 +1908,26 @@ bool ParserDriver::isAlreadyIncluded(const std::string& includePath)
 	return _includedFilesCache.find(absolutePath(includePath)) != _includedFilesCache.end();
 }
 
-bool ParserDriver::includeFileImpl(const std::string& includePath)
+IncludeResult ParserDriver::includeFileImpl(const std::string& includePath, std::optional<std::shared_ptr<TokenStream>> tokenStream)
 {
 	if (_mode == ParserMode::IncludeGuarded && isAlreadyIncluded(includePath))
-		return true;
+		return IncludeResult::AlreadyIncluded;
 
 	// We need to allocate ifstreams dynamically because they are not copyable and we need to store them
 	// in vector to prolong their lifetime because of flex.
-	auto file_stream = std::make_shared<std::ifstream>(includePath);
-	if (!file_stream->is_open())
-		return false;
-	_parser.push_input_stream(*file_stream);
-	_includedFiles.push_back(std::move(file_stream));
+	auto fileStream = std::make_shared<std::ifstream>(includePath);
+	if (!fileStream->is_open())
+		return IncludeResult::Error;
 
-	_includedFileNames.push_back(includePath);
+	_includedFiles.push_back(std::move(fileStream));
+	if (tokenStream)
+		_fileContexts.emplace_back(includePath, _includedFiles.back().get(), tokenStream.value());
+	else
+		_fileContexts.emplace_back(includePath, _includedFiles.back().get());
+	//_includedFileNames.push_back(includePath);
 	_includedFilesCache.emplace(absolutePath(includePath));
 
-	return true;
+	return IncludeResult::Included;
 }
 
 } //namespace yaramod

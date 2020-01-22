@@ -4,6 +4,8 @@
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
+#pragma once
+
 #include <iostream>
 
 #include <yaramod/utils/modifying_visitor.h>

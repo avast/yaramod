@@ -18,7 +18,7 @@ namespace tests {
 
 class BuilderTests : public Test {
 public:
-	BuilderTests() : driver(ParserMode::Regular) {}
+	BuilderTests() : driver() {}
 
 	yaramod::ParserDriver driver;
 };

@@ -37,11 +37,9 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 		std::unique_ptr<ParserDriver> driver;
 		if (external_driver)
 		{
-			external_driver->reset();
-			external_driver->setInput(ss);
 			try
 			{
-				external_driver->parse();
+				external_driver->parse(ss);
 			}
 			catch (const ParserError& err)
 			{
@@ -52,10 +50,10 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 		}
 		else
 		{
-			ParserDriver driver(ss);
+			ParserDriver driver(ImportFeatures::All);
 			try
 			{
-				driver.parse();
+				driver.parse(ss);
 			}
 			catch (const ParserError& err)
 			{
