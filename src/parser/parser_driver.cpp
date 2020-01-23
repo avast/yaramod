@@ -395,6 +395,7 @@ void ParserDriver::defineTokens()
 	// $regexp end
 
 	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
+		_errorLocation = currentFileContext()->getLocation();
 		includeEnd();
 		return {};
 	});
@@ -1636,9 +1637,9 @@ bool ParserDriver::parseImpl()
 			throw YaramodError("Error: Parser failed to parse input.");
 		return result.has_value();
 	}
-	catch(const pog::SyntaxError& err)
+	catch (const pog::SyntaxError& err)
 	{
-		error_handle(currentFileContext()->getLocation(), err.what());
+		error_handle(!_fileContexts.empty() ? currentFileContext()->getLocation() : _errorLocation, err.what());
 		return false;
 	}
 }

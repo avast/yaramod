@@ -12,9 +12,11 @@ std::unique_ptr<YaraFile> Yaramod::parseFile(const std::string& filePath, Parser
 {
 	if (!_driver.isValid())
 		return nullptr;
+
 	std::unique_ptr<YaraFile> result;
 	if (_driver.parse(filePath, parserMode))
 		result = std::make_unique<YaraFile>(std::move(_driver.getParsedFile()));
+
 	return result;
 }
 
@@ -22,9 +24,11 @@ std::unique_ptr<YaraFile> Yaramod::parseStream(std::istream& inputStream, Parser
 {
 	if (!_driver.isValid())
 		return nullptr;
+
 	std::unique_ptr<YaraFile> result;
 	if (_driver.parse(inputStream, parserMode))
 		result = std::make_unique<YaraFile>(std::move(_driver.getParsedFile()));
+
 	return result;
 }
 

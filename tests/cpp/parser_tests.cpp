@@ -3309,7 +3309,7 @@ R"(rule rule_with_invalid_escape_sequence {
 		$st2 = "\t\r"
 	condition:
 		$st1 or $st2
-}"
+}
 )");
 
 	try
@@ -4961,6 +4961,25 @@ rule private_string_modifier
 	EXPECT_TRUE(string3->isPrivate());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+UnexpectedEndOfFile) {
+	prepareInput(
+R"(
+rule unexpected_end_of_file
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 3.1: Syntax error: Unexpected @end, expected one of {, :", err.getErrorMessage());
+	}
 }
 
 }

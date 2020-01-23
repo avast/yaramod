@@ -203,8 +203,9 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<Symbol>> _localSymbols; ///< Context storage of local symbols
 
 	Location _lastRuleLocation; ///< Holds the filename and line number where the last parsed rule starts
-	std::shared_ptr<TokenStream> _lastRuleTokenStream;
+	std::shared_ptr<TokenStream> _lastRuleTokenStream; ///< Holds token stream at the point of where last parsed rule starts
 	std::uint64_t _anonStringCounter; ///< Internal counter for generating pseudo identifiers of anonymous strings
+	Location _errorLocation; ///< Last known location before error in parsing happened.
 };
 
 } // namespace yaramod

@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.3.1 (2020-01-23)
+
+* Fixed segfault in case of syntax error which was caused by unexpected end of file
+
 # v3.3.0 (2020-01-23)
 
 * Builders now work properly when you create `YaraExpressionBuilder` out of already existing expression.
