@@ -1372,7 +1372,7 @@ void ParserDriver::defineGrammar()
 			assert(parentSymbol);
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
-			
+
 			std::shared_ptr<const IterableSymbol> iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
 
 			std::shared_ptr<Symbol> arraySymbol;
@@ -1381,7 +1381,7 @@ void ParserDriver::defineGrammar()
 			else
 				arraySymbol = std::make_shared<ValueSymbol>(expr->getText(), iterParentSymbol->getElementType());
 			auto output = std::make_shared<ArrayAccessExpression>(arraySymbol, std::move(expr), args[1].getTokenIt(), std::move(args[2].getExpression()), args[3].getTokenIt());
-			
+
 
 			output->setType(iterParentSymbol->getElementType());
 			return output;

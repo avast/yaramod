@@ -34,7 +34,7 @@ public:
 		// Check that the module is allowed to load with given `features`
 		if (!(itr->second->getFeatures() & features))
 			return nullptr;
-		
+
 		// Initialize the module if it is not already initialized.
 		if (!itr->second->isInitialized())
 			itr->second->initialize(features);

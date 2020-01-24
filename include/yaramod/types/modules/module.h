@@ -64,7 +64,7 @@ public:
 protected:
 	std::string _name; ///< Name of the module
 	std::shared_ptr<StructureSymbol> _structure; ///< Structure of the module
-	ImportFeatures _needed_features; ///< Specifies when this module can be loaded: 
+	ImportFeatures _needed_features; ///< Specifies when this module can be loaded:
 };
 
 }

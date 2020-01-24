@@ -2553,7 +2553,7 @@ rule cuckoo_module
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"($some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/))", rule->getCondition()->getText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());	
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,

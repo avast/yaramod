@@ -1225,7 +1225,7 @@ public:
 
 protected:
 	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
-	std::optional<TokenIt> _symbolToken; ///< Token of the 
+	std::optional<TokenIt> _symbolToken; ///< Token of the
 };
 
 /**
