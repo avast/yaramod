@@ -176,8 +176,8 @@ YaraRuleBuilder& YaraRuleBuilder::withComment(const std::string& comment, bool m
  */
 YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const std::string& value)
 {
-	if (key == std::string{} || value == std::string{})
-		throw RuleBuilderError("Error: String-Meta key and value must be non-empty.");
+	if (key == std::string{})
+		throw RuleBuilderError("Error: String-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
