@@ -105,6 +105,8 @@ public:
 	auto end() const { return _units.end(); }
 	/// @}
 
+	bool empty() const { return _units.empty(); }
+
 private:
 	std::vector<std::shared_ptr<HexStringUnit>> _units; ///< Units in the hex string
 };
@@ -135,6 +137,7 @@ public:
 		else
 			return std::string(1, value - 10 + 'A');
 	}
+	/// @}
 
 	/// @name Getters
 	/// @{
@@ -147,7 +150,6 @@ public:
 	/// @}
 
 	virtual std::size_t getLength() const override { return 1; }
-	/// @}
 
 private:
 	TokenIt _value; ///< Value of the nibble

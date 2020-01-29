@@ -658,7 +658,7 @@ public:
 
 	void setSuffixModifiers(const std::string& suffixMods)
 	{
-		if (suffixMods != std::string{})
+		if (!suffixMods.empty())
 		{
 			if (_suffixMods.has_value())
 				(*_suffixMods)->setValue(suffixMods);
