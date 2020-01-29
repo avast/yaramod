@@ -365,7 +365,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 {
 	createLastString();
 
-	if (id.empty() || hexString->getText().empty())
+	if (id.empty() || hexString->empty())
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
 
 	if (!_strings_it.has_value())
