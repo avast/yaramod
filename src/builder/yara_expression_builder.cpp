@@ -459,7 +459,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  */
 YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message, bool multiline, const std::string& indent)
 {
-	if (message != std::string{})
+	if (!message.empty())
 	{
 		TokenIt insert_before = _tokenStream->begin();
 		std::stringstream ss;

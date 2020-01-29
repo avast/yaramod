@@ -90,7 +90,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
  */
 YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
 {
-	if (name == std::string{})
+	if (name.empty())
 		throw RuleBuilderError("Error: name must be non-empty.");
 	_name_it->setValue(name);
 	return *this;
@@ -128,7 +128,7 @@ YaraRuleBuilder& YaraRuleBuilder::withModifier(Rule::Modifier mod)
  */
 YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
 {
-	if (tag == std::string{})
+	if (tag.empty())
 		throw RuleBuilderError("Error: tag must be non-empty.");
 	if (_tags.empty())
 		_tokenStream->emplace(_lcb, COLON, ":");
@@ -146,7 +146,7 @@ YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
  */
 YaraRuleBuilder& YaraRuleBuilder::withComment(const std::string& comment, bool multiline)
 {
-	if (comment == std::string{})
+	if (comment.empty())
 		throw RuleBuilderError("Error: comment must be non-empty.");
 	TokenIt insert_before = _mod.value_or(_rule_it);
 	std::stringstream ss;
@@ -176,7 +176,7 @@ YaraRuleBuilder& YaraRuleBuilder::withComment(const std::string& comment, bool m
  */
 YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const std::string& value)
 {
-	if (key == std::string{})
+	if (key.empty())
 		throw RuleBuilderError("Error: String-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
@@ -209,7 +209,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
  */
 YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64_t value)
 {
-	if (key == std::string{})
+	if (key.empty())
 		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
@@ -240,7 +240,7 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
  */
 YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint64_t value)
 {
-	if (key == std::string{})
+	if (key.empty())
 		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
@@ -271,7 +271,7 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
  */
 YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::uint64_t value)
 {
-	if (key == std::string{})
+	if (key.empty())
 		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
@@ -302,7 +302,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
  */
 YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool value)
 {
-	if (key == std::string{})
+	if (key.empty())
 		throw RuleBuilderError("Error: Bool-Meta key must be non-empty.");
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
@@ -336,7 +336,7 @@ YaraRuleBuilder& YaraRuleBuilder::withPlainString(const std::string& id, const s
 {
 	createLastString();
 
-	if (id == std::string{} || value == std::string{})
+	if (id.empty() || value.empty())
 		throw RuleBuilderError("Error: Plain string id and value must be non-empty.");
 
 	if (!_strings_it.has_value())
@@ -365,7 +365,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexString(const std::string& id, const std
 {
 	createLastString();
 
-	if (id == std::string{} || hexString->getText() == std::string{})
+	if (id.empty() || hexString->getText().empty())
 		throw RuleBuilderError("Error: Hex string id and value must be non-empty.");
 
 	if (!_strings_it.has_value())
@@ -396,7 +396,7 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
 {
 	createLastString();
 
-	if (id == std::string{} || value == std::string{})
+	if (id.empty() || value.empty())
 		throw RuleBuilderError("Error: Regexp id and value must be non-empty.");
 
 	if (!_strings_it.has_value())
