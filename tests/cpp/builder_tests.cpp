@@ -142,7 +142,7 @@ RuleWithMetasWorks) {
 }
 
 TEST_F(BuilderTests,
-RuleWithEmptyStringMetasWorks) {
+RuleWithEmptyStringMetaValueWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule
 		.withName("rule_with_metas")
