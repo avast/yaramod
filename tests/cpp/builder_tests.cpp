@@ -142,6 +142,37 @@ RuleWithMetasWorks) {
 }
 
 TEST_F(BuilderTests,
+RuleWithEmptyStringMetaValueWorks) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_metas")
+		.withStringMeta("string_meta", "")
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_metas {
+	meta:
+		string_meta = ""
+	condition:
+		true
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_metas
+{
+	meta:
+		string_meta = ""
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 RuleWithTagsWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule
