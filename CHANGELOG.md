@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.3.2 (2020-01-30)
+
+* Fixed bug which prevented creating rule with empty string meta from builder ([#58](https://github.com/avast/yaramod/issues/58), [#59](https://github.com/avast/yaramod/pull/59)).
+
 # v3.3.1 (2020-01-23)
 
 * Fixed segfault in case of syntax error which was caused by unexpected end of file
