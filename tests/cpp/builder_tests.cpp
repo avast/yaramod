@@ -967,7 +967,11 @@ rule rule_with_logic_operations {
 rule rule_with_logic_operations
 {
 	condition:
-		pe.is_32bit() and (pe.is_dll() or (pe.number_of_sections > 3))
+		pe.is_32bit() and
+		(
+			pe.is_dll() or
+			(pe.number_of_sections > 3)
+		)
 }
 )", yaraFile->getTextFormatted());
 }
@@ -997,7 +1001,8 @@ RuleWithIntMultpliersWorks) {
 	EXPECT_EQ(R"(rule rule_with_int_multipliers
 {
 	condition:
-		100KB <= filesize and filesize <= 1MB
+		100KB <= filesize and
+		filesize <= 1MB
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1032,7 +1037,9 @@ RuleWithStringOperatorsWorks) {
 	strings:
 		$1 = "Hello World!"
 	condition:
-		#1 > 0 and !1 > 1 and @1 > 100
+		#1 > 0 and
+		!1 > 1 and
+		@1 > 100
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1136,7 +1143,9 @@ RuleWithConjunctionInConditionWorks) {
 	strings:
 		$1 = "Hello"
 	condition:
-		$1 and (@1 < 100) and (entrypoint == 100)
+		$1 and
+		(@1 < 100) and
+		(entrypoint == 100)
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1174,7 +1183,9 @@ RuleWithDisjunctionInConditionWorks) {
 		$1 = "Hello"
 		$2 = "World"
 	condition:
-		$1 or $2 or (entrypoint == 100)
+		$1 or
+		$2 or
+		(entrypoint == 100)
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1392,8 +1403,10 @@ RuleWithParenthesesWithLinebreaksInConditionWorks) {
 		$2 = "Cruel"
 		$3 = "World"
 	condition:
-		$1 and (
-			$2 or $3
+		$1 and
+		(
+			$2 or
+			$3
 		)
 }
 )", yaraFile->getTextFormatted());

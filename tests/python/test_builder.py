@@ -799,7 +799,8 @@ rule rule_2 : Tag2 {
         self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition
 {
 	condition:
-		filesize > 100 and filesize < 200
+		filesize > 100 and
+		filesize < 200
 }
 ''')
         self.assertEqual(yara_file.text, '''rule rule_with_and_condition {
@@ -820,7 +821,8 @@ rule rule_2 : Tag2 {
         self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition
 {
 	condition:
-		filesize > 100 or filesize < 200
+		filesize > 100 or
+		filesize < 200
 }
 ''')
         self.assertEqual(yara_file.text, '''rule rule_with_or_condition {

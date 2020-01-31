@@ -289,7 +289,7 @@ void TokenStream::determineNewlineSectors()
 				it->setFlag(true);
 			leftBrackets.pop();
 		}
-		else if (current == NEW_LINE && !leftBrackets.empty())
+		else if (!leftBrackets.empty() && (current == NEW_LINE || current == OR || current == AND))
 			leftBrackets.top()->setFlag(true);
 	}
 }
@@ -354,7 +354,7 @@ void TokenStream::addMissingNewLines()
 				}
 			}
 		}
-		if (current == COLON_BEFORE_NEWLINE && next != NEW_LINE)
+		if (next != NEW_LINE && (current == COLON_BEFORE_NEWLINE || current == OR || current == AND))
 		{
 			if (next == COMMENT)
 			{
