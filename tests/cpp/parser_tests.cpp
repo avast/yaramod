@@ -1621,7 +1621,8 @@ rule string_in_range_condition2
 		$a = "dummy1"
 		$b = "dummy2"
 	condition:
-		$a in (0 .. 100) and $b in (100 .. filesize)
+		$a in (0 .. 100) and
+		$b in (100 .. filesize)
 }
 )");
 
@@ -1661,7 +1662,8 @@ R"(
 rule and_condition
 {
 	condition:
-		true and not false
+		true and
+		not false
 }
 )");
 
@@ -1685,7 +1687,8 @@ rule and_condition
 		$1 = "Hello World!"
 		$2 = "Bye World."
 	condition:
-		$1 and $2
+		$1 and
+		$2
 }
 )");
 
@@ -1705,7 +1708,8 @@ R"(
 rule or_condition
 {
 	condition:
-		true or not false
+		true or
+		not false
 }
 )");
 
@@ -1747,7 +1751,12 @@ R"(
 rule relational_condition
 {
 	condition:
-		filesize < 10 or filesize > 20 or filesize <= 10 or filesize >= 20 or filesize != 15 or filesize == 16
+		filesize < 10 or
+		filesize > 20 or
+		filesize <= 10 or
+		filesize >= 20 or
+		filesize != 15 or
+		filesize == 16
 }
 )");
 
@@ -1769,7 +1778,8 @@ rule relational_condition
 	strings:
 		$1 = "Hello World"
 	condition:
-		($1 at (entrypoint)) and (filesize > 100)
+		($1 at (entrypoint)) and
+		(filesize > 100)
 }
 )");
 
@@ -1809,7 +1819,10 @@ R"(
 rule arithmetic_op_condition
 {
 	condition:
-		(10 + 20 < 200 - 100) and (10 * 20 > 20 \ 10) and (10 % 2) and (-5)
+		(10 + 20 < 200 - 100) and
+		(10 * 20 > 20 \ 10) and
+		(10 % 2) and
+		(-5)
 }
 )");
 
@@ -1869,7 +1882,12 @@ R"(
 rule bitwise_op_condition
 {
 	condition:
-		(3 & 2 == 2) and (7 ^ 7 == 0) and (3 | 4 == 7) and (~5) and (8 >> 2 == 2) and (1 << 3 == 8)
+		(3 & 2 == 2) and
+		(7 ^ 7 == 0) and
+		(3 | 4 == 7) and
+		(~5) and
+		(8 >> 2 == 2) and
+		(1 << 3 == 8)
 }
 )");
 
@@ -1995,7 +2013,8 @@ rule string_offset_condition
 		$1 = "Hello World"
 		$2 = "Hello World2"
 	condition:
-		(@1 > 5) and (@2[0] > 100)
+		(@1 > 5) and
+		(@2[0] > 100)
 }
 )");
 
@@ -2018,7 +2037,8 @@ rule string_offset_condition
 		$1 = "Hello World"
 		$2 = "Hello World2"
 	condition:
-		(@1 > 0x1000) and (@2[0x11] > 0x14)
+		(@1 > 0x1000) and
+		(@2[0x11] > 0x14)
 }
 )");
 
@@ -2040,7 +2060,8 @@ rule string_length_condition
 	strings:
 		$1 = "Hello World"
 	condition:
-		(!1 > 0) and (!1[1] > 100)
+		(!1 > 0) and
+		(!1[1] > 100)
 }
 )");
 
@@ -2062,7 +2083,8 @@ import "pe"
 rule function_call_condition
 {
 	condition:
-		(pe.is_dll()) and (pe.section_index(".text") == 0)
+		(pe.is_dll()) and
+		(pe.section_index(".text") == 0)
 }
 )");
 
@@ -2084,7 +2106,8 @@ import "pe"
 rule structure_access_condition
 {
 	condition:
-		(pe.linker_version.major > 0) and (pe.linker_version.minor > 0)
+		(pe.linker_version.major > 0) and
+		(pe.linker_version.minor > 0)
 }
 )");
 
@@ -2106,7 +2129,8 @@ import "pe"
 rule array_access_condition
 {
 	condition:
-		(pe.number_of_sections > 0) and (pe.sections[0].name == ".text")
+		(pe.number_of_sections > 0) and
+		(pe.sections[0].name == ".text")
 }
 )");
 
@@ -2258,7 +2282,21 @@ rule rule_name
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(pe.sections[0].name == \"EmptyString\" or pe.sections[0].name == \"\")", rule->getCondition()->getText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::string expected = R"(
+import "pe"
+
+rule rule_name
+{
+	meta:
+		author = "Mr. Avastian"
+	condition:
+		(
+			pe.sections[0].name == "EmptyString" or
+			pe.sections[0].name == ""
+		)
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -2439,7 +2477,8 @@ import "androguard"
 rule dummy_rule
 {
 	condition:
-		androguard.max_sdk > androguard.signature.hits("dummy") and androguard.min_sdk == androguard.max_sdk
+		androguard.max_sdk > androguard.signature.hits("dummy") and
+		androguard.min_sdk == androguard.max_sdk
 }
 )");
 
@@ -2490,7 +2529,9 @@ import "phish"
 rule dummy_rule
 {
 	condition:
-		phish.file_contents.input.ids_hash("x") == "dummy_hash" and phish.source_url == "a" and phish.file_contents.a.class("y") == 5
+		phish.file_contents.input.ids_hash("x") == "dummy_hash" and
+		phish.source_url == "a" and
+		phish.file_contents.a.class("y") == 5
 }
 )");
 
@@ -2543,7 +2584,8 @@ rule cuckoo_module
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
-		$some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
+		$some_string and
+		cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
 }
 )");
 
@@ -2567,8 +2609,10 @@ rule cuckoo_module
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
-		true and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/) and
-		$some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
+		true and
+		cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/) and
+		$some_string and
+		cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
 }
 )");
 
@@ -2584,7 +2628,7 @@ rule cuckoo_module
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
 		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 10.35-51: Unrecognized identifier 'http_request_body' referenced", err.getErrorMessage());
+		EXPECT_EQ("Error at 12.18-34: Unrecognized identifier 'http_request_body' referenced", err.getErrorMessage());
 	}
 }
 
@@ -2597,7 +2641,8 @@ import "dotnet"
 rule dotnet_module
 {
 	condition:
-		dotnet.assembly.version.major > 0 and dotnet.assembly.version.minor > 0
+		dotnet.assembly.version.major > 0 and
+		dotnet.assembly.version.minor > 0
 }
 )");
 
@@ -2619,7 +2664,8 @@ import "elf"
 rule elf_module
 {
 	condition:
-		elf.type == elf.ET_EXEC and elf.sections[0].type == elf.SHT_NULL
+		elf.type == elf.ET_EXEC and
+		elf.sections[0].type == elf.SHT_NULL
 }
 )");
 
@@ -2751,7 +2797,9 @@ import "pe"
 rule pe_module
 {
 	condition:
-		pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL
+		pe.exports("ExitProcess") or
+		pe.version_info["CompanyName"] == "company" and
+		pe.characteristics & pe.DLL
 }
 )");
 
@@ -2771,7 +2819,8 @@ R"(
 rule virus_total_specific
 {
 	condition:
-		positives > 5 and bytehero == "hero"
+		positives > 5 and
+		bytehero == "hero"
 }
 )");
 
@@ -2791,7 +2840,8 @@ R"(
 rule virus_total_specific
 {
 	condition:
-		positives > 5 and bytehero == "hero"
+		positives > 5 and
+		bytehero == "hero"
 }
 )");
 
@@ -2830,7 +2880,9 @@ rule rule_1 : Tag1 Tag2
 		$2 = { ab cd ef }
 		$3 = /ab*c/
 	condition:
-		pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+		pe.exports("ExitProcess")
+		and
+		for any of them : ( $ at pe.entry_point )
 }
 
 import "elf"
@@ -2843,9 +2895,7 @@ rule rule_2
 	strings:
 		$abc = "no case full word" nocase fullword
 	condition:
-		elf.type == elf.ET_EXEC
-		and
-		$abc at elf.entry_point
+		elf.type == elf.ET_EXEC and $abc at elf.entry_point
 }
 )");
 
@@ -2877,7 +2927,43 @@ rule rule_2 {
 		elf.type == elf.ET_EXEC and $abc at elf.entry_point
 })", driver.getParsedFile().getText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::string expected = R"(
+import "pe"
+
+/**
+ * Random block comment
+ */
+rule rule_1 : Tag1 Tag2
+{
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess")
+		and
+		for any of them : ( $ at pe.entry_point )
+}
+
+import "elf"
+
+// Random one-line comment
+rule rule_2
+{
+	meta:
+		valid = true
+	strings:
+		$abc = "no case full word" nocase fullword
+	condition:
+		elf.type == elf.ET_EXEC and
+		$abc at elf.entry_point
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -2925,7 +3011,8 @@ R"(
 rule kb_mb_integer_multipliers
 {
 	condition:
-		(1KB <= filesize) and (filesize <= 1MB)
+		(1KB <= filesize) and
+		(filesize <= 1MB)
 }
 )");
 
@@ -2951,7 +3038,8 @@ rule rule_1
 rule rule_2
 {
 	condition:
-		rule_1 and (filesize < 10MB)
+		rule_1 and
+		(filesize < 10MB)
 }
 )");
 
@@ -2978,7 +3066,8 @@ rule regexp_with_suffix_modifier
 	strings:
 		$some_string = { 01 02 03 04 05 05 }
 	condition:
-		$some_string and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/is)
+		$some_string and
+		cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/is)
 }
 )");
 
@@ -2997,7 +3086,10 @@ GlobalVariablesWorks) {
 R"(rule rule_with_global_variables
 {
 	condition:
-		new_file and positives > 10 and signatures matches /Trojan\.Generic.*/ and file_type contains "pe"
+		new_file and
+		positives > 10 and
+		signatures matches /Trojan\.Generic.*/ and
+		file_type contains "pe"
 }
 )");
 	EXPECT_TRUE(driver.parse(input));
@@ -3388,7 +3480,8 @@ R"(import "pe"
 rule public_rule
 {
 	condition:
-		pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0
+		pe.data_directories[0].virtual_address == 0 and
+		pe.data_directories[0].size == 0
 }
 )");
 
@@ -3539,7 +3632,8 @@ rule rule_1 : Tag1 Tag2
 	// Random comment condition
 	condition:
 		// Random comment expression
-		pe.exports("ExitProcess") and for any of them : ( $ at pe.entry_point )
+		pe.exports("ExitProcess") and
+		for any of them : ( $ at pe.entry_point )
 }
 
 /* SHORT BLOCK COMMENT */
@@ -3647,8 +3741,7 @@ rule rule_2
 		$5 = "String 5"
 	condition:
 		elf.type == elf.ET_EXEC
-		and
-		2 of ($1, $2, $3 /*, $4*/, $5)
+		and 2 of ($1, $2, $3 /*, $4*/, $5)
 }
 )");
 
@@ -3683,7 +3776,42 @@ rule rule_2 {
 		elf.type == elf.ET_EXEC and 2 of ($1, $2, $3, $5)
 })", driver.getParsedFile().getText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::string expected = R"(
+import "pe"
+
+rule rule_1 : Tag1 Tag2
+{
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		/*not $1 and*/ pe.exports("ExitProcess") and
+		for any of them : ( $ at pe.entry_point )
+}
+
+import "elf"
+
+rule rule_2
+{
+	meta:
+		valid = true
+	strings:
+		$1 = "no case full word" nocase fullword
+		$2 = "String 2"
+		$3 = /./
+		$5 = "String 5"
+	condition:
+		elf.type == elf.ET_EXEC
+		and
+		2 of ($1, $2, $3 /*, $4*/, $5)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -3814,7 +3942,9 @@ R"(rule public_rule
 		$1 = "Hello World"
 		$2 = "Bye World"
 	condition:
-		true and uint32be(1) and filesize > 0xFF
+		true and
+		uint32be(1) and
+		filesize > 0xFF
 }
 )");
 
@@ -4000,7 +4130,8 @@ rule public_rule
 {
 	condition:
 		for 2 i in (1 .. 4) : (
-			i == 4 and (
+			i == 4 and
+			(
 				true or
 				false
 			)
@@ -4038,7 +4169,8 @@ rule public_rule
 {
 	condition:
 		for 2 i in (1 .. 4) : (
-			i == 4 and ((
+			i == 4 and
+			((
 				true or
 				false
 			))
@@ -4076,7 +4208,8 @@ rule public_rule
 {
 	condition:
 		for 2 i in (1 .. 4) : (
-			i == 4 and (((
+			i == 4 and
+			(((
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
 			)))
@@ -4099,10 +4232,13 @@ rule public_rule {
 			(i == 1) or
 			(i == 2) or
 			(i == 3) or
-			(i == 4 and (
-				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
-				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
-				))
+			(
+				i == 4 and
+				(
+					cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+					cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+				)
+			)
 		)
 }
 )");
@@ -4120,10 +4256,13 @@ rule public_rule
 			(i == 1) or
 			(i == 2) or
 			(i == 3) or
-			(i == 4 and (
-				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
-				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
-			))
+			(
+				i == 4 and
+				(
+					cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
+					cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
+				)
+			)
 		)
 }
 )";
@@ -4156,10 +4295,18 @@ import "cuckoo"
 rule public_rule
 {
 	condition:
-		false or (
-			true and (false or (true and (
-				true
-			) /*comment*/))
+		false or
+		(
+			true and
+			(
+				false or
+				(
+					true and
+					(
+						true
+					) /*comment*/
+				)
+			)
 		)
 }
 )";
@@ -4200,13 +4347,16 @@ rule public_rule
 	condition:
 		not false and
 		not false and
-		false or (
-			true and (
+		false or
+		(
+			true and
+			(
 				(
 					false or
 					false or
 					false
-				) or (
+				) or
+				(
 					true
 				)
 			)
@@ -4277,10 +4427,14 @@ import "cuckoo"
 rule public_rule
 {
 	condition:
-		false or (
-			true and (
-				false or (
-					true and (
+		false or
+		(
+			true and
+			(
+				false or
+				(
+					true and
+					(
 						true
 					)
 				)
@@ -4616,8 +4770,11 @@ rule cruel_rule_2
 		$s01 = "string 234567"  // 0x005
 		$s02 = "basic for loop" // 0
 	condition:
-		false or (
-			$s00 and $s01 and $s02 and
+		false or
+		(
+			$s00 and
+			$s01 and
+			$s02 and
 			cuckoo.network.http_request(/[\w]/)
 		)
 }
