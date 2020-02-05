@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.3.3 (2020-02-05)
+
+* Added support for loading deprecated module functions ([#62](https://github.com/avast/yaramod/issues/62), [#63](https://github.com/avast/yaramod/pull/63))
+
 # v3.3.2 (2020-01-30)
 
 * Fixed bug which prevented creating rule with empty string meta from builder ([#58](https://github.com/avast/yaramod/issues/58), [#59](https://github.com/avast/yaramod/pull/59)).
