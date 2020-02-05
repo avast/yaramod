@@ -50,7 +50,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 		}
 		else
 		{
-			ParserDriver driver(ImportFeatures::All);
+			ParserDriver driver(ImportFeatures::AllCurrent);
 			try
 			{
 				driver.parse(ss);

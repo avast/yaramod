@@ -22,8 +22,8 @@ class YaraFile
 public:
 	/// @name Constructors
 	/// @{
-	YaraFile(ImportFeatures features = ImportFeatures::All);
-	YaraFile(const std::shared_ptr<TokenStream>& tokenStream, ImportFeatures features = ImportFeatures::All);
+	YaraFile(ImportFeatures features = ImportFeatures::AllCurrent);
+	YaraFile(const std::shared_ptr<TokenStream>& tokenStream, ImportFeatures features = ImportFeatures::AllCurrent);
 	YaraFile(YaraFile&&) noexcept;
 
 	YaraFile& operator=(YaraFile&&) noexcept;
