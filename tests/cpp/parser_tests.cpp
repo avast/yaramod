@@ -2633,6 +2633,33 @@ rule cuckoo_module
 }
 
 TEST_F(ParserTests,
+CuckooModuleDeprecated) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_module_deprecated
+{
+	condition:
+		cuckoo.network.http_request(/regexp/) and
+		cuckoo.network.http_request_body(/regexp/) and
+		cuckoo.signature.name(/regexp/)
+}
+)");
+
+	ParserDriver driverDeprecatedSymbols(ImportFeatures::Everything);
+	std::stringstream input2(input_text);
+
+	EXPECT_TRUE(driverDeprecatedSymbols.parse(input));
+	ASSERT_EQ(1u, driverDeprecatedSymbols.getParsedFile().getRules().size());
+
+	const auto& rule = driverDeprecatedSymbols.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.network.http_request(/regexp/) and cuckoo.network.http_request_body(/regexp/) and cuckoo.signature.name(/regexp/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driverDeprecatedSymbols.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 DotnetModuleWorks) {
 	prepareInput(
 R"(
