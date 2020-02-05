@@ -81,30 +81,40 @@ bool CuckooModule::initialize(ImportFeatures features)
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("timer", Type::Int, Type::Regexp));
 	}
 	cuckooStruct->addAttribute(syncStruct);
-	if (features & ImportFeatures::AvastOnly)
+	if (features & (ImportFeatures::AvastOnly | ImportFeatures::Deprecated))
 	{
-		auto processStruct = std::make_shared<StructureSymbol>("process");
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("executed_command", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("created_service", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("started_service", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("resolved_api", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_path", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_sha256", Type::Int, Type::String));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("api_call", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("modified_clipboard", Type::Int, Type::Regexp));
-		processStruct->addAttribute(std::make_shared<FunctionSymbol>("scheduled_task", Type::Int, Type::Regexp));
-		cuckooStruct->addAttribute(processStruct);
+		if (features & ImportFeatures::AvastOnly)
+		{
+			auto processStruct = std::make_shared<StructureSymbol>("process");
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("executed_command", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("created_service", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("started_service", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("resolved_api", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_path", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("load_sha256", Type::Int, Type::String));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("api_call", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("modified_clipboard", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("scheduled_task", Type::Int, Type::Regexp));
+			cuckooStruct->addAttribute(processStruct);
 
+			auto summaryStruct = std::make_shared<StructureSymbol>("summary");
+			summaryStruct->addAttribute(std::make_shared<FunctionSymbol>("ml_score", Type::Float, Type::String));
+			cuckooStruct->addAttribute(summaryStruct);
+		}
 		auto signatureStruct = std::make_shared<StructureSymbol>("signature");
-		signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
-		signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
-		signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
-		signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String, Type::Regexp));
+		if (features & ImportFeatures::AvastOnly)
+		{
+			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
+			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
+			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
+			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String, Type::Regexp));
+		}
+		if (features & ImportFeatures::Deprecated)
+		{
+			assert(features & ImportFeatures::Deprecated);
+			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
+		}
 		cuckooStruct->addAttribute(signatureStruct);
-
-		auto summaryStruct = std::make_shared<StructureSymbol>("summary");
-		summaryStruct->addAttribute(std::make_shared<FunctionSymbol>("ml_score", Type::Float, Type::String));
-		cuckooStruct->addAttribute(summaryStruct);
 	}
 	_structure = cuckooStruct;
 	return true;
