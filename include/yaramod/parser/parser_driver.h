@@ -77,7 +77,7 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-	ParserDriver(ImportFeatures features = ImportFeatures::All);
+	ParserDriver(ImportFeatures features = ImportFeatures::AllCurrent);
 	/// @}
 
 	/// @name Destructor
