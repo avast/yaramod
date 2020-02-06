@@ -5166,5 +5166,43 @@ rule unexpected_end_of_file
 	}
 }
 
+TEST_F(ParserTests,
+ReuseOfParserAfterError) {
+	prepareInput(
+R"(
+rule unexpected_end_of_file
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 3.1: Syntax error: Unexpected @end, expected one of {, :", err.getErrorMessage());
+	}
+
+	prepareInput(
+R"(
+rule empty_rule
+{
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("empty_rule", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_EQ(0u, rule->getMetas().size());
+	EXPECT_TRUE(rule->getStrings().empty());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

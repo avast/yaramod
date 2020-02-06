@@ -137,6 +137,7 @@ public:
 		_tokenizer.enter_state(std::string{decltype(_tokenizer)::DefaultState});
 
 		std::optional<TokenMatchType> token;
+		_tokenizer.clear_input_streams();
 		_tokenizer.push_input_stream(input);
 
 		std::deque<std::pair<std::uint32_t, std::optional<ValueT>>> stack;

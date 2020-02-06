@@ -128,6 +128,11 @@ public:
 		_input_stack.pop_back();
 	}
 
+	void clear_input_streams()
+	{
+		_input_stack.clear();
+	}
+
 	void global_action(CallbackType&& global_action)
 	{
 		_global_action = std::move(global_action);
