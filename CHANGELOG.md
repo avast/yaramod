@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.3.4 (2020-02-06)
+
+* Yaramod can now be reused without crashing after if raised error because of failed parsing ([#66](https://github.com/avast/yaramod/pull/66), [#65](https://github.com/avast/yaramod/issues/65))
+
 # v3.3.3 (2020-02-05)
 
 * Added support for loading deprecated module functions ([#62](https://github.com/avast/yaramod/issues/62), [#63](https://github.com/avast/yaramod/pull/63))
