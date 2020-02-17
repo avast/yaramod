@@ -391,6 +391,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\D)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\D"; return {};});
 	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
 	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
+	_parser.token(R"(\\])").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\]"; return {};});
 	_parser.token(R"([^]])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
