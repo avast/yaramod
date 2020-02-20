@@ -63,9 +63,8 @@ class BuildExtCommand(build_ext):
 
         try:
             subprocess.check_output(['cmake', '--version'])
-        except OSError:
-            print('CMake is not installed on your system or it is not in PATH. Please, make sure CMake is accessible through PATH.', file=sys.stderr)
-            return
+        except OSError as err:
+            raise OSError('CMake is not installed on your system or it is not in PATH. Please, make sure CMake is accessible through PATH.') from err
 
         root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
         build_dir = os.path.join(root_dir, 'build')
