@@ -7,7 +7,7 @@ project(yaramod CXX)
 
 # Configurable options.
 option(YARAMOD_TESTS    "Build tests for yaramod" OFF)
-option(YARAMOD_DOC      "Build doxygen documentation for yaramod" OFF)
+option(YARAMOD_DOCS     "Build doxygen documentation for yaramod" OFF)
 option(YARAMOD_PYTHON   "Build Python extension" OFF)
 option(YARAMOD_EXAMPLES "Build examples" OFF)
 
@@ -43,6 +43,6 @@ add_subdirectory(src)
 if(YARAMOD_TESTS)
 	add_subdirectory(tests)
 endif()
-if(YARAMOD_DOC)
-	add_subdirectory(doc)
+if(YARAMOD_DOCS)
+	add_subdirectory(docs)
 endif()
