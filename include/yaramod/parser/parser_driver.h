@@ -180,7 +180,7 @@ private:
 	std::string _indent; ///< Variable storing current indentation
 	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.
-	size_t _regexpClassDepth = 0; ///< The rectangular brackets depth of nesting
+	std::size_t _regexpClassDepth = 0; ///< The rectangular brackets depth of nesting
 	pog::Parser<Value> _parser; ///< used pog parser
 	
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'

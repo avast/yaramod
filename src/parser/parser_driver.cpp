@@ -394,7 +394,7 @@ void ParserDriver::defineTokens()
 		else
 		{
 			_regexpClass += "]";
-			return std::make_pair(false, "");
+			return std::make_pair(false, std::string{});
 		}
 	});
 	_parser.token(R"(\\w)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\w"; return {};});
@@ -894,7 +894,7 @@ void ParserDriver::defineGrammar()
 		.production("REGEXP_CLASS", [&](auto&& args) -> Value {
 			auto record = std::move(args[0].getRegexpClassRecord());
 			if (!record.first)
-				return Value(std::make_shared<RegexpText>(""));
+				return Value(std::make_shared<RegexpText>(std::string{}));
 			auto c = record.second;
 			if (!c.empty() && c[0] == '^')
 				return std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true);
