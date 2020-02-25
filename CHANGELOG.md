@@ -1,8 +1,9 @@
 # Changelog
 
-# dev
+# v3.3.5 (2020-02-25)
 
 * Fixed issues with parsing `[` and `]` inside regular expressions classes enclosed in `[` and `]` ([#69](https://github.com/avast/yaramod/pull/69), [#67](https://github.com/avast/yaramod/issues/67))
+* Installation through `pip` now properly fails if CMake is not found ([#64](https://github.com/avast/yaramod/issues/64))
 
 # v3.3.4 (2020-02-06)
 
