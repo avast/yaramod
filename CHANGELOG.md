@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Fixed issues with parsing `[` and `]` inside regular expressions classes enclosed in `[` and `]` ([#69](https://github.com/avast/yaramod/pull/69), [#67](https://github.com/avast/yaramod/issues/67))
+
 # v3.3.4 (2020-02-06)
 
 * Yaramod can now be reused without crashing after if raised error because of failed parsing ([#66](https://github.com/avast/yaramod/pull/66), [#65](https://github.com/avast/yaramod/issues/65))
