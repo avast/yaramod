@@ -1111,6 +1111,86 @@ rule regexp_with_custom_negative_class
 }
 
 TEST_F(ParserTests,
+RegexpWithEscapedSquareBracketsInsideClassWorks) {
+	prepareInput(
+R"(
+rule regexp_with_escaped_square_brackets_inside_class
+{
+	strings:
+		$1 = /[\[\]++]/
+	condition:
+		$1
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_with_escaped_square_brackets_inside_class", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto regexp = strings[0];
+	EXPECT_TRUE(regexp->isRegexp());
+	EXPECT_EQ("$1", regexp->getIdentifier());
+	EXPECT_EQ(R"(/[\[\]++]/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RegexpWithUnescapedSquareBracketsInsideClassWorks) {
+	prepareInput(
+R"(
+rule regexp_with_unescaped_square_brackets_inside_class
+{
+	strings:
+		$1 = /[[d][]***[abc]**][[]**]/
+		$2 = /[ !#()[\]{}*][ !#[\]+_]/
+		$3 = /[[\]*+]/
+		$4 = /[\[\]*+]/
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_with_unescaped_square_brackets_inside_class", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(4u, strings.size());
+
+	auto regexp1 = strings[0];
+	EXPECT_TRUE(regexp1->isRegexp());
+	EXPECT_EQ("$1", regexp1->getIdentifier());
+	EXPECT_EQ(R"(/[[d][]***[abc]**][[]**]/)", regexp1->getText());
+
+	auto regexp2 = strings[1];
+	EXPECT_TRUE(regexp2->isRegexp());
+	EXPECT_EQ("$2", regexp2->getIdentifier());
+	EXPECT_EQ(R"(/[ !#()[\]{}*][ !#[\]+_]/)", regexp2->getText());
+
+	auto regexp3 = strings[2];
+	EXPECT_TRUE(regexp3->isRegexp());
+	EXPECT_EQ("$3", regexp3->getIdentifier());
+	EXPECT_EQ(R"(/[[\]*+]/)", regexp3->getText());
+
+	auto regexp = strings[3];
+	EXPECT_TRUE(regexp->isRegexp());
+	EXPECT_EQ("$4", regexp->getIdentifier());
+	EXPECT_EQ(R"(/[\[\]*+]/)", regexp->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 RegexpWithIterationWorks) {
 	prepareInput(
 R"(

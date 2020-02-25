@@ -365,23 +365,37 @@ void ParserDriver::defineTokens()
 		return std::string{str};
 	});
 	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClassDepth = 1;
 		_regexpClass = "^]";
 		return {};
 	});
 	_parser.token(R"(\[\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClassDepth = 1;
 		_regexpClass = "]";
 		return {};
 	});
 	_parser.token(R"(\[\^)").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClassDepth = 1;
 		_regexpClass = "^";
 		return {};
 }	);
 	_parser.token(R"(\[)").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClassDepth = 1;
 		_regexpClass.clear();
 		return {};
 }	);
-	_parser.token(R"(\])").states("$regexp_class").symbol("REGEXP_CLASS").description("regexp class").enter_state("$regexp").action([&](std::string_view) -> Value {
-		return _regexpClass;
+	_parser.token(R"(\])").states("$regexp_class").symbol("REGEXP_CLASS").description("regexp class").action([&](std::string_view) -> Value {
+		--_regexpClassDepth;
+		if(_regexpClassDepth == 0)
+		{
+			enter_state("$regexp");
+			return std::make_pair(true, _regexpClass);
+		}
+		else
+		{
+			_regexpClass += "]";
+			return std::make_pair(false, std::string{});
+		}
 	});
 	_parser.token(R"(\\w)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\w"; return {};});
 	_parser.token(R"(\\W)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\W"; return {};});
@@ -391,7 +405,14 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\D)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\D"; return {};});
 	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
 	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
-	_parser.token(R"([^]])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
+	_parser.token(R"(\\\])").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\]"; --_regexpClassDepth; return {};});
+	_parser.token(R"(\\\[)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\["; ++_regexpClassDepth; return {};});
+	_parser.token(R"(\[)").states("$regexp_class").action([&](std::string_view) -> Value {
+		++_regexpClassDepth;
+		_regexpClass += "[";
+		return {};
+	});
+	_parser.token(R"([^\]\[])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
 	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
@@ -870,9 +891,12 @@ void ParserDriver::defineGrammar()
 		.production("REGEXP_NON_SPACE", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonSpace>()); })
 		.production("REGEXP_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpDigit>()); })
 		.production("REGEXP_NON_DIGIT", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonDigit>()); })
-		.production("REGEXP_CLASS", [](auto&& args) -> Value {
-			std::string c = std::move(args[0].getString());
-			if (c[0] == '^')
+		.production("REGEXP_CLASS", [&](auto&& args) -> Value {
+			auto record = std::move(args[0].getRegexpClassRecord());
+			if (!record.first)
+				return Value(std::make_shared<RegexpText>(std::string{}));
+			auto c = record.second;
+			if (!c.empty() && c[0] == '^')
 				return std::make_shared<RegexpClass>(c.substr(1, c.length() - 1), true);
 			else
 				return std::make_shared<RegexpClass>(std::move(c), false);

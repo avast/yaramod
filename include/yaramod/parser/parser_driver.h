@@ -180,7 +180,9 @@ private:
 	std::string _indent; ///< Variable storing current indentation
 	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.
+	std::size_t _regexpClassDepth = 0; ///< The rectangular brackets depth of nesting
 	pog::Parser<Value> _parser; ///< used pog parser
+	
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 
