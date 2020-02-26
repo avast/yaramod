@@ -1148,7 +1148,7 @@ R"(
 rule regexp_with_unescaped_square_brackets_inside_class
 {
 	strings:
-		$1 = /[[d][]***[abc]**][[]**]/
+		$1 = /[ [\]{}*+,\/]{2,6}OUTSIDE[ [\]{}*+?@|_]OUTSIDE/
 		$2 = /[ !#()[\]{}*][ !#[\]+_]/
 		$3 = /[[\]*+]/
 		$4 = /[\[\]*+]/
@@ -1170,7 +1170,7 @@ rule regexp_with_unescaped_square_brackets_inside_class
 	auto regexp1 = strings[0];
 	EXPECT_TRUE(regexp1->isRegexp());
 	EXPECT_EQ("$1", regexp1->getIdentifier());
-	EXPECT_EQ(R"(/[[d][]***[abc]**][[]**]/)", regexp1->getText());
+	EXPECT_EQ(R"(/[ [\]{}*+,\/]{2,6}OUTSIDE[ [\]{}*+?@|_]OUTSIDE/)", regexp1->getText());
 
 	auto regexp2 = strings[1];
 	EXPECT_TRUE(regexp2->isRegexp());
@@ -1189,6 +1189,38 @@ rule regexp_with_unescaped_square_brackets_inside_class
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
+
+
+TEST_F(ParserTests,
+ComplicatedRegexpClassWorks) {
+	prepareInput(
+R"(
+import "cuckoo"
+import "pe"
+
+rule rule_with_complicated_regexp_class
+{
+	condition:
+		cuckoo.process.executed_command(/[^\\]+/)
+		and
+		cuckoo.filesystem.file_write(/\.bribe$/)
+		and
+		cuckoo.filesystem.file_write(/[\]}]\.(b[0-2]+|VC[0-9]*|DAQ)$/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_complicated_regexp_class", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	EXPECT_EQ("cuckoo.process.executed_command(/[^\\\\]+/) and cuckoo.filesystem.file_write(/\\.bribe$/) and cuckoo.filesystem.file_write(/[\\]}]\\.(b[0-2]+|VC[0-9]*|DAQ)$/)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 
 TEST_F(ParserTests,
 RegexpWithIterationWorks) {
