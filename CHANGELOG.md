@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.3.6 (2020-02-26)
+
+* Fixed regression introduced in previous version by breaking parsing of `[` and `]` ([#70](https://github.com/avast/yaramod/pull/70))
+
 # v3.3.5 (2020-02-25)
 
 * Fixed issues with parsing `[` and `]` inside regular expressions classes enclosed in `[` and `]` ([#69](https://github.com/avast/yaramod/pull/69), [#67](https://github.com/avast/yaramod/issues/67))
