@@ -20,9 +20,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(std::uint8_t byte)
 	: _tokenStream(std::make_shared<TokenStream>())
 	, _units()
 {
-	auto b1 = (byte & 0xF0) >> 4;
+	std::uint64_t b1 = (byte & 0xF0) >> 4;
 	TokenIt t1 = _tokenStream->emplace_back(HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
-	auto b2 = (byte & 0x0F);
+	std::uint64_t b2 = (byte & 0x0F);
 	TokenIt t2 = _tokenStream->emplace_back(HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
 	_units.push_back(std::make_shared<HexStringNibble>(t1));
 	_units.push_back(std::make_shared<HexStringNibble>(t2));
@@ -40,9 +40,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::vector<std::uint8_t>& byte
 	_units.reserve(2 * bytes.size());
 	for (auto byte : bytes)
 	{
-		auto b1 = (byte & 0xF0) >> 4;
+		std::uint64_t b1 = (byte & 0xF0) >> 4;
 		TokenIt t1 = _tokenStream->emplace_back(HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
-		auto b2 = (byte & 0x0F);
+		std::uint64_t b2 = (byte & 0x0F);
 		TokenIt t2 = _tokenStream->emplace_back(HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
 		_units.push_back(std::make_shared<HexStringNibble>(t1));
 		_units.push_back(std::make_shared<HexStringNibble>(t2));
@@ -115,9 +115,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& t
 	: _tokenStream(ts)
 	, _units()
 {
-	auto b1 = (byte & 0xF0) >> 4;
+	std::uint64_t b1 = (byte & 0xF0) >> 4;
 	TokenIt t1 = _tokenStream->emplace_back(HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
-	auto b2 = (byte & 0x0F);
+	std::uint64_t b2 = (byte & 0x0F);
 	TokenIt t2 = _tokenStream->emplace_back(HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
 	_units.push_back(std::make_shared<HexStringNibble>(t1));
 	_units.push_back(std::make_shared<HexStringNibble>(t2));
@@ -136,9 +136,9 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& t
 	_units.reserve(2 * bytes.size());
 	for (auto byte : bytes)
 	{
-		auto b1 = (byte & 0xF0) >> 4;
+		std::uint64_t b1 = (byte & 0xF0) >> 4;
 		TokenIt t1 = _tokenStream->emplace_back(HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
-		auto b2 = (byte & 0x0F);
+		std::uint64_t b2 = (byte & 0x0F);
 		TokenIt t2 = _tokenStream->emplace_back(HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
 		_units.push_back(std::make_shared<HexStringNibble>(t1));
 		_units.push_back(std::make_shared<HexStringNibble>(t2));
@@ -264,7 +264,7 @@ YaraHexStringBuilder wildcardLow(std::uint8_t high)
 {
 	auto ts = std::make_shared<TokenStream>();
 	std::vector<std::shared_ptr<HexStringUnit>> units;
-	auto b1 = (high & 0x0F);
+	std::uint64_t b1 = (high & 0x0F);
 	TokenIt token1 = ts->emplace_back(HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
 	units.push_back(std::make_shared<HexStringNibble>(token1));
 	TokenIt token2 = ts->emplace_back(HEX_WILDCARD_LOW, "?");
@@ -290,7 +290,7 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 	std::vector<std::shared_ptr<HexStringUnit>> units;
 	TokenIt token1 = ts->emplace_back(HEX_WILDCARD_HIGH, "?");
 	units.push_back(std::make_shared<HexStringWildcard>(token1));
-	auto b2 = (low & 0x0F);
+	std::uint64_t b2 = (low & 0x0F);
 	TokenIt token2 = ts->emplace_back(HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
 	units.push_back(std::make_shared<HexStringNibble>(token2));
 	return YaraHexStringBuilder(ts, std::move(units));

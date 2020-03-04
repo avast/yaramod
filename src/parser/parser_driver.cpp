@@ -260,8 +260,8 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\?)").states("$hexstr").symbol("HEX_WILDCARD").description("hex string ?").action([&](std::string_view str) -> Value { return emplace_back(HEX_WILDCARD, std::string{str}); });
 	_parser.token(R"(\})").states("$hexstr").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view) -> Value { return emplace_back(RCB, "}"); });
 	_parser.token("[0-9a-fA-F]").states("$hexstr").symbol("HEX_NIBBLE").description("hex string nibble").action([&](std::string_view str) -> Value {
-		uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
-		return emplace_back(HEX_NIBBLE, digit, std::string{str});
+		std::uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
+		return emplace_back(HEX_NIBBLE, static_cast<std::uint64_t>(digit), std::string{str});
 	});
 	_parser.token(R"(\[)").states("$hexstr").enter_state("$hexstr_jump").symbol("LSQB").description("hex string [").action([&](std::string_view str) -> Value { return emplace_back(HEX_JUMP_LEFT_BRACKET, std::string{str}); });
 	_parser.token("[0-9]*").states("$hexstr_jump").symbol("HEX_INTEGER").description("hex string integer").action([&](std::string_view str) -> Value {
@@ -609,12 +609,12 @@ void ParserDriver::defineGrammar()
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt());
 		})
 		.production("XOR", "LP", "INTEGER", "RP", [](auto&& args) -> Value {
-			auto key = args[2].getTokenIt()->getInt64();
+			auto key = args[2].getTokenIt()->getUInt();
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), key);
 		})
 		.production("XOR", "LP", "INTEGER", "MINUS", "INTEGER", "RP", [](auto&& args) -> Value {
-			auto low = args[2].getTokenIt()->getInt64();
-			auto high = args[4].getTokenIt()->getInt64();
+			auto low = args[2].getTokenIt()->getUInt();
+			auto high = args[4].getTokenIt()->getUInt();
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), low, high);
 		})
 		.production("regexp_mod", [](auto&& args) -> Value {

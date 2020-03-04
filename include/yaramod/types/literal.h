@@ -39,10 +39,9 @@ public:
 	explicit Literal(const std::string& value, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(std::string&& value, const std::optional<std::string>& formated_value = std::nullopt);
 	explicit Literal(bool boolValue, const std::optional<std::string>& formated_value = std::nullopt);
-	explicit Literal(int value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	explicit Literal(double value, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	explicit Literal(std::int64_t value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
+	explicit Literal(std::uint64_t value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
+	explicit Literal(double value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	explicit Literal(const std::shared_ptr<Symbol>& value, const std::string& name);
 	explicit Literal(std::shared_ptr<Symbol>&& value, const std::string& name);
 
@@ -52,79 +51,54 @@ public:
 	Literal& operator=(const Literal& literal) = default;
 	/// @}
 
+	/// @name Detection methods
+	/// @{
+	bool isString() const { return is<std::string>(); }
+	bool isBool() const { return is<bool>(); }
+	bool isInt() const { return is<std::int64_t>() || is<std::uint64_t>(); }
+	bool isFloat() const { return is<double>(); }
+	bool isSymbol() const { return is<std::shared_ptr<Symbol>>(); }
+	/// @}
+
+	/// @name Getter methods
+	/// @{
+	const std::string& getString() const { return std::get<std::string>(_value); }
+	bool getBool() const { return std::get<bool>(_value); }
+	std::int64_t getInt() const { return is<std::int64_t>() ? std::get<std::int64_t>(_value) : std::get<std::uint64_t>(_value); }
+	std::uint64_t getUInt() const { return is<std::uint64_t>() ? std::get<std::uint64_t>(_value) : std::get<std::int64_t>(_value); }
+	double getFloat() const { return std::get<double>(_value); }
+	const std::shared_ptr<Symbol>& getSymbol() const { return std::get<std::shared_ptr<Symbol>>(_value); }
+	std::string getFormattedValue() const;
+	/// @}
+
 	/// @name Setter methods
 	/// @{
 	void setValue(const std::string& s);
 	void setValue(std::string&& s);
 	void setValue(bool b);
-	void setValue(int i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	void setValue(int64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	void setValue(uint64_t i, const std::optional<std::string>& integral_formated_value = std::nullopt);
-	void setValue(double f, const std::optional<std::string>& integral_formated_value = std::nullopt);
+	void setValue(std::int64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
+	void setValue(std::uint64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
+	void setValue(double f, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
 	void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
-
-	void markEscaped() {  _escaped = true; }
-	/// @}
-
-	/// @name Getter methods
-	/// @{
-	template <typename T>
-	const T& get() const
-	{
-		try
-		{
-			return std::get<T>(_value);
-		}
-		catch (std::bad_variant_access& exp)
-		{
-			std::stringstream err;
-			err << "Called get() of a TokenValue, which holds '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-			throw YaramodError(err.str());
-		}
-	}
-
-	template <typename T>
-	const T& getValue() const
-	{
-		try
-		{
-			return std::get<T>(_value);
-		}
-		catch (std::bad_variant_access& exp)
-		{
-			std::stringstream ss;
-			ss << "Error: Called getValue<T>() with incompatible type T. The Literal value contains '" << *this << "'. Actual variant index is " << _value.index() << "." << std::endl << exp.what() << std::endl;
-			throw YaramodError(ss.str());
-		}
-	}
-
-	std::string getFormattedValue() const;
 	/// @}
 
 	/// @name String representation
 	/// @{
+	void markEscaped() {  _escaped = true; }
 	std::string getText(bool pure = false) const;
 	std::string getPureText() const;
 	/// @}
 
-	/// @name Detection methods
-	/// @{
-	template <typename T>
-	bool is() const { return std::holds_alternative<T>(_value); }
-	bool isIntegral() const;
-	/// @}
-
 	friend std::ostream& operator<<(std::ostream& os, const Literal& literal)
 	{
-		if (literal._formated_value.has_value())
-			os << literal._formated_value.value();
-		else if (literal.is<bool>()){
-			os << (literal.get<bool>() ? "true" : "false");
-		}
+		if (literal._formatted_value.has_value())
+			os << literal._formatted_value.value();
+		else if (literal.isBool())
+			os << (literal.getBool() ? "true" : "false");
 		else
 			std::visit(
-			[&os](auto&& v)
+				[&os](auto&& v)
 				{
 					os << v;
 				},
@@ -134,12 +108,15 @@ public:
 	}
 
 private:
+	template <typename T>
+	bool is() const { return std::holds_alternative<T>(_value); }
+
 	bool _escaped = false;
 	/// For an integral literal x there are two options:
-	/// i.  x it is unformatted:	_formated_value is empty  AND  _value contains x
-	/// ii. x it is formatted:	  _formated_value contains x's string representation  AND  _value contains pure x
-	std::variant<std::string, bool, int, int64_t, uint64_t, double, std::shared_ptr<Symbol>> _value; ///< Value used for all literals:
-	std::optional<std::string> _formated_value; ///< Value used for integral literals with particular formatting
+	/// i.  x it is unformatted: _formatted_value is empty  AND  _value contains x
+	/// ii. x it is formatted:   _formatted_value contains x's string representation  AND  _value contains pure x
+	std::variant<std::string, bool, std::int64_t, std::uint64_t, double, std::shared_ptr<Symbol>> _value; ///< Value used for all literals:
+	std::optional<std::string> _formatted_value; ///< Value used for integral literals with particular formatting
 };
 
 } //namespace yaramod
