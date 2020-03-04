@@ -195,9 +195,8 @@ public:
 	void setValue(const std::string& value) { _value->setValue(value); }
 	void setValue(std::string&& value) { _value->setValue(std::move(value)); }
 	void setValue(bool value) { _value->setValue(value); }
-	void setValue(int value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
-	void setValue(int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
-	void setValue(uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+	void setValue(std::int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
+	void setValue(std::uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(const std::shared_ptr<Symbol>& value, const std::string& symbol_name) { _value->setValue(value, symbol_name); }
 	void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
@@ -211,15 +210,11 @@ public:
 
 	/// @name Detection methods
 	/// @{
-	bool isString() const { return _value->is<std::string>(); }
-	bool isBool() const { return _value->is<bool>(); }
-	bool isInt() const { return _value->is<int>(); }
-	bool isInt64() const { return _value->is<int64_t>(); }
-	bool isUInt64() const { return _value->is<uint64_t>(); }
-	bool isDouble() const { return _value->is<double>(); }
-	bool isSymbol() const { return _value->is<std::shared_ptr<Symbol>>(); }
-
-	bool isIntegral() const { return _value->isIntegral(); }
+	bool isString() const { return _value->isString(); }
+	bool isBool() const { return _value->isBool(); }
+	bool isInt() const { return _value->isInt(); }
+	bool isDouble() const { return _value->isFloat(); }
+	bool isSymbol() const { return _value->isSymbol(); }
 
 	bool isIncludeToken() const { return _subTokenStream != nullptr; }
 	bool isLeftBracket() const
@@ -275,13 +270,12 @@ public:
 	const Literal& getLiteral() const;
 	const std::string& getString() const;
 	bool getBool() const;
-	int getInt() const;
-	int64_t getInt64() const;
-	uint64_t getUInt64() const;
-	double getDouble() const;
+	std::int64_t getInt() const;
+	std::uint64_t getUInt() const;
+	double getFloat() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	template <typename T>
-	const T& getValue() const { return _value->getValue<T>(); }
+	const T& getValue() const { return std::get<T>(_value); }
 	bool getFlag() const { return _flag; }
 	const Location& getLocation() const { return _location; }
 	std::size_t getIndentation() const { return _wanted_column; }

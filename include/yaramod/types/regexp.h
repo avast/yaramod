@@ -408,17 +408,17 @@ public:
 		// If both start and end are defined and they are equal, it is fixed range.
 		if (range.first && range.first == range.second)
 		{
-			_first = _tokenStream->emplace_back(TokenType::DOUBLE, range.first.value());
+			_first = _tokenStream->emplace_back(TokenType::INTEGER, range.first.value());
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, std::string());
 			_second = _first;
 		}
 		else
 		{
 			if (range.first)
-			 	_first = _tokenStream->emplace_back(TokenType::DOUBLE, range.first.value());
+				_first = _tokenStream->emplace_back(TokenType::INTEGER, range.first.value());
 			_operation = _tokenStream->emplace_back(TokenType::COMMA, ',');
 			if (range.second)
-				_second = _tokenStream->emplace_back(TokenType::DOUBLE, range.second.value());
+				_second = _tokenStream->emplace_back(TokenType::INTEGER, range.second.value());
 		}
 
 		_rightBracket = _tokenStream->emplace_back(TokenType::RCB, '}');
@@ -459,9 +459,9 @@ public:
 		std::optional<std::uint64_t> out1;
 		std::optional<std::uint64_t> out2;
 		if (_first)
-			out1 = _first.value()->getUInt64();
+			out1 = _first.value()->getUInt();
 		if (_second)
-			out2 = _second.value()->getUInt64();
+			out2 = _second.value()->getUInt();
 		return {std::move(out1), std::move(out2)};
 	}
 

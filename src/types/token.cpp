@@ -22,37 +22,32 @@ const Literal& Token::getLiteral() const
 
 const std::string& Token::getString() const
 {
-	return _value->get<std::string>();
+	return _value->getString();
 }
 
 bool Token::getBool() const
 {
-	return _value->get<bool>();
+	return _value->getBool();
 }
 
-int Token::getInt() const
+std::int64_t Token::getInt() const
 {
-	return _value->get<int>();
+	return _value->getInt();
 }
 
-int64_t Token::getInt64() const
+std::uint64_t Token::getUInt() const
 {
-	return _value->get<int64_t>();
+	return _value->getUInt();
 }
 
-uint64_t Token::getUInt64() const
+double Token::getFloat() const
 {
-	return _value->get<uint64_t>();
-}
-
-double Token::getDouble() const
-{
-	return _value->get<double>();
+	return _value->getFloat();
 }
 
 const std::shared_ptr<Symbol>& Token::getSymbol() const
 {
-	return _value->get<std::shared_ptr<Symbol>>();
+	return _value->getSymbol();
 }
 
 const std::shared_ptr<TokenStream>& Token::getSubTokenStream() const

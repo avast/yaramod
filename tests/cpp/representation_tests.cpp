@@ -26,8 +26,8 @@ MetaConstruction) {
    auto meta = Meta( key, value );
 
    ASSERT_EQ(meta.getKey(), "author");
-   ASSERT_TRUE(meta.getValue().is<std::string>());
-   ASSERT_EQ(meta.getValue().get<std::string>(), "Mr. Avastian");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "Mr. Avastian");
 
    EXPECT_EQ(meta.getText(), "author = \"Mr. Avastian\"");
 }
@@ -42,8 +42,8 @@ MetaSetters) {
    meta.setValue(Literal("cryptic"));
 
    ASSERT_EQ(meta.getKey(), "strain");
-   ASSERT_TRUE(meta.getValue().is<std::string>());
-   ASSERT_EQ(meta.getValue().get<std::string>(), "cryptic");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "cryptic");
 
    EXPECT_EQ(meta.getText(), "strain = \"cryptic\"");
 }
@@ -58,8 +58,8 @@ MetaCopyIsJustReference) {
    auto copy = meta;
 
    ASSERT_EQ(copy.getKey(), "author");
-   ASSERT_TRUE(copy.getValue().is<std::string>());
-   ASSERT_EQ(copy.getValue().get<std::string>(), "Mr. Avastian");
+   ASSERT_TRUE(copy.getValue().isString());
+   ASSERT_EQ(copy.getValue().getString(), "Mr. Avastian");
 
    EXPECT_EQ(copy.getText(), "author = \"Mr. Avastian\"");
 
@@ -67,8 +67,8 @@ MetaCopyIsJustReference) {
    copy.setValue(Literal("cryptic"));
 
    ASSERT_EQ(meta.getKey(), "strain");
-   ASSERT_TRUE(meta.getValue().is<std::string>());
-   ASSERT_EQ(meta.getValue().get<std::string>(), "cryptic");
+   ASSERT_TRUE(meta.getValue().isString());
+   ASSERT_EQ(meta.getValue().getString(), "cryptic");
 
    EXPECT_EQ(meta.getText(), "strain = \"cryptic\"");
 }

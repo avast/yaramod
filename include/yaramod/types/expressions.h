@@ -1408,11 +1408,7 @@ public:
 	{
 	}
 
-	LiteralType getValue() const
-	{
-		assert(_value.has_value());
-		return (*_value)->template getValue<LiteralType>();
-	}
+	virtual LiteralType getValue() const = 0;
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
@@ -1449,6 +1445,7 @@ public:
 		: LiteralExpression<bool>(value)
 	{
 	}
+
 	BoolLiteralExpression(bool value)
 		: LiteralExpression<bool>()
 	{
@@ -1457,9 +1454,15 @@ public:
 		else
 			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
 	}
+
 	BoolLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<bool>(ts, value)
 	{
+	}
+
+	virtual LiteralType getValue() const override
+	{
+		return _value.value()->getBool();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1489,6 +1492,11 @@ public:
 	{
 	}
 
+	virtual LiteralType getValue() const override
+	{
+		return _value.value()->getString();
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1512,9 +1520,15 @@ public:
 		: LiteralExpression<uint64_t>(value)
 	{
 	}
+
 	IntLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<uint64_t>(ts, value)
 	{
+	}
+
+	virtual LiteralType getValue() const override
+	{
+		return _value.value()->getUInt();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1540,9 +1554,15 @@ public:
 		: LiteralExpression<double>(value)
 	{
 	}
+
 	DoubleLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: LiteralExpression<double>(ts, value)
 	{
+	}
+
+	virtual LiteralType getValue() const override
+	{
+		return _value.value()->getFloat();
 	}
 
 	virtual VisitResult accept(Visitor* v) override

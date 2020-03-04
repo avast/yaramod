@@ -150,15 +150,15 @@ rule rule_with_metas
 	const auto& boolMeta = rule->getMetas()[2];
 
 	EXPECT_EQ("str_meta", strMeta.getKey());
-	EXPECT_TRUE(strMeta.getValue().is<std::string>());
+	EXPECT_TRUE(strMeta.getValue().isString());
 	EXPECT_EQ(R"("string meta")", strMeta.getValue().getText());
 
 	EXPECT_EQ("int_meta", intMeta.getKey());
-	EXPECT_TRUE(intMeta.getValue().isIntegral());
+	EXPECT_TRUE(intMeta.getValue().isInt());
 	EXPECT_EQ("42", intMeta.getValue().getText());
 
 	EXPECT_EQ("bool_meta", boolMeta.getKey());
-	EXPECT_TRUE(boolMeta.getValue().is<bool>());
+	EXPECT_TRUE(boolMeta.getValue().isBool());
 	EXPECT_EQ("true", boolMeta.getValue().getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
@@ -193,15 +193,15 @@ rule rule_with_repetitive_metas
 	const auto& meta3 = rule->getMetas()[2];
 
 	EXPECT_EQ("author", meta1.getKey());
-	EXPECT_TRUE(meta1.getValue().is<std::string>());
+	EXPECT_TRUE(meta1.getValue().isString());
 	EXPECT_EQ(R"("me")", meta1.getValue().getText());
 
 	EXPECT_EQ("hash", meta2.getKey());
-	EXPECT_TRUE(meta2.getValue().is<std::string>());
+	EXPECT_TRUE(meta2.getValue().isString());
 	EXPECT_EQ(R"("cryptic")", meta2.getValue().getText());
 
 	EXPECT_EQ("hash", meta3.getKey());
-	EXPECT_TRUE(meta3.getValue().is<std::string>());
+	EXPECT_TRUE(meta3.getValue().isString());
 	EXPECT_EQ(R"("rat")", meta3.getValue().getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
@@ -234,11 +234,11 @@ rule hex_and_decimal_integers_are_preserved
 	const auto& decMeta = rule->getMetas()[1];
 
 	EXPECT_EQ("hex_meta", hexMeta.getKey());
-	EXPECT_TRUE(hexMeta.getValue().isIntegral());
+	EXPECT_TRUE(hexMeta.getValue().isInt());
 	EXPECT_EQ("0x42", hexMeta.getValue().getText());
 
 	EXPECT_EQ("dec_meta", decMeta.getKey());
-	EXPECT_TRUE(decMeta.getValue().isIntegral());
+	EXPECT_TRUE(decMeta.getValue().isInt());
 	EXPECT_EQ("42", decMeta.getValue().getText(true));
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
@@ -2342,7 +2342,7 @@ rule rule_name
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_TRUE(rule->getMetas()[0].getValue().is<std::string>());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isString());
 	EXPECT_EQ(R"("")", rule->getMetas()[0].getValue().getText());
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -4123,7 +4123,7 @@ rule nonutf_meta
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
-	EXPECT_TRUE(rule->getMetas()[0].getValue().is<std::string>());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isString());
 	EXPECT_EQ(R"(내)", rule->getMetas()[0].getValue().getPureText());
 	EXPECT_EQ(R"("내")", rule->getMetas()[0].getValue().getText());
 
