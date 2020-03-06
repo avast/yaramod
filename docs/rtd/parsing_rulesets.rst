@@ -247,6 +247,13 @@ Let's say we want to print each function that is in called in the rule condition
             }
         };
 
+.. note::
+
+    As you can see, visitors depend heavily on recursion and that can represent problems sometimes with a huge rulesets where depth of AST is rather large.
+    Python has a limit on how many stack frames you can have at the sime time in order to prevent stack overflow. This limit can be however sometimes very limiting
+    and set too low for certain huge conditions. You might need to run `sys.setrecursionlimit <https://docs.python.org/3/library/sys.html#sys.setrecursionlimit>`_
+    to process those.
+
 Expression types
 ****************
 
@@ -363,6 +370,25 @@ using a location attribute of the rule.
                 << rule->getLocation().filePath << ':'
                 << rule->getLocation().lineNumber << std::endl;
 
+
+Yaramod can also provide you with something what YARA doesn't handle well - including the same file multiple times. If you do this in YARA then you will get error that you have duplicate
+rules in your ruleset. This is however not something you would like to run into when doing static analyses. You can allow duplicate includes by using
+
+.. tabs::
+
+    .. tab:: Python
+
+      .. code-block:: python
+
+        ymod = yaramod.Yaramod()
+        ymod.parse_file('/path/to/file', yaramod.ParserMode.IncludeGuarded)
+
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        auto ymod = yaramod::Yaramod();
+        ymod.parse_file("/path/to/file", yaramod::ParserMode::IncludeGuarded);
 
 Imports
 =======
