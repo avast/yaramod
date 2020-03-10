@@ -4952,7 +4952,10 @@ std::string expected = R"(rule rule_name
 TEST_F(ParserTests,
 AutoformattingRemoveRedundantBlankLines2) {
 	prepareInput(
-R"(rule rule_name_1 {
+R"(
+import "cuckoo"
+
+rule rule_name_1 {
 
 	meta:
 
@@ -4970,7 +4973,7 @@ R"(rule rule_name_1 {
 
 	condition:
 
-		all of them
+		all of them and cuckoo.process.executed_command(/abc+/)
 
 }
 
@@ -4998,7 +5001,10 @@ rule rule_name_2 {
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
 
-std::string expected = R"(rule rule_name_1
+std::string expected = R"(
+import "cuckoo"
+
+rule rule_name_1
 {
 	meta:
 		title = "some unique title"
@@ -5008,7 +5014,8 @@ std::string expected = R"(rule rule_name_1
 		$string2 = "Fernsehrturm" wide
 		$string3 = { AA ?? }
 	condition:
-		all of them
+		all of them and
+		cuckoo.process.executed_command(/abc+/)
 }
 
 rule rule_name_2
