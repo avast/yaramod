@@ -136,7 +136,8 @@ public:
 protected:
 	void getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments);
 	void autoformat();
-	void determineNewlineSectors();
+	bool determineNewlineSectors();
+	void removeRedundantDoubleNewlines();
 	void addMissingNewLines();
 
 	std::optional<TokenIt> predecessor(TokenIt it);

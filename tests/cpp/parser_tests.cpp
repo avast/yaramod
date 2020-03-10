@@ -4923,6 +4923,111 @@ rule cruel_rule_2
 }
 
 TEST_F(ParserTests,
+AutoformattingRemoveRedundantBlankLines) {
+	prepareInput(
+R"(rule rule_name {
+
+	meta:
+
+		key = "value"
+
+	condition:
+
+		true
+})");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule_name
+{
+	meta:
+		key = "value"
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AutoformattingRemoveRedundantBlankLines2) {
+	prepareInput(
+R"(rule rule_name_1 {
+
+	meta:
+
+		title = "some unique title"
+
+		author = "Mr Avastien"
+
+	strings:
+
+		$string1 = " Brandenburger Tor"
+
+		$string2 = "Fernsehrturm" wide
+
+		$string3 =   { AA ?? }
+
+	condition:
+
+		all of them
+
+}
+
+rule rule_name_2 {
+
+	meta:
+
+		title = "the very same title"
+
+		author = "Mr Avastien"
+
+	strings:
+
+		$string1 = " burger"
+
+		$string2 = "Fernsehr"
+
+		$string3 =   { BB ?? }
+
+	condition:
+
+		all of them
+
+})");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule_name_1
+{
+	meta:
+		title = "some unique title"
+		author = "Mr Avastien"
+	strings:
+		$string1 = " Brandenburger Tor"
+		$string2 = "Fernsehrturm" wide
+		$string3 = { AA ?? }
+	condition:
+		all of them
+}
+
+rule rule_name_2
+{
+	meta:
+		title = "the very same title"
+		author = "Mr Avastien"
+	strings:
+		$string1 = " burger"
+		$string2 = "Fernsehr"
+		$string3 = { BB ?? }
+	condition:
+		all of them
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingCommentInsideHexstringOnNewline) {
 	prepareInput(
 R"(rule cruel_rule
