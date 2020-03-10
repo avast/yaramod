@@ -311,8 +311,8 @@ bool TokenStream::determineNewlineSectors()
 
 void TokenStream::removeRedundantDoubleNewlines()
 {
-	bool inside_rule;
-	for (auto it = begin(); it != end(); ++it)
+	bool inside_rule = false;
+	for (auto it = begin(); it != end();)
 	{
 		auto current = it->getType();
 		if(current == RULE_BEGIN)
@@ -324,7 +324,9 @@ void TokenStream::removeRedundantDoubleNewlines()
 			break;
 		auto next = nextIt->getType();
 		if (inside_rule && current == NEW_LINE && next == NEW_LINE)
-			erase(nextIt);
+			it = erase(nextIt);
+		else
+			++it;
 	}
 }
 
