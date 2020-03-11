@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.3.7 (2020-03-11)
+
+* Unified integral types in `Literal` class ([#71](https://github.com/avast/yaramod/issues/71))
+* Added Python bindings for `Literal` class ([#72](https://github.com/avast/yaramod/issues/72))
+
 # v3.3.6 (2020-02-26)
 
 * Fixed regression introduced in previous version by breaking parsing of `[` and `]` ([#70](https://github.com/avast/yaramod/pull/70))
