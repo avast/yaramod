@@ -41,8 +41,36 @@ PureImportsWorks) {
 		.get(true, &driver);
 
 	ASSERT_NE(nullptr, yaraFile);
-	EXPECT_EQ(R"(import "pe"
+	EXPECT_EQ(R"(import "elf"
+import "pe"
+)", yaraFile->getText());
+}
+
+TEST_F(BuilderTests,
+PureImportsComplicateWorks) {
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withModule("pe")
+		.withModule("cuckoo")
+		.withModule("elf")
+		.get(true, &driver);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "cuckoo"
 import "elf"
+import "pe"
+)", yaraFile->getText());
+
+	yaraFile = newFile
+		.withModule("cuckoo")
+		.withModule("pe")
+		.withModule("elf")
+		.get(true, &driver);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "cuckoo"
+import "elf"
+import "pe"
 )", yaraFile->getText());
 }
 
@@ -68,6 +96,78 @@ UnnamedRuleWorks) {
 })", yaraFile->getText());
 
 	EXPECT_EQ(R"(rule unknown
+{
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+UnnamedRuleWithImportsWorks) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.withModule("cuckoo")
+		.withModule("pe")
+		.withModule("cuckoo")
+		.withModule("elf")
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "cuckoo"
+import "elf"
+import "pe"
+
+rule unknown {
+	condition:
+		true
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "cuckoo"
+import "elf"
+import "pe"
+
+rule unknown
+{
+	condition:
+		true
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+UnnamedRuleWithImportsWorks2) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withModule("cuckoo")
+		.withModule("pe")
+		.withRule(std::move(rule))
+		.withModule("cuckoo")
+		.withModule("elf")
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "cuckoo"
+import "elf"
+import "pe"
+
+rule unknown {
+	condition:
+		true
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "cuckoo"
+import "elf"
+import "pe"
+
+rule unknown
 {
 	condition:
 		true
