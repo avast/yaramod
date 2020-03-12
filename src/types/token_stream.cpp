@@ -306,6 +306,7 @@ bool TokenStream::determineNewlineSectors()
 		else
 			wasLine = false;
 	}
+	// when more than half of the newlines is "doubled", then all "doubled" newlines are made simple newline.
 	return 3 * doubleLineCounter > lineCounter;
 }
 
