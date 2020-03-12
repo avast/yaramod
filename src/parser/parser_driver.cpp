@@ -38,9 +38,16 @@ void ParserDriver::defineTokens()
 		currentFileContext()->getLocation().addColumn(str.length());
 	});
 
-	_parser.token("\r\n|\n").action([&](std::string_view str) -> Value {
-		currentFileContext()->getTokenStream()->setNewLineChar(std::string{str});
-		TokenIt t = emplace_back(NEW_LINE, std::string{str});
+	_parser.token("\r\n").action([&](std::string_view str) -> Value {
+		currentFileContext()->getTokenStream()->setNewLineChar("\r\n");
+		TokenIt t = emplace_back(NEW_LINE, "\r\n");
+		_indent.clear();
+		currentFileContext()->getLocation().addLine();
+		return t;
+	});
+	_parser.token("\n").action([&](std::string_view str) -> Value {
+		currentFileContext()->getTokenStream()->setNewLineChar("\n");
+		TokenIt t = emplace_back(NEW_LINE, "\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
@@ -1914,7 +1921,7 @@ IncludeResult ParserDriver::includeFileImpl(const std::string& includePath, std:
 
 	// We need to allocate ifstreams dynamically because they are not copyable and we need to store them
 	// in vector to prolong their lifetime because of flex.
-	auto fileStream = std::make_shared<std::ifstream>(includePath);
+	auto fileStream = std::make_shared<std::ifstream>(includePath, std::ios::binary);
 	if (!fileStream->is_open())
 		return IncludeResult::Error;
 
