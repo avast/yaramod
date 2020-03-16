@@ -4803,6 +4803,53 @@ rule rule1
 }
 
 TEST_F(ParserTests,
+AutoformattingAlignedComments2) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	strings:
+				// Comments
+			$s01 = "Hello"
+			/* comment */
+			$s02 = "Yaragen"
+	condition:
+	(
+		// Cuckoo
+			$s01 or
+		/* Gvma */
+			$s02
+		)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(import "cuckoo"
+
+rule abc
+{
+	strings:
+		// Comments
+		$s01 = "Hello"
+		/* comment */
+		$s02 = "Yaragen"
+	condition:
+		(
+			// Cuckoo
+			$s01 or
+			/* Gvma */
+			$s02
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingNewlinesMultipleRules) {
 	prepareInput(
 R"(/*

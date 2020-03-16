@@ -224,9 +224,9 @@ public:
 	std::size_t getTabulator() const { return _tabulator; }
 	bool putNewLines() const { return _put_new_lines; }
 private:
-	bool _put_new_lines;
-	std::size_t _tabulator;
-	std::size_t _line;
+	bool _put_new_lines; // set if this bracket requires new lines in its sector.
+	std::size_t _tabulator; // the level of indentation inside of the bracket's sector.
+	std::size_t _line; // Which line is the bracket on.
 };
 
 
@@ -439,9 +439,9 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 	auto indentation = it->getIndentation() + 1;
 
 	const std::string& indent = it->getLiteral().getFormattedValue();
-	// Comment at a beginning of a line
 	if (ss)
 	{
+		// Comment at a beginning of a line
 		if (!prevIt || (*prevIt)->getType() == NEW_LINE)
 		{
 			*ss << indent;
@@ -449,7 +449,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
 			*ss << std::string(indentation - columnCounter, ' ');
 		*ss << it->getPureText();
-	}
+	} /*  */
 	else if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;
@@ -478,7 +478,9 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
  * os == nullptr.
  *
  * @param helper The expression to enclose.
- * @param linebreak Put linebreak after opening and before closing parenthesis and indent content by one more level.
+ * @param os The stream to be filled with the text.
+ * @param withIncludes Set if includes are also to be included.
+ * @param alignComments Set if comments should be aligned.
  *
  * @return Builder.
  */
