@@ -433,7 +433,7 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 	return columnCounter;
 }
 
-std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, bool alignComment)
+std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, int currentLineTabs, bool alignComment, bool ignoreUserIndent)
 {
 	auto prevIt = ts->predecessor(it);
 	auto indentation = it->getIndentation() + 1;
@@ -444,7 +444,10 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 		// Comment at a beginning of a line
 		if (!prevIt || (*prevIt)->getType() == NEW_LINE)
 		{
-			*ss << indent;
+			if (ignoreUserIndent || indent.length() >= currentLineTabs)
+				*ss << std::string(currentLineTabs, '\t');
+			else
+				*ss << indent;
 		}
 		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
 			*ss << std::string(indentation - columnCounter, ' ');
@@ -497,6 +500,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	bool inside_enumeration_brackets = false;
 	bool inside_string_modifiers = false;
 	bool inside_string_modifiers_arguments = false;
+	bool inside_condition_section = false;
 	bool second_nibble = true;
 
 	for (auto it = begin(); it != end(); ++it)
@@ -519,7 +523,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		}
 		else if (current == ONELINE_COMMENT || current == COMMENT)
 		{
-			helper.printComment(os, this, it, alignComments);
+			helper.printComment(os, this, it, current_line_tabs, alignComments, inside_condition_section);
 		}
 		else
 			helper.insertIntoStream(os, this, it);
@@ -529,9 +533,16 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			 break;
 		auto next = nextIt->getType();
 		if (current == RULE_BEGIN)
+		{
+			current_line_tabs = 2;
 			inside_rule = true;
+		}
 		else if (current == RULE_END)
+		{
+			current_line_tabs = 0;
 			inside_rule = false;
+			inside_condition_section = false;
+		}
 		else if (current == HEX_START_BRACKET)
 			inside_hex_string = true;
 		else if (current == HEX_END_BRACKET)
@@ -581,13 +592,14 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					|| next == STRINGS
 					|| next == CONDITION)
 				{
+					inside_condition_section = next == CONDITION;
 					helper.insertIntoStream(os, "\t", tabulator_length);
 				}
 				else if (next != RULE_END)
 				{
 					if (nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
-					helper.insertIntoStream(os, std::string(2 + current_line_tabs, '\t'), (2 + current_line_tabs) * tabulator_length);
+					helper.insertIntoStream(os, std::string(current_line_tabs, '\t'), current_line_tabs * tabulator_length);
 				}
 			}
 		}

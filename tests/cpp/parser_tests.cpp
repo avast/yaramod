@@ -4515,8 +4515,7 @@ import "cuckoo"
 rule public_rule
 {
 	condition:
-			(false and
-			true )
+			( /* comment */ false and true )
 }
 )");
 	EXPECT_TRUE(driver.parse(input));
@@ -4530,7 +4529,7 @@ rule public_rule
 {
 	condition:
 		(
-			false and
+			/* comment */ false and
 			true
 		)
 }
@@ -4809,16 +4808,19 @@ R"(import "cuckoo"
 
 rule abc
 {
+	// Strings:
 	strings:
-				// Comments
+		// Comment s01
 			$s01 = "Hello"
-			/* comment */
+			/* comment s02 */
 			$s02 = "Yaragen"
+				//comment after s02
+	// A very important condition:
 	condition:
-	(
-		// Cuckoo
+	true or	(
+				// Cuckoo
 			$s01 or
-		/* Gvma */
+	/* Gvma */
 			$s02
 		)
 }
@@ -4831,12 +4833,70 @@ R"(import "cuckoo"
 
 rule abc
 {
+	// Strings:
 	strings:
-		// Comments
+		// Comment s01
 		$s01 = "Hello"
-		/* comment */
+		/* comment s02 */
 		$s02 = "Yaragen"
+		//comment after s02
+	// A very important condition:
 	condition:
+		true or
+		(
+			// Cuckoo
+			$s01 or
+			/* Gvma */
+			$s02
+		)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AutoformattingAlignedComments3) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+// Strings:
+	strings:
+				/* Comment s01 */
+			$s01 = "Hello"
+			// comment s02
+			$s02 = "Yaragen"
+		/* comment after s02 */
+// A very important condition:
+	condition:
+	true or	(
+// Cuckoo
+			$s01 or
+	/* Gvma */
+			$s02
+		)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(import "cuckoo"
+
+rule abc
+{
+// Strings:
+	strings:
+		/* Comment s01 */
+		$s01 = "Hello"
+		// comment s02
+		$s02 = "Yaragen"
+		/* comment after s02 */
+// A very important condition:
+	condition:
+		true or
 		(
 			// Cuckoo
 			$s01 or

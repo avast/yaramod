@@ -708,7 +708,7 @@ rule rule_with_range
 
 TEST_F(BuilderTests,
 RuleWithConditionWithMultilineComment) {
-	auto cond = (id("pe").comment("Number of sections needs to exceed 1,\nbecause one is simply not enough.", true).access("number_of_sections") > intVal(1)).get();
+	auto cond = (id("pe").comment("Number of sections needs to exceed 1,\n\t\tbecause one is simply not enough.", true).access("number_of_sections") > intVal(1)).get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1324,7 +1324,7 @@ RuleWithCommentedDisjunctionInConditionWorks) {
 	terms.emplace_back(std::make_pair(stringRef("$2"), "World must be present"));
 	terms.emplace_back(std::make_pair(paren(entrypoint() == intVal(100)), "entrypoint is 100"));
 
-	auto cond = disjunction(terms).get();
+	auto cond = conjunction({boolVal(true), paren(disjunction(terms))}).get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1345,9 +1345,9 @@ RuleWithCommentedDisjunctionInConditionWorks) {
 		$1 = "Hello"
 		$2 = "World"
 	condition:
-		$1 or
+		true and ($1 or
 		$2 or
-		(entrypoint == 100)
+		(entrypoint == 100))
 })", yaraFile->getText());
 
 	EXPECT_EQ(R"(rule rule_with_commented_disjunction
@@ -1356,12 +1356,15 @@ RuleWithCommentedDisjunctionInConditionWorks) {
 		$1 = "Hello"
 		$2 = "World"
 	condition:
-		/* Hello must be present */
-		$1 or
-		/* World must be present */
-		$2 or
-		/* entrypoint is 100 */
-		(entrypoint == 100)
+		true and
+		(
+			/* Hello must be present */
+			$1 or
+			/* World must be present */
+			$2 or
+			/* entrypoint is 100 */
+			(entrypoint == 100)
+		)
 }
 )", yaraFile->getTextFormatted());
 }
