@@ -312,7 +312,8 @@ void TokenStream::addMissingNewLines()
 		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
 		{
 			brackets.addLeftBracket(lineCounter, it->getFlag());
-			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT && next != COMMENT)
+			// ONELINE_COMMENTs are left right behind the left bracket. COMMENTs are put on separate new line.
+			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT)
 			{
 				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 				next = nextIt->getType();
@@ -452,7 +453,7 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
 			*ss << std::string(indentation - columnCounter, ' ');
 		*ss << it->getPureText();
-	} /*  */
+	}
 	else if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
 	{
 		commentOnThisLine = true;

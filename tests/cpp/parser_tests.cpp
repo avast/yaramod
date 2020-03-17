@@ -4698,7 +4698,8 @@ rule public_rule
 		false or
 		( //comment 1
 			true and
-			( /*comment 2*/
+			(
+				/*comment 2*/
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?brokolice\.cz/) or
 				cuckoo.network.http_request(/http(s)?:\/\/(www\.)?kvetak\.cz/)
 			) //comment 3
