@@ -166,7 +166,7 @@ public:
 	YaraExpressionBuilder& operator<<(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& operator>>(const YaraExpressionBuilder& other);
 
-	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = "");
+	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = {});
 	YaraExpressionBuilder& call(const std::vector<YaraExpressionBuilder>& args);
 	/**
 	 * Calls function from an expression

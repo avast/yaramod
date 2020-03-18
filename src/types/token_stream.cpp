@@ -434,6 +434,18 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 	return columnCounter;
 }
 
+/**
+ * Prints comment.
+ *
+ * @param ts The associated tokenstream used only for predecessor access.
+ * @param ss The stream to be filled with the text.
+ * @param it The comment.
+ * @param currentLineTabs The current level of indentation based obtained from the autoformatter.
+ * @param alignComments Set if comments should be aligned.
+ * @patam ignoreUserIndent Set whether we want to ignore the additional indentation specified in parameter it.
+ *
+ * @return columnCounter.
+ */
 std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, int currentLineTabs, bool alignComment, bool ignoreUserIndent)
 {
 	auto prevIt = ts->predecessor(it);
@@ -485,8 +497,6 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
  * @param os The stream to be filled with the text.
  * @param withIncludes Set if includes are also to be included.
  * @param alignComments Set if comments should be aligned.
- *
- * @return Builder.
  */
 void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
