@@ -453,7 +453,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
 /**
  * Puts comment in front of the expression.
  *
- * @param other The other expression.
+ * @param message The comment message.
+ * @param multiline If set, the commet will be multiline.
+ * @param indent Additional indent added to the indentation computed by the autoformatter.
  *
  * @return Builder.
  */
