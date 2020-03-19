@@ -325,7 +325,7 @@ void TokenStream::removeRedundantDoubleNewlines()
 			break;
 		auto next = nextIt->getType();
 		if (inside_rule && current == NEW_LINE && next == NEW_LINE)
-			it = erase(nextIt);
+			erase(nextIt);
 		else
 			++it;
 	}

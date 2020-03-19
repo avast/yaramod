@@ -4929,11 +4929,21 @@ R"(rule rule_name {
 
 	meta:
 
+
 		key = "value"
+
+
 
 	condition:
 
+
+
+
 		true
+
+
+
+
 })");
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
