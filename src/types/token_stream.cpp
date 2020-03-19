@@ -275,9 +275,12 @@ private:
 };
 
 
-void TokenStream::determineNewlineSectors()
+bool TokenStream::determineNewlineSectors()
 {
 	std::stack<TokenIt> leftBrackets;
+	std::size_t lineCounter = 0;
+	std::size_t doubleLineCounter = 0;
+	bool wasLine = false;
 	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
@@ -291,6 +294,40 @@ void TokenStream::determineNewlineSectors()
 		}
 		else if (!leftBrackets.empty() && (current == NEW_LINE || current == OR || current == AND))
 			leftBrackets.top()->setFlag(true);
+
+		// Here we count lines and double lines:
+		if (current == NEW_LINE)
+		{
+			++lineCounter;
+			if (wasLine)
+				++doubleLineCounter;
+			wasLine = true;
+		}
+		else
+			wasLine = false;
+	}
+	// when more than half of the newlines is "doubled", then all "doubled" newlines are made simple newline.
+	return 3 * doubleLineCounter > lineCounter;
+}
+
+void TokenStream::removeRedundantDoubleNewlines()
+{
+	bool inside_rule = false;
+	for (auto it = begin(); it != end();)
+	{
+		auto current = it->getType();
+		if(current == RULE_BEGIN)
+			inside_rule = true;
+		if(current == RULE_END)
+			inside_rule = false;
+		auto nextIt = std::next(it);
+		if (nextIt == end())
+			break;
+		auto next = nextIt->getType();
+		if (inside_rule && current == NEW_LINE && next == NEW_LINE)
+			erase(nextIt);
+		else
+			++it;
 	}
 }
 
@@ -376,7 +413,9 @@ void TokenStream::addMissingNewLines()
 
 void TokenStream::autoformat()
 {
-	determineNewlineSectors();
+	bool redundant = determineNewlineSectors();
+	if (redundant)
+		removeRedundantDoubleNewlines();
 	addMissingNewLines();
 	_formatted = true;
 }
