@@ -19,13 +19,14 @@ class BuilderTests(unittest.TestCase):
             .with_module('elf') \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''import "phish"
+        self.assertEqual(yara_file.text_formatted, '''import "elf"
 import "pe"
-import "elf"
+import "phish"
+
 ''')
-        self.assertEqual(yara_file.text, '''import "phish"
+        self.assertEqual(yara_file.text, '''import "elf"
 import "pe"
-import "elf"
+import "phish"
 ''')
 
     def test_empty_rule(self):

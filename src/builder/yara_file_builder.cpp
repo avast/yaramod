@@ -20,7 +20,8 @@ namespace yaramod {
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
 	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream), _import_features);
-	yaraFile->addImports(_module_tokens, _modules_pool);
+	for (const auto& module_token : _module_tokens)
+		yaraFile->addImport(module_token.second, _modules_pool);
 	yaraFile->addRules(_rules);
 
 	_module_tokens.clear();
@@ -67,6 +68,14 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 	return yaraFile;
 }
 
+void YaraFileBuilder::insertImportIntoTokenStream(TokenIt before, const std::string& moduleName)
+{
+	_tokenStream->emplace(before, TokenType::IMPORT_KEYWORD, "import");
+	auto moduleToken = _tokenStream->emplace(before, TokenType::IMPORT_MODULE, moduleName);
+	_tokenStream->emplace(before, NEW_LINE, "\n");
+	_module_tokens.insert(std::make_pair(moduleName, moduleToken));
+}
+
 /**
  * Adds module to YARA file.
  *
@@ -76,16 +85,25 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
  */
 YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 {
-	if (!_module_tokens.empty())
+	TokenIt moduleToken;
+	if (_module_tokens.empty())
 	{
-		if (!_lastAddedWasImport)
-			_tokenStream->emplace_back(NEW_LINE, "\n");
+		auto before = _tokenStream->begin();
+		insertImportIntoTokenStream(before, moduleName);
+		_newline_after_imports = _tokenStream->emplace(before, NEW_LINE, "\n");
 	}
-	_tokenStream->emplace_back(TokenType::IMPORT_KEYWORD, "import");
-	TokenIt moduleToken = _tokenStream->emplace_back(TokenType::IMPORT_MODULE, moduleName);
-	_tokenStream->emplace_back(NEW_LINE, "\n");
-	_module_tokens.push_back(moduleToken);
-	_lastAddedWasImport = true;
+	else
+	{
+		auto close_module = _module_tokens.lower_bound(moduleName);
+		if (close_module == _module_tokens.end())
+ 			insertImportIntoTokenStream(_newline_after_imports, moduleName);
+		else if (close_module->first != moduleName)
+		{
+			auto before = _tokenStream->findBackwards(TokenType::IMPORT_KEYWORD, close_module->second);
+			insertImportIntoTokenStream(before, moduleName);
+		}
+	}
+
 	return *this;
 }
 
@@ -111,14 +129,13 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
-	if (!_rules.empty() || _lastAddedWasImport)
+	if (!_rules.empty())
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_tokenStream->move_append(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_rules.emplace_back(std::move(rule));
-	_lastAddedWasImport = false;
 	return *this;
 }
 
@@ -131,13 +148,12 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
  */
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
-	if (!_rules.empty() || _lastAddedWasImport)
+	if (!_rules.empty() || !_module_tokens.empty())
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_tokenStream->move_append(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_rules.emplace_back(rule);
-	_lastAddedWasImport = false;
 	return *this;
 }
 

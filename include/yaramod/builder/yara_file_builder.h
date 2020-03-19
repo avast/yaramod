@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -56,10 +57,13 @@ public:
 	YaraFileBuilder& withRule(const std::shared_ptr<Rule>& rule);
 	/// @}
 
+protected:
+	void insertImportIntoTokenStream(TokenIt before, const std::string& moduleName);
+
 private:
-	bool _lastAddedWasImport = false; ///< Flag to determine newlines
 	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
-	std::vector<TokenIt> _module_tokens; ///< Modules
+	std::map<std::string, TokenIt> _module_tokens; ///< Modules
+	TokenIt _newline_after_imports; ///< Always stands behind newline after last import in the TokenStream
 	ImportFeatures _import_features; ///< Determines which modules should be possible to load
 	ModulesPool _modules_pool; ///< Storage of used modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
