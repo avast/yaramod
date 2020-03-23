@@ -4396,6 +4396,79 @@ rule rule_3 : TagB TagC
 }
 
 TEST_F(ParserTests,
+RemoveMetasAfterParse) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	meta:
+		bool_meta = true
+		int_meta = 42
+	condition:
+		true
+}
+
+rule rule_2
+{
+	meta:
+		author = "Mr. Avastian"
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+rule rule_3
+{
+	meta:
+		hash = "123"
+		hash = "456"
+		hash = "789"
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	const auto& rules = driver.getParsedFile().getRules();
+	EXPECT_EQ(rules.size(), 3);
+
+	auto rule = rules[0];
+	rule->removeMetas("int_meta");
+
+	rule = rules[1];
+	rule->removeMetas("author");
+
+	rule = rules[2];
+	rule->removeMetas("hash");
+
+std::string expected = R"(
+rule rule_1
+{
+	meta:
+		bool_meta = true
+	condition:
+		true
+}
+
+rule rule_2
+{
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+rule rule_3
+{
+	condition:
+		false
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingClosingBracket) {
 	prepareInput(
 R"(

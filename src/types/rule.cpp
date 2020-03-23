@@ -387,10 +387,37 @@ void Rule::addMeta(const std::string& name, const Literal& value)
  */
 void Rule::removeMetas(const std::string& name)
 {
+	bool metasWasEmpty = _metas.empty();
+	std::vector<std::pair<TokenIt, TokenIt>> toDelete;
+	for (auto it = _metas.begin(); it != _metas.end(); ++it)
+	{
+		if (it->getKey() == name)
+		{
+			auto deleteTo = ++it->getValueTokenIt();
+			if (deleteTo->getType() == NEW_LINE)
+				++deleteTo;
+			toDelete.emplace_back(it->getKeyTokenIt(), deleteTo);
+		}
+	}
 	auto newEnd = std::remove_if(_metas.begin(), _metas.end(), [name](const auto& meta) {
 		return meta.getKey() == name;
 	});
 	_metas.erase(newEnd, _metas.end());
+	for (const auto& deletePair : toDelete)
+	{
+		_tokenStream->erase(deletePair.first, deletePair.second);
+	}
+
+	if (_metas.empty() && !metasWasEmpty)
+	{
+		auto metaToken = _tokenStream->find(META, _name);
+		TokenIt deleteTo;
+		if (!_strings->empty())
+			deleteTo = _tokenStream->find(STRINGS, metaToken);
+		else
+			deleteTo = _tokenStream->find(CONDITION, metaToken);
+		_tokenStream->erase(metaToken, deleteTo);
+	}
 }
 
 /**
