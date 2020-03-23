@@ -284,15 +284,26 @@ void Rule::setMetas(const std::vector<Meta>& metas)
  */
 void Rule::setTags(const std::vector<std::string>& tags)
 {
-	TokenIt last;
-	//delete all tags from tokenStream
-	for (const TokenIt& it : _tags)
-		last = _tokenStream->erase(it);
+	TokenIt insert_before;
+	if (_tags.empty())
+	{
+		insert_before = std::find_if(_name, _tokenStream->end(),
+			[](const Token& t){ return t.getType() == NEW_LINE || t.getType() == RULE_BEGIN; }
+			);
+		assert(insert_before != _tokenStream->end() && "Called setTags on rule that does not contain '{'");
+		_tokenStream->emplace(insert_before, TokenType::COLON, ":");
+	}
+	else
+	{
+		//delete all tags from tokenStream
+		for (const TokenIt& it : _tags)
+			insert_before = _tokenStream->erase(it);
+	}
 	_tags = std::vector<TokenIt>();
 	// Insert new tags into TokenStream
 	for (const auto& tag : tags)
 	{
-		TokenIt tagIt = _tokenStream->insert(last, TokenType::TAG, Literal(tag));
+		TokenIt tagIt = _tokenStream->insert(insert_before, TokenType::TAG, Literal(tag));
 		_tags.push_back(tagIt);
 	}
 }
@@ -346,13 +357,25 @@ bool Rule::isPrivate() const
 void Rule::addMeta(const std::string& name, const Literal& value)
 {
 	// first we need to find a proper placing for the meta within the tokenstream:
-	auto metaIt = _tokenStream->find(TokenType::LCB);
-	assert(metaIt != _tokenStream->end() && "Called addMeta on rule that does not contain '{' for the meta to be placed in");
-	++metaIt;
-
-	auto itKey = _tokenStream->insert(metaIt, TokenType::META_KEY, Literal(name));
-	_tokenStream->insert(metaIt, TokenType::EQ, Literal(" = "));
-	auto itValue = _tokenStream->insert(metaIt, TokenType::META_VALUE, value);
+	TokenIt insert_before;
+	if (_metas.empty())
+	{
+		insert_before = _tokenStream->find(TokenType::RULE_BEGIN, _name);
+		assert(insert_before != _tokenStream->end() && "Called addMeta on rule that does not contain '{'");
+		++insert_before;
+		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, _tokenStream->getNewLineStyle());
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON, ":");
+	}
+	else
+	{
+		insert_before = _metas.back().getValueTokenIt();
+		++insert_before;
+	}
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, _tokenStream->getNewLineStyle());
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, name);	
+	_tokenStream->emplace(insert_before, TokenType::EQ, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value);
 
 	_metas.emplace_back(itKey, itValue);
 }
@@ -397,7 +420,6 @@ void Rule::addTag(const std::string& tag)
  * Removes tag from the rule.
  *
  * @param tag Tag to remove.
- * @return true iff there was corresponding tag and it was removed
  */
 void Rule::removeTags(const std::string& tag)
 {
@@ -409,6 +431,11 @@ void Rule::removeTags(const std::string& tag)
 	}
 }
 
+/**
+ * Removes tag from the rule.
+ *
+ * @param type TokenType of the tag to remove.
+ */
 void Rule::removeTags(TokenType type)
 {
 	auto found = std::find_if(_tags.begin(), _tags.end(), [&type](TokenIt it){ return it->getType() == type; });

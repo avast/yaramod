@@ -21,7 +21,9 @@ class Meta
 public:
 	/// @name Constructors
 	/// @{
-	Meta(TokenIt key, TokenIt value) : _key(key), _value(value) {}
+	Meta(TokenIt key, TokenIt value) : _key(key), _value(value)
+	{
+	}
 	Meta(const Meta& meta) = default;
 	Meta(Meta&& meta) = default;
 	/// @}
@@ -40,7 +42,9 @@ public:
 	/// @name Getter methods
 	/// @{
 	const std::string& getKey() const;
+	TokenIt getKeyTokenIt() const;
 	const Literal& getValue() const;
+	TokenIt getValueTokenIt() const;
 	/// @}
 
 	/// @name Setter methods

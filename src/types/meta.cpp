@@ -29,6 +29,16 @@ const std::string& Meta::getKey() const
 }
 
 /**
+ * Returns the token iterator of the key of a single meta information.
+ *
+ * @return Key.
+ */
+TokenIt Meta::getKeyTokenIt() const
+{
+	return _key;
+}
+
+/**
  * Returns the value of a single meta information.
  *
  * @return Value.
@@ -36,6 +46,16 @@ const std::string& Meta::getKey() const
 const Literal& Meta::getValue() const
 {
 	return _value->getLiteral();
+}
+
+/**
+ * Returns the token iterator of the value of a single meta information.
+ *
+ * @return Key.
+ */
+TokenIt Meta::getValueTokenIt() const
+{
+	return _value;
 }
 
 /**

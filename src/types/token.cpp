@@ -16,7 +16,7 @@ namespace yaramod {
 
 const Literal& Token::getLiteral() const
 {
-	assert(_value);
+	assert("Literal is not nullptr" && _value);
 	return *_value;
 }
 
