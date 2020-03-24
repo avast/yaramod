@@ -38,14 +38,14 @@ void ParserDriver::defineTokens()
 		currentFileContext()->getLocation().addColumn(str.length());
 	});
 
-	_parser.token("\r\n").action([&](std::string_view str) -> Value {
+	_parser.token("\r\n").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\r\n");
 		TokenIt t = emplace_back(NEW_LINE, "\r\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
 	});
-	_parser.token("\n").action([&](std::string_view str) -> Value {
+	_parser.token("\n").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\n");
 		TokenIt t = emplace_back(NEW_LINE, "\n");
 		_indent.clear();

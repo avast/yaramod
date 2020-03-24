@@ -31,7 +31,7 @@ public:
 		std::size_t insertIntoStream(std::stringstream* ss, char what);
 		std::size_t insertIntoStream(std::stringstream* ss, const std::string& what, std::size_t length = 0);
 		std::size_t insertIntoStream(std::stringstream* ss, TokenStream* ts, TokenIt what);
-		std::size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, int currentLineTabs, bool alignComment, bool ignoreUserIndent);
+		std::size_t printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, size_t currentLineTabs, bool alignComment, bool ignoreUserIndent);
 	private:
 		std::size_t lineCounter = 0;
 		std::size_t columnCounter = 0;

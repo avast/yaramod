@@ -485,7 +485,7 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
  *
  * @return columnCounter.
  */
-std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, int currentLineTabs, bool alignComment, bool ignoreUserIndent)
+std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenStream* ts, TokenIt it, size_t currentLineTabs, bool alignComment, bool ignoreUserIndent)
 {
 	auto prevIt = ts->predecessor(it);
 	auto indentation = it->getIndentation() + 1;
@@ -542,7 +542,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	if (!_formatted)
 		autoformat();
 	BracketStack brackets;
-	int current_line_tabs = 0;
+	size_t current_line_tabs = 0;
 	bool inside_rule = false;
 	bool inside_hex_string = false;
 	bool inside_hex_jump = false;
