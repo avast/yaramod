@@ -4050,8 +4050,6 @@ private rule RULE_1
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
-
-
 TEST_F(ParserTests,
 ForCycleMultipleRowsWithCRLF)
 {
@@ -4239,6 +4237,234 @@ rule nonutf_condition
 }
 )";
 
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AddMetaAfterParse) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	condition:
+		true
+}
+
+
+rule rule_2
+{
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+
+rule rule_3
+{
+	meta:
+		author = "Mr. Avastian"
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	const auto& rules = driver.getParsedFile().getRules();
+	EXPECT_EQ(rules.size(), 3);
+
+	auto rule = rules[0];
+	ASSERT_EQ(0u, rule->getMetas().size());
+	uint64_t u = 42;
+	rule->addMeta("new_int_meta", Literal(u));
+	ASSERT_EQ(1u, rule->getMetas().size());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isInt());
+	EXPECT_EQ(42, rule->getMetas()[0].getValue().getInt());
+	EXPECT_EQ(R"(42)", rule->getMetas()[0].getValue().getText());
+
+	rule = rules[1];
+	ASSERT_EQ(0u, rule->getMetas().size());
+	rule->addMeta("new_string_meta", Literal("string value"));
+	ASSERT_EQ(1u, rule->getMetas().size());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isString());
+	EXPECT_EQ(R"("string value")", rule->getMetas()[0].getValue().getText());
+
+	rule = rules[2];
+	ASSERT_EQ(1u, rule->getMetas().size());
+	rule->addMeta("new_bool_meta", Literal(true));
+	ASSERT_EQ(2u, rule->getMetas().size());
+	const Meta* meta = rule->getMetaWithName("new_bool_meta");
+	ASSERT_NE(meta, nullptr);
+	EXPECT_EQ(meta->getKey(), "new_bool_meta");
+	EXPECT_TRUE(meta->getValue().isBool());
+	EXPECT_TRUE(meta->getValue().getBool());
+	EXPECT_EQ(meta->getValue().getText(), "true");
+
+std::string expected = R"(
+rule rule_1
+{
+	meta:
+		new_int_meta = 42
+	condition:
+		true
+}
+
+
+rule rule_2
+{
+	meta:
+		new_string_meta = "string value"
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+
+rule rule_3
+{
+	meta:
+		author = "Mr. Avastian"
+		new_bool_meta = true
+	condition:
+		false
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+SetTagsAfterParse) {
+	prepareInput(
+R"(
+rule rule_1 {
+	condition:
+		true
+}
+
+rule rule_2
+{
+	condition:
+		true
+}
+
+rule rule_3 : TagA {
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	const auto& rules = driver.getParsedFile().getRules();
+	EXPECT_EQ(rules.size(), 3);
+
+	auto rule = rules[0];
+	std::vector<std::string> tags = {"Tag1", "Tag2"};
+	rule->setTags(tags);
+
+	rule = rules[1];
+	rule->setTags(tags);
+
+	rule = rules[2];
+	tags = {"TagB", "TagC"};
+	rule->setTags(tags);
+
+std::string expected = R"(
+rule rule_1 : Tag1 Tag2
+{
+	condition:
+		true
+}
+
+rule rule_2 : Tag1 Tag2
+{
+	condition:
+		true
+}
+
+rule rule_3 : TagB TagC
+{
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RemoveMetasAfterParse) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	meta:
+		bool_meta = true
+		int_meta = 42
+	condition:
+		true
+}
+
+rule rule_2
+{
+	meta:
+		author = "Mr. Avastian"
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+rule rule_3
+{
+	meta:
+		hash = "123"
+		hash = "456"
+		hash = "789"
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	const auto& rules = driver.getParsedFile().getRules();
+	EXPECT_EQ(rules.size(), 3);
+
+	auto rule = rules[0];
+	rule->removeMetas("int_meta");
+
+	rule = rules[1];
+	rule->removeMetas("author");
+
+	rule = rules[2];
+	rule->removeMetas("hash");
+
+std::string expected = R"(
+rule rule_1
+{
+	meta:
+		bool_meta = true
+	condition:
+		true
+}
+
+rule rule_2
+{
+	strings:
+		$s0 = "string 0"
+	condition:
+		$s0
+}
+
+rule rule_3
+{
+	condition:
+		false
+}
+)";
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
