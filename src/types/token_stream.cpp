@@ -407,7 +407,12 @@ void TokenStream::addMissingNewLines()
 			}
 		}
 		if (current == NEW_LINE)
-			++lineCounter;
+		{
+			if (next == OR || next == AND)
+				it = std::prev(erase(it));
+			else
+				++lineCounter;
+		}
 	}
 }
 
