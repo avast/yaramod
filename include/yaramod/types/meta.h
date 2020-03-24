@@ -21,9 +21,7 @@ class Meta
 public:
 	/// @name Constructors
 	/// @{
-	Meta(TokenIt key, TokenIt value) : _key(key), _value(value)
-	{
-	}
+	Meta(TokenIt key, TokenIt value) : _key(key), _value(value) {}
 	Meta(const Meta& meta) = default;
 	Meta(Meta&& meta) = default;
 	/// @}
