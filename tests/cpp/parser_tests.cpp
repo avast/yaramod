@@ -3128,6 +3128,8 @@ R"(rule rule_1 {
 		any of them
 		or (
 		true
+
+
 		and false)
 }
 
@@ -3135,6 +3137,7 @@ rule rule_2
 {
 	condition:
 		true
+
 		or
 		false
 }

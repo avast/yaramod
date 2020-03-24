@@ -409,7 +409,8 @@ void TokenStream::addMissingNewLines()
 		if (current == NEW_LINE)
 		{
 			if (next == OR || next == AND)
-				it = std::prev(erase(it));
+				while (it->getType() == NEW_LINE)
+					it = std::prev(erase(it));
 			else
 				++lineCounter;
 		}
