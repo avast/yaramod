@@ -1,5 +1,14 @@
 # Changelog
 
+# v3.4.0 (2020-03-25)
+
+* In autoformatting, new lines before and/or are removed. ([#79](https://github.com/avast/yaramod/issues/79))
+* In autoformatting, unwanted multiple blank lines are made single new line.
+* CXX flags are propagated to POG's dependencies
+* In autoformatting, comments are aligned together with the corresponding lines.
+* files are loaded as binary which prevents wrong line endings on Windows
+* `YaraFileBuilder` sorts imports lexicographically and avoids duplicities
+
 # v3.3.7 (2020-03-11)
 
 * Unified integral types in `Literal` class ([#71](https://github.com/avast/yaramod/issues/71))
