@@ -1,13 +1,17 @@
 # Changelog
 
+# v3.4.1 (2020-03-25)
+
+* Fix and/or conjunction auto-formatting: comment/newline tokens before it are moved behind it. ([#89](https://github.com/avast/yaramod/pull/89))
+
 # v3.4.0 (2020-03-25)
 
-* In autoformatting, new lines before and/or are removed. ([#79](https://github.com/avast/yaramod/issues/79))
-* In autoformatting, unwanted multiple blank lines are made single new line.
-* CXX flags are propagated to POG's dependencies
-* In autoformatting, comments are aligned together with the corresponding lines.
-* files are loaded as binary which prevents wrong line endings on Windows
-* `YaraFileBuilder` sorts imports lexicographically and avoids duplicities
+* In autoformatting, new lines before and/or are removed. ([#79](https://github.com/avast/yaramod/issues/79), [#86](https://github.com/avast/yaramod/pull/86))
+* In autoformatting, unwanted multiple blank lines are made single new line. ([#77](https://github.com/avast/yaramod/pull/77))
+* CXX flags are propagated to POG's dependencies. ([#82](https://github.com/avast/yaramod/pull/82), [#87](https://github.com/avast/yaramod/pull/87))
+* In autoformatting, comments are aligned together with the corresponding lines. ([#81](https://github.com/avast/yaramod/pull/81))
+* files are loaded as binary which prevents wrong line endings on Windows. ([#80](https://github.com/avast/yaramod/pull/80))
+* `YaraFileBuilder` sorts imports lexicographically and avoids duplicities. ([#78](https://github.com/avast/yaramod/pull/78))
 
 # v3.3.7 (2020-03-11)
 
