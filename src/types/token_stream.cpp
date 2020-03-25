@@ -281,7 +281,7 @@ bool TokenStream::determineNewlineSectors()
 	std::size_t lineCounter = 0;
 	std::size_t doubleLineCounter = 0;
 	bool wasLine = false;
-	for (auto it = begin(); it != end(); ++it)
+	for (auto it = begin(); it != end();)
 	{
 		auto current = it->getType();
 		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
@@ -305,6 +305,35 @@ bool TokenStream::determineNewlineSectors()
 		}
 		else
 			wasLine = false;
+
+		// Here we move some tokens preceding some and/or conjunction after these conjunctions.
+		// We only move comments and newlines.
+		// We only move around conjunctions that were on the beginning of a line:
+		if ((current == AND || current == OR) && std::prev(it)->getType() == NEW_LINE)
+		{
+			auto pre_it = std::prev(it);
+			++it;
+			auto insert_before = it;
+			TokenType lastMoved = insert_before->getType();
+			// We invalidate iterators but only those pointing to COMMENTs or NEW_LINEs, which are not referenced from outside of TokenStream.
+			while (pre_it->getType() == NEW_LINE || pre_it->getType() == COMMENT || pre_it->getType() == ONELINE_COMMENT)
+			{
+				if (lastMoved == NEW_LINE && pre_it->getType() == NEW_LINE)
+				{
+					erase(pre_it);
+					--pre_it;
+				}
+				else
+				{
+					insert_before = _tokens.emplace(insert_before, std::move(*pre_it));
+					erase(pre_it);
+					lastMoved = insert_before->getType();
+					--pre_it;
+				}
+			}
+		}
+		else
+			++it;
 	}
 	// when more than half of the newlines is "doubled", then all "doubled" newlines are made simple newline.
 	return 3 * doubleLineCounter > lineCounter;
@@ -405,14 +434,6 @@ void TokenStream::addMissingNewLines()
 				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
-		}
-		if (current == NEW_LINE)
-		{
-			if (next == OR || next == AND)
-				while (it->getType() == NEW_LINE)
-					it = std::prev(erase(it));
-			else
-				++lineCounter;
 		}
 	}
 }
@@ -522,6 +543,8 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 
 std::string TokenStream::getText(bool withIncludes, bool alignComments)
 {
+	if (!_formatted)
+		autoformat();
 	PrintHelper helper;
 	if (alignComments)
 		getTextProcedure(helper, nullptr, withIncludes, alignComments); // First call determines alignment of comments
@@ -545,8 +568,6 @@ std::string TokenStream::getText(bool withIncludes, bool alignComments)
  */
 void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, bool withIncludes, bool alignComments)
 {
-	if (!_formatted)
-		autoformat();
 	BracketStack brackets;
 	size_t current_line_tabs = 0;
 	bool inside_rule = false;
