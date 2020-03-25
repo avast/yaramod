@@ -1218,7 +1218,19 @@ rule rule_with_complicated_regexp_class
 
 	EXPECT_EQ("cuckoo.process.executed_command(/[^\\\\]+/) and cuckoo.filesystem.file_write(/\\.bribe$/) and cuckoo.filesystem.file_write(/[\\]}]\\.(b[0-2]+|VC[0-9]*|DAQ)$/)", rule->getCondition()->getText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::string expected = R"(
+import "cuckoo"
+import "pe"
+
+rule rule_with_complicated_regexp_class
+{
+	condition:
+		cuckoo.process.executed_command(/[^\\]+/) and
+		cuckoo.filesystem.file_write(/\.bribe$/) and
+		cuckoo.filesystem.file_write(/[\]}]\.(b[0-2]+|VC[0-9]*|DAQ)$/)
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 
@@ -3082,8 +3094,7 @@ rule rule_1 : Tag1 Tag2
 		$2 = { ab cd ef }
 		$3 = /ab*c/
 	condition:
-		pe.exports("ExitProcess")
-		and
+		pe.exports("ExitProcess") and
 		for any of them : ( $ at pe.entry_point )
 }
 
@@ -3099,6 +3110,76 @@ rule rule_2
 	condition:
 		elf.type == elf.ET_EXEC and
 		$abc at elf.entry_point
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RemoveLineBeforeAndWorks) {
+	prepareInput(
+R"(rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them
+		or (
+		true
+
+
+		and false)
+}
+
+rule rule_2
+{
+	condition:
+		true
+
+		or
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		any of them or (true and false)
+}
+
+rule rule_2 {
+	condition:
+		true or false
+})", driver.getParsedFile().getText());
+
+	std::string expected = R"(rule rule_1
+{
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them or
+		(
+			true and
+			false
+		)
+}
+
+rule rule_2
+{
+	condition:
+		true or
+		false
 }
 )";
 
@@ -3794,8 +3875,7 @@ rule rule_2
 		condition comment
 	*/
 	condition:
-		elf.type == elf.ET_EXEC
-		and
+		elf.type == elf.ET_EXEC and
 		$abc at elf.entry_point
 }
 // Comment at the end of file
@@ -3944,8 +4024,7 @@ rule rule_2
 		$3 = /./
 		$5 = "String 5"
 	condition:
-		elf.type == elf.ET_EXEC
-		and
+		elf.type == elf.ET_EXEC and
 		2 of ($1, $2, $3 /*, $4*/, $5)
 }
 )";
