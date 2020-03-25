@@ -320,15 +320,13 @@ bool TokenStream::determineNewlineSectors()
 			{
 				if (lastMoved == NEW_LINE && pre_it->getType() == NEW_LINE)
 				{
-					erase(pre_it);
-					--pre_it;
+					pre_it = std::prev(erase(pre_it));
 				}
 				else
 				{
 					insert_before = _tokens.emplace(insert_before, std::move(*pre_it));
-					erase(pre_it);
+					pre_it = std::prev(erase(pre_it));
 					lastMoved = insert_before->getType();
-					--pre_it;
 				}
 			}
 		}

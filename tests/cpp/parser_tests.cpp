@@ -3289,9 +3289,17 @@ rule rule_3
 	condition:
 		//cuckoo
 		cuckoo.sync.mutex(/a/)
+		
 		or cuckoo.sync.mutex(/b/)
+		
 		//cuckoo 64-bit
-		or cuckoo.sync.mutex(/c/)
+
+	
+		and cuckoo.sync.mutex(/c/)
+
+
+
+
 		or cuckoo.sync.mutex(/d/)
 }
 )");
@@ -3318,7 +3326,7 @@ rule rule_2 {
 
 rule rule_3 {
 	condition:
-		cuckoo.sync.mutex(/a/) or cuckoo.sync.mutex(/b/) or cuckoo.sync.mutex(/c/) or cuckoo.sync.mutex(/d/)
+		cuckoo.sync.mutex(/a/) or cuckoo.sync.mutex(/b/) and cuckoo.sync.mutex(/c/) or cuckoo.sync.mutex(/d/)
 })", driver.getParsedFile().getText());
 
 	std::string expected = R"(
@@ -3350,7 +3358,7 @@ rule rule_3
 	condition:
 		//cuckoo
 		cuckoo.sync.mutex(/a/) or
-		cuckoo.sync.mutex(/b/) or
+		cuckoo.sync.mutex(/b/) and
 		//cuckoo 64-bit
 		cuckoo.sync.mutex(/c/) or
 		cuckoo.sync.mutex(/d/)
