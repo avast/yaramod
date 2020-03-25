@@ -3187,6 +3187,188 @@ rule rule_2
 }
 
 TEST_F(ParserTests,
+RemoveLineBeforeAndWithCommentsWorks) {
+	prepareInput(
+R"(rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them
+		// cuckoo
+		or (
+		true
+		// gvma
+		and false)
+}
+
+rule rule_2
+{
+	condition:
+		true
+		/* cuckoo */
+		
+		or false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		any of them or (true and false)
+}
+
+rule rule_2 {
+	condition:
+		true or false
+})", driver.getParsedFile().getText());
+
+	std::string expected = R"(rule rule_1
+{
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them or
+		// cuckoo
+		(
+			true and
+			// gvma
+			false
+		)
+}
+
+rule rule_2
+{
+	condition:
+		true or
+		/* cuckoo */
+		false
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RemoveLineBeforeAndWithComments2Works) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them // cuckoo
+		or (
+		true // gvma
+
+		and false)
+}
+
+rule rule_2
+{
+	condition:
+		true /* cuckoo */ or false
+}
+
+rule rule_3
+{
+	condition:
+		//cuckoo
+		cuckoo.sync.mutex(/a/)
+		
+		or cuckoo.sync.mutex(/b/)
+		
+		//cuckoo 64-bit
+
+	
+		and cuckoo.sync.mutex(/c/)
+
+
+
+
+		or cuckoo.sync.mutex(/d/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(3u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(
+R"(import "cuckoo"
+
+rule rule_1 {
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		any of them or (true and false)
+}
+
+rule rule_2 {
+	condition:
+		true or false
+}
+
+rule rule_3 {
+	condition:
+		cuckoo.sync.mutex(/a/) or cuckoo.sync.mutex(/b/) and cuckoo.sync.mutex(/c/) or cuckoo.sync.mutex(/d/)
+})", driver.getParsedFile().getText());
+
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_1
+{
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		any of them or // cuckoo
+		(
+			true and // gvma
+			false
+		)
+}
+
+rule rule_2
+{
+	condition:
+		true /* cuckoo */ or
+		false
+}
+
+rule rule_3
+{
+	condition:
+		//cuckoo
+		cuckoo.sync.mutex(/a/) or
+		cuckoo.sync.mutex(/b/) and
+		//cuckoo 64-bit
+		cuckoo.sync.mutex(/c/) or
+		cuckoo.sync.mutex(/d/)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 MultipleRulesWorks2) {
 	prepareInput(
 R"(
