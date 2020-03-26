@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.5.0 (2020-03-26)
+
+* Added `metadata` module ([#90](https://github.com/avast/yaramod/pull/90))
+
 # v3.4.1 (2020-03-25)
 
 * Fix and/or conjunction auto-formatting: comment/newline tokens before it are moved behind it. ([#89](https://github.com/avast/yaramod/pull/89))
