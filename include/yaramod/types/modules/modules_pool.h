@@ -53,6 +53,7 @@ private:
 		{ "macho",      std::make_shared<MachoModule>()      },
 		{ "magic",      std::make_shared<MagicModule>()      },
 		{ "math",       std::make_shared<MathModule>()       },
+		{ "metadata",   std::make_shared<MetadataModule>()   },
 		{ "pe",         std::make_shared<PeModule>()         },
 		{ "phish",      std::make_shared<PhishModule>()      },
 		{ "time",       std::make_shared<TimeModule>()       }
