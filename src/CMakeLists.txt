@@ -25,6 +25,7 @@ set(SOURCES
 	types/modules/pe_module.cpp
 	types/modules/phish_module.cpp
 	types/modules/time_module.cpp
+	types/modules/metadata_module.cpp
 	types/plain_string.cpp
 	types/rule.cpp
 	types/token.cpp

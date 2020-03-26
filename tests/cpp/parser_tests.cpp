@@ -2698,6 +2698,61 @@ rule dummy_rule
 }
 
 TEST_F(ParserTests,
+MetadataModuleWorks) {
+	prepareInput(
+R"(
+import "metadata"
+
+rule dummny_rule
+{
+	condition:
+		metadata.file.name("filename.txt") and
+		metadata.file.name(/regexp/) and
+		metadata.detection.name(/regexp/) and
+		metadata.detection.name("vps", /regexp/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(metadata.file.name("filename.txt") and metadata.file.name(/regexp/) and metadata.detection.name(/regexp/) and metadata.detection.name("vps", /regexp/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+}
+
+TEST_F(ParserTests,
+MetadataModuleUnrecognized) {
+	prepareInput(
+R"(
+import "metadata"
+
+rule dummy_rule
+{
+	condition:
+		metadata.file.name("filename.txt")
+}
+)");
+
+	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
+	std::stringstream input2(input_text);
+
+try
+	{
+		driverNoAvastSymbols.parse(input2);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
+		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
+		EXPECT_EQ("Error at 7.17-20: Unrecognized identifier 'name' referenced", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
 CuckooModuleWorks) {
 	prepareInput(
 R"(
