@@ -1555,6 +1555,7 @@ global rule global_rule
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("global_rule", rule->getName());
 	EXPECT_EQ(Rule::Modifier::Global, rule->getModifier());
+	EXPECT_FALSE(rule->isPrivate());
 	EXPECT_TRUE(rule->isGlobal());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
@@ -1578,6 +1579,31 @@ private rule private_rule
 	EXPECT_EQ("private_rule", rule->getName());
 	EXPECT_EQ(Rule::Modifier::Private, rule->getModifier());
 	EXPECT_TRUE(rule->isPrivate());
+	EXPECT_FALSE(rule->isGlobal());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+
+TEST_F(ParserTests,
+PrivateGlobalRuleModifierWorks) {
+	prepareInput(
+R"(
+private global rule private_global_rule
+{
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("private_global_rule", rule->getName());
+	EXPECT_EQ(Rule::Modifier::PrivateGlobal, rule->getModifier());
+	EXPECT_TRUE(rule->isPrivate());
+	EXPECT_TRUE(rule->isGlobal());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

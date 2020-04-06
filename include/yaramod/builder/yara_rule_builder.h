@@ -84,7 +84,8 @@ private:
 	void createLastString();
 
 	std::shared_ptr<TokenStream> _tokenStream; ///< Storage of all Tokens
-	std::optional<TokenIt> _mod; ///< Modifier
+	std::optional<TokenIt> _mod_private; ///< Private modifier
+	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings

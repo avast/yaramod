@@ -81,7 +81,8 @@ void addEnums(py::module& module)
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
-		.value("Private", Rule::Modifier::Private);
+		.value("Private", Rule::Modifier::Private)
+		.value("PrivateGlobal", Rule::Modifier::PrivateGlobal);
 
 	py::enum_<String::Type>(module, "StringType")
 		.value("Plain", String::Type::Plain)

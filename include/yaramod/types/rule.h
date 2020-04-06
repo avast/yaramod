@@ -46,7 +46,8 @@ public:
 	{
 		None,
 		Global,
-		Private
+		Private,
+		PrivateGlobal,
 	};
 
 	/// @name Constructors
@@ -54,8 +55,8 @@ public:
 	Rule();
 	explicit Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, const std::vector<std::string>& tags);
-	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
+	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global,
+		std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
 
 	Rule(Rule&& rule) = default;
 	Rule(const Rule& rule) = default;
@@ -112,7 +113,8 @@ private:
 
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	TokenIt _name; ///< Name
-	std::optional<TokenIt> _mod; ///< Modifier
+	std::optional<TokenIt> _mod_private; ///< Private modifier
+	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
