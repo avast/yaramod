@@ -444,13 +444,16 @@ void ParserDriver::defineGrammar()
 				std::optional<TokenIt> mod_private = {};
 				std::optional<TokenIt> mod_global = {};
 				const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
-				for (const auto &token: mods) {
-					if (token->getType() == TokenType::GLOBAL) {
+				for (const auto &token: mods)
+				{
+					if (token->getType() == TokenType::GLOBAL)
+					{
 						if (mod_global.has_value())
 							error_handle(token->getLocation(), "Duplicated global rule modifier");
 						mod_global = token;
 					}
-					else if (token->getType() == TokenType::PRIVATE) {
+					else if (token->getType() == TokenType::PRIVATE)
+					{
 						if (mod_private.has_value())
 							error_handle(token->getLocation(), "Duplicated private rule modifier");
 						mod_private = token;

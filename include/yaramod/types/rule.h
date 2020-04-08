@@ -53,8 +53,6 @@ public:
 	/// @name Constructors
 	/// @{
 	Rule();
-	explicit Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		Expression::Ptr&& condition, const std::vector<std::string>& tags);
 	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global,
 		std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
 

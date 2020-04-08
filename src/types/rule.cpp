@@ -13,14 +13,7 @@
 namespace yaramod {
 
 /**
- * Constructor.
- *
- * @param name Name of the rule.
- * @param mod Modifier.
- * @param metas Meta information.
- * @param strings Strings.
- * @param condition Condition expression.
- * @param tags Tags.
+ * Default constructor.
  */
 Rule::Rule()
 	: _tokenStream(std::make_shared<TokenStream>())
@@ -28,45 +21,18 @@ Rule::Rule()
 	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, "unknown");
 }
 
-Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
-		Expression::Ptr&& condition, const std::vector<std::string>& tags)
-	:  _tokenStream(std::make_shared<TokenStream>())
-	, _metas(std::move(metas))
-	, _strings(std::move(strings))
-	, _condition(std::move(condition))
-	, _location({"[stream]", 0})
-{
-	_name = _tokenStream->emplace_back(TokenType::RULE_NAME, std::move(name));
-	_symbol = std::make_shared<ValueSymbol>(_name->getPureText(), Expression::Type::Bool);
-
-	for (const std::string& tag : tags)
-	{
-		TokenIt tagIt = _tokenStream->emplace_back(TokenType::TAG, tag);
-		_tags.push_back(tagIt);
-	}
-
-	if (mod == Modifier::Global)
-	{
-		_mod_private = _tokenStream->emplace_back(TokenType::NONE, std::string{});
-		_mod_global = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
-	}
-	else if (mod == Modifier::Private)
-	{
-		_mod_private = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
-		_mod_global = _tokenStream->emplace_back(TokenType::NONE, std::string{});
-	}
-	else if (mod == Modifier::PrivateGlobal)
-	{
-		_mod_private = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
-		_mod_global = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
-	}
-	else
-	{
-		_mod_private = _tokenStream->emplace_back(TokenType::NONE, std::string{});
-		_mod_global = _tokenStream->emplace_back(TokenType::NONE, std::string{});
-	}
-}
-
+/**
+ * Constructor.
+ *
+ * @param tokenStream the TokenStream containing supplied tokens.
+ * @param name Name of the rule as a token iterator.
+ * @param mod_private Optional private modifier token iterator.
+ * @param mod_global Optional global modifier token iterator.
+ * @param metas Meta information.
+ * @param strings Strings.
+ * @param condition Condition expression.
+ * @param tags Tags as token iterators.
+ */
 Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
 	: _tokenStream(tokenStream)
