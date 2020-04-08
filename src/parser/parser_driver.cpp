@@ -430,7 +430,7 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("rule") // {}
 		.production(
-			"rule_mod", "RULE", [&](auto&&) -> Value {
+			"rule_mods", "RULE", [&](auto&&) -> Value {
 				_lastRuleLocation = currentFileContext()->getLocation();
 				_lastRuleTokenStream = currentFileContext()->getTokenStream();
 				return {};
@@ -441,7 +441,21 @@ void ParserDriver::defineGrammar()
 				return {};
 			},
 			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
-				std::optional<TokenIt> mod = std::move(args[0].getOptionalTokenIt());
+				std::optional<TokenIt> mod_private = {};
+				std::optional<TokenIt> mod_global = {};
+				const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+				for (const auto &token: mods) {
+					if (token->getType() == TokenType::GLOBAL) {
+						if (mod_global.has_value())
+							error_handle(token->getLocation(), "Duplicated global rule modifier");
+						mod_global = token;
+					}
+					else if (token->getType() == TokenType::PRIVATE) {
+						if (mod_private.has_value())
+							error_handle(token->getLocation(), "Duplicated private rule modifier");
+						mod_private = token;
+					}
+				}
 				TokenIt name = args[3].getTokenIt();
 				const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 				args[6].getTokenIt()->setType(RULE_BEGIN);
@@ -450,14 +464,27 @@ void ParserDriver::defineGrammar()
 				Expression::Ptr condition = std::move(args[9].getExpression());
 				args[10].getTokenIt()->setType(RULE_END);
 
-				addRule(Rule(_lastRuleTokenStream, name, std::move(mod), std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+				addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
+					std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
 				return {};
 			});
 
-	_parser.rule("rule_mod") // optional<TokenIt>
-		.production("GLOBAL", [](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
-		.production("PRIVATE", [](auto&& args) -> Value { return std::make_optional(args[0].getTokenIt()); })
-		.production([](auto&&) -> Value { return Value(std::nullopt); })
+	_parser.rule("rule_mods") // vector<TokenIt>
+		.production("rule_mods", "PRIVATE", [](auto&& args) -> Value {
+			std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+			TokenIt mod = args[1].getTokenIt();
+			mod->setType(PRIVATE);
+			mods.emplace_back(std::move(mod));
+			return mods;
+		})
+		.production("rule_mods", "GLOBAL", [](auto&& args) -> Value {
+			std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+			TokenIt mod = args[1].getTokenIt();
+			mod->setType(GLOBAL);
+			mods.emplace_back(std::move(mod));
+			return mods;
+		})
+		.production([](auto&&) -> Value { return std::vector<TokenIt>(); })
 		;
 
 	_parser.rule("tags") // vector<TokenIt>

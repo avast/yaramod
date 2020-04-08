@@ -26,7 +26,8 @@ YaraRuleBuilder::YaraRuleBuilder()
  */
 YaraRuleBuilder::YaraRuleBuilder(const std::shared_ptr<TokenStream>& tokenStream)
 	: _tokenStream(tokenStream)
-	, _mod(std::nullopt)
+	, _mod_private(std::nullopt)
+	, _mod_global(std::nullopt)
 	, _strings(std::make_shared<Rule::StringsTrie>())
 {
 	resetTokens();
@@ -64,12 +65,14 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 		_tokenStream->emplace(_rcb, NEW_LINE, "\n");
 	}
 
-	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name_it), std::move(_mod), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name_it), std::move(_mod_private),
+		std::move(_mod_global), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
 
 	_tokenStream = std::make_shared<TokenStream>();
 	resetTokens();
 
-	_mod = std::nullopt;
+	_mod_private = std::nullopt;
+	_mod_global = std::nullopt;
 	_tags.clear();
 	_metas.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
@@ -105,16 +108,21 @@ YaraRuleBuilder& YaraRuleBuilder::withName(const std::string& name)
  */
 YaraRuleBuilder& YaraRuleBuilder::withModifier(Rule::Modifier mod)
 {
-	if (_mod != std::nullopt)
-		throw RuleBuilderError("Error: Rule already has modifier.");
 	if (mod == Rule::Modifier::Global)
-		_mod = _tokenStream->emplace(_rule_it, TokenType::GLOBAL, "global");
+	{
+		if (_mod_global != std::nullopt)
+			throw RuleBuilderError("Error: Rule already has a global modifier.");
+		_mod_global = _tokenStream->emplace(_rule_it, TokenType::GLOBAL, "global");
+	}
 	else if (mod == Rule::Modifier::Private)
-		_mod = _tokenStream->emplace(_rule_it, TokenType::PRIVATE, "private");
+	{
+		if (_mod_private != std::nullopt)
+			throw RuleBuilderError("Error: Rule already has a private modifier.");
+		_mod_private = _tokenStream->emplace(_rule_it, TokenType::PRIVATE, "private");
+	}
 	else
 	{
 		assert(mod == Rule::Modifier::None);
-		_mod = std::nullopt;
 	}
 	return *this;
 }
@@ -148,7 +156,7 @@ YaraRuleBuilder& YaraRuleBuilder::withComment(const std::string& comment, bool m
 {
 	if (comment.empty())
 		throw RuleBuilderError("Error: comment must be non-empty.");
-	TokenIt insert_before = _mod.value_or(_rule_it);
+	TokenIt insert_before = _mod_private.value_or(_mod_global.value_or(_rule_it));
 	std::stringstream ss;
 	if (multiline)
 	{

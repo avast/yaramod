@@ -46,18 +46,33 @@ Rule::Rule(std::string&& name, Modifier mod, std::vector<Meta>&& metas, std::sha
 	}
 
 	if (mod == Modifier::Global)
-		_mod = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
+	{
+		_mod_private = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+		_mod_global = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
+	}
 	else if (mod == Modifier::Private)
-		_mod = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
+	{
+		_mod_private = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
+		_mod_global = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+	}
+	else if (mod == Modifier::PrivateGlobal)
+	{
+		_mod_private = _tokenStream->emplace_back(TokenType::PRIVATE, "private");
+		_mod_global = _tokenStream->emplace_back(TokenType::GLOBAL, "global");
+	}
 	else
-		_mod = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+	{
+		_mod_private = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+		_mod_global = _tokenStream->emplace_back(TokenType::NONE, std::string{});
+	}
 }
 
-Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
 	: _tokenStream(tokenStream)
 	, _name(name)
-	, _mod(mod)
+	, _mod_private(mod_private)
+	, _mod_global(mod_global)
 	, _metas(std::move(metas))
 	, _strings(std::move(strings))
 	, _condition(std::move(condition))
@@ -77,10 +92,10 @@ std::string Rule::getText() const
 	auto indent = "\t\t";
 	std::ostringstream ss;
 
+	if (isPrivate())
+		ss << "private ";
 	if (isGlobal())
 		ss << "global ";
-	else if (isPrivate())
-		ss << "private ";
 
 	ss << "rule " << getName() << ' ';
 
@@ -138,7 +153,9 @@ std::string Rule::getName() const
  */
 Rule::Modifier Rule::getModifier() const
 {
-	if (isGlobal())
+	if (isPrivate() && isGlobal())
+		return Rule::Modifier::PrivateGlobal;
+	else if (isGlobal())
 		return Rule::Modifier::Global;
 	else if (isPrivate())
 		return Rule::Modifier::Private;
@@ -335,7 +352,7 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
  */
 bool Rule::isGlobal() const
 {
-	return _mod.has_value() && (*_mod)->getType() == TokenType::GLOBAL;
+	return _mod_global.has_value();
 }
 
 /**
@@ -345,7 +362,7 @@ bool Rule::isGlobal() const
  */
 bool Rule::isPrivate() const
 {
-	return _mod.has_value() && (*_mod)->getType() == TokenType::PRIVATE;
+	return _mod_private.has_value();
 }
 
 /**
