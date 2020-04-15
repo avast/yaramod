@@ -164,10 +164,16 @@ void Literal::setValue(const std::shared_ptr<Symbol>& s, const std::string& symb
 	_formatted_value = symbol_name;
 }
 
+//TODO delete
 void Literal::setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name)
 {
 	_value = std::move(s);
 	_formatted_value = std::move(symbol_name);
+}
+
+void Literal::setValue(std::shared_ptr<Symbol>&& s)
+{
+	_value = std::move(s);
 }
 
 std::string Literal::getFormattedValue() const
@@ -215,8 +221,10 @@ std::string Literal::getText(bool pure/* = false*/) const
 	}
 	else if (is<std::shared_ptr<Symbol>>())
 	{
-		assert(_formatted_value);
-		return _formatted_value.value();
+		// TODO: delete this
+		if (_formatted_value)
+			return _formatted_value.value();
+		return getSymbol()->getName();
 	}
 	else
 	{

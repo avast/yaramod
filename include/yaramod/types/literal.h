@@ -15,10 +15,9 @@
 #include <variant>
 
 #include "yaramod/yaramod_error.h"
+#include "yaramod/types/symbol.h"
 
 namespace yaramod {
-
-class Symbol;
 
 /**
  * Class representing literal. Literal can be either
@@ -80,7 +79,9 @@ public:
 	void setValue(std::uint64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(double f, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
+	//TODO delete this
 	void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
+	void setValue(std::shared_ptr<Symbol>&& s);
 	/// @}
 
 	/// @name String representation

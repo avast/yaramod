@@ -11,7 +11,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "yaramod/types/expression.h"
+#include "yaramod/types/expression_type.h"
+#include "yaramod/types/token_type.h"
 
 namespace yaramod {
 
@@ -43,7 +44,7 @@ public:
 	/// @name Getter methods
 	/// @{
 	const std::string& getName() const { return _name; }
-	Expression::Type getDataType() const { return _dataType; }
+	ExpressionType getDataType() const { return _dataType; }
 	Symbol::Type getType() const { return _type; }
 	TokenType getTokenType() const
 	{
@@ -71,13 +72,13 @@ public:
 protected:
 	/// @name Constructors
 	/// @{
-	Symbol(Symbol::Type type, const std::string& name, Expression::Type dataType)
+	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType)
 		: _type(type), _name(name), _dataType(dataType) {}
 	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol
 	std::string _name; ///< Name
-	Expression::Type _dataType; ///< Data type of the symbol
+	ExpressionType _dataType; ///< Data type of the symbol
 };
 
 }
