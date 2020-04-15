@@ -174,6 +174,9 @@ bool ElfModule::initialize(ImportFeatures/* features*/)
 	symtabStruct->addAttribute(std::make_shared<ValueSymbol>("shndx", Type::Int));
 	elfStruct->addAttribute(std::make_shared<ArraySymbol>("symtab", symtabStruct));
 
+	elfStruct->addAttribute(std::make_unique<FunctionSymbol>("symtab_symbol", Type::Int, Type::String));
+	elfStruct->addAttribute(std::make_unique<FunctionSymbol>("symtab_symbol", Type::Int, Type::Regexp));
+
 	_structure = elfStruct;
 	return true;
 }
