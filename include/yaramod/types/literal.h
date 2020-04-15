@@ -78,9 +78,7 @@ public:
 	void setValue(std::int64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(std::uint64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(double f, const std::optional<std::string>& integral_formatted_value = std::nullopt);
-	void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	//TODO delete this
-	void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
+	void setValue(const std::shared_ptr<Symbol>& s);
 	void setValue(std::shared_ptr<Symbol>&& s);
 	/// @}
 

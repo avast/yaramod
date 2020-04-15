@@ -65,9 +65,8 @@ public:
 	void setValue(std::int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(std::uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
-	void setValue(const std::shared_ptr<Symbol>& value, const std::string& symbol_name) { _value->setValue(value, symbol_name); }
-	void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
-	void setValue(std::shared_ptr<Symbol>&& value);
+	void setValue(const std::shared_ptr<Symbol>& value) { _value->setValue(value); }
+	void setValue(std::shared_ptr<Symbol>&& value) { _value->setValue(std::move(value)); }
 
 	void setType(TokenType type) { _type = type; }
 	void setFlag(bool flag) { _flag = flag; }

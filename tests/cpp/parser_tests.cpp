@@ -5859,6 +5859,81 @@ rule oneline_rule_2
 }
 
 TEST_F(ParserTests,
+IncompleteRulesModeReferenceUnknownSymbol) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+		unknown_rule
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IncompleteRulesModeIncompleteRule) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+}
+
+TEST_F(ParserTests,
+RenameReferencedRuleWorks) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+		true
+}
+
+rule def
+{
+	condition:
+		abc
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	rule1->setName("XYZ");
+	EXPECT_EQ(rule1->getName(), "XYZ");
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	EXPECT_EQ(rule2->getCondition()->getText(), "XYZ");
+
+std::string expected = R"(
+rule XYZ
+{
+	condition:
+		true
+}
+
+rule def
+{
+	condition:
+		XYZ
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 CuckooScheduledTaskModuleFunction) {
 	prepareInput(
 R"(

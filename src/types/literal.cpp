@@ -158,17 +158,9 @@ void Literal::setValue(double f, const std::optional<std::string>& integral_form
 	_formatted_value = integral_formatted_value;
 }
 
-void Literal::setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name)
+void Literal::setValue(const std::shared_ptr<Symbol>& s)
 {
 	_value = s;
-	_formatted_value = symbol_name;
-}
-
-//TODO delete
-void Literal::setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name)
-{
-	_value = std::move(s);
-	_formatted_value = std::move(symbol_name);
 }
 
 void Literal::setValue(std::shared_ptr<Symbol>&& s)

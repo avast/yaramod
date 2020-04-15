@@ -50,11 +50,6 @@ const std::shared_ptr<Symbol>& Token::getSymbol() const
 	return _value->getSymbol();
 }
 
-void Token::setValue(std::shared_ptr<Symbol>&& value)
-{
-	_value->setValue(std::move(value));
-}
-
 const std::shared_ptr<TokenStream>& Token::getSubTokenStream() const
 {
 	return _subTokenStream;

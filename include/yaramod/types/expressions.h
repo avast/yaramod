@@ -1220,7 +1220,7 @@ public:
 	{
 		_symbol = symbol;
 		if (_symbolToken)
-			_symbolToken.value()->setValue(_symbol, _symbol->getName());
+			_symbolToken.value()->setValue(_symbol);
 	}
 
 protected:

@@ -60,6 +60,12 @@ public:
 	}
 	/// @}
 
+	/// @name Setter methods
+	/// @{
+	template<typename T>
+	void setName(T&& name) { _name = std::forward<T>(name); }
+	/// @}
+
 	/// @name Detection methods
 	/// @{
 	bool isValue() const { return _type == Symbol::Type::Value; }

@@ -435,9 +435,11 @@ void ParserDriver::defineGrammar()
 				_lastRuleTokenStream = currentFileContext()->getTokenStream();
 				return {};
 			}, "ID", [&](auto&& args) -> Value {
-				args[3].getTokenIt()->setType(RULE_NAME);
-				if (ruleExists(args[3].getTokenIt()->getString()))
+				const std::string& name_text = args[3].getTokenIt()->getString();
+				if (ruleExists(name_text))
 					error_handle(args[3].getTokenIt()->getLocation(), "Redefinition of rule '" + args[3].getTokenIt()->getString() + "'");
+				args[3].getTokenIt()->setType(RULE_NAME);
+				args[3].getTokenIt()->setValue(std::make_shared<ValueSymbol>(name_text, Expression::Type::Bool));
 				return {};
 			},
 			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
@@ -1371,8 +1373,17 @@ void ParserDriver::defineGrammar()
 			TokenIt symbol_token = args[0].getTokenIt();
 			auto symbol = findSymbol(symbol_token->getString());
 			if (!symbol)
-				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getString() + "' referenced");
-			symbol_token->setValue(symbol, symbol->getName());
+			{
+				if (_mode != ParserMode::Incomplete)
+					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
+				else
+				{
+					error_handle(args[0].getTokenIt()->getLocation(), "TODO remove this exception '" + args[0].getTokenIt()->getPureText() + "' referenced");
+					//TODO: add new symbol with flag undefined
+				}
+			}
+			symbol_token->setValue(symbol);
+			std::cout << "identifier '" << args[0].getTokenIt()->getText() << "' = symbol '" << symbol->getName() << std::endl;
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
 			return output;
@@ -1393,7 +1404,7 @@ void ParserDriver::defineGrammar()
 				error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
 
 			auto symbol = attr.value();
-			symbol_token->setValue(symbol, symbol->getName());
+			symbol_token->setValue(symbol);
 			symbol_token->setType(symbol->getTokenType());
 			auto output = std::make_shared<StructAccessExpression>(std::move(expr), args[1].getTokenIt(), symbol_token);
 			output->setType(symbol->getDataType());

@@ -117,7 +117,6 @@ private:
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
 	std::vector<TokenIt> _tags; ///< Tags
-	std::shared_ptr<Symbol> _symbol; ///< Symbol representing rule
 	Location _location; ///< Which file was this rule included from
 };
 
