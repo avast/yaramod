@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Added new `elf` module function `elf.symtab_symbol()` ([#94](https://github.com/avast/yaramod/pull/94))
+
 # v3.5.0 (2020-03-26)
 
 * Added `metadata` module ([#90](https://github.com/avast/yaramod/pull/90))
