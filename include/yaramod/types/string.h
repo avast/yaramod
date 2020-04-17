@@ -80,6 +80,13 @@ public:
 	/// @name Getter methods
 	/// @{
 	Type getType() const { return _type; }
+	const Literal* getIdentifierTokenIt() const
+	{
+		if (_id)
+			return &(_id.value()->getLiteral());
+		else
+			return nullptr;
+	}
 	std::string getIdentifier() const
 	{
 		if (_id)
@@ -124,15 +131,26 @@ public:
 
 	/// @name Setter methods
 	/// @{
-	template <typename Str>
-	void setIdentifier(Str&& id)
+	void setIdentifier(std::string&& id)
 	{
 		if (_id)
-			_id.value()->setValue(std::forward<Str>(id));
+			_id.value()->setValue(std::move(id));
 		else
 		{
 			auto first = getFirstTokenIt();
-			_id = _tokenStream->emplace(first, STRING_KEY, std::forward<Str>(id));
+			_id = _tokenStream->emplace(first, STRING_KEY, std::move(id));
+			_assignToken = _tokenStream->emplace(first, ASSIGN, "=");
+		}
+	}
+
+	void setIdentifier(const std::string& id)
+	{
+		if (_id)
+			_id.value()->setValue(id);
+		else
+		{
+			auto first = getFirstTokenIt();
+			_id = _tokenStream->emplace(first, STRING_KEY, id);
 			_assignToken = _tokenStream->emplace(first, ASSIGN, "=");
 		}
 	}
@@ -228,8 +246,8 @@ public:
 protected:
 	std::shared_ptr<TokenStream> _tokenStream; ///< shared_pointer to the TokenStream in which the data is stored
 	Type _type; ///< Type of string //no need to store type of string in tokenstream - we just store the '"' or '/' characters
-	std::optional<TokenIt> _id; ///< Identifier //string
-	std::optional<TokenIt> _assignToken; ///< Identifier //string
+	std::optional<TokenIt> _id; ///< Optional TokenIt pointing to identifier in strings section
+	std::optional<TokenIt> _assignToken; ///< Optional TokenIt pointing to '=' following _id
 	std::unordered_map<StringModifier::Type, std::shared_ptr<StringModifier>> _mods; ///< String modifiers
 };
 

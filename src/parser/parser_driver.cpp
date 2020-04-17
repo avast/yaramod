@@ -561,7 +561,7 @@ void ParserDriver::defineGrammar()
 	_parser.rule("strings_body") // shared_ptr<StringsTrie>
 		.production(
 			"strings_body", "STRING_ID", "ASSIGN", [](auto&& args) -> Value {
-				args[1].getTokenIt()->setType(STRING_ID_BEFORE_NEWLINE);
+				args[1].getTokenIt()->setType(STRING_ID_AFTER_NEWLINE);
 				return {};
 			},
 			"string", [&](auto&& args) -> Value {
@@ -931,16 +931,28 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
+			assert(id->isString());
 			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			if (id->getString().size() > 1)
+			{
+				assert(findStringDefinition(id->getString()));
+				id->setValue(findStringDefinition(id->getString()));
+			}
 			auto output = std::make_shared<StringExpression>(std::move(id));
 			output->setType(Expression::Type::Bool);
 			return output;
 		})
 		.production("STRING_ID", "AT", "primary_expression", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
+			assert(id->isString());
 			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			if (id->getString().size() > 1)
+			{
+				assert(findStringDefinition(id->getString()));
+				id->setValue(findStringDefinition(id->getString()));
+			}
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr expr = args[2].getExpression();
 			if (!expr->isInt())
@@ -951,8 +963,14 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_ID", "IN", "range", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
+			assert(id->isString());
 			if (!stringExists(id->getString()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
+			if (id->getString().size() > 1)
+			{
+				assert(findStringDefinition(id->getString()));
+				id->setValue(findStringDefinition(id->getString()));
+			}
 			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr range = args[2].getExpression();
 
@@ -1159,60 +1177,85 @@ void ParserDriver::defineGrammar()
 		})
 		.production("STRING_COUNT", [&](auto&& args) -> Value {
 			// Replace '#' for '$' to get string id
-			auto stringId = args[0].getTokenIt()->getString();
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
 			stringId[0] = '$';
 
 			if (!stringExists(stringId))
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
-
+			if (stringId.size() > 1)
+			{
+				assert(findStringDefinition(stringId));
+				id->setValue(findStringDefinition(stringId));
+			}
 			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
 		.production("STRING_OFFSET", [&](auto&& args) -> Value {
 			// Replace '@' for '$' to get string id
-			auto stringId = args[0].getTokenIt()->getString();
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
 			stringId[0] = '$';
 
 			if (!stringExists(stringId))
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
-
+			if (stringId.size() > 1)
+			{
+				assert(findStringDefinition(stringId));
+				id->setValue(findStringDefinition(stringId));
+			}
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
 		.production("STRING_OFFSET", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
 			// Replace '@' for '$' to get string id
-			auto stringId = args[0].getTokenIt()->getString();
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
 			stringId[0] = '$';
 
 			if (!stringExists(stringId))
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
-
+			if (stringId.size() > 1)
+			{
+				assert(findStringDefinition(stringId));
+				id->setValue(findStringDefinition(stringId));
+			}
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
 			return output;
 		})
 		.production("STRING_LENGTH", [&](auto&& args) -> Value {
 			// Replace '!' for '$' to get string id
-			auto stringId = args[0].getTokenIt()->getString();
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
 			stringId[0] = '$';
 
 			if (!stringExists(stringId))
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
-
+			if (stringId.size() > 1)
+			{
+				assert(findStringDefinition(stringId));
+				id->setValue(findStringDefinition(stringId));
+			}
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			return output;
 		})
 		.production("STRING_LENGTH", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
 			// Replace '!' for '$' to get string id
-			auto stringId = args[0].getTokenIt()->getString();
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
 			stringId[0] = '$';
 
 			if (!stringExists(stringId))
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
-
+			if (stringId.size() > 1)
+			{
+				assert(findStringDefinition(stringId));
+				id->setValue(findStringDefinition(stringId));
+			}
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
 			return output;
@@ -1383,7 +1426,6 @@ void ParserDriver::defineGrammar()
 				}
 			}
 			symbol_token->setValue(symbol);
-			std::cout << "identifier '" << args[0].getTokenIt()->getText() << "' = symbol '" << symbol->getName() << std::endl;
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
 			return output;
@@ -1553,6 +1595,11 @@ void ParserDriver::defineGrammar()
 			TokenIt id = args[0].getTokenIt();
 			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
+			if (id->getString().size() > 1)
+			{
+				assert(findStringDefinition(id->getString()));
+				id->setValue(findStringDefinition(id->getString()));
+			}
 			return std::vector<Expression::Ptr>{std::make_shared<StringExpression>(id)};
 		})
 		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
@@ -1839,6 +1886,16 @@ bool ParserDriver::stringExists(const std::string& id) const
 	}
 
 	return false;
+}
+
+const Literal* ParserDriver::findStringDefinition(const std::string& id) const
+{
+	auto currentStrings = _currentStrings.lock();
+	std::shared_ptr<String> string;
+	if (currentStrings && currentStrings->find(id, string))
+		return string->getIdentifierTokenIt();
+	else
+		return nullptr;
 }
 
 /**

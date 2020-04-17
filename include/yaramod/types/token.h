@@ -51,8 +51,8 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText() const { return _value->getText(); }
-	std::string getPureText() const { return _value->getPureText(); }
+	std::string getText(bool pure = false) const;
+	std::string getPureText() const;
 	/// @}
 
 	/// @name Setter methods
@@ -67,6 +67,7 @@ public:
 	void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(const std::shared_ptr<Symbol>& value) { _value->setValue(value); }
 	void setValue(std::shared_ptr<Symbol>&& value) { _value->setValue(std::move(value)); }
+	void setValue(Literal::ReferenceType value) { _value->setValue(value); }
 
 	void setType(TokenType type) { _type = type; }
 	void setFlag(bool flag) { _flag = flag; }
@@ -82,6 +83,7 @@ public:
 	bool isInt() const { return _value->isInt(); }
 	bool isDouble() const { return _value->isFloat(); }
 	bool isSymbol() const { return _value->isSymbol(); }
+	bool isLiteralReference() const { return _value->isLiteralReference(); }
 
 	bool isIncludeToken() const { return _subTokenStream != nullptr; }
 	bool isLeftBracket() const
@@ -141,6 +143,8 @@ public:
 	std::uint64_t getUInt() const;
 	double getFloat() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
+	Literal::ReferenceType getLiteralReference() const;
+
 	template <typename T>
 	const T& getValue() const { return std::get<T>(_value); }
 	bool getFlag() const { return _flag; }

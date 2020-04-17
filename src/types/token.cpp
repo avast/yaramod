@@ -14,6 +14,33 @@
 
 namespace yaramod {
 
+
+std::string Token::getText(bool pure) const
+{
+	auto output = _value->getText(pure);
+	if (_type == STRING_LENGTH)
+	{
+		assert(output != std::string());
+		output[0] = '!';
+	}
+	else if (_type == STRING_OFFSET)
+	{
+		assert(output != std::string());
+		output[0] = '@';
+	}
+	else if (_type == STRING_COUNT)
+	{
+		assert(output != std::string());
+		output[0] = '#';
+	}
+	return output;
+}
+
+std::string Token::getPureText() const
+{
+	return getText(true);
+}
+
 const Literal& Token::getLiteral() const
 {
 	assert("Literal is not nullptr" && _value);
@@ -22,11 +49,13 @@ const Literal& Token::getLiteral() const
 
 const std::string& Token::getString() const
 {
+	assert(isString());
 	return _value->getString();
 }
 
 bool Token::getBool() const
 {
+	assert(isBool()); 
 	return _value->getBool();
 }
 
@@ -48,6 +77,11 @@ double Token::getFloat() const
 const std::shared_ptr<Symbol>& Token::getSymbol() const
 {
 	return _value->getSymbol();
+}
+
+Literal::ReferenceType Token::getLiteralReference() const
+{
+	return _value->getLiteralReference();
 }
 
 const std::shared_ptr<TokenStream>& Token::getSubTokenStream() const

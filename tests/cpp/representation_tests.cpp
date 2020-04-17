@@ -81,6 +81,8 @@ RegexpConstruction) {
    EXPECT_EQ(regexp1.getText(), "/abc/");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"/", "a", "b", "c", "/"}));
 
+   regexp1.setIdentifier("$s01");
+   EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s01", "=", "/", "a", "b", "c", "/"}));
    regexp1.setIdentifier("$s1");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/"}));
 
