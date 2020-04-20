@@ -75,7 +75,9 @@ bool AndroguardModule::initialize(ImportFeatures)
 
 	auto signatureStruct = std::make_shared<StructureSymbol>("signature");
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
 	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
+	signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String, Type::Regexp));
 	androguardStruct->addAttribute(signatureStruct);
 
 	_structure = androguardStruct;

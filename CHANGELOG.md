@@ -3,6 +3,7 @@
 # dev
 
 * Added new `elf` module function `elf.symtab_symbol()` ([#94](https://github.com/avast/yaramod/pull/94))
+* Added new overloads of `androguard.signature.hits()` function
 
 # v3.5.0 (2020-03-26)
 
