@@ -5936,7 +5936,6 @@ rule abc
 )";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
-	std::cout << "8" << std::endl;
 	EXPECT_EQ(rule->getCondition()->getText(), "$s1");
 }
 

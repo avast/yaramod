@@ -12,7 +12,6 @@
 #include "yaramod/utils/utils.h"
 
 
-
 namespace yaramod {
 
 /**
@@ -121,7 +120,7 @@ Literal::Literal(std::shared_ptr<Symbol>&& value)
 /**
  * Constructor.
  *
- * @param value Value of the literal which is a reference to another Literal.
+ * @param value Reference to another Literal.
  */
 Literal::Literal(ReferenceType value)
 	: _value(value)
