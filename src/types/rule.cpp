@@ -43,7 +43,6 @@ Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::o
 	, _strings(std::move(strings))
 	, _condition(std::move(condition))
 	, _tags(tags)
-	, _symbol(std::make_shared<ValueSymbol>(name->getPureText(), Expression::Type::Bool))
 	, _location({"[stream]", 0})
 {
 }
@@ -206,7 +205,7 @@ std::vector<std::string> Rule::getTags() const
  */
 const std::shared_ptr<Symbol>& Rule::getSymbol() const
 {
-	return _symbol;
+	return _name->getSymbol();
 }
 
 /**
@@ -247,7 +246,13 @@ const Rule::Location& Rule::getLocation() const
  */
 void Rule::setName(const std::string& name)
 {
-	_name->setValue(name);
+	if (_name->isString())
+		_name->setValue(name);
+	else
+	{
+		assert(_name->isSymbol());
+		_name->getSymbol()->setName(name);
+	}
 }
 
 /**

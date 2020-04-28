@@ -134,6 +134,7 @@ protected:
 	/// @name Methods for handling strings
 	/// @{
 	bool stringExists(const std::string& id) const;
+	const Literal* findStringDefinition(const std::string& id) const;
 	void setCurrentStrings(const std::shared_ptr<Rule::StringsTrie>& currentStrings);
 	bool sectionStrings() const { return _sectionStrings; };
 	void sectionStrings(bool new_value) { _sectionStrings = new_value; };

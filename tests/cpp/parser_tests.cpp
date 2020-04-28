@@ -5859,6 +5859,178 @@ rule oneline_rule_2
 }
 
 TEST_F(ParserTests,
+RenameReferencedRuleWorks) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+		true
+}
+
+rule def
+{
+	condition:
+		abc
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	rule1->setName("XYZ");
+	EXPECT_EQ(rule1->getName(), "XYZ");
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	EXPECT_EQ(rule2->getCondition()->getText(), "XYZ");
+
+std::string expected = R"(
+rule XYZ
+{
+	condition:
+		true
+}
+
+rule def
+{
+	condition:
+		XYZ
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RenameStringWorks1) {
+	prepareInput(
+R"(
+rule abc
+{
+	strings:
+		$s07 = "abc string"
+	condition:
+		$s07
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	ASSERT_EQ(1u, rule->getStrings().size());
+	std::shared_ptr<String> s;
+	ASSERT_TRUE(rule->getStringsTrie()->find("$s07", s));
+	s->setIdentifier("$s1");
+
+	std::string expected = R"(
+rule abc
+{
+	strings:
+		$s1 = "abc string"
+	condition:
+		$s1
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ(rule->getCondition()->getText(), "$s1");
+}
+
+TEST_F(ParserTests,
+RenameStringWorks2) {
+	prepareInput(
+R"(
+rule abc
+{
+	strings:
+		$s07 = "abc string"
+	condition:
+		$s07 and
+		#s07 == 5 or
+		(
+			(@s07 > 5) and
+			(@s07[0] > 100)
+		) and
+		$s07 at entrypoint and
+		$s07 in (10 .. 20)
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	ASSERT_EQ(1u, rule->getStrings().size());
+	std::shared_ptr<String> s;
+	ASSERT_TRUE(rule->getStringsTrie()->find("$s07", s));
+	s->setIdentifier("$s1");
+
+	EXPECT_EQ(rule->getCondition()->getText(), "$s1 and #s1 == 5 or ((@s1 > 5) and (@s1[0] > 100)) and $s1 at entrypoint and $s1 in (10 .. 20)");
+
+	std::string expected = R"(
+rule abc
+{
+	strings:
+		$s1 = "abc string"
+	condition:
+		$s1 and
+		#s1 == 5 or
+		(
+			(@s1 > 5) and
+			(@s1[0] > 100)
+		) and
+		$s1 at entrypoint and
+		$s1 in (10 .. 20)
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+
+TEST_F(ParserTests,
+RenameStringWorks3) {
+	prepareInput(
+R"(
+rule abc
+{
+	strings:
+		$s07 = "abc string"
+	condition:
+		for any of ($s07) : ( $ at entrypoint )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	ASSERT_EQ(1u, rule->getStrings().size());
+	std::shared_ptr<String> s;
+	ASSERT_TRUE(rule->getStringsTrie()->find("$s07", s));
+	s->setIdentifier("$s1");
+
+	EXPECT_EQ(rule->getCondition()->getText(), "for any of ($s1) : ( $ at entrypoint )");
+
+	std::string expected = R"(
+rule abc
+{
+	strings:
+		$s1 = "abc string"
+	condition:
+		for any of ($s1) : ( $ at entrypoint )
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 CuckooScheduledTaskModuleFunction) {
 	prepareInput(
 R"(

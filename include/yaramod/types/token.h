@@ -10,6 +10,7 @@
 
 #include "yaramod/types/literal.h"
 #include "yaramod/types/location.h"
+#include "yaramod/types/token_type.h"
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {
@@ -19,140 +20,6 @@ using TokenIt = std::list<Token>::iterator;
 using TokenConstIt = std::list<Token>::const_iterator;
 using TokenItReversed = std::reverse_iterator<TokenIt>;
 using TokenConstItReversed = std::reverse_iterator<TokenConstIt>;
-
-/**
- * Represents type of parsed tokens.
- */
-enum TokenType
-{
-	RULE_NAME,
-	TAG,
-	HEX_ALT, // '|'
-	HEX_NIBBLE,
-	HEX_WILDCARD,
-	HEX_WILDCARD_LOW,
-	HEX_WILDCARD_HIGH,
-	HEX_JUMP_LEFT_BRACKET, // '['
-	HEX_JUMP_RIGHT_BRACKET, // ']'
-	HEX_ALT_LEFT_BRACKET, // '('
-	HEX_ALT_RIGHT_BRACKET, // ')'
-	HEX_JUMP_FIXED,
-	HEX_START_BRACKET, // '{'
-	HEX_END_BRACKET, // '}'
-	NEW_LINE,
-	META, // 'meta'
-	LQUOTE,
-	RQUOTE,
-	RULE_END, // '}'
-	RULE_BEGIN, // '{'
-	RANGE,
-	DOT,
-	DOUBLE_DOT,
-	LT,
-	GT,
-	LE,
-	GE,
-	EQ,
-	NEQ,
-	SHIFT_LEFT,
-	SHIFT_RIGHT,
-	MINUS,
-	PLUS,
-	MULTIPLY,
-	DIVIDE,
-	MODULO,
-	BITWISE_XOR,
-	BITWISE_AND,
-	BITWISE_OR,
-	BITWISE_NOT,
-	LP,
-	RP,
-	LCB, // '{'
-	RCB, // '}'
-	ASSIGN,
-	COLON,
-	COLON_BEFORE_NEWLINE,
-	COMMA,
-	PRIVATE,
-	GLOBAL,
-	NONE,
-	RULE,
-	STRINGS,
-	CONDITION,
-	ASCII,
-	NOCASE,
-	WIDE,
-	FULLWORD,
-	PRIVATE_STRING_MODIFIER,
-	XOR,
-	IMPORT_MODULE,
-	IMPORT_KEYWORD,
-	NOT,
-	AND,
-	OR,
-	ALL,
-	ANY,
-	OF,
-	THEM,
-	FOR,
-	ENTRYPOINT,
-	OP_AT,
-	OP_IN,
-	FILESIZE,
-	CONTAINS,
-	MATCHES,
-	SLASH,
-	STRING_LITERAL,
-	INTEGER,
-	DOUBLE,
-	STRING_ID,
-	STRING_ID_BEFORE_NEWLINE,
-	STRING_ID_WILDCARD,
-	STRING_LENGTH,
-	STRING_OFFSET,
-	STRING_COUNT,
-	ID,
-	INTEGER_FUNCTION,
-	LSQB, // '['
-	RSQB, // ']'
-	DASH, // '-'
-	REGEXP_OR,
-	REGEXP_ITER,
-	REGEXP_PITER,
-	REGEXP_OPTIONAL,
-	REGEXP_START_SLASH,
-	REGEXP_END_SLASH,
-	REGEXP_CHAR,
-	REGEXP_RANGE,
-	REGEXP_TEXT,
-	REGEXP_CLASS_NEGATIVE,
-	REGEXP_MODIFIERS,
-	REGEXP_GREEDY,
-	UNARY_MINUS,
-	META_KEY,
-	META_VALUE,
-	STRING_KEY,
-	VALUE_SYMBOL,
-	FUNCTION_SYMBOL,
-	ARRAY_SYMBOL,
-	DICTIONARY_SYMBOL,
-	STRUCTURE_SYMBOL,
-	LP_ENUMERATION,
-	RP_ENUMERATION,
-	LP_WITH_SPACE_AFTER,
-	RP_WITH_SPACE_BEFORE,
-	LP_WITH_SPACES,
-	RP_WITH_SPACES,
-	BOOL_TRUE,
-	BOOL_FALSE,
-	ONELINE_COMMENT,
-	COMMENT,
-	INCLUDE_DIRECTIVE,
-	INCLUDE_PATH,
-	FUNCTION_CALL_LP,
-	FUNCTION_CALL_RP,
-	INVALID,
-};
 
 class TokenStream;
 
@@ -184,8 +51,8 @@ public:
 
 	/// @name String representation
 	/// @{
-	std::string getText() const { return _value->getText(); }
-	std::string getPureText() const { return _value->getPureText(); }
+	std::string getText(bool pure = false) const;
+	std::string getPureText() const;
 	/// @}
 
 	/// @name Setter methods
@@ -198,8 +65,9 @@ public:
 	void setValue(std::int64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(std::uint64_t value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
 	void setValue(double value, const std::optional<std::string>& integral_formated_value = std::nullopt) { _value->setValue(value, integral_formated_value); }
-	void setValue(const std::shared_ptr<Symbol>& value, const std::string& symbol_name) { _value->setValue(value, symbol_name); }
-	void setValue(std::shared_ptr<Symbol>&& value, std::string&& symbol_name) { _value->setValue(std::move(value), std::move(symbol_name)); }
+	void setValue(const std::shared_ptr<Symbol>& value) { _value->setValue(value); }
+	void setValue(std::shared_ptr<Symbol>&& value) { _value->setValue(std::move(value)); }
+	void setValue(Literal::ReferenceType value) { _value->setValue(value); }
 
 	void setType(TokenType type) { _type = type; }
 	void setFlag(bool flag) { _flag = flag; }
@@ -215,6 +83,7 @@ public:
 	bool isInt() const { return _value->isInt(); }
 	bool isDouble() const { return _value->isFloat(); }
 	bool isSymbol() const { return _value->isSymbol(); }
+	bool isLiteralReference() const { return _value->isLiteralReference(); }
 
 	bool isIncludeToken() const { return _subTokenStream != nullptr; }
 	bool isLeftBracket() const
@@ -274,6 +143,8 @@ public:
 	std::uint64_t getUInt() const;
 	double getFloat() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
+	Literal::ReferenceType getLiteralReference() const;
+
 	template <typename T>
 	const T& getValue() const { return std::get<T>(_value); }
 	bool getFlag() const { return _flag; }

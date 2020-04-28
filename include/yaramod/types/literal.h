@@ -15,10 +15,11 @@
 #include <variant>
 
 #include "yaramod/yaramod_error.h"
+#include "yaramod/types/symbol.h"
 
 namespace yaramod {
 
-class Symbol;
+class String;
 
 /**
  * Class representing literal. Literal can be either
@@ -32,6 +33,8 @@ class Symbol;
 class Literal
 {
 public:
+
+	using ReferenceType = const Literal*;
 	/// @name Costructors
 	/// @{
 	Literal() { assert(is<std::string>()); };
@@ -42,8 +45,9 @@ public:
 	explicit Literal(std::int64_t value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	explicit Literal(std::uint64_t value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	explicit Literal(double value, const std::optional<std::string>& integral_formatted_value = std::nullopt);
-	explicit Literal(const std::shared_ptr<Symbol>& value, const std::string& name);
-	explicit Literal(std::shared_ptr<Symbol>&& value, const std::string& name);
+	explicit Literal(const std::shared_ptr<Symbol>& value);
+	explicit Literal(std::shared_ptr<Symbol>&& value);
+	explicit Literal(ReferenceType value);
 
 	Literal(Literal&& literal) = default;
 	Literal(const Literal& literal) = default;
@@ -58,16 +62,18 @@ public:
 	bool isInt() const { return is<std::int64_t>() || is<std::uint64_t>(); }
 	bool isFloat() const { return is<double>(); }
 	bool isSymbol() const { return is<std::shared_ptr<Symbol>>(); }
+	bool isLiteralReference() const { return is<ReferenceType>(); }
 	/// @}
 
 	/// @name Getter methods
 	/// @{
-	const std::string& getString() const { return std::get<std::string>(_value); }
-	bool getBool() const { return std::get<bool>(_value); }
+	const std::string& getString() const { assert(isString()); return std::get<std::string>(_value); }
+	bool getBool() const { assert(isBool()); return std::get<bool>(_value); }
 	std::int64_t getInt() const { return is<std::int64_t>() ? std::get<std::int64_t>(_value) : std::get<std::uint64_t>(_value); }
 	std::uint64_t getUInt() const { return is<std::uint64_t>() ? std::get<std::uint64_t>(_value) : std::get<std::int64_t>(_value); }
-	double getFloat() const { return std::get<double>(_value); }
-	const std::shared_ptr<Symbol>& getSymbol() const { return std::get<std::shared_ptr<Symbol>>(_value); }
+	double getFloat() const { assert(isFloat()); return std::get<double>(_value); }
+	const std::shared_ptr<Symbol>& getSymbol() const { assert(isSymbol()); return std::get<std::shared_ptr<Symbol>>(_value); }
+	ReferenceType getLiteralReference() const { assert(isLiteralReference()); return std::get<ReferenceType>(_value); }
 	std::string getFormattedValue() const;
 	/// @}
 
@@ -79,8 +85,9 @@ public:
 	void setValue(std::int64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(std::uint64_t i, const std::optional<std::string>& integral_formatted_value = std::nullopt);
 	void setValue(double f, const std::optional<std::string>& integral_formatted_value = std::nullopt);
-	void setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name);
-	void setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name);
+	void setValue(const std::shared_ptr<Symbol>& s);
+	void setValue(std::shared_ptr<Symbol>&& s);
+	void setValue(ReferenceType l);
 	/// @}
 
 	/// @name String representation
@@ -96,6 +103,12 @@ public:
 			os << literal._formatted_value.value();
 		else if (literal.isBool())
 			os << (literal.getBool() ? "true" : "false");
+		else if (literal.isSymbol())
+			os << literal.getSymbol()->getName();
+		else if (literal.isLiteralReference())
+		{
+			os << *(literal.getLiteralReference());
+		}
 		else
 			std::visit(
 				[&os](auto&& v)
@@ -115,7 +128,7 @@ private:
 	/// For an integral literal x there are two options:
 	/// i.  x it is unformatted: _formatted_value is empty  AND  _value contains x
 	/// ii. x it is formatted:   _formatted_value contains x's string representation  AND  _value contains pure x
-	std::variant<std::string, bool, std::int64_t, std::uint64_t, double, std::shared_ptr<Symbol>> _value; ///< Value used for all literals:
+	std::variant<std::string, bool, std::int64_t, std::uint64_t, double, std::shared_ptr<Symbol>, ReferenceType> _value; ///< Value used for all literals:
 	std::optional<std::string> _formatted_value; ///< Value used for integral literals with particular formatting
 };
 

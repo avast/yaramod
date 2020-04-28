@@ -13,6 +13,7 @@
 
 #include "yaramod/utils/visitor_result.h"
 #include "yaramod/types/token_stream.h"
+#include "yaramod/types/expression_type.h"
 
 namespace yaramod {
 
@@ -28,16 +29,7 @@ public:
 	using Ptr = std::shared_ptr<Expression>;
 
 	///< Type of the expression.
-	enum class Type
-	{
-		Undefined,
-		Bool,
-		Int,
-		String,
-		Regexp,
-		Object,
-		Float
-	};
+	using Type = ExpressionType;
 
 	/// @name Constructors
 	/// @{

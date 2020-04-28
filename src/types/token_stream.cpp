@@ -393,7 +393,7 @@ void TokenStream::addMissingNewLines()
 			else
 				brackets.addRightBracket();
 		}
-		if (current != NEW_LINE && (next == CONDITION || next == STRINGS || next == STRING_ID_BEFORE_NEWLINE || next == META || next == META_KEY || next == RULE_END || next == RULE_BEGIN))
+		if (current != NEW_LINE && (next == CONDITION || next == STRINGS || next == STRING_ID_AFTER_NEWLINE || next == META || next == META_KEY || next == RULE_END || next == RULE_BEGIN))
 		{
 			nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
 			next = nextIt->getType();

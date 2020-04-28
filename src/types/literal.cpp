@@ -12,7 +12,7 @@
 #include "yaramod/utils/utils.h"
 
 
-namespace yaramod{
+namespace yaramod {
 
 /**
  * Constructor.
@@ -101,11 +101,9 @@ Literal::Literal(double value, const std::optional< std::string >& integral_form
  * Constructor.
  *
  * @param value Symbol value of the literal.
- * @param name formatted value of the literal.
  */
-Literal::Literal(const std::shared_ptr<Symbol>& value, const std::string& name)
+Literal::Literal(const std::shared_ptr<Symbol>& value)
 	: _value(value)
-	, _formatted_value(name)
 {
 }
 
@@ -113,11 +111,19 @@ Literal::Literal(const std::shared_ptr<Symbol>& value, const std::string& name)
  * Constructor.
  *
  * @param value Symbol value of the literal.
- * @param name formatted value of the literal.
  */
-Literal::Literal(std::shared_ptr<Symbol>&& value, const std::string& name)
+Literal::Literal(std::shared_ptr<Symbol>&& value)
 	: _value(std::move(value))
-	, _formatted_value(name)
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param value Reference to another Literal.
+ */
+Literal::Literal(ReferenceType value)
+	: _value(value)
 {
 }
 
@@ -158,16 +164,19 @@ void Literal::setValue(double f, const std::optional<std::string>& integral_form
 	_formatted_value = integral_formatted_value;
 }
 
-void Literal::setValue(const std::shared_ptr<Symbol>& s, const std::string& symbol_name)
+void Literal::setValue(const std::shared_ptr<Symbol>& s)
 {
 	_value = s;
-	_formatted_value = symbol_name;
 }
 
-void Literal::setValue(std::shared_ptr<Symbol>&& s, std::string&& symbol_name)
+void Literal::setValue(std::shared_ptr<Symbol>&& s)
 {
 	_value = std::move(s);
-	_formatted_value = std::move(symbol_name);
+}
+
+void Literal::setValue(ReferenceType l)
+{
+	_value = l;
 }
 
 std::string Literal::getFormattedValue() const
@@ -183,7 +192,7 @@ std::string Literal::getFormattedValue() const
  */
 std::string Literal::getText(bool pure/* = false*/) const
 {
-	if (is<std::string>())
+	if (isString())
 	{
 		const auto& output = getString();
 		if (pure)
@@ -213,10 +222,13 @@ std::string Literal::getText(bool pure/* = false*/) const
 		else
 			return numToStr(getFloat());
 	}
-	else if (is<std::shared_ptr<Symbol>>())
+	else if (isSymbol())
 	{
-		assert(_formatted_value);
-		return _formatted_value.value();
+		return getSymbol()->getName();
+	}
+	else if (isLiteralReference())
+	{
+		return getLiteralReference()->getText(pure);
 	}
 	else
 	{

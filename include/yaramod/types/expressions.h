@@ -37,7 +37,7 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
@@ -123,7 +123,7 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 	const Expression::Ptr& getAtExpression() const { return _at; }
 
 	void setId(const std::string& id) { _id->setValue(id); }
@@ -175,7 +175,7 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 	const Expression::Ptr& getRangeExpression() const { return _range; }
 
 	void setId(const std::string& id) { _id->setValue(id); }
@@ -219,14 +219,17 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
-		return _id->getString();
+		auto output = getId();
+		assert(output != std::string() && "String id must be non-empty.");
+		output[0] = '#';
+		return output;
 	}
 
 private:
@@ -273,7 +276,7 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 	const Expression::Ptr& getIndexExpression() const { return _expr; }
 
 	void setId(const std::string& id) { _id->setValue(id); }
@@ -283,7 +286,10 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
+		auto prefix = getId();
+		assert(prefix != std::string() && "String id must be non-empty.");
+		prefix[0] = '@';
+		return _expr ? prefix + '[' + _expr->getText(indent) + ']' : prefix;
 	}
 
 private:
@@ -330,7 +336,7 @@ public:
 		return v->visit(this);
 	}
 
-	const std::string& getId() const { return _id->getString(); }
+	std::string getId() const { return _id->getPureText(); }
 	const Expression::Ptr& getIndexExpression() const { return _expr; }
 
 	void setId(const std::string& id) { _id->setValue(id); }
@@ -340,6 +346,9 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
+		auto prefix = getId();
+		assert(prefix != std::string() && "String id must be non-empty.");
+		prefix[0] = '!';
 		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
 
@@ -1220,7 +1229,7 @@ public:
 	{
 		_symbol = symbol;
 		if (_symbolToken)
-			_symbolToken.value()->setValue(_symbol, _symbol->getName());
+			_symbolToken.value()->setValue(_symbol);
 	}
 
 protected:

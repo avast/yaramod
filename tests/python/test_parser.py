@@ -147,6 +147,29 @@ rule rule_3 {
         self.assertEqual(rule.strings[0].identifier, '$1')
         self.assertEqual(rule.strings[0].pure_text, b'String from Rule 3')
 
+    def test_links_between_rules_after_rename(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule rule_1 {
+    condition:
+        true
+}
+
+rule rule_2 {
+    condition:
+        rule_1
+}''')
+
+        self.assertEqual(len(yara_file.rules), 2)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_1')
+        rule.name = 'RULE_1'
+        self.assertEqual(rule.name, 'RULE_1')
+
+        rule = yara_file.rules[1]
+        self.assertEqual(rule.name, 'rule_2')
+        self.assertEqual(rule.condition.text, 'RULE_1')
+
     def test_plain_strings_with_modifiers(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_plain_strings_with_modifiers {
