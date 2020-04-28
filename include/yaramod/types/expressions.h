@@ -1859,6 +1859,7 @@ public:
 
 	virtual VisitResult accept(Visitor* v) override
 	{
+		std::cout << "RegexpExpression accept called" << std::endl;
 		return v->visit(this);
 	}
 

@@ -10,6 +10,8 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/plain_string.h"
 
+#include <yaramod/utils/modifying_visitor.h>
+
 using namespace ::testing;
 
 namespace yaramod {
@@ -5858,6 +5860,37 @@ rule oneline_rule_2
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
+// TEST_F(ParserTests,
+// IncompleteRulesModeReferenceUnknownSymbol) {
+// 	prepareInput(
+// R"(
+// rule abc
+// {
+// 	condition:
+// 		unknown_rule
+// }
+// )"
+// );
+// 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+// 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+// 	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+// }
+
+// TEST_F(ParserTests,
+// IncompleteRulesModeIncompleteRule) {
+// 	prepareInput(
+// R"(
+// rule abc
+// {
+// 	condition:
+// )"
+// );
+// 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+// 	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
+// 	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+// }
+
 TEST_F(ParserTests,
 RenameReferencedRuleWorks) {
 	prepareInput(
@@ -6284,6 +6317,50 @@ rule empty_rule
 	EXPECT_TRUE(rule->getStrings().empty());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+class TestAndExpressionModifyingVisitor : public yaramod::ModifyingVisitor
+{
+	public:
+		// def add(self, yara_file: yaramod.YaraFile):
+  //               for rule in yara_file.rules:
+  //                   self.modify(rule.condition)
+
+        void add(YaraFile& yara_file)
+        {
+        	for(auto& rule : yara_file.getRules())
+        		modify(rule->getCondition());
+        }
+
+		virtual yaramod::VisitResult visit(yaramod::AndExpression* expr) override
+		{
+			auto retLeft = expr->getLeftOperand()->accept(this);
+			auto retRight = expr->getRightOperand()->accept(this);
+			return defaultHandler(expr, retRight, retLeft);
+		}
+};
+
+TEST_F(ParserTests,
+ModifyingVisitorInpactOnTokenStream) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule rule_with_regexp_in_fnc_call {
+    condition:
+        true and (true and false)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+
+	TestAndExpressionModifyingVisitor visitor;
+	visitor.add(yara_file);
+
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ(rule->getCondition()->getText(), "(false and true) and true");
 }
 
 }

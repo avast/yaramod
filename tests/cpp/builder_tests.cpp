@@ -512,6 +512,33 @@ rule rule_2 : Tag2
 )", yaraFile->getTextFormatted());
 }
 
+// TEST_F(BuilderTests,
+// RenameReferencedRuleWorks) {
+// 	YaraRuleBuilder newRule;
+// 	auto rule1 = newRule
+// 		.withName("abc")
+// 		.get();
+// 	auto rule2 = newRule
+// 		.withName("def")
+// 		.withCondition(cond??)
+// 		.get();
+// 	std::string expectedBefore = 
+// R"(
+// rule abc
+// {
+// 	condition:
+// 		true
+// }
+
+// rule def
+// {
+// 	condition:
+// 		abc
+// }
+// )";
+// }
+
+
 TEST_F(BuilderTests,
 RuleWithCustomConditionWorks) {
 	auto cond = matchAt("$1", entrypoint()).get();
