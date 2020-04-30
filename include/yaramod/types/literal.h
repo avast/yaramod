@@ -106,9 +106,7 @@ public:
 		else if (literal.isSymbol())
 			os << literal.getSymbol()->getName();
 		else if (literal.isLiteralReference())
-		{
 			os << *(literal.getLiteralReference());
-		}
 		else
 			std::visit(
 				[&os](auto&& v)

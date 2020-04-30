@@ -18,6 +18,7 @@
 namespace yaramod {
 
 class Visitor;
+class ModifyingVisitor;
 
 /**
  * Class representing expression in the condition section
@@ -50,6 +51,7 @@ public:
 
 	/// @name Virtual methods
 	/// @{
+	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) = 0;
 	virtual VisitResult accept(Visitor* v) = 0;
 	virtual std::string getText(const std::string& indent = std::string{}) const = 0;
 	/// @}
@@ -71,7 +73,7 @@ public:
 			default: return "Error - unknown type";
 		}
 	}
-	TokenStream* getTokenStream()
+	TokenStream* getTokenStream() const
 	{
 		return _tokenStream.get();
 	}
