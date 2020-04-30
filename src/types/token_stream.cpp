@@ -92,7 +92,7 @@ void TokenStream::move_append(TokenStream* donor)
 	_tokens.splice(_tokens.end(), donor->_tokens);
 }
 
-void TokenStream::move_append(TokenStream* donor, TokenIt before)
+void TokenStream::move_append(TokenIt before, TokenStream* donor)
 {
 	_tokens.splice(before, donor->_tokens);
 }
@@ -100,6 +100,11 @@ void TokenStream::move_append(TokenStream* donor, TokenIt before)
 void TokenStream::move_append(TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens, first, last);
+}
+
+void TokenStream::move_append(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last)
+{
+	_tokens.splice(before, donor->_tokens, first, last);
 }
 
 TokenIt TokenStream::begin()
