@@ -41,6 +41,7 @@ public:
 	};
 
 	TokenStream() = default;
+	TokenStream(const TokenStream &ts) = default;
 
 	/// @name Insertion methods
 	/// @{

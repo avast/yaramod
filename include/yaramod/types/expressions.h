@@ -1641,6 +1641,12 @@ protected:
 	{
 		assert(keyword->isString());
 	}
+	KeywordExpression(const std::shared_ptr<TokenStream>& ts, TokenIt keyword)
+		: Expression(ts) 
+		, _keyword(keyword)
+	{
+		assert(keyword->isString());
+	}
 	TokenIt _keyword; ///< Keyword
 };
 
@@ -1658,6 +1664,10 @@ class FilesizeExpression : public KeywordExpression
 public:
 	FilesizeExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	FilesizeExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
@@ -1682,6 +1692,10 @@ class EntrypointExpression : public KeywordExpression
 public:
 	EntrypointExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	EntrypointExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
@@ -1709,6 +1723,10 @@ public:
 		: KeywordExpression(t)
 	{
 	}
+	AllExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
+	{
+	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
@@ -1734,6 +1752,10 @@ public:
 		: KeywordExpression(t)
 	{
 	}
+	AnyExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
+	{
+	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
@@ -1757,6 +1779,10 @@ class ThemExpression : public KeywordExpression
 public:
 	ThemExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	ThemExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
