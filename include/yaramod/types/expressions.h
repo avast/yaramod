@@ -48,6 +48,9 @@ public:
 		return getId();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
+
 private:
 	TokenIt _id; ///< Identifier of the string, std::string
 };
@@ -87,6 +90,9 @@ public:
 	{
 		return getId();
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
 
 private:
 	TokenIt _id; ///< Wildcard identifier of the string
@@ -138,6 +144,9 @@ public:
 	{
 		return getId() + " " + _at_symbol->getString() + " " + _at->getText(indent);
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _at->getLastTokenIt(); }
 
 private:
 	TokenIt _id; ///< Identifier of the string
@@ -192,6 +201,9 @@ public:
 		return getId() + " " + _in_symbol->getString() + " " + _range->getText(indent);
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _range->getLastTokenIt(); }
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	TokenIt _in_symbol; ///< Token holding "at"
@@ -236,6 +248,9 @@ public:
 		output[0] = '#';
 		return output;
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
 
 private:
 	TokenIt _id; ///< Identifier of the string
@@ -298,6 +313,9 @@ public:
 		return _expr ? prefix + '[' + _expr->getText(indent) + ']' : prefix;
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
@@ -359,6 +377,9 @@ public:
 		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
@@ -396,6 +417,9 @@ protected:
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _op; }
+	virtual TokenIt getLastTokenIt() const override { return _expr->getLastTokenIt(); }
 
 private:
 	TokenIt _op; ///< Unary operation symbol, std::string
@@ -503,6 +527,9 @@ protected:
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _left->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right->getLastTokenIt(); }
 
 private:
 	TokenIt _op; ///< Binary operation symbol, std::string
@@ -1019,6 +1046,9 @@ public:
 		return ss.str();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _for; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 private:
 	TokenIt _id; ///< Iterating identifier
 	TokenIt _for; ///< TokenIt of 'for'
@@ -1063,6 +1093,9 @@ public:
 			<< _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _for; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 private:
 	TokenIt _for;
 	TokenIt _left_bracket;
@@ -1100,6 +1133,9 @@ public:
 	{
 		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent);
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _set->getLastTokenIt(); }
 };
 
 /**
@@ -1149,6 +1185,9 @@ public:
 	}
 
 	const std::vector<Expression::Ptr>& getElements() const { return _elements; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setElements(const std::vector<Expression::Ptr>& elements)
 	{
@@ -1203,6 +1242,9 @@ public:
 
 	const Expression::Ptr& getLow() const { return _low; }
 	const Expression::Ptr& getHigh() const { return _high; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setLow(const Expression::Ptr& low) { _low = low; }
 	void setLow(Expression::Ptr&& low) { _low = std::move(low); }
@@ -1261,6 +1303,9 @@ public:
 		return _symbol;
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _symbolToken.value(); }
+	virtual TokenIt getLastTokenIt() const override { return _symbolToken.value(); }
+
 	void setSymbol(const std::shared_ptr<Symbol>& symbol)
 	{
 		_symbol = symbol;
@@ -1308,6 +1353,10 @@ public:
 	}
 
 	const Expression::Ptr& getStructure() const { return _structure; }
+
+	//TODO: check if is correct:
+	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _dot; }
+	virtual TokenIt getLastTokenIt() const override { return _structure->getLastTokenIt(); }
 
 	void setStructure(const Expression::Ptr& structure) { _structure = structure; }
 	void setStructure(Expression::Ptr&& structure) { _structure = std::move(structure); }
@@ -1362,6 +1411,10 @@ public:
 
 	const Expression::Ptr& getArray() const { return _array; }
 	const Expression::Ptr& getAccessor() const { return _accessor; }
+
+	//TODO: check if is correct:
+	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _array->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setArray(const Expression::Ptr& array) { _array = array; }
 	void setArray(Expression::Ptr&& array) { _array = std::move(array); }
@@ -1426,6 +1479,10 @@ public:
 	const Expression::Ptr& getFunction() const { return _func; }
 	const std::vector<Expression::Ptr>& getArguments() const { return _args; }
 
+	//TODO: check if is correct:
+	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _func->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setFunction(const Expression::Ptr& func) { _func = func; }
 	void setFunction(Expression::Ptr&& func) { _func = std::move(func); }
 	void setArguments(const std::vector<Expression::Ptr>& args) { _args = args; }
@@ -1466,6 +1523,9 @@ public:
 		else
 			return std::string();
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _value.value(); }
+	virtual TokenIt getLastTokenIt() const override { return _value.value(); }
 
 	void clear()
 	{
@@ -1633,6 +1693,9 @@ public:
 	{
 		return _keyword->getString();
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _keyword; }
+	virtual TokenIt getLastTokenIt() const override { return _keyword; }
 
 protected:
 	KeywordExpression() = default;
@@ -1842,6 +1905,9 @@ public:
 
 	const Expression::Ptr& getEnclosedExpression() const { return _expr; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setEnclosedExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setEnclosedExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
@@ -1897,6 +1963,9 @@ public:
 	const std::string& getFunction() const { return _func->getString(); }
 	const Expression::Ptr& getArgument() const { return _expr; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _func; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setFunction(const std::string& func) { _func->setValue(func); }
 	void setFunction(std::string&& func) { _func->setValue(std::move(func)); }
 	void setArgument(const Expression::Ptr& expr) { _expr = expr; }
@@ -1942,6 +2011,9 @@ public:
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override { return _regexp->getText(); }
 
 	const std::shared_ptr<String>& getRegexpString() const { return _regexp; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _regexp->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _regexp->getLastTokenIt(); }
 
 	void setRegexpString(const std::shared_ptr<String>& regexp) { _regexp = regexp; }
 	void setRegexpString(std::shared_ptr<String>&& regexp) { _regexp = std::move(regexp); }

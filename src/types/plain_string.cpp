@@ -73,12 +73,12 @@ std::string PlainString::getPureText() const
 
 TokenIt PlainString::getFirstTokenIt() const
 {
-	if (_id)
-		return _id.value();
-	else if (_assignToken)
-		return _assignToken.value();
-	else
-		return _text;
+	return _text;
+}
+
+TokenIt PlainString::getLastTokenIt() const
+{
+	return _text;
 }
 
 }
