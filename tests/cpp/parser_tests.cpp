@@ -6324,16 +6324,16 @@ TEST_F(ParserTests,
 RegexpModifyingVisitorInpactOnTokenStream) {
 	class TestModifyingVisitor : public yaramod::ModifyingVisitor
 	{
-		public:
-	        void process_rule(const std::shared_ptr<Rule>& rule)
-	        {
-	        	auto modified = modify(rule->getCondition());
-	        	rule->setCondition(std::move(modified));
-	        }
-			virtual yaramod::VisitResult visit(RegexpExpression* expr) override
-			{
-				return yaramod::regexp("abc", "i").get();
-			}
+	public:
+		void process_rule(const std::shared_ptr<Rule>& rule)
+		{
+			auto modified = modify(rule->getCondition());
+			rule->setCondition(std::move(modified));
+		}
+		virtual yaramod::VisitResult visit(RegexpExpression* expr) override
+		{
+			return yaramod::regexp("abc", "i").get();
+		}
 	};
 	prepareInput(
 R"(
@@ -6371,15 +6371,15 @@ TEST_F(ParserTests,
 BoolModifyingVisitorInpactOnTokenStream) {
 	class TestModifyingVisitor : public yaramod::ModifyingVisitor
 	{
-		public:
-	        void process_rule(const std::shared_ptr<Rule>& rule) {
-	        	auto modified = modify(rule->getCondition());
-	        	rule->setCondition(std::move(modified));
-	        }
-			virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
-			{
-				return yaramod::boolVal(false).get();
-			}
+	public:
+		void process_rule(const std::shared_ptr<Rule>& rule) {
+			auto modified = modify(rule->getCondition());
+			rule->setCondition(std::move(modified));
+		}
+		virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
+		{
+			return yaramod::boolVal(false).get();
+		}
 	};
 	prepareInput(
 R"(
@@ -6418,15 +6418,15 @@ TEST_F(ParserTests,
 IntLiteralModifyingVisitorInpactOnTokenStream) {
 	class TestModifyingVisitor : public yaramod::ModifyingVisitor
 	{
-		public:
-	        void process_rule(const std::shared_ptr<Rule>& rule) {
-	        	auto modified = modify(rule->getCondition());
-	        	rule->setCondition(std::move(modified));
-	        }
-			virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
-			{
-				return yaramod::intVal(111).get();
-			}
+	public:
+		void process_rule(const std::shared_ptr<Rule>& rule) {
+			auto modified = modify(rule->getCondition());
+			rule->setCondition(std::move(modified));
+		}
+		virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
+		{
+			return yaramod::intVal(111).get();
+		}
 	};
 	prepareInput(
 R"(
