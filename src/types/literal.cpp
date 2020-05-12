@@ -233,7 +233,7 @@ std::string Literal::getText(bool pure/* = false*/) const
 	else
 	{
 		std::stringstream err;
-		err << "Error: Unexpected index of TokenValue class '" << *this << "'. Index: " << _value.index() << std::endl;
+		err << "Error: Unexpected index of Literal value. Index: " << _value.index() << std::endl;
 		throw YaramodError(err.str());
 	}
 	return std::string();
