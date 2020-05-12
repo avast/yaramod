@@ -1365,7 +1365,7 @@ rule rule_with_regexp_suffix_modifiers {
         self.assertEqual(rule.strings[4].modifiers_text, ' ascii wide nocase fullword')
         self.assertEqual(rule.strings[4].text, '/all/i ascii wide nocase fullword')
 
-    def test_modifying_visitor_inpact_on_tokenstream(self):
+    def test_modifying_visitor_inpact_on_regexp_expression(self):
         class RegexpCaseInsesitiveAdder(yaramod.ModifyingVisitor):
             def add(self, yara_file: yaramod.YaraFile):
                 for rule in yara_file.rules:
@@ -1378,8 +1378,8 @@ rule rule_with_regexp_suffix_modifiers {
 import "cuckoo"
 
 rule rule_with_regexp_in_fnc_call {
-    condition:
-        cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/)
+	condition:
+		cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/)
 }''')
 
         regexp_icase_adder = RegexpCaseInsesitiveAdder()
@@ -1395,7 +1395,6 @@ rule rule_with_regexp_in_fnc_call {
         self.assertEqual(cond.arguments[0].regexp_string.text, r'/abc/i')
         self.assertEqual(cond.arguments[0].regexp_string.pure_text, rb'abc')
 
-        print(yara_file.text_formatted)
         expected = r'''
 import "cuckoo"
 
