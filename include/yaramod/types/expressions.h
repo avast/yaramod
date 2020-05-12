@@ -1505,7 +1505,7 @@ class LiteralExpression : public Expression
 public:
 	using LiteralType = T;
 
-	LiteralExpression() = default;
+	LiteralExpression() : _valid(false) {}
 	LiteralExpression(TokenIt value) : _value(value) {}
 	LiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: Expression(ts)
@@ -1517,24 +1517,24 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
-		if (_value.has_value()){
-			return _value.value()->getText();
-		}
+		if (_valid)
+			return _value->getText();
 		else
 			return std::string();
 	}
 
-	virtual TokenIt getFirstTokenIt() const override { return _value.value(); }
-	virtual TokenIt getLastTokenIt() const override { return _value.value(); }
+	virtual TokenIt getFirstTokenIt() const override { return _value; }
+	virtual TokenIt getLastTokenIt() const override { return _value; }
 
 	void clear()
 	{
-		if (_value.has_value())
-			_tokenStream->erase(_value.value());
+		if (_valid)
+			_tokenStream->erase(_value);
 	}
 
 protected:
-	std::optional<TokenIt> _value; ///< Value of the literal
+	bool _valid = true; ///< Set if _value is valid
+	TokenIt _value; ///< Value of the literal
 };
 
 /**
@@ -1561,6 +1561,7 @@ public:
 			_value = _tokenStream->emplace_back(BOOL_TRUE, value, "true");
 		else
 			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
+		_valid = true;
 	}
 
 	BoolLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
@@ -1570,7 +1571,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getBool();
+		return _value->getBool();
 	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
@@ -1603,7 +1604,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getString();
+		return _value->getString();
 	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
@@ -1638,7 +1639,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getUInt();
+		return _value->getUInt();
 	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
@@ -1673,7 +1674,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getFloat();
+		return _value->getFloat();
 	}
 
 	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
