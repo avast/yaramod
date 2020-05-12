@@ -747,7 +747,7 @@ YaraExpressionBuilder stringVal(const std::string& value)
 YaraExpressionBuilder boolVal(bool value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back(value ? BOOL_TRUE : BOOL_FALSE, value);
+	TokenIt token = ts->emplace_back(value ? BOOL_TRUE : BOOL_FALSE, value, value ? "true" : "false");
 	auto expression = std::make_shared<BoolLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
 }
