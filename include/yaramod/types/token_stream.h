@@ -41,6 +41,7 @@ public:
 	};
 
 	TokenStream() = default;
+	TokenStream(const TokenStream &ts) = default;
 
 	/// @name Insertion methods
 	/// @{
@@ -84,9 +85,15 @@ public:
 	TokenIt insert(TokenIt before, TokenType type, Literal&& literal);
 	TokenIt erase(TokenIt element);
 	TokenIt erase(TokenIt first, TokenIt last);
+
+	// Steals all data from donor and append it at the end.
 	void move_append(TokenStream* donor);
-	void move_append(TokenStream* donor, TokenIt before);
+	// Steals all data from donor and append it at position before.
+	void move_append(TokenIt before, TokenStream* donor);
+	// Steals only data in [first, last) from donor and append it at the end.
 	void move_append(TokenStream* donor, TokenIt first, TokenIt last);
+	// Steals only data in [first, last) from donor and append it at position before.
+	void move_append(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last);
 	/// @}
 
 	/// @name Iterators

@@ -18,6 +18,7 @@
 namespace yaramod {
 
 class Visitor;
+class ModifyingVisitor;
 
 /**
  * Class representing expression in the condition section
@@ -50,6 +51,7 @@ public:
 
 	/// @name Virtual methods
 	/// @{
+	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) = 0;
 	virtual VisitResult accept(Visitor* v) = 0;
 	virtual std::string getText(const std::string& indent = std::string{}) const = 0;
 	/// @}
@@ -71,19 +73,19 @@ public:
 			default: return "Error - unknown type";
 		}
 	}
-	TokenStream* getTokenStream()
+	TokenStream* getTokenStream() const
 	{
 		return _tokenStream.get();
 	}
-	void setTokenStream(const std::shared_ptr<TokenStream>& ts)
-	{
-		_tokenStream = ts;
-	}
+	virtual TokenIt getFirstTokenIt() const = 0;
+	virtual TokenIt getLastTokenIt() const = 0;
 	/// @}
+	
 
 	/// @name Setter methods
 	/// @{
 	void setType(Expression::Type type) { _type = type; }
+	void setTokenStream(const std::shared_ptr<TokenStream>& ts) { _tokenStream = ts; }
 	/// @}
 
 	/// @name Detection methods
@@ -108,6 +110,28 @@ public:
 
 protected:
 	std::shared_ptr<TokenStream> _tokenStream;
+	void extractTokens(const VisitResult& result, TokenIt from, TokenIt to)
+	{
+		std::shared_ptr<Expression> result_exp;
+		try
+		{
+			result_exp = std::get<std::shared_ptr<Expression>>(result);
+		}
+		catch (std::bad_variant_access& err)
+		{
+			throw VisitorResultAccessError(err.what());
+		}
+		TokenIt firstNew = result_exp->getFirstTokenIt();
+		TokenIt lastNew = std::next(result_exp->getLastTokenIt());
+		if (getTokenStream() != result_exp->getTokenStream())
+		{
+			TokenIt before = _tokenStream->erase(from, to);
+			_tokenStream->move_append(before, result_exp->getTokenStream(), firstNew, lastNew);
+		}
+		else
+			std::cout << "Instead of replacing the expression the visitor only modified it. Chances are, the TokenStream was not modified appropriately." << std::endl;
+		result_exp->setTokenStream(_tokenStream);
+	}
 
 private:
 	Type _type; ///< Type of the expression

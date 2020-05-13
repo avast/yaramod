@@ -296,7 +296,9 @@ void addExpressionClasses(py::module& module)
 {
 	py::class_<Expression, std::shared_ptr<Expression>>(module, "Expression")
 		.def("accept", &Expression::accept)
+		.def("accept_modifying_visitor", &Expression::acceptModifyingVisitor)
 		.def("get_text", &Expression::getText, py::arg("indent") = std::string{})
+//		.def("get_tokenized", [](const Expression* self) { return self->getTokenStream()->getText(); } )
 		.def_property_readonly("text",
 				// getText() has default parameter and Python can't deal with it
 				[](const Expression* self) {

@@ -625,17 +625,15 @@ public:
 		return _unit->getText();
 	}
 
-
 	virtual TokenIt getFirstTokenIt() const override
 	{
-		if (_id)
-			return _id.value();
-		else if (_assignToken)
-			return _assignToken.value();
-		else
-			return _leftSlash;
+		return _leftSlash;
 	}
 
+	virtual TokenIt getLastTokenIt() const override
+	{
+		return _suffixMods.value_or(_rightSlash);
+	}
 	/**
 	* Return regular expression suffix modifiers.
 	*
