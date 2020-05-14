@@ -300,6 +300,7 @@ public:
 	/// @{
 	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
 	{
+		std::cout << "*HANDLER*: StringAtExpression handler called" << std::endl;
 		if (auto atExpr = std::get_if<Expression::Ptr>(&atExprRet))
 		{
 			if (*atExpr)
@@ -316,6 +317,7 @@ public:
 
 	VisitResult defaultHandler(StringInRangeExpression* expr, const VisitResult& rangeExprRet)
 	{
+		std::cout << "*HANDLER*: StringInRangeExpression handler called" << std::endl;
 		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeExprRet))
 		{
 			if (*rangeExpr)
@@ -334,6 +336,7 @@ public:
 	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& indexExprRet)
 	{
+		std::cout << "*HANDLER*: StringOffsetExpression/StringLengthExpression handler called" << std::endl;
 		if (auto indexExpr = std::get_if<Expression::Ptr>(&indexExprRet))
 		{
 			if (*indexExpr)
@@ -349,6 +352,7 @@ public:
 	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& operandRet)
 	{
+		std::cout << "*HANDLER*: UnaryOpExpression handler called" << std::endl;
 		if (auto operand = std::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
@@ -364,6 +368,7 @@ public:
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
+		std::cout << "*HANDLER*: BinaryOpExpression handler called" << std::endl;
 		if (auto left = std::get_if<Expression::Ptr>(&leftRet))
 		{
 			if (*left)
@@ -394,6 +399,7 @@ public:
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
 	{
+		std::cout << "*HANDLER*: ForExpression handler called" << std::endl;
 		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
 			if (*var)
@@ -427,6 +433,7 @@ public:
 
 	VisitResult defaultHandler(SetExpression* expr, const std::vector<VisitResult>& elementsRet)
 	{
+		std::cout << "*HANDLER*: SetExpression handler called" << std::endl;
 		if (elementsRet.empty())
 			return VisitAction::Delete;
 
@@ -460,6 +467,7 @@ public:
 
 	VisitResult defaultHandler(RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
 	{
+		std::cout << "*HANDLER*: RangeExpression handler called" << std::endl;
 		if (auto low = std::get_if<Expression::Ptr>(&lowRet))
 		{
 			if (*low)
@@ -484,6 +492,7 @@ public:
 
 	VisitResult defaultHandler(StructAccessExpression* expr, const VisitResult& structureRet)
 	{
+		std::cout << "*HANDLER*: StructAccessExpression handler called" << std::endl;
 		if (auto structure = std::get_if<Expression::Ptr>(&structureRet))
 		{
 			if (*structure)
@@ -497,6 +506,7 @@ public:
 
 	VisitResult defaultHandler(ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
 	{
+		std::cout << "*HANDLER*: ArrayAccessExpression handler called" << std::endl;
 		if (auto array = std::get_if<Expression::Ptr>(&arrayRet))
 		{
 			if (*array)
@@ -521,6 +531,7 @@ public:
 
 	VisitResult defaultHandler(FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
 	{
+		std::cout << "*HANDLER*: FunctionCallExpression handler called" << std::endl;
 		if (auto function = std::get_if<Expression::Ptr>(&functionRet))
 		{
 			if (*function)
@@ -556,6 +567,7 @@ public:
 
 	VisitResult defaultHandler(ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
 	{
+		std::cout << "*HANDLER*: ParenthesesExpression handler called" << std::endl;
 		if (auto enclosedExpr = std::get_if<Expression::Ptr>(&enclosedExprRet))
 		{
 			if (*enclosedExpr)
@@ -572,6 +584,7 @@ public:
 
 	VisitResult defaultHandler(IntFunctionExpression* expr, const VisitResult& argumentRet)
 	{
+		std::cout << "*HANDLER*: IntFunctionExpression handler called" << std::endl;
 		if (auto argument = std::get_if<Expression::Ptr>(&argumentRet))
 		{
 			if (*argument)

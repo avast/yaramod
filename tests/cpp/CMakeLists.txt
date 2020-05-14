@@ -10,6 +10,7 @@ set(SOURCES
 	parser_tests.cpp
 	trie_tests.cpp
 	utils_tests.cpp
+	visitor_tests.cpp
 	yaramod_tests.cpp
 )
 
