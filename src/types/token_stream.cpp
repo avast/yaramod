@@ -107,6 +107,92 @@ void TokenStream::move_append(TokenIt before, TokenStream* donor, TokenIt first,
 	_tokens.splice(before, donor->_tokens, first, last);
 }
 
+void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last)
+{
+	if (this == other)
+	{
+		bool other_under_local = false;
+		if (local_first == other_first && other_last == local_last)
+			return;
+		// Check that if there is some intersection, it is inclusion local > other.
+		bool other_first_inside = false;
+		bool other_last_inside = other_last == local_last;
+		for (auto it = local_first; it != local_last; ++it)
+		{
+			if (it == other_first)
+				other_first_inside = true;
+			else if (it == other_last)
+			{
+				other_last_inside = true;
+				break;
+			}
+		}
+		if (other_first_inside)
+		{
+			if (!other_last_inside)
+			{
+				if (other_first == local_first)
+				{
+					std::cerr << "[" << *local_first << "," << *local_last << ") < [" << *other_first << "," << *other_last << ")" << std::endl;
+					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) is under [other_first,other_last). Try it other way around.");
+				}
+				else
+				{	
+					std::cerr << "[" << *local_first << "," << *local_last << ") and [" << *other_first << "," << *other_last << ") have some intersection." << std::endl;
+					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) intersects [other_first,other_last).");
+				}
+			}
+			else
+				other_under_local = true;
+		}
+		else
+		{
+			bool local_first_inside = false;
+			bool local_last_inside = other_last == local_last;
+			for (auto it = other_first; it != other_last; ++it)
+			{
+				if (it == local_first)
+					local_first_inside = true;
+				else if (it == local_last)
+				{
+					local_last_inside = true;
+					break;
+				}
+			}
+			if (local_first_inside)
+			{
+				if (local_first != other_first || local_last_inside)
+				{
+					std::cerr << "[" << *local_first << "," << *local_last << ") < [" << *other_first << "," << *other_last << ")" << std::endl;
+					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) is under [other_first,other_last). Try it other way around.");
+				}
+				else
+					other_under_local = true;
+			}
+		}
+		if (other_under_local)
+		{
+			erase(local_first, other_first);
+			erase(other_last, local_last);
+		}
+		else //no intersection at all
+		{
+			if (local_first != other_last)
+				_tokens.splice(local_first, other->_tokens, other_first, other_last);
+			else
+				_tokens.splice(other_first, other->_tokens, local_first, local_last);
+			if (local_last != other_first && local_first != other_last)
+				other->_tokens.splice(other_last, _tokens, local_first, local_last);
+		}
+	}
+	else // different token streams
+	{
+		TokenIt other_insert_before = other_last;
+		_tokens.splice(local_first, other->_tokens, other_first, other_last);
+		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);		
+	}
+}
+
 TokenIt TokenStream::begin()
 {
 	return _tokens.begin();

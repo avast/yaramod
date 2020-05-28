@@ -147,5 +147,168 @@ TokenStreamErase) {
    ASSERT_TRUE(ts.empty());
 }
 
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithDifferentTokenStreams) {
+   TokenStream ts_a;
+   auto a1 = ts_a.emplace_back(TokenType::META_KEY, "author");
+   auto a2 = ts_a.emplace_back(TokenType::EQ, "=");
+   auto a3 = ts_a.emplace_back(TokenType::COMMENT, "/*comment before author name*/");
+   auto a4 = ts_a.emplace_back(TokenType::META_KEY, "author_name");
+   auto a5 = ts_a.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
+   TokenStream ts_b;
+   auto b1 = ts_b.emplace_back(TokenType::META_KEY, "AUTHOR");
+   auto b2 = ts_b.emplace_back(TokenType::EQ, "=");
+   auto b3 = ts_b.emplace_back(TokenType::COMMENT, "/*COMMENT BEFORE AUTHOR NAME*/");
+   auto b4 = ts_b.emplace_back(TokenType::META_KEY, "AUTHOR_NAME");
+   auto b5 = ts_b.emplace_back(TokenType::COMMENT, "/*COMMENT AFTER AUTHOR NAME*/");
+
+   ts_a.swap_tokens(a3, a5, &ts_b, b3, b5);
+   EXPECT_EQ(R"(author = /*COMMENT BEFORE AUTHOR NAME*/
+AUTHOR_NAME /*comment after author name*/
+)", ts_a.getText());
+   EXPECT_EQ(R"(AUTHOR = /*comment before author name*/
+author_name /*COMMENT AFTER AUTHOR NAME*/
+)", ts_b.getText());
+
+   ts_a.clear();
+   ASSERT_EQ(ts_a.size(), 0);
+   ASSERT_TRUE(ts_a.empty());
+   ts_b.clear();
+   ASSERT_EQ(ts_b.size(), 0);
+   ASSERT_TRUE(ts_b.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamInclusion1) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::META_KEY, "author");
+   auto a2 = ts.emplace_back(TokenType::EQ, "=");
+   auto a3 = ts.emplace_back(TokenType::COMMENT, "/*comment before author name*/");
+   auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
+   auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
+
+   ts.swap_tokens(a3, a5, &ts, a4, a5);
+   EXPECT_EQ(R"(author =
+author_name /*comment after author name*/
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamInclusion2) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::INTEGER, 1.0, std::make_optional(std::string{"1"}));
+   auto a2 = ts.emplace_back(TokenType::INTEGER, 2.0, std::make_optional(std::string{"2"}));
+   auto a3 = ts.emplace_back(TokenType::INTEGER, 3.0, std::make_optional(std::string{"3"}));
+   auto a4 = ts.emplace_back(TokenType::INTEGER, 4.0, std::make_optional(std::string{"4"}));
+   auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
+   auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
+
+   ts.swap_tokens(a2, a5, &ts, a3, a4);
+   EXPECT_EQ(R"(1 3 5 6
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamInclusionTouching1) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::CONDITION, "condition");
+   auto a2 = ts.emplace_back(TokenType::COLON_BEFORE_NEWLINE, ":");
+   auto a3 = ts.emplace_back(TokenType::BOOL_TRUE, "true");
+   auto a4 = ts.emplace_back(TokenType::AND, "and");
+   auto a5 = ts.emplace_back(TokenType::BOOL_FALSE, "false");
+
+   ts.swap_tokens(a3, ts.end(), &ts, a5, ts.end());
+   EXPECT_EQ(R"(condition:
+false
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamInclusionTouching2) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::META_KEY, "author");
+   auto a2 = ts.emplace_back(TokenType::EQ, "=");
+   auto a3 = ts.emplace_back(TokenType::COMMENT, "/*comment before author name*/");
+   auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
+   auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
+
+   ts.swap_tokens(a3, a5, &ts, a3, a4);
+   EXPECT_EQ(R"(author = /*comment before author name*/ /*comment after author name*/
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamDistinct) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::META_KEY, "author");
+   auto a2 = ts.emplace_back(TokenType::EQ, "=");
+   auto a3 = ts.emplace_back(TokenType::COMMENT, "/*comment before author name*/");
+   auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
+   auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
+
+   ts.swap_tokens(a3, a4, &ts, a5, ts.end());
+   EXPECT_EQ(R"(author = /*comment after author name*/
+author_name /*comment before author name*/
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamDistinctTouching1) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::INTEGER, 1.0, std::make_optional(std::string{"1"}));
+   auto a2 = ts.emplace_back(TokenType::INTEGER, 2.0, std::make_optional(std::string{"2"}));
+   auto a3 = ts.emplace_back(TokenType::INTEGER, 3.0, std::make_optional(std::string{"3"}));
+   auto a4 = ts.emplace_back(TokenType::INTEGER, 4.0, std::make_optional(std::string{"4"}));
+   auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
+   auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
+
+   ts.swap_tokens(a3, a4, &ts, a4, a5);
+   EXPECT_EQ(R"(1 2 4 3 5 6
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
+TEST_F(TokenStreamTests,
+TokenStreamSwapTokensWithinTheSameTokenStreamDistinctTouching2) {
+   TokenStream ts;
+   auto a1 = ts.emplace_back(TokenType::INTEGER, 1.0, std::make_optional(std::string{"1"}));
+   auto a2 = ts.emplace_back(TokenType::INTEGER, 2.0, std::make_optional(std::string{"2"}));
+   auto a3 = ts.emplace_back(TokenType::INTEGER, 3.0, std::make_optional(std::string{"3"}));
+   auto a4 = ts.emplace_back(TokenType::INTEGER, 4.0, std::make_optional(std::string{"4"}));
+   auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
+   auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
+
+   ts.swap_tokens(a4, a5, &ts, a3, a4);
+   EXPECT_EQ(R"(1 2 4 3 5 6
+)", ts.getText());
+
+   ts.clear();
+   ASSERT_EQ(ts.size(), 0);
+   ASSERT_TRUE(ts.empty());
+}
+
 }
 }
