@@ -108,30 +108,57 @@ public:
 	const T* as() const noexcept { return dynamic_cast<const T*>(this); }
 	/// @}
 
-protected:
-	std::shared_ptr<TokenStream> _tokenStream;
+	/*
+	* Move appends all tokens that the `new_expression` referes to inside of local _tokenStream.
+	* The tokens this expression refers to are replaced by the stolen tokens of `new_expression.`
+	*/
+	void extractTokens(Expression* new_expression)
+	{
+		auto from = getFirstTokenIt();
+		auto to = std::next(getLastTokenIt());
+		extractTokens(new_expression, from, to);
+	}
+	void extractTokens(Expression* new_expression, TokenIt from, TokenIt to)
+	{
+		if (new_expression)
+		{
+			TokenIt firstNew = new_expression->getFirstTokenIt();
+			TokenIt lastNew = std::next(new_expression->getLastTokenIt());
+			TokenIt before = to;
+			if (getTokenStream() != new_expression->getTokenStream())
+				before = _tokenStream->erase(from, to);
+			else
+				std::cout << "Instead of replacing the expression the visitor only modified it. Chances are, the TokenStream was not modified appropriately." << std::endl;
+			
+			_tokenStream->move_append(before, new_expression->getTokenStream(), firstNew, lastNew);
+			new_expression->setTokenStream(_tokenStream);
+		}
+	}
+	void extractTokens(const VisitResult& result)
+	{
+		auto from = getFirstTokenIt();
+		auto to = std::next(getLastTokenIt());
+		extractTokens(result, from, to);
+	}
 	void extractTokens(const VisitResult& result, TokenIt from, TokenIt to)
 	{
-		std::shared_ptr<Expression> result_exp;
+		Expression* new_expression;
 		try
 		{
-			result_exp = std::get<std::shared_ptr<Expression>>(result);
+			if (std::holds_alternative<Expression::Ptr>(result))
+				new_expression = (std::get<Expression::Ptr>(result)).get();
+			else
+				new_expression = std::get<Expression*>(result);
 		}
 		catch (std::bad_variant_access& err)
 		{
 			throw VisitorResultAccessError(err.what());
 		}
-		TokenIt firstNew = result_exp->getFirstTokenIt();
-		TokenIt lastNew = std::next(result_exp->getLastTokenIt());
-		if (getTokenStream() != result_exp->getTokenStream())
-		{
-			TokenIt before = _tokenStream->erase(from, to);
-			_tokenStream->move_append(before, result_exp->getTokenStream(), firstNew, lastNew);
-		}
-		else
-			std::cout << "Instead of replacing the expression the visitor only modified it. Chances are, the TokenStream was not modified appropriately." << std::endl;
-		result_exp->setTokenStream(_tokenStream);
+		extractTokens(new_expression, from, to);
 	}
+
+protected:
+	std::shared_ptr<TokenStream> _tokenStream;
 
 private:
 	Type _type; ///< Type of the expression

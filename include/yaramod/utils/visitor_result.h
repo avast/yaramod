@@ -33,7 +33,7 @@ public:
 	VisitorResultAccessError(const VisitorResultAccessError&) = default;
 };
 
-using VisitResult = std::variant<std::shared_ptr<Expression>, VisitAction>;
+using VisitResult = std::variant<std::shared_ptr<Expression>, VisitAction, Expression*>;
 using RegexpVisitResult = std::variant<std::shared_ptr<RegexpUnit>, double>;
 
 }

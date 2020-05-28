@@ -14,20 +14,16 @@ namespace yaramod {
 VisitResult StringExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "StringWildcardExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult StringWildcardExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "StringWildcardExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
@@ -46,10 +42,8 @@ VisitResult StringInRangeExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 VisitResult StringCountExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "StringCountExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
@@ -277,8 +271,10 @@ VisitResult ArrayAccessExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 
 VisitResult FunctionCallExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
-	std::cout << "FunctionCallExpression::acceptModifyingVisitor called" << getText()  << std::endl;	
-	return v->visit(this);
+	std::cout << "FunctionCallExpression::acceptModifyingVisitor called" << getText()  << std::endl;
+	VisitResult result = v->visit(this);
+	//extractTokens(result);
+	return result;
 }
 
 // VisitResult LiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
@@ -290,40 +286,32 @@ VisitResult FunctionCallExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 VisitResult BoolLiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "BoolLiteralExpression::acceptModifyingVisitor called '" << getText() << "'" << std::endl;
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult StringLiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "StringLiteralExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult IntLiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "IntLiteralExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult DoubleLiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "DoubleLiteralExpression::acceptModifyingVisitor" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
@@ -338,50 +326,40 @@ VisitResult DoubleLiteralExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 VisitResult FilesizeExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "FilesizeExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult EntrypointExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "EntrypointExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult AllExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "AllExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult AnyExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "AnyExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
 VisitResult ThemExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "ThemExpression::acceptModifyingVisitor called" << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 
@@ -400,10 +378,8 @@ VisitResult IntFunctionExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 VisitResult RegexpExpression::acceptModifyingVisitor(ModifyingVisitor* v)
 {
 	std::cout << "RegexpExpression::acceptModifyingVisitor called with " << getText() << std::endl;	
-	TokenIt from = getFirstTokenIt();
-	TokenIt to = std::next(getLastTokenIt());
 	VisitResult result = v->visit(this);
-	extractTokens(result, from, to);
+	//extractTokens(result);
 	return result;
 }
 

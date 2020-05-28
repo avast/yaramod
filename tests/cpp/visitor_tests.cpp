@@ -45,7 +45,11 @@ RegexpModifyingVisitorInpactOnTokenStream) {
 		}
 		virtual yaramod::VisitResult visit(RegexpExpression* expr) override
 		{
-			return yaramod::regexp("abc", "i").get();
+			// (void) expr;
+			// return yaramod::regexp("abc", "i").get();
+			auto new_condition = regexp("abc", "i").get();
+			expr->extractTokens(new_condition.get());
+			return new_condition;
 		}
 	};
 	prepareInput(
@@ -90,7 +94,9 @@ BoolModifyingVisitorInpactOnTokenStream1) {
 		}
 		virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
 		{
-			return yaramod::boolVal(false).get();
+			auto new_condition = boolVal(false).get();
+			expr->extractTokens(new_condition.get());
+			return new_condition;
 		}
 	};
 	prepareInput(
@@ -135,7 +141,9 @@ BoolModifyingVisitorInpactOnTokenStream2) {
 		}
 		virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
 		{
-			return yaramod::boolVal(false).get();
+			auto new_condition = boolVal(false).get();
+			expr->extractTokens(new_condition.get());
+			return new_condition;
 		}
 	};
 	prepareInput(
@@ -182,7 +190,9 @@ IntLiteralModifyingVisitorInpactOnTokenStream) {
 		}
 		virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
 		{
-			return yaramod::intVal(111).get();
+			auto new_condition = yaramod::intVal(111).get();
+			expr->extractTokens(new_condition.get());
+			return new_condition;
 		}
 	};
 	prepareInput(
@@ -214,6 +224,689 @@ rule rule_name
 	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 	EXPECT_EQ("111", rule->getCondition()->getText());
 }
+
+class CuckooFunctionReplacer : public ModifyingVisitor
+{
+public:
+	CuckooFunctionReplacer(YaraFile* yaraFile)
+		: _yaraFile(yaraFile)
+		, _needsToBeRemoved(false)
+		, _fileAccessSymbol(nullptr)
+		, _keyAccessSymbol(nullptr)
+	{
+	}
+	bool preFileTransform()
+	{
+		auto cuckooStruct = std::static_pointer_cast<yaramod::StructureSymbol>(_yaraFile->findSymbol("cuckoo"));
+		if (cuckooStruct == nullptr)
+			return false;
+
+		auto filesystemStruct = std::static_pointer_cast<yaramod::StructureSymbol>(cuckooStruct->getAttribute("filesystem").value());
+		_fileAccessSymbol = filesystemStruct->getAttribute("file_access").value();
+
+		auto registryStruct = std::static_pointer_cast<yaramod::StructureSymbol>(cuckooStruct->getAttribute("registry").value());
+		_keyAccessSymbol = registryStruct->getAttribute("key_access").value();
+
+		return true;
+	}
+	void postRuleTransform(const std::shared_ptr<Rule>& rule)
+	{
+		if (_needsToBeRemoved)
+		{
+			auto new_condition = boolVal(false).get();
+			rule->getCondition()->extractTokens(new_condition.get());
+			rule->setCondition(new_condition);
+		}
+		_needsToBeRemoved = false;
+	}
+	void process_rule(const std::shared_ptr<Rule>& rule)
+	{
+		preFileTransform();
+		auto modified = modify(rule->getCondition());
+		// std::cout << "Rule has been modified" << std::endl;
+		if (!_needsToBeRemoved)
+			rule->setCondition(std::move(modified));
+		postRuleTransform(rule);
+	}
+	virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
+	{
+		auto new_condition = yaramod::intVal(111).get();
+		expr->extractTokens(new_condition.get());
+		return new_condition;
+	}
+	virtual VisitResult visit(NotExpression* expr) override
+	{
+		expr->getOperand()->accept(this);
+
+		if (_needsToBeRemoved)
+		{
+			auto new_condition = boolVal(false).get();
+			expr->getOperand()->extractTokens(new_condition.get());
+			expr->setOperand(new_condition);
+		}
+		_needsToBeRemoved = false;
+		return {};
+
+	}
+	virtual VisitResult visit(AndExpression* expr) override
+	{
+		_handleBinaryExpression(expr);
+		return {};
+	}
+	virtual VisitResult visit(OrExpression* expr) override
+	{
+		_handleBinaryExpression(expr);
+		return {};
+	}
+	virtual VisitResult visit(FunctionCallExpression* expr) override
+	{
+		auto functionName = expr->getFunction()->getText();
+		if (isFunctionInBlacklist(functionName, avastOnlyFunctionsRemove))
+			_needsToBeRemoved = true;
+		return expr;
+	}
+	virtual VisitResult visit(ParenthesesExpression* expr) override
+	{
+		expr->getEnclosedExpression()->accept(this);
+
+		if (_needsToBeRemoved)
+		{
+			auto new_condition = boolVal(false).get();
+			expr->getEnclosedExpression()->extractTokens(new_condition.get());
+			expr->setEnclosedExpression(new_condition);
+		}
+		_needsToBeRemoved = false;
+		return {};
+	}
+private:
+	bool isFunctionInBlacklist(const std::string& functionName, const std::unordered_set<std::string>& blacklist)
+	{
+		return blacklist.find(functionName) != blacklist.end();
+	}
+
+	template <typename BinaryExp>
+	void _handleBinaryExpression(BinaryExp* expr)
+	{
+		std::cout << "handle Binary("<< expr->getText() << std::endl; //") with TS='" << *(expr->getTokenStream()) << "'" << std::endl;
+		expr->getLeftOperand()->accept(this);
+		bool leftNeedsToBeRemoved = _needsToBeRemoved;
+		_needsToBeRemoved = false;
+
+		expr->getRightOperand()->accept(this);
+		bool rightNeedsToBeRemoved = _needsToBeRemoved;
+		_needsToBeRemoved = false;
+
+		if (leftNeedsToBeRemoved && rightNeedsToBeRemoved)
+		{
+			_needsToBeRemoved = true;
+			std::cout << "BOTH need to be removed" << std::endl;
+		}
+		else if (leftNeedsToBeRemoved)
+		{
+			// expr->setLeftOperand(boolVal(false).get());
+			std::cout << "Left needs to be removed" << std::endl;
+			auto new_condition = boolVal(false).get();
+			expr->getLeftOperand()->extractTokens(new_condition.get());
+			expr->setLeftOperand(new_condition);
+		}
+		else if (rightNeedsToBeRemoved)
+		{
+			// expr->setRightOperand(boolVal(false).get());
+			std::cout << "Right needs to be removed" << std::endl;
+			auto new_condition = boolVal(false).get();
+			expr->getRightOperand()->extractTokens(new_condition.get());
+			expr->setRightOperand(new_condition);
+		}
+		else
+			std::cout << "Both will remain." << std::endl;
+	}
+
+	YaraFile* _yaraFile;
+	bool _needsToBeRemoved;
+	std::shared_ptr<Symbol> _fileAccessSymbol;
+	std::shared_ptr<Symbol> _keyAccessSymbol;
+
+	const std::unordered_set<std::string> avastOnlyFunctionsRemove =
+	{
+		"cuckoo.network.http_request_body"
+	};
+};
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerBoolLiteralExpression) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+		false
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		false
+}
+)";
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+	EXPECT_EQ("false", rule->getCondition()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerCuckooSyncEvent) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+		cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	ASSERT_EQ(R"(import "cuckoo"
+
+rule rule_name {
+	condition:
+		false
+})", yara_file.getText());
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		false
+}
+)";
+    EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("false", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerOrExpression1) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+		cuckoo.network.http_request_body(/a/) or
+		cuckoo.network.http_request_body(/b/)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	ASSERT_EQ(R"(import "cuckoo"
+
+rule rule_name {
+	condition:
+		false
+})", yara_file.getText());
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		false
+}
+)";
+    EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("false", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerOrExpression2) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+		entrypoint == 0 or
+		cuckoo.network.http_request_body(/b/)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	ASSERT_EQ(R"(import "cuckoo"
+
+rule rule_name {
+	condition:
+		entrypoint == 111 or false
+})", yara_file.getText());
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		entrypoint == 111 or
+		false
+}
+)";
+    EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("entrypoint == 111 or false", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerOrExpression3) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+	entrypoint == 0 or
+	(
+		cuckoo.network.http_request_body(/a/) or
+		cuckoo.network.http_request_body(/b/)
+	)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	ASSERT_EQ(R"(import "cuckoo"
+
+rule rule_name {
+	condition:
+		entrypoint == 111 or (false)
+})", yara_file.getText());
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		entrypoint == 111 or
+		(
+			false
+		)
+}
+)";
+    EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("entrypoint == 111 or (false)", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerOrExpression4) {
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	condition:
+	cuckoo.network.http_request_body(/a/) or
+	(
+		filesize > 12 and
+		true or
+		cuckoo.network.http_request_body(/b/)
+	)
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule);
+
+	ASSERT_EQ(R"(import "cuckoo"
+
+rule rule_name {
+	condition:
+		false or (filesize > 111 and true or false)
+})", yara_file.getText());
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	condition:
+		false or
+		(
+			filesize > 111 and
+			true or
+			false
+		)
+}
+)";
+    EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("false or (filesize > 111 and true or false)", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+TEST_F(VisitorTests,
+CuckooFunctionReplacerAndExpression1) {
+	prepareInput(
+R"(
+import "pe"
+import "elf"
+import "cuckoo"
+
+/**
+ * Random block comment
+ */
+rule rule_1 : Tag1 Tag2
+{
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess")
+		and
+		cuckoo.network.http_request_body(/a/)
+		and
+		for any of them : ( $ at pe.entry_point )
+}
+
+// Random one-line comment
+rule rule_2
+{
+	meta:
+		valid = true
+	strings:
+		$abc = "no case full word" nocase fullword
+	condition:
+		elf.type == elf.ET_EXEC and $abc at elf.entry_point and cuckoo.network.http_request_body(/b/) and filesize == 10
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	const auto& rule1 = yara_file.getRules()[0];
+	const auto& rule2 = yara_file.getRules()[1];
+
+	CuckooFunctionReplacer cuckooReplacer(&yara_file);
+	cuckooReplacer.process_rule(rule1);
+	cuckooReplacer.process_rule(rule2);
+
+	EXPECT_EQ(
+R"(import "pe"
+import "elf"
+import "cuckoo"
+
+rule rule_1 : Tag1 Tag2 {
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { AB CD EF }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess") and false and for any of them : ( $ at pe.entry_point )
+}
+
+rule rule_2 {
+	meta:
+		valid = true
+	strings:
+		$abc = "no case full word" nocase fullword
+	condition:
+		elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111
+})", yara_file.getText());
+
+	std::string expected = R"(
+import "pe"
+import "elf"
+import "cuckoo"
+
+/**
+ * Random block comment
+ */
+rule rule_1 : Tag1 Tag2
+{
+	meta:
+		info = "meta info"
+		version = 2
+	strings:
+		$1 = "plain string" wide
+		$2 = { ab cd ef }
+		$3 = /ab*c/
+	condition:
+		pe.exports("ExitProcess") and
+		false and
+		for any of them : ( $ at pe.entry_point )
+}
+
+// Random one-line comment
+rule rule_2
+{
+	meta:
+		valid = true
+	strings:
+		$abc = "no case full word" nocase fullword
+	condition:
+		elf.type == elf.ET_EXEC and
+		$abc at elf.entry_point and
+		false and
+		filesize == 111
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("pe.exports(\"ExitProcess\") and false and for any of them : ( $ at pe.entry_point )", rule1->getCondition()->getText());
+	EXPECT_EQ(expected, rule1->getCondition()->getTokenStream()->getText());
+	EXPECT_EQ("elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111", rule2->getCondition()->getText());
+	EXPECT_EQ(expected, rule2->getCondition()->getTokenStream()->getText());
+}
+
+class AndExpressionSwitcher : public ModifyingVisitor
+{
+public:
+	AndExpressionSwitcher(YaraFile* yaraFile)
+		: _yaraFile(yaraFile)
+	{
+	}
+
+	// void postRuleTransform(const std::shared_ptr<Rule>& rule)
+	// {
+	// 	if (_needsToBeRemoved)
+	// 	{
+	// 		auto new_condition = boolVal(false).get();
+	// 		rule->getCondition()->extractTokens(new_condition.get());
+	// 		rule->setCondition(new_condition);
+	// 	}
+	// 	_needsToBeRemoved = false;
+	// }
+	void process_rule(const std::shared_ptr<Rule>& rule)
+	{
+		auto modified = modify(rule->getCondition());
+		std::cout << "Rule has been modified" << std::endl;
+		rule->setCondition(std::move(modified));
+		// postRuleTransform(rule);
+	}
+	virtual VisitResult visit(AndExpression* expr) override
+	{
+		_handleBinaryExpression(expr);
+		return {};
+	}
+	// virtual VisitResult visit(OrExpression* expr) override
+	// {
+	// 	_handleBinaryExpression(expr);
+	// 	return {};
+	// }
+
+private:
+	template <typename BinaryExp>
+	void _handleBinaryExpression(BinaryExp* expr)
+	{
+		std::cout << "handle Binary("<< expr->getText() << std::endl; //") with TS='" << *(expr->getTokenStream()) << "'" << std::endl;
+		expr->getLeftOperand()->accept(this);
+
+		expr->getRightOperand()->accept(this);
+
+		std::cout << "1a" << std::endl;
+		auto new_condition = boolVal(false).get();
+		std::cout << "2a" << std::endl;
+		expr->getLeftOperand()->extractTokens(expr->getRightOperand().get());
+		std::cout << "3a" << std::endl;
+		expr->setLeftOperand(expr->getRightOperand());
+		std::cout << "4a" << std::endl;
+		expr->getRightOperand()->extractTokens(new_condition.get());
+		std::cout << "5a" << std::endl;
+		expr->setRightOperand(new_condition);
+		std::cout << "6a" << std::endl;
+	}
+
+	YaraFile* _yaraFile;
+};
+
+// TEST_F(VisitorTests,
+// AndExpressionSwitcherAndExpression1) {
+// 	prepareInput(
+// R"(
+// import "pe"
+// import "elf"
+// import "cuckoo"
+
+// /**
+//  * Random block comment
+//  */
+// rule rule_1
+// {
+// 	strings:
+// 		$1 = "plain string" wide
+// 	condition:
+// 		pe.exports("ExitProcess")
+// 		and
+// 		for any of them : ( $ at pe.entry_point )
+// }
+
+// rule rule_2
+// {
+// 	meta:
+// 		valid = true
+// 	strings:
+// 		$abc = "no case full word" nocase fullword
+// 	condition:
+// 		true
+// 		// elf.type == elf.ET_EXEC and $abc at elf.entry_point and cuckoo.network.http_request_body(/b/) and filesize == 10
+// }
+// )");
+
+// 	EXPECT_TRUE(driver.parse(input));
+// 	auto yara_file = driver.getParsedFile();
+// 	const auto& rule1 = yara_file.getRules()[0];
+// 	const auto& rule2 = yara_file.getRules()[1];
+
+// 	AndExpressionSwitcher visiror(&yara_file);
+// 	visiror.process_rule(rule1);
+// 	visiror.process_rule(rule2);
+
+// 	EXPECT_EQ(
+// R"(import "pe"
+// import "elf"
+// import "cuckoo"
+
+// rule rule_1 : Tag1 Tag2 {
+// 	meta:
+// 		info = "meta info"
+// 		version = 2
+// 	strings:
+// 		$1 = "plain string" wide
+// 		$2 = { AB CD EF }
+// 		$3 = /ab*c/
+// 	condition:
+// 		pe.exports("ExitProcess") and false and for any of them : ( $ at pe.entry_point )
+// }
+
+// rule rule_2 {
+// 	meta:
+// 		valid = true
+// 	strings:
+// 		$abc = "no case full word" nocase fullword
+// 	condition:
+// 		elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111
+// })", yara_file.getText());
+
+// 	std::string expected = R"(
+// import "pe"
+// import "elf"
+// import "cuckoo"
+
+// /**
+//  * Random block comment
+//  */
+// rule rule_1 : Tag1 Tag2
+// {
+// 	meta:
+// 		info = "meta info"
+// 		version = 2
+// 	strings:
+// 		$1 = "plain string" wide
+// 		$2 = { ab cd ef }
+// 		$3 = /ab*c/
+// 	condition:
+// 		pe.exports("ExitProcess") and
+// 		false and
+// 		for any of them : ( $ at pe.entry_point )
+// }
+
+// // Random one-line comment
+// rule rule_2
+// {
+// 	meta:
+// 		valid = true
+// 	strings:
+// 		$abc = "no case full word" nocase fullword
+// 	condition:
+// 		elf.type == elf.ET_EXEC and
+// 		$abc at elf.entry_point and
+// 		false and
+// 		filesize == 111
+// }
+// )";
+
+// 	EXPECT_EQ(expected, yara_file.getTextFormatted());
+// 	EXPECT_EQ("pe.exports(\"ExitProcess\") and false and for any of them : ( $ at pe.entry_point )", rule1->getCondition()->getText());
+// 	EXPECT_EQ(expected, rule1->getCondition()->getTokenStream()->getText());
+// 	EXPECT_EQ("elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111", rule2->getCondition()->getText());
+// 	EXPECT_EQ(expected, rule2->getCondition()->getTokenStream()->getText());
+// }
 
 }
 }

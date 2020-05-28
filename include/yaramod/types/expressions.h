@@ -1276,7 +1276,7 @@ public:
 	 * Constructors
 	 */
 	IdExpression(const std::shared_ptr<Symbol>& symbol)
-		: _symbol(symbol)
+		: _symbol(symbol) //TODO
 	{
 	}
 
@@ -1301,6 +1301,12 @@ public:
 	const std::shared_ptr<Symbol>& getSymbol() const
 	{
 		return _symbol;
+	}
+
+	TokenIt getSymbolToken() const
+	{
+		assert(_symbolToken); //TODO
+		return _symbolToken.value();
 	}
 
 	virtual TokenIt getFirstTokenIt() const override { return _symbolToken.value(); }
@@ -1355,7 +1361,7 @@ public:
 	const Expression::Ptr& getStructure() const { return _structure; }
 
 	//TODO: check if is correct:
-	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _dot; }
+	virtual TokenIt getFirstTokenIt() const override { return _structure->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _structure->getLastTokenIt(); }
 
 	void setStructure(const Expression::Ptr& structure) { _structure = structure; }
@@ -1381,7 +1387,7 @@ class ArrayAccessExpression : public IdExpression
 public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ArrayAccessExpression(const std::shared_ptr<Symbol>& symbol, ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
-		: IdExpression(symbol)
+		: IdExpression(symbol) //TODO
 		, _array(std::forward<ExpPtr1>(array))
 		, _left_bracket(left_bracket)
 		, _accessor(std::forward<ExpPtr2>(accessor))
@@ -1390,7 +1396,7 @@ public:
 	}
 	template <typename ExpPtr1, typename ExpPtr2>
 	ArrayAccessExpression(ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
-		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbol())
+		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbolToken())
 		, _array(std::forward<ExpPtr1>(array))
 		, _left_bracket(left_bracket)
 		, _accessor(std::forward<ExpPtr2>(accessor))
@@ -1413,7 +1419,7 @@ public:
 	const Expression::Ptr& getAccessor() const { return _accessor; }
 
 	//TODO: check if is correct:
-	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _array->getFirstTokenIt(); }
+	virtual TokenIt getFirstTokenIt() const override { return _array->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setArray(const Expression::Ptr& array) { _array = array; }
@@ -1442,7 +1448,7 @@ class FunctionCallExpression : public IdExpression
 public:
 	template <typename ExpPtr, typename ExpPtrVector>
 	FunctionCallExpression(ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
-		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbol())
+		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbolToken())
 		, _func(std::forward<ExpPtr>(func))
 		, _left_bracket(left_bracket)
 		, _args(std::forward<ExpPtrVector>(args))
@@ -1480,7 +1486,7 @@ public:
 	const std::vector<Expression::Ptr>& getArguments() const { return _args; }
 
 	//TODO: check if is correct:
-	virtual TokenIt getFirstTokenIt() const override { return _symbolToken ?_symbolToken.value() : _func->getFirstTokenIt(); }
+	virtual TokenIt getFirstTokenIt() const override { return _func->getFirstTokenIt();  /*return _symbolToken.value();*/ }
 	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setFunction(const Expression::Ptr& func) { _func = func; }
