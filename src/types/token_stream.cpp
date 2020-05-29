@@ -133,13 +133,15 @@ void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStre
 			{
 				if (other_first == local_first)
 				{
-					std::cerr << "[" << *local_first << "," << *local_last << ") < [" << *other_first << "," << *other_last << ")" << std::endl;
-					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) is under [other_first,other_last). Try it other way around.");
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
+					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
 				}
 				else
 				{	
-					std::cerr << "[" << *local_first << "," << *local_last << ") and [" << *other_first << "," << *other_last << ") have some intersection." << std::endl;
-					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) intersects [other_first,other_last).");
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') and ['" << *other_first << "','" << *other_last << "') intersect in proper subset of each of them.";
+					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
 				}
 			}
 			else
@@ -163,8 +165,9 @@ void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStre
 			{
 				if (local_first != other_first || local_last_inside)
 				{
-					std::cerr << "[" << *local_first << "," << *local_last << ") < [" << *other_first << "," << *other_last << ")" << std::endl;
-					throw YaramodError("Error: Cannot swap_tokens when [local_first, local_last) is under [other_first,other_last). Try it other way around.");
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
+					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
 				}
 				else
 					other_under_local = true;

@@ -9,7 +9,6 @@ set(SOURCES
 	builder/yara_hex_string_builder.cpp
 	builder/yara_rule_builder.cpp
 	parser/parser_driver.cpp
-	types/expressions.cpp
 	types/hex_string.cpp
 	types/literal.cpp
 	types/meta.cpp

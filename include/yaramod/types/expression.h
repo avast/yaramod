@@ -18,7 +18,6 @@
 namespace yaramod {
 
 class Visitor;
-class ModifyingVisitor;
 
 /**
  * Class representing expression in the condition section
@@ -51,7 +50,6 @@ public:
 
 	/// @name Virtual methods
 	/// @{
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) = 0;
 	virtual VisitResult accept(Visitor* v) = 0;
 	virtual std::string getText(const std::string& indent = std::string{}) const = 0;
 	/// @}
@@ -112,35 +110,31 @@ public:
 	* Move appends all tokens that the `new_expression` referes to inside of local _tokenStream.
 	* The tokens this expression refers to are replaced by the stolen tokens of `new_expression.`
 	*/
-	void extractTokens(Expression* new_expression)
+	void exchangeTokens(Expression* new_expression)
 	{
 		auto from = getFirstTokenIt();
 		auto to = std::next(getLastTokenIt());
-		extractTokens(new_expression, from, to);
+		exchangeTokens(new_expression, from, to);
 	}
-	void extractTokens(Expression* new_expression, TokenIt from, TokenIt to)
+	void exchangeTokens(Expression* new_expression, TokenIt from, TokenIt to)
 	{
 		if (new_expression)
 		{
 			TokenIt firstNew = new_expression->getFirstTokenIt();
 			TokenIt lastNew = std::next(new_expression->getLastTokenIt());
-			TokenIt before = to;
-			if (getTokenStream() != new_expression->getTokenStream())
-				before = _tokenStream->erase(from, to);
-			else
-				std::cout << "Instead of replacing the expression the visitor only modified it. Chances are, the TokenStream was not modified appropriately." << std::endl;
-			
-			_tokenStream->move_append(before, new_expression->getTokenStream(), firstNew, lastNew);
+			auto otherTokenStream = new_expression->_tokenStream;
+			_tokenStream->swap_tokens(from, to, otherTokenStream.get(), firstNew, lastNew);
 			new_expression->setTokenStream(_tokenStream);
+			_tokenStream = otherTokenStream;
 		}
 	}
-	void extractTokens(const VisitResult& result)
+	void exchangeTokens(const VisitResult& result)
 	{
 		auto from = getFirstTokenIt();
 		auto to = std::next(getLastTokenIt());
-		extractTokens(result, from, to);
+		exchangeTokens(result, from, to);
 	}
-	void extractTokens(const VisitResult& result, TokenIt from, TokenIt to)
+	void exchangeTokens(const VisitResult& result, TokenIt from, TokenIt to)
 	{
 		Expression* new_expression;
 		try
@@ -154,7 +148,7 @@ public:
 		{
 			throw VisitorResultAccessError(err.what());
 		}
-		extractTokens(new_expression, from, to);
+		exchangeTokens(new_expression, from, to);
 	}
 
 protected:

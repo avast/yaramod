@@ -41,7 +41,7 @@ public:
 	 */
 	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
-		auto result = expr->acceptModifyingVisitor(this);
+		auto result = expr->accept(this);
 		if (auto newExpr = std::get_if<Expression::Ptr>(&result))
 			return *newExpr ? *newExpr : expr;
 		else
@@ -55,13 +55,13 @@ public:
 
 	virtual VisitResult visit(StringAtExpression* expr) override
 	{
-		auto atExpr = expr->getAtExpression()->acceptModifyingVisitor(this);
+		auto atExpr = expr->getAtExpression()->accept(this);
 		return defaultHandler(expr, atExpr);
 	}
 
 	virtual VisitResult visit(StringInRangeExpression* expr) override
 	{
-		auto rangeExpr = expr->getRangeExpression()->acceptModifyingVisitor(this);
+		auto rangeExpr = expr->getRangeExpression()->accept(this);
 		return defaultHandler(expr, rangeExpr);
 	}
 
@@ -71,7 +71,7 @@ public:
 	{
 		if (expr->getIndexExpression())
 		{
-			auto indexExpr = expr->getIndexExpression()->acceptModifyingVisitor(this);
+			auto indexExpr = expr->getIndexExpression()->accept(this);
 			return defaultHandler(expr, indexExpr);
 		}
 
@@ -82,7 +82,7 @@ public:
 	{
 		if (expr->getIndexExpression())
 		{
-			auto indexExpr = expr->getIndexExpression()->acceptModifyingVisitor(this);
+			auto indexExpr = expr->getIndexExpression()->accept(this);
 			return defaultHandler(expr, indexExpr);
 		}
 
@@ -206,24 +206,24 @@ public:
 
 	virtual VisitResult visit(ForIntExpression* expr) override
 	{
-		auto var = expr->getVariable()->acceptModifyingVisitor(this);
-		auto iteratedSet = expr->getIteratedSet()->acceptModifyingVisitor(this);
-		auto body = expr->getBody()->acceptModifyingVisitor(this);
+		auto var = expr->getVariable()->accept(this);
+		auto iteratedSet = expr->getIteratedSet()->accept(this);
+		auto body = expr->getBody()->accept(this);
 		return defaultHandler(expr, var, iteratedSet, body);
 	}
 
 	virtual VisitResult visit(ForStringExpression* expr) override
 	{
-		auto var = expr->getVariable()->acceptModifyingVisitor(this);
-		auto iteratedSet = expr->getIteratedSet()->acceptModifyingVisitor(this);
-		auto body = expr->getBody()->acceptModifyingVisitor(this);
+		auto var = expr->getVariable()->accept(this);
+		auto iteratedSet = expr->getIteratedSet()->accept(this);
+		auto body = expr->getBody()->accept(this);
 		return defaultHandler(expr, var, iteratedSet, body);
 	}
 
 	virtual VisitResult visit(OfExpression* expr) override
 	{
-		auto var = expr->getVariable()->acceptModifyingVisitor(this);
-		auto iteratedSet = expr->getIteratedSet()->acceptModifyingVisitor(this);
+		auto var = expr->getVariable()->accept(this);
+		auto iteratedSet = expr->getIteratedSet()->accept(this);
 		return defaultHandler(expr, var, iteratedSet, {});
 	}
 
@@ -231,15 +231,15 @@ public:
 	{
 		std::vector<VisitResult> newElements;
 		for (auto& element : expr->getElements())
-			newElements.push_back(element->acceptModifyingVisitor(this));
+			newElements.push_back(element->accept(this));
 
 		return defaultHandler(expr, newElements);
 	}
 
 	virtual VisitResult visit(RangeExpression* expr) override
 	{
-		auto low = expr->getLow()->acceptModifyingVisitor(this);
-		auto high = expr->getHigh()->acceptModifyingVisitor(this);
+		auto low = expr->getLow()->accept(this);
+		auto high = expr->getHigh()->accept(this);
 		return defaultHandler(expr, low, high);
 	}
 
@@ -247,25 +247,25 @@ public:
 
 	virtual VisitResult visit(StructAccessExpression* expr) override
 	{
-		auto structure = expr->getStructure()->acceptModifyingVisitor(this);
+		auto structure = expr->getStructure()->accept(this);
 		return defaultHandler(expr, structure);
 	}
 
 	virtual VisitResult visit(ArrayAccessExpression* expr) override
 	{
-		auto array = expr->getArray()->acceptModifyingVisitor(this);
-		auto accessor = expr->getAccessor()->acceptModifyingVisitor(this);
+		auto array = expr->getArray()->accept(this);
+		auto accessor = expr->getAccessor()->accept(this);
 		return defaultHandler(expr, array, accessor);
 	}
 
 	virtual VisitResult visit(FunctionCallExpression* expr) override
 	{
-		auto function = expr->getFunction()->acceptModifyingVisitor(this);
+		auto function = expr->getFunction()->accept(this);
 
 		std::vector<VisitResult> arguments;
 		for (auto& arg : expr->getArguments())
 		{
-			arguments.push_back(arg->acceptModifyingVisitor(this));
+			arguments.push_back(arg->accept(this));
 		}
 
 		return defaultHandler(expr, function, arguments);
@@ -283,13 +283,13 @@ public:
 
 	virtual VisitResult visit(ParenthesesExpression* expr) override
 	{
-		auto enclosedExpr = expr->getEnclosedExpression()->acceptModifyingVisitor(this);
+		auto enclosedExpr = expr->getEnclosedExpression()->accept(this);
 		return defaultHandler(expr, enclosedExpr);
 	}
 
 	virtual VisitResult visit(IntFunctionExpression* expr) override
 	{
-		auto argument = expr->getArgument()->acceptModifyingVisitor(this);
+		auto argument = expr->getArgument()->accept(this);
 		return defaultHandler(expr, argument);
 	}
 
@@ -300,7 +300,6 @@ public:
 	/// @{
 	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
 	{
-		std::cout << "*HANDLER*: StringAtExpression handler called" << std::endl;
 		if (auto atExpr = std::get_if<Expression::Ptr>(&atExprRet))
 		{
 			if (*atExpr)
@@ -317,7 +316,6 @@ public:
 
 	VisitResult defaultHandler(StringInRangeExpression* expr, const VisitResult& rangeExprRet)
 	{
-		std::cout << "*HANDLER*: StringInRangeExpression handler called" << std::endl;
 		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeExprRet))
 		{
 			if (*rangeExpr)
@@ -336,7 +334,6 @@ public:
 	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& indexExprRet)
 	{
-		std::cout << "*HANDLER*: StringOffsetExpression/StringLengthExpression handler called" << std::endl;
 		if (auto indexExpr = std::get_if<Expression::Ptr>(&indexExprRet))
 		{
 			if (*indexExpr)
@@ -352,7 +349,6 @@ public:
 	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& operandRet)
 	{
-		std::cout << "*HANDLER*: UnaryOpExpression handler called" << std::endl;
 		if (auto operand = std::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
@@ -368,7 +364,6 @@ public:
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
-		std::cout << "*HANDLER*: BinaryOpExpression handler called" << std::endl;
 		if (auto left = std::get_if<Expression::Ptr>(&leftRet))
 		{
 			if (*left)
@@ -399,7 +394,6 @@ public:
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
 		defaultHandler(T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
 	{
-		std::cout << "*HANDLER*: ForExpression handler called" << std::endl;
 		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
 			if (*var)
@@ -433,7 +427,6 @@ public:
 
 	VisitResult defaultHandler(SetExpression* expr, const std::vector<VisitResult>& elementsRet)
 	{
-		std::cout << "*HANDLER*: SetExpression handler called" << std::endl;
 		if (elementsRet.empty())
 			return VisitAction::Delete;
 
@@ -467,7 +460,6 @@ public:
 
 	VisitResult defaultHandler(RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
 	{
-		std::cout << "*HANDLER*: RangeExpression handler called" << std::endl;
 		if (auto low = std::get_if<Expression::Ptr>(&lowRet))
 		{
 			if (*low)
@@ -492,7 +484,6 @@ public:
 
 	VisitResult defaultHandler(StructAccessExpression* expr, const VisitResult& structureRet)
 	{
-		std::cout << "*HANDLER*: StructAccessExpression handler called" << std::endl;
 		if (auto structure = std::get_if<Expression::Ptr>(&structureRet))
 		{
 			if (*structure)
@@ -506,7 +497,6 @@ public:
 
 	VisitResult defaultHandler(ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
 	{
-		std::cout << "*HANDLER*: ArrayAccessExpression handler called" << std::endl;
 		if (auto array = std::get_if<Expression::Ptr>(&arrayRet))
 		{
 			if (*array)
@@ -531,7 +521,6 @@ public:
 
 	VisitResult defaultHandler(FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
 	{
-		std::cout << "*HANDLER*: FunctionCallExpression handler called" << std::endl;
 		if (auto function = std::get_if<Expression::Ptr>(&functionRet))
 		{
 			if (*function)
@@ -567,7 +556,6 @@ public:
 
 	VisitResult defaultHandler(ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
 	{
-		std::cout << "*HANDLER*: ParenthesesExpression handler called" << std::endl;
 		if (auto enclosedExpr = std::get_if<Expression::Ptr>(&enclosedExprRet))
 		{
 			if (*enclosedExpr)
@@ -584,7 +572,6 @@ public:
 
 	VisitResult defaultHandler(IntFunctionExpression* expr, const VisitResult& argumentRet)
 	{
-		std::cout << "*HANDLER*: IntFunctionExpression handler called" << std::endl;
 		if (auto argument = std::get_if<Expression::Ptr>(&argumentRet))
 		{
 			if (*argument)
@@ -607,15 +594,15 @@ private:
 	template <typename T>
 	VisitResult _handleUnaryOperation(T* expr)
 	{
-		auto operand = expr->getOperand()->acceptModifyingVisitor(this);
+		auto operand = expr->getOperand()->accept(this);
 		return defaultHandler(expr, operand);
 	}
 
 	template <typename T>
 	VisitResult _handleBinaryOperation(T* expr)
 	{
-		auto leftOperand = expr->getLeftOperand()->acceptModifyingVisitor(this);
-		auto rightOperand = expr->getRightOperand()->acceptModifyingVisitor(this);
+		auto leftOperand = expr->getLeftOperand()->accept(this);
+		auto rightOperand = expr->getRightOperand()->accept(this);
 		return defaultHandler(expr, leftOperand, rightOperand);
 	}
 };

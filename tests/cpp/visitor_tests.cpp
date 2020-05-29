@@ -48,7 +48,7 @@ RegexpModifyingVisitorInpactOnTokenStream) {
 			// (void) expr;
 			// return yaramod::regexp("abc", "i").get();
 			auto new_condition = regexp("abc", "i").get();
-			expr->extractTokens(new_condition.get());
+			expr->exchangeTokens(new_condition.get());
 			return new_condition;
 		}
 	};
@@ -95,7 +95,7 @@ BoolModifyingVisitorInpactOnTokenStream1) {
 		virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
 		{
 			auto new_condition = boolVal(false).get();
-			expr->extractTokens(new_condition.get());
+			expr->exchangeTokens(new_condition.get());
 			return new_condition;
 		}
 	};
@@ -142,7 +142,7 @@ BoolModifyingVisitorInpactOnTokenStream2) {
 		virtual yaramod::VisitResult visit(BoolLiteralExpression* expr) override
 		{
 			auto new_condition = boolVal(false).get();
-			expr->extractTokens(new_condition.get());
+			expr->exchangeTokens(new_condition.get());
 			return new_condition;
 		}
 	};
@@ -191,7 +191,7 @@ IntLiteralModifyingVisitorInpactOnTokenStream) {
 		virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
 		{
 			auto new_condition = yaramod::intVal(111).get();
-			expr->extractTokens(new_condition.get());
+			expr->exchangeTokens(new_condition.get());
 			return new_condition;
 		}
 	};
@@ -254,7 +254,7 @@ public:
 		if (_needsToBeRemoved)
 		{
 			auto new_condition = boolVal(false).get();
-			rule->getCondition()->extractTokens(new_condition.get());
+			rule->getCondition()->exchangeTokens(new_condition.get());
 			rule->setCondition(new_condition);
 		}
 		_needsToBeRemoved = false;
@@ -263,7 +263,6 @@ public:
 	{
 		preFileTransform();
 		auto modified = modify(rule->getCondition());
-		// std::cout << "Rule has been modified" << std::endl;
 		if (!_needsToBeRemoved)
 			rule->setCondition(std::move(modified));
 		postRuleTransform(rule);
@@ -271,7 +270,7 @@ public:
 	virtual yaramod::VisitResult visit(IntLiteralExpression* expr) override
 	{
 		auto new_condition = yaramod::intVal(111).get();
-		expr->extractTokens(new_condition.get());
+		expr->exchangeTokens(new_condition.get());
 		return new_condition;
 	}
 	virtual VisitResult visit(NotExpression* expr) override
@@ -281,7 +280,7 @@ public:
 		if (_needsToBeRemoved)
 		{
 			auto new_condition = boolVal(false).get();
-			expr->getOperand()->extractTokens(new_condition.get());
+			expr->getOperand()->exchangeTokens(new_condition.get());
 			expr->setOperand(new_condition);
 		}
 		_needsToBeRemoved = false;
@@ -312,7 +311,7 @@ public:
 		if (_needsToBeRemoved)
 		{
 			auto new_condition = boolVal(false).get();
-			expr->getEnclosedExpression()->extractTokens(new_condition.get());
+			expr->getEnclosedExpression()->exchangeTokens(new_condition.get());
 			expr->setEnclosedExpression(new_condition);
 		}
 		_needsToBeRemoved = false;
@@ -327,7 +326,6 @@ private:
 	template <typename BinaryExp>
 	void _handleBinaryExpression(BinaryExp* expr)
 	{
-		std::cout << "handle Binary("<< expr->getText() << std::endl; //") with TS='" << *(expr->getTokenStream()) << "'" << std::endl;
 		expr->getLeftOperand()->accept(this);
 		bool leftNeedsToBeRemoved = _needsToBeRemoved;
 		_needsToBeRemoved = false;
@@ -339,26 +337,19 @@ private:
 		if (leftNeedsToBeRemoved && rightNeedsToBeRemoved)
 		{
 			_needsToBeRemoved = true;
-			std::cout << "BOTH need to be removed" << std::endl;
 		}
 		else if (leftNeedsToBeRemoved)
 		{
-			// expr->setLeftOperand(boolVal(false).get());
-			std::cout << "Left needs to be removed" << std::endl;
 			auto new_condition = boolVal(false).get();
-			expr->getLeftOperand()->extractTokens(new_condition.get());
+			expr->getLeftOperand()->exchangeTokens(new_condition.get());
 			expr->setLeftOperand(new_condition);
 		}
 		else if (rightNeedsToBeRemoved)
 		{
-			// expr->setRightOperand(boolVal(false).get());
-			std::cout << "Right needs to be removed" << std::endl;
 			auto new_condition = boolVal(false).get();
-			expr->getRightOperand()->extractTokens(new_condition.get());
+			expr->getRightOperand()->exchangeTokens(new_condition.get());
 			expr->setRightOperand(new_condition);
 		}
-		else
-			std::cout << "Both will remain." << std::endl;
 	}
 
 	YaraFile* _yaraFile;
@@ -656,6 +647,7 @@ rule rule_2
 
 	EXPECT_TRUE(driver.parse(input));
 	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(2u, yara_file.getRules().size());
 	const auto& rule1 = yara_file.getRules()[0];
 	const auto& rule2 = yara_file.getRules()[1];
 
@@ -742,171 +734,157 @@ public:
 	{
 	}
 
-	// void postRuleTransform(const std::shared_ptr<Rule>& rule)
-	// {
-	// 	if (_needsToBeRemoved)
-	// 	{
-	// 		auto new_condition = boolVal(false).get();
-	// 		rule->getCondition()->extractTokens(new_condition.get());
-	// 		rule->setCondition(new_condition);
-	// 	}
-	// 	_needsToBeRemoved = false;
-	// }
 	void process_rule(const std::shared_ptr<Rule>& rule)
 	{
 		auto modified = modify(rule->getCondition());
-		std::cout << "Rule has been modified" << std::endl;
 		rule->setCondition(std::move(modified));
-		// postRuleTransform(rule);
 	}
 	virtual VisitResult visit(AndExpression* expr) override
 	{
 		_handleBinaryExpression(expr);
 		return {};
 	}
-	// virtual VisitResult visit(OrExpression* expr) override
-	// {
-	// 	_handleBinaryExpression(expr);
-	// 	return {};
-	// }
 
 private:
 	template <typename BinaryExp>
 	void _handleBinaryExpression(BinaryExp* expr)
 	{
-		std::cout << "handle Binary("<< expr->getText() << std::endl; //") with TS='" << *(expr->getTokenStream()) << "'" << std::endl;
 		expr->getLeftOperand()->accept(this);
-
 		expr->getRightOperand()->accept(this);
-
-		std::cout << "1a" << std::endl;
-		auto new_condition = boolVal(false).get();
-		std::cout << "2a" << std::endl;
-		expr->getLeftOperand()->extractTokens(expr->getRightOperand().get());
-		std::cout << "3a" << std::endl;
+		std::shared_ptr<Expression> tmp_condition = expr->getLeftOperand();
+		expr->getLeftOperand()->exchangeTokens(expr->getRightOperand().get());
 		expr->setLeftOperand(expr->getRightOperand());
-		std::cout << "4a" << std::endl;
-		expr->getRightOperand()->extractTokens(new_condition.get());
-		std::cout << "5a" << std::endl;
-		expr->setRightOperand(new_condition);
-		std::cout << "6a" << std::endl;
+		expr->setRightOperand(tmp_condition);
 	}
 
 	YaraFile* _yaraFile;
 };
 
-// TEST_F(VisitorTests,
-// AndExpressionSwitcherAndExpression1) {
-// 	prepareInput(
-// R"(
-// import "pe"
-// import "elf"
-// import "cuckoo"
+TEST_F(VisitorTests,
+AndExpressionSwitcherAndExpression1) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		any of them and
+		$2
+}
+)");
 
-// /**
-//  * Random block comment
-//  */
-// rule rule_1
-// {
-// 	strings:
-// 		$1 = "plain string" wide
-// 	condition:
-// 		pe.exports("ExitProcess")
-// 		and
-// 		for any of them : ( $ at pe.entry_point )
-// }
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
 
-// rule rule_2
-// {
-// 	meta:
-// 		valid = true
-// 	strings:
-// 		$abc = "no case full word" nocase fullword
-// 	condition:
-// 		true
-// 		// elf.type == elf.ET_EXEC and $abc at elf.entry_point and cuckoo.network.http_request_body(/b/) and filesize == 10
-// }
-// )");
+	AndExpressionSwitcher visiror(&yara_file);
+	visiror.process_rule(rule);
 
-// 	EXPECT_TRUE(driver.parse(input));
-// 	auto yara_file = driver.getParsedFile();
-// 	const auto& rule1 = yara_file.getRules()[0];
-// 	const auto& rule2 = yara_file.getRules()[1];
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		$2 and any of them
+})", yara_file.getText());
 
-// 	AndExpressionSwitcher visiror(&yara_file);
-// 	visiror.process_rule(rule1);
-// 	visiror.process_rule(rule2);
+	std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		$2 and
+		any of them
+}
+)";
 
-// 	EXPECT_EQ(
-// R"(import "pe"
-// import "elf"
-// import "cuckoo"
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("$2 and any of them", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
 
-// rule rule_1 : Tag1 Tag2 {
-// 	meta:
-// 		info = "meta info"
-// 		version = 2
-// 	strings:
-// 		$1 = "plain string" wide
-// 		$2 = { AB CD EF }
-// 		$3 = /ab*c/
-// 	condition:
-// 		pe.exports("ExitProcess") and false and for any of them : ( $ at pe.entry_point )
-// }
+TEST_F(VisitorTests,
+AndExpressionSwitcherAndExpression2) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+		$4 = "s4"
+		$5 = "s5" fullword
+		$6 = "s6"
+	condition:
+		(
+			$1 and
+			$2 and
+			$3 and
+			true and
+			$4 and
+			$5 and
+			$6
+		) or
+		false
+}
+)");
 
-// rule rule_2 {
-// 	meta:
-// 		valid = true
-// 	strings:
-// 		$abc = "no case full word" nocase fullword
-// 	condition:
-// 		elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111
-// })", yara_file.getText());
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
 
-// 	std::string expected = R"(
-// import "pe"
-// import "elf"
-// import "cuckoo"
+	AndExpressionSwitcher visiror(&yara_file);
+	visiror.process_rule(rule);
 
-// /**
-//  * Random block comment
-//  */
-// rule rule_1 : Tag1 Tag2
-// {
-// 	meta:
-// 		info = "meta info"
-// 		version = 2
-// 	strings:
-// 		$1 = "plain string" wide
-// 		$2 = { ab cd ef }
-// 		$3 = /ab*c/
-// 	condition:
-// 		pe.exports("ExitProcess") and
-// 		false and
-// 		for any of them : ( $ at pe.entry_point )
-// }
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+		$4 = "s4"
+		$5 = "s5" fullword
+		$6 = "s6"
+	condition:
+		($6 and $5 and $4 and true and $3 and $2 and $1) or false
+})", yara_file.getText());
 
-// // Random one-line comment
-// rule rule_2
-// {
-// 	meta:
-// 		valid = true
-// 	strings:
-// 		$abc = "no case full word" nocase fullword
-// 	condition:
-// 		elf.type == elf.ET_EXEC and
-// 		$abc at elf.entry_point and
-// 		false and
-// 		filesize == 111
-// }
-// )";
+	std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+		$4 = "s4"
+		$5 = "s5" fullword
+		$6 = "s6"
+	condition:
+		(
+			$6 and
+			$5 and
+			$4 and
+			true and
+			$3 and
+			$2 and
+			$1
+		) or
+		false
+}
+)";
 
-// 	EXPECT_EQ(expected, yara_file.getTextFormatted());
-// 	EXPECT_EQ("pe.exports(\"ExitProcess\") and false and for any of them : ( $ at pe.entry_point )", rule1->getCondition()->getText());
-// 	EXPECT_EQ(expected, rule1->getCondition()->getTokenStream()->getText());
-// 	EXPECT_EQ("elf.type == elf.ET_EXEC and $abc at elf.entry_point and false and filesize == 111", rule2->getCondition()->getText());
-// 	EXPECT_EQ(expected, rule2->getCondition()->getTokenStream()->getText());
-// }
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("($6 and $5 and $4 and true and $3 and $2 and $1) or false", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
 
 }
 }

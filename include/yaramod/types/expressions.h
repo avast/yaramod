@@ -32,7 +32,6 @@ public:
 	StringExpression(std::string&& id) { _id = _tokenStream->emplace_back(STRING_ID, std::move(id)); }
 	StringExpression(TokenIt id) : _id(id) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -75,7 +74,6 @@ public:
 	}
 	StringWildcardExpression(TokenIt it) : _id(it) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -126,7 +124,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -182,7 +179,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -230,7 +226,6 @@ public:
 		_id = _tokenStream->emplace_back(STRING_COUNT, std::forward<Str>(id));
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -291,7 +286,6 @@ public:
 		_id = _tokenStream->emplace_back(STRING_OFFSET, std::forward<Str>(id));
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -356,7 +350,6 @@ public:
 		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -440,7 +433,6 @@ public:
 	template <typename ExpPtr>
 	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -462,7 +454,6 @@ public:
 	template <typename ExpPtr>
 	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -484,7 +475,6 @@ public:
 	template <typename ExpPtr>
 	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -551,7 +541,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	AndExpression(ExpPtr1&& left, TokenIt and_op, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), and_op, std::forward<ExpPtr2>(right), linebreak) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -572,7 +561,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -593,7 +581,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	LtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -614,7 +601,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	GtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -635,7 +621,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	LeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -656,7 +641,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	GeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -677,7 +661,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	EqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -698,7 +681,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	NeqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -719,7 +701,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ContainsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -740,7 +721,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -762,7 +742,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	PlusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -784,7 +763,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MinusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -806,7 +784,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MultiplyExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -828,7 +805,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	DivideExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -850,7 +826,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ModuloExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -872,7 +847,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseXorExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -893,7 +867,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseAndExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -914,7 +887,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseOrExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -935,7 +907,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ShiftLeftExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -956,7 +927,6 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ShiftRightExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1030,7 +1000,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1079,7 +1048,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1123,7 +1091,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1164,7 +1131,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1229,7 +1195,6 @@ public:
 		, _right_bracket(right_bracket)
 	{
 	}
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1286,7 +1251,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1345,7 +1309,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1404,7 +1367,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1456,7 +1418,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1580,7 +1541,6 @@ public:
 		return _value->getBool();
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1613,7 +1573,6 @@ public:
 		return _value->getString();
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1648,7 +1607,6 @@ public:
 		return _value->getUInt();
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1683,7 +1641,6 @@ public:
 		return _value->getFloat();
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1741,7 +1698,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1769,7 +1725,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1798,7 +1753,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1827,7 +1781,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1856,7 +1809,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1893,7 +1845,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1956,7 +1907,6 @@ public:
 	{
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -2009,7 +1959,6 @@ public:
 		_tokenStream = _regexp->getTokenStream();
 	}
 
-	virtual VisitResult acceptModifyingVisitor(ModifyingVisitor* v) override;
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
