@@ -1323,9 +1323,8 @@ public:
 
 	const Expression::Ptr& getStructure() const { return _structure; }
 
-	//TODO: check if is correct:
 	virtual TokenIt getFirstTokenIt() const override { return _structure->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _structure->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _symbolToken.value(); }
 
 	void setStructure(const Expression::Ptr& structure) { _structure = structure; }
 	void setStructure(Expression::Ptr&& structure) { _structure = std::move(structure); }
