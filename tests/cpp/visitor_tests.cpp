@@ -45,8 +45,6 @@ RegexpModifyingVisitorInpactOnTokenStream) {
 		}
 		virtual yaramod::VisitResult visit(RegexpExpression* expr) override
 		{
-			// (void) expr;
-			// return yaramod::regexp("abc", "i").get();
 			auto new_condition = regexp("abc", "i").get();
 			expr->exchangeTokens(new_condition.get());
 			return new_condition;

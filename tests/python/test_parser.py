@@ -1371,7 +1371,9 @@ rule rule_with_regexp_suffix_modifiers {
                     self.modify(rule.condition)
 
             def visit_RegexpExpression(self, expr: yaramod.Expression):
-                return yaramod.regexp('abc', 'i').get()
+                output = yaramod.regexp('abc', 'i').get()
+                expr.exchange_tokens(output)
+                return output
 
         yara_file = yaramod.Yaramod().parse_string(r'''
 import "cuckoo"
