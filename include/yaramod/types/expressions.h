@@ -495,6 +495,9 @@ public:
 	const Expression::Ptr& getLeftOperand() const { return _left; }
 	const Expression::Ptr& getRightOperand() const { return _right; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _left->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right->getLastTokenIt(); }
+
 	void setLeftOperand(const Expression::Ptr& left) { _left = left; }
 	void setLeftOperand(Expression::Ptr&& left) { _left = std::move(left); }
 	void setRightOperand(const Expression::Ptr& right) { _right = right; }
@@ -517,9 +520,6 @@ protected:
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
-
-	virtual TokenIt getFirstTokenIt() const override { return _left->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _right->getLastTokenIt(); }
 
 private:
 	TokenIt _op; ///< Binary operation symbol, std::string
