@@ -1395,6 +1395,12 @@ rule rule_with_regexp_in_fnc_call {
         self.assertEqual(cond.arguments[0].regexp_string.text, r'/abc/i')
         self.assertEqual(cond.arguments[0].regexp_string.pure_text, rb'abc')
 
+        self.assertEqual(r'''import "cuckoo"
+
+rule rule_with_regexp_in_fnc_call {
+	condition:
+		cuckoo.network.http_request(/abc/i)
+}''', yara_file.text)
         expected = r'''
 import "cuckoo"
 
@@ -1405,6 +1411,7 @@ rule rule_with_regexp_in_fnc_call
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
 
     def test_nonutf_comments(self):
         yara_file = yaramod.Yaramod().parse_string(r'''

@@ -300,7 +300,6 @@ void addExpressionClasses(py::module& module)
 		.def("exchange_tokens", [](Expression& self, Expression* other) {
 				self.exchangeTokens(other);
 			})
-//		.def("get_tokenized", [](const Expression* self) { return self->getTokenStream()->getText(); } )
 		.def_property_readonly("text",
 				// getText() has default parameter and Python can't deal with it
 				[](const Expression* self) {
