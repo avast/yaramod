@@ -752,6 +752,7 @@ rule hex_string_with_jump_at_beginning
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("[", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
