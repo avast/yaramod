@@ -89,6 +89,12 @@ public:
 	void move_append(TokenStream* donor, TokenIt first, TokenIt last);
 	/// @}
 
+	/// @name Element access
+	/// @{
+	const Token& front() const { return _tokens.front(); }
+	const Token& back() const { return _tokens.back(); }
+	/// @}
+
 	/// @name Iterators
 	/// @{
 	TokenIt begin();
