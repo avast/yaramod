@@ -41,7 +41,7 @@ public:
 	};
 
 	TokenStream() = default;
-	TokenStream(const TokenStream &ts) = default;
+	TokenStream(const TokenStream &ts) = delete;
 
 	/// @name Insertion methods
 	/// @{

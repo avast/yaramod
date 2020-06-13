@@ -778,8 +778,8 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	AndExpressionSwitcher visiror(&yara_file);
-	visiror.process_rule(rule);
+	AndExpressionSwitcher visitor(&yara_file);
+	visitor.process_rule(rule);
 
 	EXPECT_EQ(
 R"(rule rule_1 {
@@ -839,8 +839,8 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	AndExpressionSwitcher visiror(&yara_file);
-	visiror.process_rule(rule);
+	AndExpressionSwitcher visitor(&yara_file);
+	visitor.process_rule(rule);
 
 	EXPECT_EQ(
 R"(rule rule_1 {
@@ -881,6 +881,180 @@ rule rule_1
 
 	EXPECT_EQ(expected, yara_file.getTextFormatted());
 	EXPECT_EQ("($6 and $5 and $4 and true and $3 and $2 and $1) or false", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+class OrExpressionSwitcher : public ModifyingVisitor
+{
+public:
+	OrExpressionSwitcher(YaraFile* yaraFile)
+		: _yaraFile(yaraFile)
+	{
+	}
+
+	void process_rule(const std::shared_ptr<Rule>& rule)
+	{
+		auto modified = modify(rule->getCondition());
+		rule->setCondition(std::move(modified));
+	}
+	virtual VisitResult visit(OrExpression* expr) override
+	{
+		auto output = _handleBinaryExpression(expr);
+		return output;
+	}
+
+
+private:
+
+	template <typename BinaryExp>
+	std::shared_ptr<Expression> _handleBinaryExpression(BinaryExp* expr)
+	{
+		//save old TS and expression start-end within it
+		auto oldTS = expr->getTokenStreamSharedPtr();
+		TokenIt oldBeforeFirst = std::prev(expr->getFirstTokenIt());
+		TokenIt oldAfterLast = std::next(expr->getLastTokenIt());
+		//perform changes on subnodes
+		auto leftResult = expr->getLeftOperand()->accept(this);
+		if (resultIsModified(leftResult))
+			expr->setLeftOperand(std::get<std::shared_ptr<Expression>>(leftResult));
+		auto rightResult = expr->getRightOperand()->accept(this);
+		if (resultIsModified(rightResult))
+			expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
+		//create new expression
+		auto output = disjunction({YaraExpressionBuilder(expr->getRightOperand()), YaraExpressionBuilder(expr->getLeftOperand())}).get();
+		//remove old tokens which has not been moved away by builder
+		oldTS->erase(std::next(oldBeforeFirst), oldAfterLast);
+		//transfer builded tokens
+		oldTS->move_append(oldAfterLast, output->getTokenStream());
+		output->setTokenStream(oldTS);
+		return output;
+	}
+	YaraFile* _yaraFile;
+
+	std::shared_ptr<TokenStream> oldTS;
+	TokenIt oldBeforeFirst;
+	TokenIt oldAfterLast;
+};
+
+TEST_F(VisitorTests,
+OrExpressionSwitcherOrExpression1) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		true and
+		(
+			any of them or
+			$2
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	OrExpressionSwitcher visitor(&yara_file);
+	visitor.process_rule(rule);
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		true and ($2 or any of them)
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+	condition:
+		true and
+		(
+			$2 or
+			any of them
+		)
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("true and ($2 or any of them)", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+	EXPECT_EQ(rule->getCondition()->getFirstTokenIt()->getPureText(), "true");
+	EXPECT_EQ(rule->getCondition()->getLastTokenIt()->getPureText(), ")");
+	EXPECT_TRUE(rule->getCondition()->isBool());
+	auto expAnd = std::static_pointer_cast<const AndExpression>(rule->getCondition());
+	auto expPar = std::static_pointer_cast<const ParenthesesExpression>(expAnd->getRightOperand());
+	auto expOr = std::static_pointer_cast<const OrExpression>(expPar->getEnclosedExpression());
+	auto expLeft = std::static_pointer_cast<const StringExpression>(expOr->getLeftOperand());
+	auto expRight = std::static_pointer_cast<const OfExpression>(expOr->getRightOperand());
+	EXPECT_EQ(expOr->getOperator()->getPureText(), "or");
+	EXPECT_EQ(expLeft->getFirstTokenIt()->getPureText(), "$2");
+	EXPECT_EQ(expLeft->getLastTokenIt()->getPureText(), "$2");
+	EXPECT_EQ(expRight->getFirstTokenIt()->getPureText(), "any");
+	EXPECT_EQ(expRight->getLastTokenIt()->getPureText(), "them");
+}
+
+TEST_F(VisitorTests,
+OrExpressionSwitcherOrExpression2) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+	condition:
+		$1 or
+		$2 or
+		$3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	OrExpressionSwitcher visitor(&yara_file);
+	visitor.process_rule(rule);
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+	condition:
+		$3 or $2 or $1
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$1 = "s1" wide
+		$2 = "s2"
+		$3 = "s3"
+	condition:
+		$3 or
+		$2 or
+		$1
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("$3 or $2 or $1", rule->getCondition()->getText());
 	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 }
 

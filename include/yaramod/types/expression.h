@@ -75,6 +75,10 @@ public:
 	{
 		return _tokenStream.get();
 	}
+	const std::shared_ptr<TokenStream> getTokenStreamSharedPtr() const
+	{
+		return _tokenStream;
+	}
 	virtual TokenIt getFirstTokenIt() const = 0;
 	virtual TokenIt getLastTokenIt() const = 0;
 	/// @}

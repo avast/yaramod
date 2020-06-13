@@ -492,6 +492,7 @@ public:
 		return _left->getText(indent) + ' ' + _op->getString() + (_linebreak ? "\n" + indent : " ") + _right->getText(indent);
 	}
 
+	TokenIt getOperator() const { return _op; }
 	const Expression::Ptr& getLeftOperand() const { return _left; }
 	const Expression::Ptr& getRightOperand() const { return _right; }
 

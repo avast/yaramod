@@ -50,7 +50,6 @@ const Literal& Token::getLiteral() const
 
 const std::string& Token::getString() const
 {
-	assert(isString());
 	return _value->getString();
 }
 
