@@ -19,18 +19,21 @@ constexpr unsigned tabulator_length = 8;
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
 	_tokens.emplace_back(type, Literal(std::string(1, value)));
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back(TokenType type, const Literal& literal)
 {
 	_tokens.emplace_back(type, literal);
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back(TokenType type, Literal&& literal)
 {
 	_tokens.emplace_back(type, std::move(literal));
+	_formatted = false;
 	return --_tokens.end();
 }
 
@@ -38,6 +41,7 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, char value)
 {
 	_tokens.emplace(before, type, Literal(std::string(1, value)));
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
@@ -45,6 +49,7 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const Litera
 {
 	_tokens.emplace(before, type, literal);
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
@@ -52,59 +57,70 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, Literal&& li
 {
 	_tokens.emplace(before, type, std::move(literal));
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
 TokenIt TokenStream::push_back(const Token& t)
 {
 	_tokens.push_back(t);
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::push_back(Token&& t)
 {
 	_tokens.push_back(std::move(t));
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, const Literal& literal)
 {
+	_formatted = false;
 	return _tokens.insert(before, Token(type, literal));
 }
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, Literal&& literal)
 {
+	_formatted = false;
 	return _tokens.insert(before, Token(type, std::move(literal)));
 }
 
 TokenIt TokenStream::erase(TokenIt element)
 {
+	_formatted = false;
 	return _tokens.erase(element);
 }
 
 TokenIt TokenStream::erase(TokenIt first, TokenIt last)
 {
+	_formatted = false;
 	return _tokens.erase(first, last);
 }
 
 void TokenStream::move_append(TokenStream* donor)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens);
+	_formatted = false;
 }
 
 void TokenStream::move_append(TokenIt before, TokenStream* donor)
 {
 	_tokens.splice(before, donor->_tokens);
+	_formatted = false;
 }
 
 void TokenStream::move_append(TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens, first, last);
+	_formatted = false;
 }
 
 void TokenStream::move_append(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(before, donor->_tokens, first, last);
+	_formatted = false;
 }
 
 void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last)
@@ -194,6 +210,7 @@ void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStre
 		_tokens.splice(local_first, other->_tokens, other_first, other_last);
 		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);		
 	}
+	_formatted = false;
 }
 
 TokenIt TokenStream::begin()
@@ -307,6 +324,7 @@ std::vector<std::string> TokenStream::getTokensAsText() const
 void TokenStream::clear()
 {
 	_tokens.clear();
+	_formatted = false;
 }
 
 
