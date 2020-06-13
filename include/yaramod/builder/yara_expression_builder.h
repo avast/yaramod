@@ -68,27 +68,27 @@ public:
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
-		_tokenStream->move_append(_expr->getTokenStream());
+		_tokenStream->move_append(_expr->getTokenStream(), _expr->getFirstTokenIt(), std::next(_expr->getLastTokenIt()));
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
-		_tokenStream->move_append(_expr->getTokenStream());
+		_tokenStream->move_append(_expr->getTokenStream(), _expr->getFirstTokenIt(), std::next(_expr->getLastTokenIt()));
 	}
 	YaraExpressionBuilder(const Expression::Ptr& expr, const Expression::Type& type)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(expr)
 	{
 		setType(type);
-		_tokenStream->move_append(_expr->getTokenStream());
+		_tokenStream->move_append(_expr->getTokenStream(), _expr->getFirstTokenIt(), std::next(_expr->getLastTokenIt()));
 	}
 	YaraExpressionBuilder(Expression::Ptr&& expr, const Expression::Type& type)
 		: _tokenStream(std::make_shared<TokenStream>())
 		, _expr(std::move(expr))
 	{
 		setType(type);
-		_tokenStream->move_append(_expr->getTokenStream());
+		_tokenStream->move_append(_expr->getTokenStream(), _expr->getFirstTokenIt(), std::next(_expr->getLastTokenIt()));
 	}
 	YaraExpressionBuilder(const std::shared_ptr<TokenStream>& ts)
 		: _tokenStream(ts)
