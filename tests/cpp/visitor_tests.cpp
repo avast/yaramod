@@ -903,17 +903,13 @@ public:
 		return output;
 	}
 
-
 private:
 
 	template <typename BinaryExp>
 	std::shared_ptr<Expression> _handleBinaryExpression(BinaryExp* expr)
 	{
 		//save old TS and expression start-end within it
-		auto oldTS = expr->getTokenStreamSharedPtr();
-		TokenIt oldBeforeFirst = std::prev(expr->getFirstTokenIt());
-		TokenIt oldAfterLast = std::next(expr->getLastTokenIt());
-		//perform changes on subnodes
+		TokenStreamContext context(expr);
 		auto leftResult = expr->getLeftOperand()->accept(this);
 		if (resultIsModified(leftResult))
 			expr->setLeftOperand(std::get<std::shared_ptr<Expression>>(leftResult));
@@ -922,18 +918,11 @@ private:
 			expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
 		//create new expression
 		auto output = disjunction({YaraExpressionBuilder(expr->getRightOperand()), YaraExpressionBuilder(expr->getLeftOperand())}).get();
-		//remove old tokens which has not been moved away by builder
-		oldTS->erase(std::next(oldBeforeFirst), oldAfterLast);
-		//transfer builded tokens
-		oldTS->move_append(oldAfterLast, output->getTokenStream());
-		output->setTokenStream(oldTS);
+
+		cleanUpTokenStreams(context, output.get());
 		return output;
 	}
 	YaraFile* _yaraFile;
-
-	std::shared_ptr<TokenStream> oldTS;
-	TokenIt oldBeforeFirst;
-	TokenIt oldAfterLast;
 };
 
 TEST_F(VisitorTests,

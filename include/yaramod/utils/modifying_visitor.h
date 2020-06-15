@@ -10,6 +10,34 @@
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {
+/**
+ * This class captures current TokenStream and first and last TokenIi of the expression which it is given
+ * in it's constructor. This data can be very useful at the end of the visit method of ModifyingVisitors
+ * by the cleanUpTokenStreams function.
+ */
+class TokenStreamContext {
+public:
+	TokenStreamContext(Expression* expr)
+		: _oldTS(expr->getTokenStreamSharedPtr())
+		, _oldBeforeFirst(std::prev(expr->getFirstTokenIt()))
+		, _oldAfterLast(std::next(expr->getLastTokenIt()))
+	{
+	}
+	TokenStreamContext(const std::shared_ptr<TokenStream>& oldTS, TokenIt oldBeforeFirst, TokenIt oldAfterLast)
+		: _oldTS(oldTS)
+		, _oldBeforeFirst(oldBeforeFirst)
+		, _oldAfterLast(oldAfterLast)
+	{
+	}
+
+	std::shared_ptr<TokenStream>& oldTS() { return _oldTS; }
+	TokenIt oldBeforeFirst() const { return _oldBeforeFirst; }
+	TokenIt oldAfterLast() const { return _oldAfterLast; }
+private:
+	std::shared_ptr<TokenStream> _oldTS;
+	TokenIt _oldBeforeFirst;
+	TokenIt _oldAfterLast;
+};
 
 /**
  * Abstract class representing modifying visitor of condition expression in YARA files.
@@ -586,6 +614,35 @@ public:
 		return {};
 	}
 	/// @}
+
+	/**
+	 * In the case an expression has been created in a builder, it has a new TokenStream which may partially
+	 * contain some Tokens stolen from the original TS. In this method, the new TokenStream is move appended
+	 * inside the original TS and replaces all remaining tokens which were associated with the old version
+	 * of the expression.
+	 * 
+	 * Removes all tokens in the TokenStream that the given expression has been associated with.
+	 * Then all tokens, which are currently associated with the given expression are moved to the TokenStream
+	 * The expression is assigned the TokenStream.
+	 * @return true iff any changes performed (when the expression has different tokenstream)
+	 */
+	bool cleanUpTokenStreams(TokenStreamContext& context, Expression* new_expression)
+	{
+		auto& oldTS = context.oldTS();
+		if (oldTS.get() != new_expression->getTokenStream())
+		{
+			auto oldBeforeFirst = context.oldBeforeFirst();
+			auto oldAfterLast = context.oldAfterLast();
+			// remove old tokens which has not been moved away by builder
+			oldTS->erase(std::next(oldBeforeFirst), oldAfterLast);
+			// transfer builded tokens
+			oldTS->move_append(oldAfterLast, new_expression->getTokenStream());
+			new_expression->setTokenStream(oldTS);
+			return true;
+		}
+		else
+			return false;
+	}
 
 protected:
 	ModifyingVisitor() = default;
