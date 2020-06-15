@@ -1412,6 +1412,61 @@ rule rule_with_regexp_in_fnc_call
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_modifying_visitor_eq_expression(self):
+        class EqModifyer(yaramod.ModifyingVisitor):
+            def add(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    rule.condition = self.modify(rule.condition)
+
+            def visit_EqExpression(self, expr: yaramod.Expression):
+                context = yaramod.TokenStreamContext(expr)
+                leftResult = expr.left_operand.accept(self)
+                rightResult = expr.right_operand.accept(self)
+                bld1 = yaramod.YaraExpressionBuilder(expr.right_operand)
+                bld2 = yaramod.YaraExpressionBuilder(expr.left_operand)
+                output = (bld1 != bld2).get()
+
+                self.cleanUpTokenStreams(context, output)
+                return output        	
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rule_with_regexp_in_fnc_call {
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		!str1 == !str2222
+}''')
+
+        regexp_icase_adder = EqModifyer()
+        regexp_icase_adder.add(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        cond = rule.condition
+        self.assertTrue(isinstance(cond, yaramod.NeqExpression))
+        self.assertTrue(isinstance(cond.left_operand, yaramod.StringLengthExpression))
+        self.assertTrue(isinstance(cond.right_operand, yaramod.StringLengthExpression))
+
+        self.assertEqual(r'''rule rule_with_regexp_in_fnc_call {
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		!str2222 != !str1
+}''', yara_file.text)
+        expected = r'''
+rule rule_with_regexp_in_fnc_call
+{
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		!str2222 != !str1
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
 
     def test_nonutf_comments(self):
         yara_file = yaramod.Yaramod().parse_string(r'''
