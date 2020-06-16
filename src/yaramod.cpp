@@ -32,4 +32,9 @@ std::unique_ptr<YaraFile> Yaramod::parseStream(std::istream& inputStream, Parser
 	return result;
 }
 
+const YaraFile& Yaramod::getParsedFile() const
+{
+	return _driver.getParsedFile();
+}
+
 }

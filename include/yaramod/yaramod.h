@@ -56,6 +56,8 @@ public:
 	 */
 	std::unique_ptr<YaraFile> parseStream(std::istream& inputStream, ParserMode parserMode = ParserMode::Regular);
 
+	const YaraFile& getParsedFile() const;
+
 private:
 	ParserDriver _driver;
 };
