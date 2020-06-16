@@ -81,7 +81,7 @@ public:
 	bool isString() const { return _value->isString(); }
 	bool isBool() const { return _value->isBool(); }
 	bool isInt() const { return _value->isInt(); }
-	bool isDouble() const { return _value->isFloat(); }
+	bool isFloat() const { return _value->isFloat(); }
 	bool isSymbol() const { return _value->isSymbol(); }
 	bool isLiteralReference() const { return _value->isLiteralReference(); }
 

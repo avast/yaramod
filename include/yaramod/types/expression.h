@@ -71,7 +71,7 @@ public:
 			default: return "Error - unknown type";
 		}
 	}
-	TokenStream* getTokenStream()
+	TokenStream* getTokenStream() const
 	{
 		return _tokenStream.get();
 	}
