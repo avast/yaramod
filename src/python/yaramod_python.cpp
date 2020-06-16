@@ -292,6 +292,36 @@ void addBasicClasses(py::module& module)
 			});
 }
 
+void addTokenStreamClass(py::module& module)
+{
+	py::class_<Token>(module, "Token")
+		.def(py::init<TokenType, const Literal&>())
+		.def_property_readonly("text", [](Token& self) { return self.getText(); })
+		.def_property_readonly("pure_text", &Token::getPureText)
+		.def_property_readonly("is_string", &Token::isString)
+		.def_property_readonly("is_bool", &Token::isBool)
+		.def_property_readonly("is_int", &Token::isInt)
+		.def_property_readonly("is_float", &Token::isFloat)
+		.def_property_readonly("is_symbol", &Token::isSymbol)
+		.def_property_readonly("literal", &Token::getLiteral)
+		.def_property_readonly("string", &Token::getString)
+		.def_property_readonly("bool", &Token::getBool)
+		.def_property_readonly("int", &Token::getInt)
+		.def_property_readonly("uint", &Token::getUInt)
+		.def_property_readonly("float", &Token::getFloat)
+		.def_property_readonly("symbol", &Token::getSymbol)
+		.def_property_readonly("literal_reference", &Token::getLiteralReference);
+
+	py::class_<TokenStream, std::shared_ptr<TokenStream>>(module, "TokenStream")
+		.def(py::init<>())
+		.def_property_readonly("empty", &TokenStream::empty)
+		.def_property_readonly("size", &TokenStream::size)
+		.def_property_readonly("front", &TokenStream::front)
+		.def_property_readonly("back", &TokenStream::back)
+		.def_property_readonly("tokens", &TokenStream::getTokens)
+		.def_property_readonly("tokens_as_text", &TokenStream::getTokensAsText);
+}
+
 void addExpressionClasses(py::module& module)
 {
 	py::class_<Expression, std::shared_ptr<Expression>>(module, "Expression")
@@ -660,6 +690,7 @@ PYBIND11_MODULE(yaramod, module)
 	addVersionVariables(module);
 	addEnums(module);
 	addBasicClasses(module);
+	addTokenStreamClass(module);
 	addExpressionClasses(module);
 	addMainClass(module);
 	addVisitorClasses(module);
