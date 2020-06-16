@@ -59,14 +59,12 @@ rule rule_with_regexp_in_fnc_call
 
             def visit_EqExpression(self, expr: yaramod.Expression):
                 context = yaramod.TokenStreamContext(expr)
-                leftResult = expr.left_operand.accept(self)
-                rightResult = expr.right_operand.accept(self)
-                bld1 = yaramod.YaraExpressionBuilder(expr.right_operand)
-                bld2 = yaramod.YaraExpressionBuilder(expr.left_operand)
-                output = (bld1 != bld2).get()
+                expr.left_operand.accept(self)
+                expr.right_operand.accept(self)
+                output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
 
                 self.cleanUpTokenStreams(context, output)
-                return output        	
+                return output
 
         yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_in_fnc_call {
