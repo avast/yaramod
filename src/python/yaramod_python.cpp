@@ -332,7 +332,8 @@ void addExpressionClasses(py::module& module)
 				// getText() has default parameter and Python can't deal with it
 				[](const Expression* self) {
 					return self->getText();
-				});
+				})
+		.def_property_readonly("tokenstream", [](const Expression& self) { return *(self.getTokenStream());} );
 
 	exprClass<StringExpression>(module, "StringExpression")
 		.def_property("id",
