@@ -778,6 +778,7 @@ rule hex_string_with_jump_at_end
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("}", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
