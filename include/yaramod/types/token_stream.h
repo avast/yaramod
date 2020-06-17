@@ -87,16 +87,16 @@ public:
 	TokenIt erase(TokenIt first, TokenIt last);
 
 	// Steals all data from donor and append it at the end.
-	void move_append(TokenStream* donor);
+	void moveAppend(TokenStream* donor);
 	// Steals all data from donor and append it at position before.
-	void move_append(TokenIt before, TokenStream* donor);
+	void moveAppend(TokenIt before, TokenStream* donor);
 	// Steals only data in [first, last) from donor and append it at the end.
-	void move_append(TokenStream* donor, TokenIt first, TokenIt last);
+	void moveAppend(TokenStream* donor, TokenIt first, TokenIt last);
 	// Steals only data in [first, last) from donor and append it at position before.
-	void move_append(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last);
+	void moveAppend(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last);
 	// Exchanges data in [local_first, local_last) for data in [other_first,other_last)
 	// When other == this and [local_first, local_last) > [other_first,other_last), deletion occurs
-	void swap_tokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last);
+	void swapTokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last);
 	/// @}
 
 	/// @name Iterators

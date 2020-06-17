@@ -61,7 +61,7 @@ public:
 	 */
 	YaraHexStringBuilder& add(const YaraHexStringBuilder& unit)
 	{
-		_tokenStream->move_append(unit._tokenStream.get());
+		_tokenStream->moveAppend(unit._tokenStream.get());
 		std::copy(unit.getUnits().begin(), unit.getUnits().end(), std::back_inserter(_units));
 		return *this;
 	}
@@ -77,7 +77,7 @@ public:
 	template <typename... Args>
 	YaraHexStringBuilder& add(const YaraHexStringBuilder& unit, const Args&... args)
 	{
-		_tokenStream->move_append(unit._tokenStream.get());
+		_tokenStream->moveAppend(unit._tokenStream.get());
 		std::copy(unit.getUnits().begin(), unit.getUnits().end(), std::back_inserter(_units));
 		return add(args...);
 	}

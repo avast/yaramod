@@ -486,7 +486,7 @@ public:
 	{
 		_tokenStream = std::move(_left->getTokenStream());
 		_or = _tokenStream->emplace_back(TokenType::REGEXP_OR, "|");
-		_tokenStream->move_append(_right->getTokenStream().get());
+		_tokenStream->moveAppend(_right->getTokenStream().get());
 	}
 
 	virtual std::string getText() const override
@@ -518,7 +518,7 @@ public:
 		: _unit(std::move(unit))
 	{
 		_left_bracket = _tokenStream->emplace_back(TokenType::LP, "(");
-		_tokenStream->move_append(_unit->getTokenStream().get());
+		_tokenStream->moveAppend(_unit->getTokenStream().get());
 		_right_bracket = _tokenStream->emplace_back(TokenType::RP, ")");
 	}
 
@@ -552,7 +552,7 @@ public:
 		: _units(std::move(units))
 	{
 		for (auto&& unit : _units)
-			_tokenStream->move_append(unit->getTokenStream().get());
+			_tokenStream->moveAppend(unit->getTokenStream().get());
 	}
 
 	virtual std::string getText() const override
@@ -602,7 +602,7 @@ public:
 		, _unit(std::move(unit))
 	{
 		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
-		_tokenStream->move_append(_unit->getTokenStream().get());
+		_tokenStream->moveAppend(_unit->getTokenStream().get());
 		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
 
@@ -611,7 +611,7 @@ public:
 		, _unit(std::move(unit))
 	{
 		_leftSlash = _tokenStream->emplace_back(TokenType::REGEXP_START_SLASH, "/");
-		_tokenStream->move_append(_unit->getTokenStream().get());
+		_tokenStream->moveAppend(_unit->getTokenStream().get());
 		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
 

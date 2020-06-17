@@ -99,31 +99,31 @@ TokenIt TokenStream::erase(TokenIt first, TokenIt last)
 	return _tokens.erase(first, last);
 }
 
-void TokenStream::move_append(TokenStream* donor)
+void TokenStream::moveAppend(TokenStream* donor)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens);
 	_formatted = false;
 }
 
-void TokenStream::move_append(TokenIt before, TokenStream* donor)
+void TokenStream::moveAppend(TokenIt before, TokenStream* donor)
 {
 	_tokens.splice(before, donor->_tokens);
 	_formatted = false;
 }
 
-void TokenStream::move_append(TokenStream* donor, TokenIt first, TokenIt last)
+void TokenStream::moveAppend(TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens, first, last);
 	_formatted = false;
 }
 
-void TokenStream::move_append(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last)
+void TokenStream::moveAppend(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(before, donor->_tokens, first, last);
 	_formatted = false;
 }
 
-void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last)
+void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last)
 {
 	if (this == other)
 	{
@@ -151,13 +151,13 @@ void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStre
 				{
 					std::stringstream ss;
 					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
-					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
 				}
 				else
 				{	
 					std::stringstream ss;
 					ss << "['" << *local_first << "','" << *local_last << "') and ['" << *other_first << "','" << *other_last << "') intersect in proper subset of each of them.";
-					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
 				}
 			}
 			else
@@ -183,7 +183,7 @@ void TokenStream::swap_tokens(TokenIt local_first, TokenIt local_last, TokenStre
 				{
 					std::stringstream ss;
 					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
-					throw YaramodError("Error: Cannot swap_tokens when " + ss.str());
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
 				}
 				else
 					other_under_local = true;

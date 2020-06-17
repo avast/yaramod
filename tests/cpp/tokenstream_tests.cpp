@@ -162,7 +162,7 @@ TokenStreamSwapTokensWithDifferentTokenStreams) {
 	[[maybe_unused]] auto b4 = ts_b.emplace_back(TokenType::META_KEY, "AUTHOR_NAME");
 	[[maybe_unused]] auto b5 = ts_b.emplace_back(TokenType::COMMENT, "/*COMMENT AFTER AUTHOR NAME*/");
 
-	ts_a.swap_tokens(a3, a5, &ts_b, b3, b5);
+	ts_a.swapTokens(a3, a5, &ts_b, b3, b5);
 	EXPECT_EQ(R"(author = /*COMMENT BEFORE AUTHOR NAME*/
 AUTHOR_NAME /*comment after author name*/
 )", ts_a.getText());
@@ -187,7 +187,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusion1) {
 	[[maybe_unused]] auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
 
-	ts.swap_tokens(a3, a5, &ts, a4, a5);
+	ts.swapTokens(a3, a5, &ts, a4, a5);
 	EXPECT_EQ(R"(author =
 author_name /*comment after author name*/
 )", ts.getText());
@@ -207,7 +207,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusion2) {
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
 	[[maybe_unused]] auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
 
-	ts.swap_tokens(a2, a5, &ts, a3, a4);
+	ts.swapTokens(a2, a5, &ts, a3, a4);
 	EXPECT_EQ(R"(1 3 5 6
 )", ts.getText());
 
@@ -225,7 +225,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusionTouching1) {
 	[[maybe_unused]] auto a4 = ts.emplace_back(TokenType::AND, "and");
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::BOOL_FALSE, "false");
 
-	ts.swap_tokens(a3, ts.end(), &ts, a5, ts.end());
+	ts.swapTokens(a3, ts.end(), &ts, a5, ts.end());
 	EXPECT_EQ(R"(condition:
 false
 )", ts.getText());
@@ -244,7 +244,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusionTouching2) {
 	[[maybe_unused]] auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
 
-	ts.swap_tokens(a3, a5, &ts, a3, a4);
+	ts.swapTokens(a3, a5, &ts, a3, a4);
 	EXPECT_EQ(R"(author = /*comment before author name*/ /*comment after author name*/
 )", ts.getText());
 
@@ -265,14 +265,14 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusionInvalid) {
 
   try
 	{
-		ts.swap_tokens(a3, a4, &ts, a2, a5);
+		ts.swapTokens(a3, a4, &ts, a2, a5);
 		FAIL() << "TokenStream did not throw an exception.";
 	}
 	catch (const YaramodError& err)
 	{
 		EXPECT_EQ(R"(1 2 3 4 5 6
 )", ts.getText());
-		EXPECT_EQ("Error: Cannot swap_tokens when ['3','4') is under ['2','5').", err.getErrorMessage());
+		EXPECT_EQ("Error: Cannot swapTokens when ['3','4') is under ['2','5').", err.getErrorMessage());
 	}
 }
 
@@ -288,14 +288,14 @@ TokenStreamSwapTokensWithinTheSameTokenStreamInclusionInvalid2) {
 
   try
 	{
-		ts.swap_tokens(a1, a3, &ts, a2, a5);
+		ts.swapTokens(a1, a3, &ts, a2, a5);
 		FAIL() << "TokenStream did not throw an exception.";
 	}
 	catch (const YaramodError& err)
 	{
 		EXPECT_EQ(R"(1 2 3 4 5 6
 )", ts.getText());
-		EXPECT_EQ("Error: Cannot swap_tokens when ['1','3') and ['2','5') intersect in proper subset of each of them.", err.getErrorMessage());
+		EXPECT_EQ("Error: Cannot swapTokens when ['1','3') and ['2','5') intersect in proper subset of each of them.", err.getErrorMessage());
 	}
 }
 
@@ -308,7 +308,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamDistinct) {
 	[[maybe_unused]] auto a4 = ts.emplace_back(TokenType::META_KEY, "author_name");
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::COMMENT, "/*comment after author name*/");
 
-	ts.swap_tokens(a3, a4, &ts, a5, ts.end());
+	ts.swapTokens(a3, a4, &ts, a5, ts.end());
 	EXPECT_EQ(R"(author = /*comment after author name*/
 author_name /*comment before author name*/
 )", ts.getText());
@@ -328,7 +328,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamDistinctTouching1) {
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
 	[[maybe_unused]] auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
 
-	ts.swap_tokens(a3, a4, &ts, a4, a5);
+	ts.swapTokens(a3, a4, &ts, a4, a5);
 	EXPECT_EQ(R"(1 2 4 3 5 6
 )", ts.getText());
 
@@ -347,7 +347,7 @@ TokenStreamSwapTokensWithinTheSameTokenStreamDistinctTouching2) {
 	[[maybe_unused]] auto a5 = ts.emplace_back(TokenType::INTEGER, 5.0, std::make_optional(std::string{"5"}));
 	[[maybe_unused]] auto a6 = ts.emplace_back(TokenType::INTEGER, 6.0, std::make_optional(std::string{"6"}));
 
-	ts.swap_tokens(a4, a5, &ts, a3, a4);
+	ts.swapTokens(a4, a5, &ts, a3, a4);
 	EXPECT_EQ(R"(1 2 4 3 5 6
 )", ts.getText());
 

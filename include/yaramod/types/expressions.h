@@ -113,7 +113,7 @@ public:
 	{
 		_id = _tokenStream->emplace_back(STRING_ID, id);
 		_at_symbol = _tokenStream->emplace_back(OP_AT, "at");
-		_tokenStream->move_append(_at->getTokenStream());
+		_tokenStream->moveAppend(_at->getTokenStream());
 	}
 
 	template <typename ExpPtr>
@@ -168,7 +168,7 @@ public:
 		_id = _tokenStream->emplace_back(STRING_ID, id);
 		_in_symbol = _tokenStream->emplace_back(OP_IN, "in");
 		_range = std::forward<ExpPtr>(range);
-		_tokenStream->move_append(_range->getTokenStream());
+		_tokenStream->moveAppend(_range->getTokenStream());
 	}
 
 	template <typename ExpPtr>

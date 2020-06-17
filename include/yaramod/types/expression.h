@@ -127,7 +127,7 @@ public:
 			TokenIt firstNew = new_expression->getFirstTokenIt();
 			TokenIt lastNew = std::next(new_expression->getLastTokenIt());
 			auto otherTokenStream = new_expression->_tokenStream;
-			_tokenStream->swap_tokens(from, to, otherTokenStream.get(), firstNew, lastNew);
+			_tokenStream->swapTokens(from, to, otherTokenStream.get(), firstNew, lastNew);
 			new_expression->setTokenStream(_tokenStream);
 			_tokenStream = otherTokenStream;
 		}
