@@ -86,6 +86,7 @@ rule same_named_rule {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ("Error at 7.6-20: Redefinition of rule 'same_named_rule'", err.getErrorMessage());
+		EXPECT_EQ("{", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
@@ -844,7 +845,7 @@ R"(
 rule invalid_hex_string
 {
 	strings:
-	  	$1 = { 01 0X } }
+	  	$1 = { 01 0X }
 	condition:
 		true
 }
@@ -859,6 +860,11 @@ rule invalid_hex_string
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.15: Syntax error: Unknown symbol on input, expected one of hex string ?, hex string nibble", err.getErrorMessage());
+		const auto& tokens = driver.getParsedFile().getTokenStream()->getTokensAsText();
+		EXPECT_EQ("{", tokens[tokens.size()-4]);
+		EXPECT_EQ("0", tokens[tokens.size()-3]);
+		EXPECT_EQ("1", tokens[tokens.size()-2]);
+		EXPECT_EQ("0", tokens[tokens.size()-1]);
 	}
 }
 
@@ -884,6 +890,7 @@ rule invalid_hex_string
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.17: Syntax error: Unexpected }, expected one of hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("}", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
@@ -909,6 +916,7 @@ rule invalid_hex_string
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("|", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
@@ -1193,6 +1201,39 @@ rule regexp_with_unescaped_square_brackets_inside_class
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+InvalidCuckooRuleAccessTokenStream) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule invalid_hex_string
+{
+	condition:
+		cuckoo.
+		filesystem.
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 9.1: Syntax error: Unexpected }, expected one of identifier", err.getErrorMessage());
+		const auto& tokens = driver.getParsedFile().getTokenStream()->getTokensAsText();
+		EXPECT_EQ("cuckoo", tokens[tokens.size()-7]);
+		EXPECT_EQ(".", tokens[tokens.size()-6]);
+		EXPECT_EQ("\n", tokens[tokens.size()-5]);
+		EXPECT_EQ("filesystem", tokens[tokens.size()-4]);
+		EXPECT_EQ(".", tokens[tokens.size()-3]);
+		EXPECT_EQ("\n", tokens[tokens.size()-2]);
+		EXPECT_EQ("}", tokens[tokens.size()-1]);
+	}
+}
 
 TEST_F(ParserTests,
 ComplicatedRegexpClassWorks) {

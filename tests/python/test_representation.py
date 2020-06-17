@@ -90,9 +90,9 @@ rule dummy_rule {
             ymod.parse_string(input_text)
         except:
             ts = ymod.yara_file.tokenstream
-        self.assertFalse(ts.empty)
-        self.assertEqual(ts.front.pure_text, '\n')
-        self.assertEqual(ts.back.pure_text, 'true')
+            self.assertFalse(ts.empty)
+            self.assertEqual(ts.front.pure_text, '\n')
+            self.assertEqual(ts.back.pure_text, 'true')
 
     def test_get_tokenstream_after_syntax_error_2(self):
         input_text = '''
@@ -105,9 +105,9 @@ rule dummy_rule {
             ymod.parse_string(input_text)
         except:
             ts = ymod.yara_file.tokenstream
-        self.assertFalse(ts.empty)
-        self.assertEqual(ts.front.pure_text, '\n')
-        self.assertEqual(ts.back.pure_text, ')')
+            self.assertFalse(ts.empty)
+            self.assertEqual(ts.front.pure_text, '\n')
+            self.assertEqual(ts.back.pure_text, ')')
 
     def test_get_tokenstream_after_unknown_identifier_error(self):
         input_text = '''
@@ -120,10 +120,10 @@ rule dummy_rule {
             ymod.parse_string(input_text)
         except:
             ts = ymod.yara_file.tokenstream
-        self.assertFalse(ts.empty)
-        self.assertEqual(ts.front.pure_text, '\n')
-        # After 'blah', also 'or' got into TS, because 'blah' is not tested by the grammar, it is semantics issue
-        self.assertEqual(ts.back.pure_text, 'or')
+            self.assertFalse(ts.empty)
+            self.assertEqual(ts.front.pure_text, '\n')
+            # After 'blah', also 'or' got into TS, because 'blah' is not tested by the grammar, it is semantics issue
+            self.assertEqual(ts.back.pure_text, 'or')
 
     def test_get_tokenstream_after_unknown_module_error(self):
         input_text = '''
@@ -131,19 +131,17 @@ import "unknown"
 
 rule dummy_rule {
 	condition:
-		blah or true
+		true
 }'''
         ymod = yaramod.Yaramod()
         try:
             ymod.parse_string(input_text)
         except:
             ts = ymod.yara_file.tokenstream
-        self.assertFalse(ts.empty)
-        self.assertEqual(ts.front.pure_text, '\n')
-        # After 'unknown', also 'rule' got into TS, because 'blah' is not tested by the grammar, it is semantics issue
-        self.assertEqual(ts.back.pure_text, 'rule')
-        self.assertEqual(ts.tokens_as_text, [ '\n',
-            'import', 'unknown', '\n',
-            '\n',
-            'rule'
-        ])
+            self.assertFalse(ts.empty)
+            # After 'unknown', also 'rule' got into TS, because 'unknown' is not tested by the grammar, it is semantics issue
+            self.assertEqual(ts.tokens_as_text, [ '\n',
+                'import', 'unknown', '\n',
+                '\n',
+                'rule'
+            ])
