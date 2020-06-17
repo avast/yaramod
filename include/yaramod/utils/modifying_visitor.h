@@ -32,9 +32,12 @@ public:
 	{
 	}
 
+	/// @name Getter methods
+	/// @{
 	std::shared_ptr<TokenStream>& oldTokenStream() { return _oldTokenStream; }
 	TokenIt oldBeforeFirst() const { return _oldBeforeFirst; }
 	TokenIt oldAfterLast() const { return _oldAfterLast; }
+	/// @}
 
 private:
 	std::shared_ptr<TokenStream> _oldTokenStream;
@@ -631,16 +634,16 @@ public:
 	 */
 	bool cleanUpTokenStreams(TokenStreamContext& context, Expression* new_expression)
 	{
-		auto& oldTS = context.oldTS();
-		if (oldTS.get() != new_expression->getTokenStream())
+		auto& oldTokenStream = context.oldTokenStream();
+		if (oldTokenStream.get() != new_expression->getTokenStream())
 		{
 			auto oldBeforeFirst = context.oldBeforeFirst();
 			auto oldAfterLast = context.oldAfterLast();
 			// remove old tokens which has not been moved away by builder
-			oldTS->erase(std::next(oldBeforeFirst), oldAfterLast);
+			oldTokenStream->erase(std::next(oldBeforeFirst), oldAfterLast);
 			// transfer builded tokens
-			oldTS->move_append(oldAfterLast, new_expression->getTokenStream());
-			new_expression->setTokenStream(oldTS);
+			oldTokenStream->moveAppend(oldAfterLast, new_expression->getTokenStream());
+			new_expression->setTokenStream(oldTokenStream);
 			return true;
 		}
 		else
