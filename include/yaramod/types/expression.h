@@ -75,7 +75,7 @@ public:
 	{
 		return _tokenStream.get();
 	}
-	const std::shared_ptr<TokenStream> getTokenStreamSharedPtr() const
+	const std::shared_ptr<TokenStream>& getTokenStreamSharedPtr() const
 	{
 		return _tokenStream;
 	}

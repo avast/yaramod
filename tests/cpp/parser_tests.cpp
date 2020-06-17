@@ -2325,7 +2325,52 @@ rule structure_access_condition
 }
 
 TEST_F(ParserTests,
-ArrayAccessConditionWorks) {
+ArrayAccessConditionWorks1) {
+	prepareInput(
+R"(
+import "pe"
+
+rule array_access_condition
+{
+	condition:
+		pe.sections[0].name == ".text"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	auto condition = rule->getCondition();
+	EXPECT_EQ(R"(pe.sections[0].name == ".text")", condition->getText());
+	EXPECT_EQ("pe", condition->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(".text", condition->getLastTokenIt()->getPureText());
+
+	auto expEq = std::static_pointer_cast<const EqExpression>(condition);
+	auto expLeft = std::static_pointer_cast<const StructAccessExpression>(expEq->getLeftOperand());
+	EXPECT_EQ("pe", expLeft->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("name", expLeft->getLastTokenIt()->getPureText());
+
+	auto expArrayAccess = std::static_pointer_cast<const ArrayAccessExpression>(expLeft->getStructure());
+	EXPECT_EQ("pe", expArrayAccess->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("]", expArrayAccess->getLastTokenIt()->getPureText());
+
+	auto expAccessor = expArrayAccess->getAccessor();
+	EXPECT_EQ("0", expAccessor->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0", expAccessor->getLastTokenIt()->getPureText());
+	auto expArray = std::static_pointer_cast<const StructAccessExpression>(expArrayAccess->getArray());
+	EXPECT_EQ("pe", expArray->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("sections", expArray->getLastTokenIt()->getPureText());
+
+	auto expStruct = std::static_pointer_cast<const IdExpression>(expArray->getStructure());
+	EXPECT_EQ("pe", expStruct->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("pe", expStruct->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ArrayAccessConditionWorks2) {
 	prepareInput(
 R"(
 import "pe"
