@@ -10,31 +10,34 @@
 #include "yaramod/utils/visitor.h"
 
 namespace yaramod {
+
 /**
- * This class captures current TokenStream and first and last TokenIi of the expression which it is given
+ * Class capturing current TokenStream and first and last TokenIi of the expression which it is given
  * in it's constructor. This data can be very useful at the end of the visit method of ModifyingVisitors
  * by the cleanUpTokenStreams function.
  */
-class TokenStreamContext {
+class TokenStreamContext
+{
 public:
 	TokenStreamContext(Expression* expr)
-		: _oldTS(expr->getTokenStreamSharedPtr())
+		: _oldTokenStream(expr->getTokenStreamSharedPtr())
 		, _oldBeforeFirst(std::prev(expr->getFirstTokenIt()))
 		, _oldAfterLast(std::next(expr->getLastTokenIt()))
 	{
 	}
-	TokenStreamContext(const std::shared_ptr<TokenStream>& oldTS, TokenIt oldBeforeFirst, TokenIt oldAfterLast)
-		: _oldTS(oldTS)
+	TokenStreamContext(const std::shared_ptr<TokenStream>& oldTokenStream, TokenIt oldBeforeFirst, TokenIt oldAfterLast)
+		: _oldTokenStream(oldTokenStream)
 		, _oldBeforeFirst(oldBeforeFirst)
 		, _oldAfterLast(oldAfterLast)
 	{
 	}
 
-	std::shared_ptr<TokenStream>& oldTS() { return _oldTS; }
+	std::shared_ptr<TokenStream>& oldTokenStream() { return _oldTokenStream; }
 	TokenIt oldBeforeFirst() const { return _oldBeforeFirst; }
 	TokenIt oldAfterLast() const { return _oldAfterLast; }
+
 private:
-	std::shared_ptr<TokenStream> _oldTS;
+	std::shared_ptr<TokenStream> _oldTokenStream;
 	TokenIt _oldBeforeFirst;
 	TokenIt _oldAfterLast;
 };
@@ -664,4 +667,4 @@ private:
 	}
 };
 
-}
+} // namespace yaramod
