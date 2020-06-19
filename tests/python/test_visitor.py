@@ -3,6 +3,61 @@ import yaramod
 
 
 class VisitorTests(unittest.TestCase):
+    def test_simple_modifying_visitor(self):
+        class StringExpressionUpper(yaramod.ModifyingVisitor):
+            def add(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    self.modify(rule.condition)
+
+            def visit_StringExpression(self, expr: yaramod.Expression):
+                expr.id = expr.id.upper()
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "cuckoo"
+rule rule_with_regexp_in_fnc_call {
+	strings:
+		$str1 = "s"
+		$str2 = "s"
+	condition:
+		$str1 and $str2
+}''')
+
+        visitor = StringExpressionUpper()
+        visitor.add(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        cond = rule.condition
+        self.assertTrue(isinstance(cond, yaramod.AndExpression))
+        self.assertTrue(isinstance(cond.right_operand, yaramod.StringExpression))
+        self.assertEqual(cond.left_operand.id, "$STR1")
+        self.assertTrue(isinstance(cond.left_operand, yaramod.StringExpression))
+        self.assertEqual(cond.right_operand.id, "$STR2")
+
+        self.assertEqual(r'''import "cuckoo"
+
+rule rule_with_regexp_in_fnc_call {
+	strings:
+		$STR1 = "s"
+		$STR2 = "s"
+	condition:
+		$STR1 and $STR2
+}''', yara_file.text)
+        expected = r'''
+import "cuckoo"
+
+rule rule_with_regexp_in_fnc_call
+{
+	strings:
+		$STR1 = "s"
+		$STR2 = "s"
+	condition:
+		$STR1 and
+		$STR2
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_modifying_visitor_inpact_on_regexp_expression(self):
         class RegexpCaseInsesitiveAdder(yaramod.ModifyingVisitor):
             def add(self, yara_file: yaramod.YaraFile):

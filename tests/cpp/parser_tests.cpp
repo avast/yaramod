@@ -6117,7 +6117,21 @@ rule abc
 )";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
-	EXPECT_EQ(rule->getCondition()->getText(), "$s1");
+	auto condition = rule->getCondition();
+	EXPECT_EQ(condition->getText(), "$s1");
+	(std::static_pointer_cast<StringExpression>(condition))->setId("$s2");
+
+	expected = R"(
+rule abc
+{
+	strings:
+		$s2 = "abc string"
+	condition:
+		$s2
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,

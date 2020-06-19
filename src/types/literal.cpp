@@ -133,45 +133,75 @@ Literal::Literal(ReferenceType value)
  */
 void Literal::setValue(const std::string& s)
 {
-	_value = s;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(s);
+	else
+		_value = s;
 }
 
 void Literal::setValue(std::string&& s)
 {
-	_value = std::move(s);
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(std::move(s));
+	else
+		_value = std::move(s);
 }
 
 void Literal::setValue(bool b)
 {
-	_value = b;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(b);
+	else
+		_value = b;
 }
 
 void Literal::setValue(std::int64_t i, const std::optional<std::string>& integral_formatted_value/*= std::nullopt*/)
 {
-	_value = i;
-	_formatted_value = integral_formatted_value;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(i, integral_formatted_value);
+	else
+	{
+		_value = i;
+		_formatted_value = integral_formatted_value;
+	}
 }
 
 void Literal::setValue(std::uint64_t i, const std::optional<std::string>& integral_formatted_value/*= std::nullopt*/)
 {
-	_value = i;
-	_formatted_value = integral_formatted_value;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(i, integral_formatted_value);
+	else
+	{
+		_value = i;
+		_formatted_value = integral_formatted_value;
+	}
 }
 
-void Literal::setValue(double f, const std::optional<std::string>& integral_formatted_value/*= std::nullopt*/)
+void Literal::setValue(double d, const std::optional<std::string>& integral_formatted_value/*= std::nullopt*/)
 {
-	_value = f;
-	_formatted_value = integral_formatted_value;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(d, integral_formatted_value);
+	else
+	{
+		_value = d;
+		_formatted_value = integral_formatted_value;
+	}
 }
 
 void Literal::setValue(const std::shared_ptr<Symbol>& s)
 {
-	_value = s;
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(s);
+	else
+		_value = s;
 }
 
 void Literal::setValue(std::shared_ptr<Symbol>&& s)
 {
-	_value = std::move(s);
+	if (isLiteralReference())
+		const_cast<Literal*>(getLiteralReference())->setValue(std::move(s));
+	else
+		_value = std::move(s);
 }
 
 void Literal::setValue(ReferenceType l)
