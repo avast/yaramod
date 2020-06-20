@@ -296,7 +296,7 @@ void addBasicClasses(py::module& module)
 void addTokenStreamClass(py::module& module)
 {
 	py::class_<Token>(module, "Token")
-		.def(py::init<TokenType, const Literal&>())
+		.def(py::init<yaramod::TokenType, const Literal&>())
 		.def_property_readonly("text", [](Token& self) { return self.getText(); })
 		.def_property_readonly("pure_text", &Token::getPureText)
 		.def_property_readonly("is_string", &Token::isString)
