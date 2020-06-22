@@ -29,6 +29,9 @@ script:
   - python3 setup.py install
   - build/tests/cpp/yaramod_tests
   - pytest -v tests/python
+  - cd docs/rtd
+  - pip install -r requirements.txt
+  - make html
 
 deploy:
   provider: pypi
