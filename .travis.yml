@@ -31,7 +31,7 @@ script:
   - pytest -v tests/python
   - cd docs/rtd
   - pip install -r requirements.txt
-  - make html
+  - make clean && make html SPHINXOPTS="-W --keep-going -n"
 
 deploy:
   provider: pypi
