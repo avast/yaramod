@@ -6,53 +6,87 @@ Modifying Metas
 ===============
 In Yaramod, we are able to modify existing Yara rules through many methods. For example, we can add new metas with method ``Rule::addMeta(const std::string& name, const Literal& value)`` which inserts a new meta also into the TokenStream. This method can be used through python as ``add_meta`` as follows:
 
-.. code::
+.. tabs::
 
-  yara_file = yaramod.Yaramod().parse_string(
-  '''
-  rule rule_with_added_metas {
-    condition:
-      true
-  }'''
-  )
+    .. tab:: Python
 
-  rule = yara_file.rules[0]
-  rule.add_meta('int_meta', yaramod.Literal(42))
-  rule.add_meta('bool_meta', yaramod.Literal(False))
+      .. code-block:: python
+
+        yara_file = yaramod.Yaramod().parse_string(
+        '''
+        rule rule_with_added_metas {
+            condition:
+                true
+        }'''
+        )
+
+        rule = yara_file.rules[0]
+        rule.add_meta('int_meta', yaramod.Literal(42))
+        rule.add_meta('bool_meta', yaramod.Literal(False))
+
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        yaramod::Yaramod ymod;
+
+        std::stringstream input;
+        input << R"(
+        rule rule_with_added_metas {
+            condition:
+                true
+        })";
+        auto yarafile = ymod.parseStream(input);
+        const auto& rule = yarafile->getRules()[0];
+
+        uint64_t u = 42;
+        rule->addMeta("int_meta", Literal(u));
+        rule->addMeta("bool_meta", Literal(false));
 
 
 This will add both ``meta`` and ``:`` tokens and create two metas and the formatted text will look as follows:
 
 .. code::
 
-  rule rule_with_added_metas
-  {
-    meta:
-      int_meta = 42
-      bool_meta = false
-    condition:
-      true
-  }
+    rule rule_with_added_metas
+    {
+        meta:
+            int_meta = 42
+            bool_meta = false
+        condition:
+            true
+    }
 
 We can also modify existing metas using python bindings ``Rule::get_meta_with_name`` and ``Meta::value``. The following code will change the integer value ``42`` of ``int_meta`` into string ``forty two``:
 
-.. code::
+.. tabs::
 
-  meta = rule.get_meta_with_name('int_meta')
-  meta.value = yaramod.Literal('forty two')
+    .. tab:: Python
+
+      .. code-block:: python
+
+        meta = rule.get_meta_with_name('int_meta')
+        meta.value = yaramod.Literal('forty two')
+
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        auto meta = rule->getMetaWithName("int_meta")
+        meta->setValue(Literal("forty two"));
 
 With the following result:
 
 .. code::
 
-  rule rule_with_added_metas
-  {
-    meta:
-      int_meta = "forty two"
-      bool_meta = false
-    condition:
-      true
-  }
+    rule rule_with_added_metas
+    {     
+        meta:
+            int_meta = "forty two"
+            bool_meta = false
+        condition:
+            true
+    }
 
 
 Modifying Visitors
@@ -81,23 +115,31 @@ Custom Visitor Examples
 
 Following visitor provides specification of the ``visit`` method for ``StringExpression``. It 'to uppers' the ``id`` of the ``StringExpression``. It is modifying existing ``StringExpression`` instance:
 
-.. code::
+.. tabs::
 
-  class StringExpressionUpper(yaramod.ModifyingVisitor):
-    def process(self, yara_file: yaramod.YaraFile):
-      for rule in yara_file.rules:
-        self.modify(rule.condition)
-    def visit_StringExpression(self, expr: yaramod.Expression):
-      expr.id = expr.id.upper()
+    .. tab:: Python
+
+      .. code-block:: python
+
+        class StringExpressionUpper(yaramod.ModifyingVisitor):
+            def process(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    self.modify(rule.condition)
+            def visit_StringExpression(self, expr: yaramod.Expression):
+                expr.id = expr.id.upper()
 
 We can now use this visitors instance ``visitor`` to alter all conditions of rules present in a given yara file simply by calling ``visitor.process(yara_file)``. The next example will show a case when we replace existing visited node in the ``Expression`` syntax tree by another new node:
 
-.. code::
+.. tabs::
 
-  def visit_RegexpExpression(self, expr: yaramod.Expression):
-    output = yaramod.regexp('abc', 'i').get()
-    expr.exchange_tokens(output)
-    return output
+    .. tab:: Python
+
+      .. code-block:: python
+
+        def visit_RegexpExpression(self, expr: yaramod.Expression):
+            output = yaramod.regexp('abc', 'i').get()
+            expr.exchange_tokens(output)
+            return output
 
 This ``visit`` methods requires calling of a ``exchange_tokens`` method which deletes all Tokens that the original expression refered to. Then it extracts all tokens from the supplied new Expression and moves them to place where the original expression had its tokens stored.
 
@@ -105,18 +147,22 @@ In the third example we will show how to deal with a situation where we need to 
 
 Let's now assume that we need to modify each ``EqExpression`` in the expression syntax tree. We can do it by writing our own derived class of ``ModifyingVisitor``. The new class will override the ``visit(EqExpression* expr)`` method in the following manner:
 
-.. code::
+.. tabs::
 
-  def visit_EqExpression(self, expr: yaramod.Expression):
-    context = yaramod.TokenStreamContext(expr)
+    .. tab:: Python
 
-    expr.left_operand.accept(self)
-    expr.right_operand.accept(self)
+      .. code-block:: python
 
-    output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
+        def visit_EqExpression(self, expr: yaramod.Expression):
+            context = yaramod.TokenStreamContext(expr)
+ 
+            expr.left_operand.accept(self)
+            expr.right_operand.accept(self)
 
-    self.cleanUpTokenStreams(context, output)
-    return output
+            output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
+
+            self.cleanUpTokenStreams(context, output)
+            return output
 
 The first line is simply creating a snapshot ``context`` of the ``TokenStream`` and first and last ``Token`` of the processed ``Expression``.
 Because here we deal with an ``Expression`` of non-zero arity, we have to trigger the Visitor also on it's subnodes. This happens on the next two lines.
