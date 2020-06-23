@@ -43,10 +43,7 @@ StringExpressionVisitorInpactOnTokenStream) {
 		void process(const YaraFile& file)
 		{
 			for (const std::shared_ptr<Rule>& rule : file.getRules())
-			{
-				auto modified = modify(rule->getCondition());
-				rule->setCondition(std::move(modified));
-			}
+				modify(rule->getCondition());
 		}
 		virtual yaramod::VisitResult visit(StringExpression* expr) override
 		{
@@ -93,6 +90,7 @@ rule rule_name
 }
 )";
 	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 }
 
 TEST_F(VisitorTests,
@@ -102,8 +100,7 @@ RegexpModifyingVisitorInpactOnTokenStream) {
 	public:
 		void process_rule(const std::shared_ptr<Rule>& rule)
 		{
-			auto modified = modify(rule->getCondition());
-			rule->setCondition(std::move(modified));
+			modify(rule->getCondition());
 		}
 		virtual yaramod::VisitResult visit(RegexpExpression* expr) override
 		{
@@ -142,6 +139,7 @@ rule rule_name
 }
 )";
 	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 }
 
 TEST_F(VisitorTests,
@@ -790,11 +788,6 @@ rule rule_2
 class AndExpressionSwitcher : public ModifyingVisitor
 {
 public:
-	AndExpressionSwitcher(YaraFile* yaraFile)
-		: _yaraFile(yaraFile)
-	{
-	}
-
 	void process_rule(const std::shared_ptr<Rule>& rule)
 	{
 		auto modified = modify(rule->getCondition());
@@ -817,8 +810,6 @@ private:
 		expr->setLeftOperand(expr->getRightOperand());
 		expr->setRightOperand(tmp_condition);
 	}
-
-	YaraFile* _yaraFile;
 };
 
 TEST_F(VisitorTests,
@@ -841,7 +832,7 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	AndExpressionSwitcher visitor(&yara_file);
+	AndExpressionSwitcher visitor;
 	visitor.process_rule(rule);
 
 	EXPECT_EQ(
@@ -902,7 +893,7 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	AndExpressionSwitcher visitor(&yara_file);
+	AndExpressionSwitcher visitor;
 	visitor.process_rule(rule);
 
 	EXPECT_EQ(
@@ -950,11 +941,6 @@ rule rule_1
 class OrExpressionSwitcher : public ModifyingVisitor
 {
 public:
-	OrExpressionSwitcher(YaraFile* yaraFile)
-		: _yaraFile(yaraFile)
-	{
-	}
-
 	void process_rule(const std::shared_ptr<Rule>& rule)
 	{
 		auto modified = modify(rule->getCondition());
@@ -985,7 +971,6 @@ private:
 		cleanUpTokenStreams(context, output.get());
 		return output;
 	}
-	YaraFile* _yaraFile;
 };
 
 TEST_F(VisitorTests,
@@ -1011,7 +996,7 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	OrExpressionSwitcher visitor(&yara_file);
+	OrExpressionSwitcher visitor;
 	visitor.process_rule(rule);
 
 	EXPECT_EQ(
@@ -1078,7 +1063,7 @@ rule rule_1
 	ASSERT_EQ(1u, yara_file.getRules().size());
 	const auto& rule = yara_file.getRules()[0];
 
-	OrExpressionSwitcher visitor(&yara_file);
+	OrExpressionSwitcher visitor;
 	visitor.process_rule(rule);
 
 	EXPECT_EQ(
@@ -1107,6 +1092,85 @@ rule rule_1
 
 	EXPECT_EQ(expected, yara_file.getTextFormatted());
 	EXPECT_EQ("$3 or $2 or $1", rule->getCondition()->getText());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
+class EqModifyer : public yaramod::ModifyingVisitor
+{
+public:
+    void process_rule(const std::shared_ptr<Rule>& rule)
+    {
+        auto modified = modify(rule->getCondition());
+        rule->setCondition(std::move(modified));
+    }
+    virtual VisitResult visit(EqExpression* expr) override
+    {
+        TokenStreamContext context(expr);
+        auto leftResult = expr->getLeftOperand()->accept(this);
+        if (resultIsModified(leftResult))
+            expr->setLeftOperand(std::get<std::shared_ptr<Expression>>(leftResult));
+        auto rightResult = expr->getRightOperand()->accept(this);
+        if (resultIsModified(rightResult))
+            expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
+
+        auto output = ((YaraExpressionBuilder(expr->getRightOperand())) != (YaraExpressionBuilder(expr->getLeftOperand()))).get();
+
+        cleanUpTokenStreams(context, output.get());
+        return output;
+    }
+};
+
+TEST_F(VisitorTests,
+EqExpressionSwitcher) {
+	prepareInput(
+R"(
+rule rule_1
+{
+	strings:
+		$str1 = "s1" wide
+		$str2 = "s2"
+		$str3 = "s3"
+	condition:
+		!str1 == !str2 or
+		!str2 == !str3 or
+		!str1 == !str3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	EqModifyer visitor;
+	visitor.process_rule(rule);
+
+	EXPECT_EQ(
+R"(rule rule_1 {
+	strings:
+		$str1 = "s1" wide
+		$str2 = "s2"
+		$str3 = "s3"
+	condition:
+		!str2 != !str1 or !str3 != !str2 or !str3 != !str1
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_1
+{
+	strings:
+		$str1 = "s1" wide
+		$str2 = "s2"
+		$str3 = "s3"
+	condition:
+		!str2 != !str1 or
+		!str3 != !str2 or
+		!str3 != !str1
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ("!str2 != !str1 or !str3 != !str2 or !str3 != !str1", rule->getCondition()->getText());
 	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 }
 

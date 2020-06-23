@@ -72,7 +72,7 @@ We can also modify existing metas using python bindings ``Rule::get_meta_with_na
 
       .. code-block:: cpp
 
-        auto meta = rule->getMetaWithName("int_meta")
+        auto meta = rule->getMetaWithName("int_meta");
         meta->setValue(Literal("forty two"));
 
 With the following result:
@@ -138,10 +138,7 @@ Following visitor provides specification of the ``visit`` method for ``StringExp
             void process(const YaraFile& file)
             {
                 for (const std::shared_ptr<Rule>& rule : file.getRules())
-                {
-                    auto modified = modify(rule->getCondition());
-                    rule->setCondition(std::move(modified));
-                }
+                    modify(rule->getCondition());
             }
             virtual yaramod::VisitResult visit(StringExpression* expr) override
             {
@@ -162,19 +159,33 @@ We can now use this visitors instance ``visitor`` to alter all conditions of rul
 
       .. code-block:: python
 
-        def visit_RegexpExpression(self, expr: yaramod.Expression):
-            output = yaramod.regexp('abc', 'i').get()
-            expr.exchange_tokens(output)
-            return output
+        class RegexpVisitor(yaramod.ModifyingVisitor):
+            def add(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    self.modify(rule.condition)
+
+            def visit_RegexpExpression(self, expr: yaramod.Expression):
+                output = yaramod.regexp('abc', 'i').get()
+                expr.exchange_tokens(output)
+                return output
 
       .. code-block:: cpp
 
-        virtual yaramod::VisitResult visit(RegexpExpression* expr) override
+        class RegexpVisitor : public yaramod::ModifyingVisitor
         {
-            auto new_condition = regexp("abc", "i").get();
-            expr->exchangeTokens(new_condition.get());
-            return new_condition;
-        }
+        public:
+            void process(const YaraFile& file)
+            {
+                for (const std::shared_ptr<Rule>& rule : file.getRules())
+                    modify(rule->getCondition());
+            }
+            virtual yaramod::VisitResult visit(RegexpExpression* expr) override
+            {
+                auto new_condition = regexp("abc", "i").get();
+                expr->exchangeTokens(new_condition.get());
+                return new_condition;
+            }
+        };
 
 This ``visit`` methods requires calling of a ``exchange_tokens`` method which deletes all Tokens that the original expression refered to. Then it extracts all tokens from the supplied new Expression and moves them to place where the original expression had its tokens stored.
 
@@ -188,17 +199,48 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
 
       .. code-block:: python
 
-        def visit_EqExpression(self, expr: yaramod.Expression):
-            context = yaramod.TokenStreamContext(expr)
- 
-            expr.left_operand.accept(self)
-            expr.right_operand.accept(self)
+        class EqModifyer(yaramod.ModifyingVisitor):
+            def add(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    rule.condition = self.modify(rule.condition)
 
-            output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
+            def visit_EqExpression(self, expr: yaramod.Expression):
+                context = yaramod.TokenStreamContext(expr)
+                expr.left_operand.accept(self)
+                expr.right_operand.accept(self)
+                output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
 
-            self.cleanUpTokenStreams(context, output)
-            return output
+                self.cleanUpTokenStreams(context, output)
+                return output
 
-The first line is simply creating a snapshot ``context`` of the ``TokenStream`` and first and last ``Token`` of the processed ``Expression``.
-Because here we deal with an ``Expression`` of non-zero arity, we have to trigger the Visitor also on it's subnodes. This happens on the next two lines.
+      .. code-block:: cpp
+
+        class EqModifyer : public yaramod::ModifyingVisitor
+        {
+        public:
+            void process_rule(const std::shared_ptr<Rule>& rule)
+            {
+                auto modified = modify(rule->getCondition());
+                rule->setCondition(std::move(modified));
+            }
+            virtual VisitResult visit(EqExpression* expr) override
+            {
+                TokenStreamContext context(expr);
+                auto leftResult = expr->getLeftOperand()->accept(this);
+                if (resultIsModified(leftResult))
+                    expr->setLeftOperand(std::get<std::shared_ptr<Expression>>(leftResult));
+                auto rightResult = expr->getRightOperand()->accept(this);
+                if (resultIsModified(rightResult))
+                    expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
+                
+                auto output = ((YaraExpressionBuilder(expr->getRightOperand())) != (YaraExpressionBuilder(expr->getLeftOperand()))).get();
+
+                cleanUpTokenStreams(context, output.get());
+                return output;
+            }
+        };
+
+
+The first line in the ``visit`` method is simply creating a snapshot ``context`` of the ``TokenStream`` and first and last ``Token`` of the processed ``Expression``.
+Because here we deal with an ``Expression`` of non-zero arity, we have to trigger the Visitor also on it's subnodes. This happens on the next two lines in Python.
 Then a new expression ``output`` is created. The ``cleanUpTokenStreams`` method makes sure, that all remaining tokens of the old version of the expression, that have not been used by the builder, are deleted. Then all tokens maintained by the builder are moved back to the original TokenStream on the right place.
