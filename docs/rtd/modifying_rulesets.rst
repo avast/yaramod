@@ -80,7 +80,7 @@ With the following result:
 .. code::
 
     rule rule_with_added_metas
-    {     
+    {
         meta:
             int_meta = "forty two"
             bool_meta = false

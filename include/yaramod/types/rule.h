@@ -77,7 +77,7 @@ public:
 	const Expression::Ptr& getCondition() const;
 	std::vector<std::string> getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
-	const Meta* getMetaWithName(const std::string& key) const;
+	Meta* getMetaWithName(const std::string& key);
 	const Location& getLocation() const;
 	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	/// @}
