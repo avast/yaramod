@@ -128,6 +128,32 @@ Following visitor provides specification of the ``visit`` method for ``StringExp
             def visit_StringExpression(self, expr: yaramod.Expression):
                 expr.id = expr.id.upper()
 
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        class StringExpressionUpper : public yaramod::ModifyingVisitor
+        {
+        public:
+            void process(const YaraFile& file)
+            {
+                for (const std::shared_ptr<Rule>& rule : file.getRules())
+                {
+                    auto modified = modify(rule->getCondition());
+                    rule->setCondition(std::move(modified));
+                }
+            }
+            virtual yaramod::VisitResult visit(StringExpression* expr) override
+            {
+                std::string id = expr->getId();
+                std::string upper;
+                for (char c : id)
+                    upper += std::toupper(c);
+                expr->setId(upper);
+                return {};
+            }
+        };
+
 We can now use this visitors instance ``visitor`` to alter all conditions of rules present in a given yara file simply by calling ``visitor.process(yara_file)``. The next example will show a case when we replace existing visited node in the ``Expression`` syntax tree by another new node:
 
 .. tabs::
@@ -140,6 +166,15 @@ We can now use this visitors instance ``visitor`` to alter all conditions of rul
             output = yaramod.regexp('abc', 'i').get()
             expr.exchange_tokens(output)
             return output
+
+      .. code-block:: cpp
+
+        virtual yaramod::VisitResult visit(RegexpExpression* expr) override
+        {
+            auto new_condition = regexp("abc", "i").get();
+            expr->exchangeTokens(new_condition.get());
+            return new_condition;
+        }
 
 This ``visit`` methods requires calling of a ``exchange_tokens`` method which deletes all Tokens that the original expression refered to. Then it extracts all tokens from the supplied new Expression and moves them to place where the original expression had its tokens stored.
 

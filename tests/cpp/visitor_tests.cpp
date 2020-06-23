@@ -4,6 +4,8 @@
 * @copyright (c) 2019 Avast Software, licensed under the MIT license
 */
 
+#include <clocale>
+
 #include <gtest/gtest.h>
 
 #include "yaramod/builder/yara_expression_builder.h"
@@ -34,6 +36,66 @@ public:
 };
 
 TEST_F(VisitorTests,
+StringExpressionVisitorInpactOnTokenStream) {
+	class StringExpressionUpper : public yaramod::ModifyingVisitor
+	{
+	public:
+		void process(const YaraFile& file)
+		{
+			for (const std::shared_ptr<Rule>& rule : file.getRules())
+			{
+				auto modified = modify(rule->getCondition());
+				rule->setCondition(std::move(modified));
+			}
+		}
+		virtual yaramod::VisitResult visit(StringExpression* expr) override
+		{
+			std::string id = expr->getId();
+			std::string upper;
+			for (char c : id)
+				upper += std::toupper(c);
+			expr->setId(upper);
+			return {};
+		}
+	};
+	prepareInput(
+R"(
+import "cuckoo"
+rule rule_name {
+	strings:
+		$string1 = "string 1"
+	condition:
+		$string1 and !string1 == 1
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+
+	StringExpressionUpper visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	EXPECT_EQ("rule_name", rule->getName());
+	EXPECT_EQ("$STRING1 and !STRING1 == 1", rule->getCondition()->getText());
+
+	std::string expected = R"(
+import "cuckoo"
+
+rule rule_name
+{
+	strings:
+		$STRING1 = "string 1"
+	condition:
+		$STRING1 and
+		!STRING1 == 1
+}
+)";
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+}
+
+TEST_F(VisitorTests,
 RegexpModifyingVisitorInpactOnTokenStream) {
 	class TestModifyingVisitor : public yaramod::ModifyingVisitor
 	{
@@ -55,7 +117,7 @@ R"(
 import "cuckoo"
 rule rule_name {
     condition:
-        cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/)
+        true and cuckoo.network.http_request(/http:\/\/someone\.doingevil\.com/)
 }
 )");
 	EXPECT_TRUE(driver.parse(input));
@@ -67,7 +129,7 @@ rule rule_name {
 	visitor.process_rule(rule);
 
 	EXPECT_EQ("rule_name", rule->getName());
-	EXPECT_EQ("cuckoo.network.http_request(/abc/i)", rule->getCondition()->getText());
+	EXPECT_EQ("true and cuckoo.network.http_request(/abc/i)", rule->getCondition()->getText());
 
 	std::string expected = R"(
 import "cuckoo"
@@ -75,6 +137,7 @@ import "cuckoo"
 rule rule_name
 {
 	condition:
+		true and
 		cuckoo.network.http_request(/abc/i)
 }
 )";
