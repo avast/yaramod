@@ -75,15 +75,19 @@ public:
 	{
 		return _tokenStream.get();
 	}
-	void setTokenStream(const std::shared_ptr<TokenStream>& ts)
+	const std::shared_ptr<TokenStream>& getTokenStreamSharedPtr() const
 	{
-		_tokenStream = ts;
+		return _tokenStream;
 	}
+	virtual TokenIt getFirstTokenIt() const = 0;
+	virtual TokenIt getLastTokenIt() const = 0;
 	/// @}
+	
 
 	/// @name Setter methods
 	/// @{
 	void setType(Expression::Type type) { _type = type; }
+	void setTokenStream(const std::shared_ptr<TokenStream>& ts) { _tokenStream = ts; }
 	/// @}
 
 	/// @name Detection methods
@@ -105,6 +109,51 @@ public:
 	template <typename T>
 	const T* as() const noexcept { return dynamic_cast<const T*>(this); }
 	/// @}
+
+	/*
+	* Move appends all tokens that the `new_expression` referes to inside of local _tokenStream.
+	* The tokens this expression refers to are replaced by the stolen tokens of `new_expression.`
+	*/
+	void exchangeTokens(Expression* new_expression)
+	{
+		auto from = getFirstTokenIt();
+		auto to = std::next(getLastTokenIt());
+		exchangeTokens(new_expression, from, to);
+	}
+	void exchangeTokens(Expression* new_expression, TokenIt from, TokenIt to)
+	{
+		if (new_expression)
+		{
+			TokenIt firstNew = new_expression->getFirstTokenIt();
+			TokenIt lastNew = std::next(new_expression->getLastTokenIt());
+			auto otherTokenStream = new_expression->_tokenStream;
+			_tokenStream->swapTokens(from, to, otherTokenStream.get(), firstNew, lastNew);
+			new_expression->setTokenStream(_tokenStream);
+			_tokenStream = otherTokenStream;
+		}
+	}
+	void exchangeTokens(const VisitResult& result)
+	{
+		auto from = getFirstTokenIt();
+		auto to = std::next(getLastTokenIt());
+		exchangeTokens(result, from, to);
+	}
+	void exchangeTokens(const VisitResult& result, TokenIt from, TokenIt to)
+	{
+		Expression* new_expression;
+		try
+		{
+			if (std::holds_alternative<Expression::Ptr>(result))
+				new_expression = (std::get<Expression::Ptr>(result)).get();
+			else
+				new_expression = std::get<Expression*>(result);
+		}
+		catch (std::bad_variant_access& err)
+		{
+			throw VisitorResultAccessError(err.what());
+		}
+		exchangeTokens(new_expression, from, to);
+	}
 
 protected:
 	std::shared_ptr<TokenStream> _tokenStream;

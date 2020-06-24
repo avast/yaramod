@@ -126,6 +126,22 @@ public:
 	virtual VisitResult visit(IntFunctionExpression* expr) = 0;
 	virtual VisitResult visit(RegexpExpression* expr) = 0;
 	/// @}
+	bool resultIsDelete(const VisitResult& result) const
+	{
+		if (!std::holds_alternative<VisitAction>(result))
+			return false;
+		if (std::get<VisitAction>(result) != VisitAction::Delete)
+			return false;
+		return true;
+	}
+	bool resultIsModified(const VisitResult& result) const
+	{
+		if (std::holds_alternative<std::shared_ptr<Expression>>(result))
+			return std::get<std::shared_ptr<Expression>>(result) != nullptr;
+		if (std::holds_alternative<Expression*>(result))
+			return std::get<Expression*>(result) != nullptr;
+		return true;
+	}
 };
 
 class RegexpClass;

@@ -73,6 +73,90 @@ rule rule_with_metas {
         self.assertTrue(rule.metas[2].value.is_bool)
         self.assertEqual(rule.metas[2].value.text, 'true')
 
+    def test_add_meta(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule rule_with_added_metas {
+	condition:
+		true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_added_metas')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        rule.add_meta('int_meta', yaramod.Literal(42))
+        rule.add_meta('new_meta', yaramod.Literal(False))
+        self.assertEqual(len(rule.metas), 2)
+
+        self.assertEqual(rule.metas[0].key, 'int_meta')
+        self.assertTrue(rule.metas[0].value.is_int)
+        self.assertEqual(rule.metas[0].value.pure_text, '42')
+
+        self.assertEqual(rule.metas[1].key, 'new_meta')
+        self.assertTrue(rule.metas[1].value.is_bool)
+        self.assertEqual(rule.metas[1].value.text, 'false')
+
+
+        expected = r'''
+rule rule_with_added_metas
+{
+	meta:
+		int_meta = 42
+		new_meta = false
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_modify_meta(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule rule_with_metas {
+    meta:
+        str_meta = "string meta"
+        int_meta = 42
+        bool_meta = true
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_metas')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 3)
+        meta = rule.get_meta_with_name('int_meta')
+        meta.value = yaramod.Literal('forty two')
+
+        self.assertEqual(rule.metas[0].key, 'str_meta')
+        self.assertTrue(rule.metas[0].value.is_string)
+        self.assertEqual(rule.metas[0].value.text, '"string meta"')
+        self.assertEqual(rule.metas[0].value.pure_text, 'string meta')
+
+        self.assertEqual(rule.metas[1].key, 'int_meta')
+        self.assertTrue(rule.metas[1].value.is_string)
+        self.assertEqual(rule.metas[1].value.text, '"forty two"')
+
+        self.assertEqual(rule.metas[2].key, 'bool_meta')
+        self.assertTrue(rule.metas[2].value.is_bool)
+        self.assertEqual(rule.metas[2].value.text, 'true')
+
+        expected = r'''
+rule rule_with_metas
+{
+	meta:
+		str_meta = "string meta"
+		int_meta = "forty two"
+		bool_meta = true
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_rule_with_plain_strings(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_plain_strings {
@@ -1381,7 +1465,7 @@ rule nonutf_condition
 ''')
         rule = yara_file.rules[0]
 
-        expected =r'''
+        expected = r'''
 import "cuckoo"
 
 rule nonutf_condition

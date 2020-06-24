@@ -216,9 +216,9 @@ const std::shared_ptr<Symbol>& Rule::getSymbol() const
  * @return Pointer to meta if meta with the given key exists,
  *         @c nullptr otherwise.
  */
-const Meta* Rule::getMetaWithName(const std::string& key) const
+Meta* Rule::getMetaWithName(const std::string& key)
 {
-	for (const auto& meta : _metas)
+	for (auto& meta : _metas)
 	{
 		if (meta.getKey() == key)
 			return &meta;

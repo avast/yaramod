@@ -515,6 +515,8 @@ rule rule_2 : Tag2
 TEST_F(BuilderTests,
 RuleWithCustomConditionWorks) {
 	auto cond = matchAt("$1", entrypoint()).get();
+	EXPECT_EQ("$1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("entrypoint", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -549,6 +551,8 @@ RuleWithCustomConditionWorks) {
 TEST_F(BuilderTests,
 RuleWithConditionWithSymbolsWorks) {
 	auto cond = forLoop(any(), "i", set({intVal(1), intVal(2), intVal(3)}), matchAt("$1", paren(entrypoint() + id("i")))).get();
+	EXPECT_EQ("for", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -583,6 +587,8 @@ RuleWithConditionWithSymbolsWorks) {
 TEST_F(BuilderTests,
 RuleWithHexStringWorks) {
 	auto cond = stringRef("$1").get();
+	EXPECT_EQ("$1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("$1", cond->getLastTokenIt()->getPureText());
 
 	auto alt1 = YaraHexStringBuilder().add(0xBB).add(0xCC);
 	auto alt2 = YaraHexStringBuilder().add(0xDD, 0xEE);
@@ -632,6 +638,8 @@ RuleWithHexStringWorks) {
 TEST_F(BuilderTests,
 RuleWithStringForConditionWorks) {
 	auto cond = forLoop(any(), set({stringRef("$1"), stringRef("$2")}), matchAt("$", entrypoint())).get();
+	EXPECT_EQ("for", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -669,6 +677,8 @@ RuleWithStringForConditionWorks) {
 TEST_F(BuilderTests,
 RuleWithOfWorks) {
 	auto cond = of(all(), them()).get();
+	EXPECT_EQ("all", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("them", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -706,6 +716,8 @@ RuleWithOfWorks) {
 TEST_F(BuilderTests,
 RuleWithRangeWorks) {
 	auto cond = matchInRange("$1", range(intVal(0), filesize())).get();
+	EXPECT_EQ("$1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -740,6 +752,8 @@ RuleWithRangeWorks) {
 TEST_F(BuilderTests,
 RuleWithStructureWorks) {
 	auto cond = (id("pe").access("number_of_sections") > intVal(1)).get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("1", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -774,6 +788,8 @@ rule rule_with_range
 TEST_F(BuilderTests,
 RuleWithConditionWithOnelineComment) {
 	auto cond = (id("pe").comment("Number of sections needs to exceed 1", false).access("number_of_sections") > intVal(1)).get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("1", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -846,6 +862,8 @@ TEST_F(BuilderTests,
 RuleWithArrayAndStructureWorks) {
 	auto cond = id("pe").access("sections")[intVal(0)].access("name").contains(stringVal("text"))
 		.get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("text", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -881,6 +899,8 @@ TEST_F(BuilderTests,
 RuleWithFunctionCallWorks) {
 	auto cond = id("pe").access("exports")(stringVal("ExitProcess"))
 		.get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -916,6 +936,8 @@ TEST_F(BuilderTests,
 RuleWithIntFunctionWorks) {
 	auto cond = (intVal(0).readUInt16(IntFunctionEndianness::Little) == hexIntVal(0x5A4D))
 		.get();
+	EXPECT_EQ("uint16", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0x5a4d", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -946,6 +968,8 @@ TEST_F(BuilderTests,
 RuleWithArithmeticOperationsWorks) {
 	auto cond = (paren(entrypoint() + intVal(100) * intVal(3)) < paren(filesize() - intVal(100) / intVal(2)))
 		.get();
+	EXPECT_EQ("(", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1006,6 +1030,8 @@ TEST_F(BuilderTests,
 RuleWithBitwiseOperationsWorks) {
 	auto cond = (id("pe").access("characteristics") & paren(id("pe").access("DLL") | id("pe").access("RELOCS_STRIPPED")))
 		.get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1041,6 +1067,8 @@ TEST_F(BuilderTests,
 RuleWithLogicOperationsWorks) {
 	auto cond = (id("pe").access("is_32bit")() && paren((id("pe").access("is_dll")() || paren(id("pe").access("number_of_sections") > intVal(3)))))
 		.get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1080,6 +1108,8 @@ TEST_F(BuilderTests,
 RuleWithIntMultpliersWorks) {
 	auto cond = (intVal(100, IntMultiplier::Kilobytes) <= filesize() && filesize() <= intVal(1, IntMultiplier::Megabytes))
 		.get();
+	EXPECT_EQ("100KB", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("1MB", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1111,6 +1141,8 @@ TEST_F(BuilderTests,
 RuleWithStringOperatorsWorks) {
 	auto cond = (matchCount("$1") > intVal(0) && matchLength("$1") > intVal(1) && matchOffset("$1") > intVal(100))
 		.get();
+	EXPECT_EQ("#1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("100", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1182,6 +1214,8 @@ TEST_F(BuilderTests,
 RuleWithRegexpInConditionWorks) {
 	auto cond = (id("pe").access("sections")[intVal(0)].access("name").matches(regexp(R"(\.(text|data))", "i")))
 		.get();
+	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("i", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1217,6 +1251,8 @@ TEST_F(BuilderTests,
 RuleWithConjunctionInConditionWorks) {
 	std::vector<YaraExpressionBuilder> terms = { stringRef("$1"), paren(matchOffset("$1") < intVal(100)), paren(entrypoint() == intVal(100)) };
 	auto cond = conjunction(terms).get();
+	EXPECT_EQ("$1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1254,6 +1290,8 @@ TEST_F(BuilderTests,
 RuleWithDisjunctionInConditionWorks) {
 	std::vector<YaraExpressionBuilder> terms = { stringRef("$1"), stringRef("$2"), paren(entrypoint() == intVal(100)) };
 	auto cond = disjunction(terms).get();
+	EXPECT_EQ("$1", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule

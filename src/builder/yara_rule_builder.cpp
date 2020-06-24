@@ -431,7 +431,7 @@ YaraRuleBuilder& YaraRuleBuilder::withRegexp(const std::string& id, const std::s
 YaraRuleBuilder& YaraRuleBuilder::withCondition(Expression::Ptr&& condition)
 {
 	_condition = std::move(condition);
-	_tokenStream->move_append(_condition->getTokenStream(), _rcb);
+	_tokenStream->moveAppend(_rcb, _condition->getTokenStream());
 	_tokenStream->emplace(_rcb, NEW_LINE, "\n");
 	return *this;
 }
@@ -446,7 +446,7 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(Expression::Ptr&& condition)
 YaraRuleBuilder& YaraRuleBuilder::withCondition(const Expression::Ptr& condition)
 {
 	_condition = condition;
-	_tokenStream->move_append(_condition->getTokenStream(), _rcb);
+	_tokenStream->moveAppend(_rcb, _condition->getTokenStream());
 	_tokenStream->emplace(_rcb, NEW_LINE, "\n");
 	return *this;
 }
@@ -542,7 +542,7 @@ void YaraRuleBuilder::createLastString()
 	if (_lastString)
 	{
 		_lastString->setModifiersWithTokens(_stringMods, _stringModsTokens, true);
-		_tokenStream->move_append(_lastString->getTokenStream().get(), _condition_it);
+		_tokenStream->moveAppend(_condition_it, _lastString->getTokenStream().get());
 		_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
 		_lastString.reset();
 		_stringMods.clear();

@@ -16,4 +16,5 @@ Welcome to the documentation of our project Yaramod. Parser and builder for YARA
    parsing_rulesets
    creating_rulesets
    formatting_rulesets
+   modifying_rulesets
    examples

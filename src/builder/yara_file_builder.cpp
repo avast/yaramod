@@ -132,7 +132,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 	if (!_rules.empty())
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
-	_tokenStream->move_append(rule->getTokenStream());
+	_tokenStream->moveAppend(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 
 	_rules.emplace_back(std::move(rule));
@@ -151,7 +151,7 @@ YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 	if (!_rules.empty() || !_module_tokens.empty())
 		_tokenStream->emplace_back(NEW_LINE, "\n");
 
-	_tokenStream->move_append(rule->getTokenStream());
+	_tokenStream->moveAppend(rule->getTokenStream());
 	_tokenStream->emplace_back(NEW_LINE, "\n");
 	_rules.emplace_back(rule);
 	return *this;

@@ -10,6 +10,7 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/plain_string.h"
 
+
 using namespace ::testing;
 
 namespace yaramod {
@@ -1118,6 +1119,9 @@ rule regexp_with_custom_negative_class
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/abc[^xyz]def/)", regexp->getText());
 
+	EXPECT_EQ("true", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("true", rule->getCondition()->getLastTokenIt()->getPureText());
+
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
@@ -1148,6 +1152,9 @@ rule regexp_with_escaped_square_brackets_inside_class
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$1", regexp->getIdentifier());
 	EXPECT_EQ(R"(/[\[\]++]/)", regexp->getText());
+
+	EXPECT_EQ("$1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("$1", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1197,6 +1204,9 @@ rule regexp_with_unescaped_square_brackets_inside_class
 	EXPECT_TRUE(regexp->isRegexp());
 	EXPECT_EQ("$4", regexp->getIdentifier());
 	EXPECT_EQ(R"(/[\[\]*+]/)", regexp->getText());
+
+	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("them", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1261,6 +1271,8 @@ rule rule_with_complicated_regexp_class
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	EXPECT_EQ("cuckoo.process.executed_command(/[^\\\\]+/) and cuckoo.filesystem.file_write(/\\.bribe$/) and cuckoo.filesystem.file_write(/[\\]}]\\.(b[0-2]+|VC[0-9]*|DAQ)$/)", rule->getCondition()->getText());
+	EXPECT_EQ("cuckoo", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	std::string expected = R"(
 import "cuckoo"
@@ -1779,6 +1791,8 @@ rule string_at_entrypoint_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1 at entrypoint", rule->getCondition()->getText());
+	EXPECT_EQ("$1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("entrypoint", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1801,6 +1815,8 @@ rule string_in_range_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1 in (10 .. 20)", rule->getCondition()->getText());
+	EXPECT_EQ("$1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1825,6 +1841,8 @@ rule string_in_range_condition2
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$a in (0 .. 100) and $b in (100 .. filesize)", rule->getCondition()->getText());
+	EXPECT_EQ("$a", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1845,6 +1863,8 @@ rule not_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("not true", rule->getCondition()->getText());
+	EXPECT_EQ("not", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("true", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1891,6 +1911,8 @@ rule and_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("$1 and $2", rule->getCondition()->getText());
+	EXPECT_EQ("$1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("$2", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1934,6 +1956,8 @@ rule or_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("true or not false or false", rule->getCondition()->getText());
+	EXPECT_EQ("true", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("false", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1959,6 +1983,8 @@ rule relational_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("filesize < 10 or filesize > 20 or filesize <= 10 or filesize >= 20 or filesize != 15 or filesize == 16", rule->getCondition()->getText());
+	EXPECT_EQ("filesize", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("16", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -1982,6 +2008,8 @@ rule relational_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("($1 at (entrypoint)) and (filesize > 100)", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2002,6 +2030,8 @@ rule arithmetic_op_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((10 + 20 < 200 - 100))", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2025,6 +2055,8 @@ rule arithmetic_op_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((10 + 20 < 200 - 100) and (10 * 20 > 20 \ 10) and (10 % 2) and (-5))", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2045,6 +2077,8 @@ rule rule_with_arithmetic_operations
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((entrypoint + 100 * 3) < (filesize - 100 \ 2))", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2065,6 +2099,8 @@ rule bitwise_op_condition_negation
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((~2 == 0))", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2090,6 +2126,8 @@ rule bitwise_op_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"((3 & 2 == 2) and (7 ^ 7 == 0) and (3 | 4 == 7) and (~5) and (8 >> 2 == 2) and (1 << 3 == 8))", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2110,6 +2148,8 @@ rule int_function_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("int8(uint32(int32be(5))) == 64", rule->getCondition()->getText());
+	EXPECT_EQ("int8", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("64", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2130,6 +2170,8 @@ rule double_in_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("1.23 + 4.56 > 10.5", rule->getCondition()->getText());
+	EXPECT_EQ("1.23", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("10.5", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2150,6 +2192,8 @@ rule contains_in_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"("Hello" contains "Hell")", rule->getCondition()->getText());
+	EXPECT_EQ("\"Hello\"", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ("\"Hell\"", rule->getCondition()->getLastTokenIt()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2170,6 +2214,8 @@ rule matches_in_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"("Hello" matches /^Hell.*$/)", rule->getCondition()->getText());
+	EXPECT_EQ("\"Hello\"", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ("/", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2193,6 +2239,8 @@ rule string_count_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("#1 == 5", rule->getCondition()->getText());
+	EXPECT_EQ("\"#1\"", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ("5", rule->getCondition()->getLastTokenIt()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2217,6 +2265,8 @@ rule string_offset_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(@1 > 5) and (@2[0] > 100)", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2241,6 +2291,8 @@ rule string_offset_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(@1 > 0x1000) and (@2[0x11] > 0x14)", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2264,6 +2316,8 @@ rule string_length_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(!1 > 0) and (!1[1] > 100)", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2315,7 +2369,52 @@ rule structure_access_condition
 }
 
 TEST_F(ParserTests,
-ArrayAccessConditionWorks) {
+ArrayAccessConditionWorks1) {
+	prepareInput(
+R"(
+import "pe"
+
+rule array_access_condition
+{
+	condition:
+		pe.sections[0].name == ".text"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	auto condition = rule->getCondition();
+	EXPECT_EQ(R"(pe.sections[0].name == ".text")", condition->getText());
+	EXPECT_EQ("pe", condition->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(".text", condition->getLastTokenIt()->getPureText());
+
+	auto expEq = std::static_pointer_cast<const EqExpression>(condition);
+	auto expLeft = std::static_pointer_cast<const StructAccessExpression>(expEq->getLeftOperand());
+	EXPECT_EQ("pe", expLeft->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("name", expLeft->getLastTokenIt()->getPureText());
+
+	auto expArrayAccess = std::static_pointer_cast<const ArrayAccessExpression>(expLeft->getStructure());
+	EXPECT_EQ("pe", expArrayAccess->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("]", expArrayAccess->getLastTokenIt()->getPureText());
+
+	auto expAccessor = expArrayAccess->getAccessor();
+	EXPECT_EQ("0", expAccessor->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0", expAccessor->getLastTokenIt()->getPureText());
+	auto expArray = std::static_pointer_cast<const StructAccessExpression>(expArrayAccess->getArray());
+	EXPECT_EQ("pe", expArray->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("sections", expArray->getLastTokenIt()->getPureText());
+
+	auto expStruct = std::static_pointer_cast<const IdExpression>(expArray->getStructure());
+	EXPECT_EQ("pe", expStruct->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("pe", expStruct->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ArrayAccessConditionWorks2) {
 	prepareInput(
 R"(
 import "pe"
@@ -2356,6 +2455,8 @@ rule for_integer_set_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for all i in (1, 2, 3) : ( @a[i] + 10 == @b[i] )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2379,6 +2480,8 @@ rule for_string_set_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for any of ($a, $b) : ( $ at entrypoint )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2402,6 +2505,8 @@ rule of_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("1 of ($a, $b)", rule->getCondition()->getText());
+	EXPECT_EQ("1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2475,6 +2580,8 @@ rule rule_name
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("(pe.sections[0].name == \"EmptyString\" or pe.sections[0].name == \"\")", rule->getCondition()->getText());
+	EXPECT_EQ("(", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	std::string expected = R"(
 import "pe"
@@ -2606,6 +2713,8 @@ rule string_wildcard_condition
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("for any of ($aa*, $bbb) : ( $ )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2681,6 +2790,8 @@ rule dummy_rule
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(androguard.max_sdk > androguard.signature.hits("dummy") and androguard.min_sdk == androguard.max_sdk)", rule->getCondition()->getText());
+	EXPECT_EQ("androguard", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("max_sdk", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2734,6 +2845,8 @@ rule dummy_rule
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(phish.file_contents.input.ids_hash("x") == "dummy_hash" and phish.source_url == "a" and phish.file_contents.a.class("y") == 5)", rule->getCondition()->getText());
+	EXPECT_EQ("phish", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("5", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2788,6 +2901,8 @@ rule dummny_rule
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(metadata.file.name("filename.txt") and metadata.file.name(/regexp/) and metadata.detection.name(/regexp/) and metadata.detection.name("vps", /regexp/))", rule->getCondition()->getText());
+	EXPECT_EQ("metadata", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 
@@ -2843,6 +2958,8 @@ rule cuckoo_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"($some_string and cuckoo.network.http_request_body(/http:\/\/someone\.doingevil\.com/))", rule->getCondition()->getText());
+	EXPECT_EQ("$some_string", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2904,6 +3021,8 @@ rule cuckoo_module_deprecated
 
 	const auto& rule = driverDeprecatedSymbols.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(cuckoo.network.http_request(/regexp/) and cuckoo.network.http_request_body(/regexp/) and cuckoo.signature.name(/regexp/))", rule->getCondition()->getText());
+	EXPECT_EQ("cuckoo", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driverDeprecatedSymbols.getParsedFile().getTextFormatted());
 }
@@ -2927,6 +3046,8 @@ rule dotnet_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("dotnet.assembly.version.major > 0 and dotnet.assembly.version.minor > 0", rule->getCondition()->getText());
+	EXPECT_EQ("dotnet", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2950,6 +3071,8 @@ rule elf_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ("elf.type == elf.ET_EXEC and elf.sections[0].type == elf.SHT_NULL", rule->getCondition()->getText());
+	EXPECT_EQ("elf", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("SHT_NULL", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2972,6 +3095,8 @@ rule hash_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(hash.md5("dummy") == "275876e34cf609db118f3d84b799a790")", rule->getCondition()->getText());
+	EXPECT_EQ("hash", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("275876e34cf609db118f3d84b799a790", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -2994,6 +3119,8 @@ rule magic_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(magic.type() contains "PDF")", rule->getCondition()->getText());
+	EXPECT_EQ("magic", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("PDF", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3016,6 +3143,8 @@ rule math_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(math.entropy("dummy") > 7)", rule->getCondition()->getText());
+	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("7", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3042,22 +3171,32 @@ rule pe_module
 	EXPECT_TRUE(condition->isBool());
 	auto expEq = std::static_pointer_cast<const EqExpression>(condition);
 	EXPECT_EQ(R"(pe.version_info["CompanyName"] == "company")", expEq->getText());
+	EXPECT_EQ("pe", expEq->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("company", expEq->getLastTokenIt()->getPureText());
 
 	auto expLeft = std::static_pointer_cast<const ArrayAccessExpression>(expEq->getLeftOperand());
 	EXPECT_EQ(R"(pe.version_info["CompanyName"])", expLeft->getText());
+	EXPECT_EQ("pe", expLeft->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("]", expLeft->getLastTokenIt()->getPureText());
 	auto expItem = expLeft->getAccessor();
 	EXPECT_EQ(R"("CompanyName")", expItem->getText());
+	EXPECT_EQ("CompanyName", expItem->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("CompanyName", expItem->getLastTokenIt()->getPureText());
 	auto arraySymbol = expLeft->getSymbol();
 	EXPECT_NE(arraySymbol, nullptr);
 	EXPECT_EQ("pe.version_info", arraySymbol->getName());
 
 	auto expArray = std::static_pointer_cast<const StructAccessExpression>(expLeft->getArray());
-	EXPECT_EQ(R"(pe.version_info)", expArray->getText());
+	EXPECT_EQ("pe.version_info", expArray->getText());
+	EXPECT_EQ("pe", expArray->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("version_info", expArray->getLastTokenIt()->getPureText());
 	auto expPeStructure = expArray->getStructure();
-	EXPECT_EQ(R"(pe)", expPeStructure->getText());
+	EXPECT_EQ("pe", expPeStructure->getText());
+	EXPECT_EQ("pe", expPeStructure->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("pe", expPeStructure->getLastTokenIt()->getPureText());
 	auto accessedSymbol = expArray->getSymbol();
 	EXPECT_NE(accessedSymbol, nullptr);
-	EXPECT_EQ(R"(version_info)", accessedSymbol->getName());
+	EXPECT_EQ("version_info", accessedSymbol->getName());
 	EXPECT_EQ(Symbol::Type::Dictionary, accessedSymbol->getType());
 	EXPECT_TRUE(accessedSymbol->isDictionary());
 
@@ -3084,6 +3223,8 @@ rule pe_module
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(pe.exports("ExitProcess") or pe.version_info["CompanyName"] == "company" and pe.characteristics & pe.DLL)", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("DLL", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3105,6 +3246,8 @@ rule virus_total_specific
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(positives > 5 and bytehero == "hero")", rule->getCondition()->getText());
+	EXPECT_EQ("positives", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("hero", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3624,6 +3767,8 @@ R"(rule rule_with_global_variables
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
 	EXPECT_EQ(R"(new_file and positives > 10 and signatures matches /Trojan\.Generic.*/ and file_type contains "pe")", rule->getCondition()->getText());
+	EXPECT_EQ("new_file", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("pe", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3651,6 +3796,9 @@ R"(rule rule_with_some_hex_string
 	ASSERT_TRUE(string->isHex());
 
 	EXPECT_EQ(12u, static_cast<const HexString*>(string)->getLength());
+
+	EXPECT_EQ("$hex_string", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("$hex_string", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -3892,6 +4040,8 @@ rule rule_with_escaped_double_quotes_works
 
 	std::string expected = R"(pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff")";
 	EXPECT_EQ(expected, rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("DanS\t\n\\\x01\xff", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -4018,6 +4168,8 @@ rule public_rule
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	EXPECT_EQ("pe.data_directories[0].virtual_address == 0 and pe.data_directories[0].size == 0", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -4188,6 +4340,10 @@ rule rule_2
 // Comment at the end of file
 )";
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ(2u, driver.getParsedFile().getRules().size());
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	EXPECT_EQ("elf", rule2->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("entry_point", rule2->getCondition()->getLastTokenIt()->getPureText());
 }
 
 TEST_F(ParserTests,
@@ -4273,6 +4429,12 @@ rule rule_2
 
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	EXPECT_EQ("pe", rule1->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule1->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("elf", rule2->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule2->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(
 R"(import "pe"
@@ -4432,6 +4594,8 @@ private rule RULE_1
 		)
 }
 )";
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
@@ -4451,8 +4615,10 @@ ForCycleMultipleRowsWithCRLF)
 
 	EXPECT_EQ("$h0", strings[0]->getIdentifier());
 
-	std::string expected = "\r\nimport \"pe\"\r\n\r\nprivate rule RULE_1\r\n{\r\n\tmeta:\r\n\t\tauthor = \"Mr. Avastian\"\r\n\t\tdescription = \"cool rule\"\r\n\t\thash = \"hash2\"\r\n\t\thash = \"hash1\"\r\n\tstrings:\r\n\t\t$h0 = \"str0\"\r\n\t\t$h1 = \"str1\"\r\n\tcondition:\r\n\t\tfor any of ($h*) : (\r\n\t\t\t# < 20 and\r\n\t\t\tfor any i in (1 .. #) : (    //Comment inside expression\r\n\t\t\t\tuint32be(1) == 5 and // comment right after and\r\n\t\t\t\tfilesize >= 10 and\r\n\t\t\t\tall of them and\r\n\t\t\t\tentrypoint and\r\n\t\t\t\t@h1 < pe.overlay.offset\r\n\t\t\t)\r\n\t\t)\r\n}\r\n";
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
+	std::string expected = "\r\nimport \"pe\"\r\n\r\nprivate rule RULE_1\r\n{\r\n\tmeta:\r\n\t\tauthor = \"Mr. Avastian\"\r\n\t\tdescription = \"cool rule\"\r\n\t\thash = \"hash2\"\r\n\t\thash = \"hash1\"\r\n\tstrings:\r\n\t\t$h0 = \"str0\"\r\n\t\t$h1 = \"str1\"\r\n\tcondition:\r\n\t\tfor any of ($h*) : (\r\n\t\t\t# < 20 and\r\n\t\t\tfor any i in (1 .. #) : (    //Comment inside expression\r\n\t\t\t\tuint32be(1) == 5 and // comment right after and\r\n\t\t\t\tfilesize >= 10 and\r\n\t\t\t\tall of them and\r\n\t\t\t\tentrypoint and\r\n\t\t\t\t@h1 < pe.overlay.offset\r\n\t\t\t)\r\n\t\t)\r\n}\r\n";
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
@@ -4484,6 +4650,8 @@ R"(rule public_rule
 	EXPECT_EQ("$2", strings[1]->getIdentifier());
 	EXPECT_EQ("Bye World", strings[1]->getPureText());
 	EXPECT_EQ("true and uint32be(1) and filesize > 0xFF", rule->getCondition()->getText());
+	EXPECT_EQ("true", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0xFF", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -4757,7 +4925,10 @@ rule rule_3 : TagA {
 	tags = {"TagB", "TagC"};
 	rule->setTags(tags);
 
-std::string expected = R"(
+	EXPECT_EQ("$s0", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("$s0", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	std::string expected = R"(
 rule rule_1 : Tag1 Tag2
 {
 	condition:
@@ -5039,6 +5210,10 @@ rule public_rule {
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("false", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
 	std::string expected =
 R"(
 import "cuckoo"
@@ -5299,6 +5474,9 @@ rule public_rule { //comment 0
 )");
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("false", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	std::string expected =
 R"(
@@ -5730,6 +5908,9 @@ rule rule_name_2 {
 })");
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(2u, driver.getParsedFile().getRules().size());
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("all", rule1->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule1->getCondition()->getLastTokenIt()->getPureText());
 
 std::string expected = R"(
 import "cuckoo"
@@ -5980,7 +6161,21 @@ rule abc
 )";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
-	EXPECT_EQ(rule->getCondition()->getText(), "$s1");
+	auto condition = rule->getCondition();
+	EXPECT_EQ(condition->getText(), "$s1");
+	(std::static_pointer_cast<StringExpression>(condition))->setId("$s2");
+
+	expected = R"(
+rule abc
+{
+	strings:
+		$s2 = "abc string"
+	condition:
+		$s2
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,

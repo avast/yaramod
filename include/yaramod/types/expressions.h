@@ -42,6 +42,9 @@ public:
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
+
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
@@ -81,6 +84,9 @@ public:
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
+
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
@@ -107,7 +113,7 @@ public:
 	{
 		_id = _tokenStream->emplace_back(STRING_ID, id);
 		_at_symbol = _tokenStream->emplace_back(OP_AT, "at");
-		_tokenStream->move_append(_at->getTokenStream());
+		_tokenStream->moveAppend(_at->getTokenStream());
 	}
 
 	template <typename ExpPtr>
@@ -130,6 +136,9 @@ public:
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 	void setAtExpression(const Expression::Ptr& at) { _at = at; }
 	void setAtExpression(Expression::Ptr&& at) { _at = std::move(at); }
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _at->getLastTokenIt(); }
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
@@ -159,7 +168,7 @@ public:
 		_id = _tokenStream->emplace_back(STRING_ID, id);
 		_in_symbol = _tokenStream->emplace_back(OP_IN, "in");
 		_range = std::forward<ExpPtr>(range);
-		_tokenStream->move_append(_range->getTokenStream());
+		_tokenStream->moveAppend(_range->getTokenStream());
 	}
 
 	template <typename ExpPtr>
@@ -182,6 +191,9 @@ public:
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 	void setRangeExpression(const Expression::Ptr& range) { _range = range; }
 	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _range->getLastTokenIt(); }
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
@@ -223,6 +235,9 @@ public:
 
 	void setId(const std::string& id) { _id->setValue(id); }
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _id; }
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
@@ -292,6 +307,9 @@ public:
 		return _expr ? prefix + '[' + _expr->getText(indent) + ']' : prefix;
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
@@ -331,6 +349,7 @@ public:
 	{
 		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
 	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -343,6 +362,9 @@ public:
 	void setId(std::string&& id) { _id->setValue(std::move(id)); }
 	void setIndexExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
@@ -389,6 +411,8 @@ protected:
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
+	virtual TokenIt getFirstTokenIt() const override { return _op; }
+	virtual TokenIt getLastTokenIt() const override { return _expr->getLastTokenIt(); }
 
 private:
 	TokenIt _op; ///< Unary operation symbol, std::string
@@ -468,8 +492,12 @@ public:
 		return _left->getText(indent) + ' ' + _op->getString() + (_linebreak ? "\n" + indent : " ") + _right->getText(indent);
 	}
 
+	TokenIt getOperator() const { return _op; }
 	const Expression::Ptr& getLeftOperand() const { return _left; }
 	const Expression::Ptr& getRightOperand() const { return _right; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _left->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right->getLastTokenIt(); }
 
 	void setLeftOperand(const Expression::Ptr& left) { _left = left; }
 	void setLeftOperand(Expression::Ptr&& left) { _left = std::move(left); }
@@ -988,6 +1016,9 @@ public:
 		return ss.str();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _for; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 private:
 	TokenIt _id; ///< Iterating identifier
 	TokenIt _for; ///< TokenIt of 'for'
@@ -1031,6 +1062,9 @@ public:
 			<< _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _for; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 private:
 	TokenIt _for;
 	TokenIt _left_bracket;
@@ -1067,6 +1101,9 @@ public:
 	{
 		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent);
 	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _set->getLastTokenIt(); }
 };
 
 /**
@@ -1115,6 +1152,9 @@ public:
 	}
 
 	const std::vector<Expression::Ptr>& getElements() const { return _elements; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setElements(const std::vector<Expression::Ptr>& elements)
 	{
@@ -1169,6 +1209,9 @@ public:
 	const Expression::Ptr& getLow() const { return _low; }
 	const Expression::Ptr& getHigh() const { return _high; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setLow(const Expression::Ptr& low) { _low = low; }
 	void setLow(Expression::Ptr&& low) { _low = std::move(low); }
 	void setHigh(const Expression::Ptr& high) { _high = high; }
@@ -1198,11 +1241,6 @@ public:
 	/**
 	 * Constructors
 	 */
-	IdExpression(const std::shared_ptr<Symbol>& symbol)
-		: _symbol(symbol)
-	{
-	}
-
 	IdExpression(TokenIt symbolToken)
 		: _symbol(symbolToken->getSymbol())
 		, _symbolToken(symbolToken)
@@ -1225,16 +1263,28 @@ public:
 		return _symbol;
 	}
 
+	TokenIt getSymbolToken() const
+	{
+		return _symbolToken;
+	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _symbolToken; }
+	virtual TokenIt getLastTokenIt() const override { return _symbolToken; }
+
 	void setSymbol(const std::shared_ptr<Symbol>& symbol)
 	{
 		_symbol = symbol;
-		if (_symbolToken)
-			_symbolToken.value()->setValue(_symbol);
+		_symbolToken->setValue(_symbol);
 	}
 
 protected:
+	IdExpression(const std::shared_ptr<Symbol>& symbol)
+		: _symbol(symbol)
+	{
+	}
+
 	std::shared_ptr<Symbol> _symbol; ///< Symbol of the identifier
-	std::optional<TokenIt> _symbolToken; ///< Token of the
+	TokenIt _symbolToken; ///< Token of the identifier
 };
 
 /**
@@ -1272,6 +1322,9 @@ public:
 
 	const Expression::Ptr& getStructure() const { return _structure; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _structure->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _symbolToken; }
+
 	void setStructure(const Expression::Ptr& structure) { _structure = structure; }
 	void setStructure(Expression::Ptr&& structure) { _structure = std::move(structure); }
 
@@ -1301,10 +1354,11 @@ public:
 		, _accessor(std::forward<ExpPtr2>(accessor))
 		, _right_bracket(right_bracket)
 	{
+		_symbolToken = std::static_pointer_cast<const IdExpression>(_array)->getSymbolToken();
 	}
 	template <typename ExpPtr1, typename ExpPtr2>
 	ArrayAccessExpression(ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
-		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbol())
+		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbolToken())
 		, _array(std::forward<ExpPtr1>(array))
 		, _left_bracket(left_bracket)
 		, _accessor(std::forward<ExpPtr2>(accessor))
@@ -1324,6 +1378,9 @@ public:
 
 	const Expression::Ptr& getArray() const { return _array; }
 	const Expression::Ptr& getAccessor() const { return _accessor; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _array->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
 	void setArray(const Expression::Ptr& array) { _array = array; }
 	void setArray(Expression::Ptr&& array) { _array = std::move(array); }
@@ -1351,7 +1408,7 @@ class FunctionCallExpression : public IdExpression
 public:
 	template <typename ExpPtr, typename ExpPtrVector>
 	FunctionCallExpression(ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
-		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbol())
+		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbolToken())
 		, _func(std::forward<ExpPtr>(func))
 		, _left_bracket(left_bracket)
 		, _args(std::forward<ExpPtrVector>(args))
@@ -1387,6 +1444,9 @@ public:
 	const Expression::Ptr& getFunction() const { return _func; }
 	const std::vector<Expression::Ptr>& getArguments() const { return _args; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _func->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setFunction(const Expression::Ptr& func) { _func = func; }
 	void setFunction(Expression::Ptr&& func) { _func = std::move(func); }
 	void setArguments(const std::vector<Expression::Ptr>& args) { _args = args; }
@@ -1409,7 +1469,7 @@ class LiteralExpression : public Expression
 public:
 	using LiteralType = T;
 
-	LiteralExpression() = default;
+	LiteralExpression() : _valid(false) {}
 	LiteralExpression(TokenIt value) : _value(value) {}
 	LiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
 		: Expression(ts)
@@ -1421,21 +1481,24 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
-		if (_value.has_value()){
-			return _value.value()->getText();
-		}
+		if (_valid)
+			return _value->getText();
 		else
 			return std::string();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _value; }
+	virtual TokenIt getLastTokenIt() const override { return _value; }
+
 	void clear()
 	{
-		if (_value.has_value())
-			_tokenStream->erase(_value.value());
+		if (_valid)
+			_tokenStream->erase(_value);
 	}
 
 protected:
-	std::optional<TokenIt> _value; ///< Value of the literal
+	bool _valid = true; ///< Set if _value is valid
+	TokenIt _value; ///< Value of the literal
 };
 
 /**
@@ -1462,6 +1525,7 @@ public:
 			_value = _tokenStream->emplace_back(BOOL_TRUE, value, "true");
 		else
 			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
+		_valid = true;
 	}
 
 	BoolLiteralExpression(const std::shared_ptr<TokenStream>& ts, TokenIt value)
@@ -1471,7 +1535,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getBool();
+		return _value->getBool();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1503,7 +1567,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getString();
+		return _value->getString();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1537,7 +1601,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getUInt();
+		return _value->getUInt();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1571,7 +1635,7 @@ public:
 
 	virtual LiteralType getValue() const override
 	{
-		return _value.value()->getFloat();
+		return _value->getFloat();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1591,10 +1655,19 @@ public:
 		return _keyword->getString();
 	}
 
+	virtual TokenIt getFirstTokenIt() const override { return _keyword; }
+	virtual TokenIt getLastTokenIt() const override { return _keyword; }
+
 protected:
 	KeywordExpression() = default;
 	KeywordExpression(TokenIt keyword)
 		: _keyword(keyword)
+	{
+		assert(keyword->isString());
+	}
+	KeywordExpression(const std::shared_ptr<TokenStream>& ts, TokenIt keyword)
+		: Expression(ts) 
+		, _keyword(keyword)
 	{
 		assert(keyword->isString());
 	}
@@ -1615,6 +1688,10 @@ class FilesizeExpression : public KeywordExpression
 public:
 	FilesizeExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	FilesizeExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
@@ -1638,6 +1715,10 @@ class EntrypointExpression : public KeywordExpression
 public:
 	EntrypointExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	EntrypointExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
@@ -1664,6 +1745,10 @@ public:
 		: KeywordExpression(t)
 	{
 	}
+	AllExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1688,6 +1773,10 @@ public:
 		: KeywordExpression(t)
 	{
 	}
+	AnyExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
+	{
+	}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -1710,6 +1799,10 @@ class ThemExpression : public KeywordExpression
 public:
 	ThemExpression(TokenIt t)
 		: KeywordExpression(t)
+	{
+	}
+	ThemExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
 	{
 	}
 
@@ -1767,6 +1860,9 @@ public:
 
 	const Expression::Ptr& getEnclosedExpression() const { return _expr; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _left_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setEnclosedExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setEnclosedExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
@@ -1821,6 +1917,9 @@ public:
 	const std::string& getFunction() const { return _func->getString(); }
 	const Expression::Ptr& getArgument() const { return _expr; }
 
+	virtual TokenIt getFirstTokenIt() const override { return _func; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
 	void setFunction(const std::string& func) { _func->setValue(func); }
 	void setFunction(std::string&& func) { _func->setValue(std::move(func)); }
 	void setArgument(const Expression::Ptr& expr) { _expr = expr; }
@@ -1865,6 +1964,9 @@ public:
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override { return _regexp->getText(); }
 
 	const std::shared_ptr<String>& getRegexpString() const { return _regexp; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _regexp->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _regexp->getLastTokenIt(); }
 
 	void setRegexpString(const std::shared_ptr<String>& regexp) { _regexp = regexp; }
 	void setRegexpString(std::shared_ptr<String>&& regexp) { _regexp = std::move(regexp); }

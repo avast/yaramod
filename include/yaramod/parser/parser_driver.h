@@ -171,6 +171,7 @@ protected:
 
 	/// @name Methods for handling file contexts
 	/// @{
+	const std::shared_ptr<TokenStream>& currentTokenStream() const { return currentFileContext()->getTokenStream(); }
 	FileContext* currentFileContext() { return &_fileContexts.back(); }
 	const FileContext* currentFileContext() const { return &_fileContexts.back(); }
 	void popFileContext() { _fileContexts.pop_back(); }

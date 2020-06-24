@@ -127,6 +127,7 @@ public:
 	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
 
 	virtual TokenIt getFirstTokenIt() const = 0;
+	virtual TokenIt getLastTokenIt() const = 0;
 	/// @}
 
 	/// @name Setter methods
@@ -202,7 +203,7 @@ public:
 				{
 					auto tokens = mod->getTokenRange();
 					std::advance(tokens.second, 1); // Range of modifiers are always [first, last] and not [first, last) which is expected by splice()
-					_tokenStream->move_append(modTokens.get(), tokens.first, tokens.second);
+					_tokenStream->moveAppend(modTokens.get(), tokens.first, tokens.second);
 				}
 			}
 		}
