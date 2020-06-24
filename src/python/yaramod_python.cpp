@@ -297,6 +297,7 @@ void addExpressionClasses(py::module& module)
 	py::class_<Expression, std::shared_ptr<Expression>>(module, "Expression")
 		.def("accept", &Expression::accept)
 		.def("get_text", &Expression::getText, py::arg("indent") = std::string{})
+		.def("exchange_tokens", py::overload_cast<Expression*>(&Expression::exchangeTokens))
 		.def_property_readonly("text",
 				// getText() has default parameter and Python can't deal with it
 				[](const Expression* self) {

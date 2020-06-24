@@ -18,20 +18,21 @@ namespace yaramod {
 std::string Token::getText(bool pure) const
 {
 	auto output = _value->getText(pure);
+	size_t changed_index = pure ? 0 : 1;
 	if (_type == STRING_LENGTH)
 	{
-		assert(output != std::string());
-		output[0] = '!';
+		assert(output.size() > changed_index);
+		output[changed_index] = '!';
 	}
 	else if (_type == STRING_OFFSET)
 	{
-		assert(output != std::string());
-		output[0] = '@';
+		assert(output.size() > changed_index);
+		output[changed_index] = '@';
 	}
 	else if (_type == STRING_COUNT)
 	{
-		assert(output != std::string());
-		output[0] = '#';
+		assert(output.size() > changed_index);
+		output[changed_index] = '#';
 	}
 	return output;
 }
@@ -49,7 +50,6 @@ const Literal& Token::getLiteral() const
 
 const std::string& Token::getString() const
 {
-	assert(isString());
 	return _value->getString();
 }
 

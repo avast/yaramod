@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <variant>
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -22,7 +23,17 @@ enum class VisitAction
 	Delete
 };
 
-using VisitResult = std::variant<std::shared_ptr<Expression>, VisitAction>;
+/**
+ * Represents error when accessing VisitorResult.
+ */
+class VisitorResultAccessError : public YaramodError
+{
+public:
+	VisitorResultAccessError(const std::string& errorMsg) : YaramodError("VisitorResultAccessError error: " + errorMsg) {}
+	VisitorResultAccessError(const VisitorResultAccessError&) = default;
+};
+
+using VisitResult = std::variant<std::shared_ptr<Expression>, VisitAction, Expression*>;
 using RegexpVisitResult = std::variant<std::shared_ptr<RegexpUnit>, double>;
 
 }

@@ -29,10 +29,10 @@ class RepresentationTests(unittest.TestCase):
     def test_change_meta_of_rule(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule empty_rule {
-    meta:
-        key = "value"
-    condition:
-        true
+	meta:
+		key = "value"
+	condition:
+		true
 }''')
 
         self.assertEqual(len(yara_file.rules), 1)

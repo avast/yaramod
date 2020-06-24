@@ -72,12 +72,15 @@ std::string HexString::getPureText() const
 
 TokenIt HexString::getFirstTokenIt() const
 {
-	if (_id)
-		return _id.value();
-	else if (_assignToken)
-		return _assignToken.value();
-	else
+	return _tokenStream->begin();
+}
+
+TokenIt HexString::getLastTokenIt() const
+{
+	if (_units.empty())
 		return _tokenStream->begin();
+	else
+		return std::prev(_tokenStream->end());
 }
 
 /**

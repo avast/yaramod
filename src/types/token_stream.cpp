@@ -19,18 +19,21 @@ constexpr unsigned tabulator_length = 8;
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
 	_tokens.emplace_back(type, Literal(std::string(1, value)));
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back(TokenType type, const Literal& literal)
 {
 	_tokens.emplace_back(type, literal);
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::emplace_back(TokenType type, Literal&& literal)
 {
 	_tokens.emplace_back(type, std::move(literal));
+	_formatted = false;
 	return --_tokens.end();
 }
 
@@ -38,6 +41,7 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, char value)
 {
 	_tokens.emplace(before, type, Literal(std::string(1, value)));
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
@@ -45,6 +49,7 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, const Litera
 {
 	_tokens.emplace(before, type, literal);
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
@@ -52,54 +57,160 @@ TokenIt TokenStream::emplace(const TokenIt& before, TokenType type, Literal&& li
 {
 	_tokens.emplace(before, type, std::move(literal));
 	auto output = before;
+	_formatted = false;
 	return --output;
 }
 
 TokenIt TokenStream::push_back(const Token& t)
 {
 	_tokens.push_back(t);
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::push_back(Token&& t)
 {
 	_tokens.push_back(std::move(t));
+	_formatted = false;
 	return --_tokens.end();
 }
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, const Literal& literal)
 {
+	_formatted = false;
 	return _tokens.insert(before, Token(type, literal));
 }
 
 TokenIt TokenStream::insert(TokenIt before, TokenType type, Literal&& literal)
 {
+	_formatted = false;
 	return _tokens.insert(before, Token(type, std::move(literal)));
 }
 
 TokenIt TokenStream::erase(TokenIt element)
 {
+	_formatted = false;
 	return _tokens.erase(element);
 }
 
 TokenIt TokenStream::erase(TokenIt first, TokenIt last)
 {
+	_formatted = false;
 	return _tokens.erase(first, last);
 }
 
-void TokenStream::move_append(TokenStream* donor)
+void TokenStream::moveAppend(TokenStream* donor)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens);
+	_formatted = false;
 }
 
-void TokenStream::move_append(TokenStream* donor, TokenIt before)
+void TokenStream::moveAppend(TokenIt before, TokenStream* donor)
 {
 	_tokens.splice(before, donor->_tokens);
+	_formatted = false;
 }
 
-void TokenStream::move_append(TokenStream* donor, TokenIt first, TokenIt last)
+void TokenStream::moveAppend(TokenStream* donor, TokenIt first, TokenIt last)
 {
 	_tokens.splice(_tokens.end(), donor->_tokens, first, last);
+	_formatted = false;
+}
+
+void TokenStream::moveAppend(TokenIt before, TokenStream* donor, TokenIt first, TokenIt last)
+{
+	_tokens.splice(before, donor->_tokens, first, last);
+	_formatted = false;
+}
+
+void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last)
+{
+	if (this == other)
+	{
+		bool other_under_local = false;
+		if (local_first == other_first && other_last == local_last)
+			return;
+		// Check that if there is some intersection, it is inclusion local > other.
+		bool other_first_inside = false;
+		bool other_last_inside = other_last == local_last;
+		for (auto it = local_first; it != local_last; ++it)
+		{
+			if (it == other_first)
+				other_first_inside = true;
+			else if (it == other_last)
+			{
+				other_last_inside = true;
+				break;
+			}
+		}
+		if (other_first_inside)
+		{
+			if (!other_last_inside)
+			{
+				if (other_first == local_first)
+				{
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
+				}
+				else
+				{	
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') and ['" << *other_first << "','" << *other_last << "') intersect in proper subset of each of them.";
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
+				}
+			}
+			else
+				other_under_local = true;
+		}
+		else
+		{
+			bool local_first_inside = false;
+			bool local_last_inside = other_last == local_last;
+			for (auto it = other_first; it != other_last; ++it)
+			{
+				if (it == local_first)
+					local_first_inside = true;
+				else if (it == local_last)
+				{
+					local_last_inside = true;
+					break;
+				}
+			}
+			if (local_first_inside)
+			{
+				if (local_first != other_first || local_last_inside)
+				{
+					std::stringstream ss;
+					ss << "['" << *local_first << "','" << *local_last << "') is under ['" << *other_first << "','" << *other_last << "').";
+					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
+				}
+				else
+					other_under_local = true;
+			}
+		}
+		if (other_under_local)
+		{
+			erase(local_first, other_first);
+			erase(other_last, local_last);
+		}
+		else //no intersection at all
+		{
+			if (local_first != other_last)
+				_tokens.splice(local_first, other->_tokens, other_first, other_last);
+			else
+				_tokens.splice(other_first, other->_tokens, local_first, local_last);
+			if (local_last != other_first && local_first != other_last)
+				other->_tokens.splice(other_last, _tokens, local_first, local_last);
+		}
+	}
+	else // different token streams
+	{
+		TokenIt other_insert_before = other_last;
+		_tokens.splice(local_first, other->_tokens, other_first, other_last);
+		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);		
+	}
+	_formatted = false;
 }
 
 TokenIt TokenStream::begin()
@@ -213,6 +324,7 @@ std::vector<std::string> TokenStream::getTokensAsText() const
 void TokenStream::clear()
 {
 	_tokens.clear();
+	_formatted = false;
 }
 
 

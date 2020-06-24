@@ -210,7 +210,7 @@ std::shared_ptr<HexString> YaraHexStringBuilder::get(const std::shared_ptr<Token
 	}
 	if (acceptor)
 	{
-		acceptor->move_append(_tokenStream.get());
+		acceptor->moveAppend(_tokenStream.get());
 		return std::make_shared<HexString>(acceptor, _units);
 	}
 	else

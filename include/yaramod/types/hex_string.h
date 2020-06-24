@@ -85,6 +85,7 @@ public:
 	virtual std::string getText() const override;
 	virtual std::string getPureText() const override;
 	virtual TokenIt getFirstTokenIt() const override;
+	virtual TokenIt getLastTokenIt() const override;
 	/// @}
 
 	/// @name Getters

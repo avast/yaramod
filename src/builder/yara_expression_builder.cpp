@@ -116,7 +116,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-()
 YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(AND, "and");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<AndExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -133,7 +133,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&&(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(OR, "or");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<OrExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -150,7 +150,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator||(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(LT, "<");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<LtExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -167,7 +167,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(LE, "<=");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<LeExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -184,7 +184,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(GT, ">");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<GtExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -201,7 +201,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(GE, ">=");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<GeExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -218,7 +218,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(EQ, "==");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<EqExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -235,7 +235,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(NEQ, "!=");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<NeqExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -254,7 +254,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuil
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	TokenIt token = _tokenStream->emplace_back(PLUS, "+");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<PlusExpression>(std::move(_expr), token, other.get());
 	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
@@ -273,7 +273,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuil
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	TokenIt token = _tokenStream->emplace_back(MINUS, "-");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<MinusExpression>(std::move(_expr), token, other.get());
 	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
@@ -292,7 +292,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuil
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	TokenIt token = _tokenStream->emplace_back(MULTIPLY, "*");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<MultiplyExpression>(std::move(_expr), token, other.get());
 	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
@@ -311,7 +311,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuil
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	TokenIt token = _tokenStream->emplace_back(DIVIDE, "\\");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<DivideExpression>(std::move(_expr), token, other.get());
 	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
@@ -330,7 +330,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
 	TokenIt token = _tokenStream->emplace_back(MODULO, "%");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<ModuloExpression>(std::move(_expr), token, other.get());
 	setType(will_be_float ? Expression::Type::Float : Expression::Type::Int);
@@ -347,7 +347,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(BITWISE_XOR, "^");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<BitwiseXorExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Int);
@@ -364,7 +364,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(BITWISE_AND, "&");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<BitwiseAndExpression>(std::move(_expr), token, other.get());
 
@@ -382,7 +382,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(BITWISE_OR, "|");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<BitwiseOrExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Int);
@@ -399,7 +399,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuil
 YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(SHIFT_LEFT, "<<");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<ShiftLeftExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Int);
@@ -416,7 +416,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBui
 YaraExpressionBuilder& YaraExpressionBuilder::operator>>(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(SHIFT_RIGHT, ">>");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<ShiftRightExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Int);
@@ -435,7 +435,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
 	TokenIt lb = _tokenStream->emplace_back(FUNCTION_CALL_LP, "(");
 	for (std::size_t i = 0; i < args.size(); ++i)
 	{
-		_tokenStream->move_append(args[i].getTokenStream());
+		_tokenStream->moveAppend(args[i].getTokenStream());
 		if (i < args.size() - 1)
 			_tokenStream->emplace_back(COMMA, ",");
 	}
@@ -505,7 +505,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
 YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(CONTAINS, "contains");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<ContainsExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -522,7 +522,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuild
 YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilder& other)
 {
 	TokenIt token = _tokenStream->emplace_back(MATCHES, "matches");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<MatchesExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
@@ -558,7 +558,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) //
 YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBuilder& other)
 {
 	TokenIt lsqb = _tokenStream->emplace_back(LSQB, "[");
-	_tokenStream->move_append(other.getTokenStream());
+	_tokenStream->moveAppend(other.getTokenStream());
 	TokenIt rsqb = _tokenStream->emplace_back(RSQB, "]");
 
 	_expr = std::make_shared<ArrayAccessExpression>(std::move(_expr), lsqb, std::move(other.get()), rsqb);
@@ -782,7 +782,7 @@ YaraExpressionBuilder paren(const YaraExpressionBuilder& other, bool linebreak)
 	auto lb = ts->emplace_back(LP, "(");
 	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
-	ts->move_append(other.getTokenStream());
+	ts->moveAppend(other.getTokenStream());
 	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
 	auto rb = ts->emplace_back(RP, ")");
@@ -893,7 +893,7 @@ YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBui
 	TokenIt token = ts->emplace_back(STRING_LENGTH, std::move(lengthId));
 	auto other_expression = other.get();
 	ts->emplace_back(LSQB, "[");
-	ts->move_append(other_expression->getTokenStream());
+	ts->moveAppend(other_expression->getTokenStream());
 	ts->emplace_back(RSQB, "]");
 	auto expression = std::make_shared<StringLengthExpression>(token, std::move(other_expression));
 
@@ -920,7 +920,7 @@ YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBui
 	TokenIt token = ts->emplace_back(STRING_OFFSET, std::move(offsetId));
 	auto other_expression = other.get();
 	ts->emplace_back(LSQB, "[");
-	ts->move_append(other_expression->getTokenStream());
+	ts->moveAppend(other_expression->getTokenStream());
 	ts->emplace_back(RSQB, "]");
 	auto expression = std::make_shared<StringOffsetExpression>(token, std::move(other_expression));
 
@@ -942,7 +942,7 @@ YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder
 	TokenIt at_symbol = ts->emplace_back(OP_AT, "at");
 
 	auto other_expression = other.get();
-	ts->move_append(other_expression->getTokenStream());
+	ts->moveAppend(other_expression->getTokenStream());
 
 	auto expression = std::make_shared<StringAtExpression>(id_token, at_symbol, std::move(other_expression));
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
@@ -963,7 +963,7 @@ YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBu
 	TokenIt in_symbol = ts->emplace_back(OP_IN, "in");
 
 	auto other_expression = other.get();
-	ts->move_append(other_expression->getTokenStream());
+	ts->moveAppend(other_expression->getTokenStream());
 	auto expression = std::make_shared<StringInRangeExpression>(id_token, in_symbol, std::move(other_expression));
 
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
@@ -983,13 +983,13 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::s
 {
 	auto ts = std::make_shared<TokenStream>();
 	auto forToken = ts->emplace_back(FOR, "for");
-	ts->move_append(forExpr.getTokenStream());
+	ts->moveAppend(forExpr.getTokenStream());
 	auto idToken = ts->emplace_back(ID, id);
 	auto inToken = ts->emplace_back(OP_IN, "in");
-	ts->move_append(set.getTokenStream());
+	ts->moveAppend(set.getTokenStream());
 	ts->emplace_back(COLON, ":");
 	auto lb = ts->emplace_back(LP_WITH_SPACE_AFTER, "(");
-	ts->move_append(expr.getTokenStream());
+	ts->moveAppend(expr.getTokenStream());
 	auto rb = ts->emplace_back(RP_WITH_SPACE_BEFORE, ")");
 
 	auto expression = std::make_shared<ForIntExpression>(forToken, forExpr.get(), idToken, inToken, set.get(), lb, expr.get(), rb);
@@ -1009,12 +1009,12 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraEx
 {
 	auto ts = std::make_shared<TokenStream>();
 	auto forToken = ts->emplace_back(FOR, "for");
-	ts->move_append(forExpr.getTokenStream());
+	ts->moveAppend(forExpr.getTokenStream());
 	auto ofToken = ts->emplace_back(OF, "of");
-	ts->move_append(set.getTokenStream());
+	ts->moveAppend(set.getTokenStream());
 	ts->emplace_back(COLON, ":");
 	auto lb = ts->emplace_back(LP_WITH_SPACE_AFTER, "(");
-	ts->move_append(expr.getTokenStream());
+	ts->moveAppend(expr.getTokenStream());
 	auto rb = ts->emplace_back(RP_WITH_SPACE_BEFORE, ")");
 
 	auto expression = std::make_shared<ForStringExpression>(forToken, forExpr.get(), ofToken, set.get(), lb, expr.get(), rb);
@@ -1032,9 +1032,9 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraEx
 YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressionBuilder& set)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->move_append(ofExpr.getTokenStream());
+	ts->moveAppend(ofExpr.getTokenStream());
 	auto ofToken = ts->emplace_back(OF, "of");
-	ts->move_append(set.getTokenStream());
+	ts->moveAppend(set.getTokenStream());
 
 	auto expression = std::make_shared<OfExpression>(ofExpr.get(), ofToken, set.get());
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
@@ -1053,7 +1053,7 @@ YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements)
 	TokenIt lb = ts->emplace_back(LP, "(");
 	for (std::size_t i = 0; i < elements.size(); ++i)
 	{
-		ts->move_append(elements[i].getTokenStream());
+		ts->moveAppend(elements[i].getTokenStream());
 		if (i < elements.size() - 1)
 			ts->emplace_back(COMMA, ",");
 	}
@@ -1083,11 +1083,11 @@ YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraEx
 		error_handle(ArgType::Right, "and", "bool", lhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
-	ts->move_append(lhs.getTokenStream());
+	ts->moveAppend(lhs.getTokenStream());
 	TokenIt andToken = ts->emplace_back(AND, "and");
 	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
-	ts->move_append(rhs.getTokenStream());
+	ts->moveAppend(rhs.getTokenStream());
 
 	auto expression = std::make_shared<AndExpression>(lhs.get(), andToken, rhs.get(), linebreak);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
@@ -1110,11 +1110,11 @@ YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraEx
 		error_handle(ArgType::Right, "or", "bool", rhs.get());
 
 	auto ts = std::make_shared<TokenStream>();
-	ts->move_append(lhs.getTokenStream());
+	ts->moveAppend(lhs.getTokenStream());
 	TokenIt orToken = ts->emplace_back(OR, "or");
 	if (linebreak)
 		ts->emplace_back(NEW_LINE, "\n");
-	ts->move_append(rhs.getTokenStream());
+	ts->moveAppend(rhs.getTokenStream());
 
 	auto expression = std::make_shared<OrExpression>(lhs.get(), orToken, rhs.get(), linebreak);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
@@ -1206,9 +1206,9 @@ YaraExpressionBuilder range(const YaraExpressionBuilder& low, const YaraExpressi
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt lb = ts->emplace_back(LP, "(");
-	ts->move_append(low.getTokenStream());
+	ts->moveAppend(low.getTokenStream());
 	TokenIt opToken = ts->emplace_back(DOUBLE_DOT, "..");
-	ts->move_append(high.getTokenStream());
+	ts->moveAppend(high.getTokenStream());
 	TokenIt rb = ts->emplace_back(RP, ")");
 
 	auto expression = std::make_shared<RangeExpression>(lb, low.get(), opToken, high.get(), rb);

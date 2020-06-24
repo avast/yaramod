@@ -12,6 +12,40 @@
 namespace yaramod {
 
 /**
+ * Class capturing current TokenStream and first and last TokenIi of the expression which it is given
+ * in it's constructor. This data can be very useful at the end of the visit method of ModifyingVisitors
+ * by the cleanUpTokenStreams function.
+ */
+class TokenStreamContext
+{
+public:
+	TokenStreamContext(Expression* expr)
+		: _oldTokenStream(expr->getTokenStreamSharedPtr())
+		, _oldBeforeFirst(std::prev(expr->getFirstTokenIt()))
+		, _oldAfterLast(std::next(expr->getLastTokenIt()))
+	{
+	}
+	TokenStreamContext(const std::shared_ptr<TokenStream>& oldTokenStream, TokenIt oldBeforeFirst, TokenIt oldAfterLast)
+		: _oldTokenStream(oldTokenStream)
+		, _oldBeforeFirst(oldBeforeFirst)
+		, _oldAfterLast(oldAfterLast)
+	{
+	}
+
+	/// @name Getter methods
+	/// @{
+	std::shared_ptr<TokenStream>& oldTokenStream() { return _oldTokenStream; }
+	TokenIt oldBeforeFirst() const { return _oldBeforeFirst; }
+	TokenIt oldAfterLast() const { return _oldAfterLast; }
+	/// @}
+
+private:
+	std::shared_ptr<TokenStream> _oldTokenStream;
+	TokenIt _oldBeforeFirst;
+	TokenIt _oldAfterLast;
+};
+
+/**
  * Abstract class representing modifying visitor of condition expression in YARA files.
  * It is capable of modifying AST. Each visit() method has return value of
  * @c VisitResult what is just an alis for `variant<shared_ptr<Expression>, Visitee::Action>`.
@@ -587,6 +621,35 @@ public:
 	}
 	/// @}
 
+	/**
+	 * In the case an expression has been created in a builder, it has a new TokenStream which may partially
+	 * contain some Tokens stolen from the original TS. In this method, the new TokenStream is move appended
+	 * inside the original TS and replaces all remaining tokens which were associated with the old version
+	 * of the expression.
+	 * 
+	 * Removes all tokens in the TokenStream that the given expression has been associated with.
+	 * Then all tokens, which are currently associated with the given expression are moved to the TokenStream
+	 * The expression is assigned the TokenStream.
+	 * @return true iff any changes performed (when the expression has different tokenstream)
+	 */
+	bool cleanUpTokenStreams(TokenStreamContext& context, Expression* new_expression)
+	{
+		auto& oldTokenStream = context.oldTokenStream();
+		if (oldTokenStream.get() != new_expression->getTokenStream())
+		{
+			auto oldBeforeFirst = context.oldBeforeFirst();
+			auto oldAfterLast = context.oldAfterLast();
+			// remove old tokens which has not been moved away by builder
+			oldTokenStream->erase(std::next(oldBeforeFirst), oldAfterLast);
+			// transfer builded tokens
+			oldTokenStream->moveAppend(oldAfterLast, new_expression->getTokenStream());
+			new_expression->setTokenStream(oldTokenStream);
+			return true;
+		}
+		else
+			return false;
+	}
+
 protected:
 	ModifyingVisitor() = default;
 
@@ -607,4 +670,4 @@ private:
 	}
 };
 
-}
+} // namespace yaramod
