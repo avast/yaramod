@@ -117,7 +117,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
 		.def_property_readonly("text_formatted", [](const YaraFile& self) { return self.getTextFormatted(); })
-		.def_property_readonly("tokenstream", [](const YaraFile& self) { return *(self.getTokenStream());} )
+		.def_property_readonly("tokenstream", [](const YaraFile& self) { return self.getTokenStream();} )
 		.def("find_symbol", &YaraFile::findSymbol)
 		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
@@ -334,7 +334,7 @@ void addExpressionClasses(py::module& module)
 				[](const Expression* self) {
 					return self->getText();
 				})
-		.def_property_readonly("tokenstream", [](const Expression& self) { return *(self.getTokenStream());} );
+		.def_property_readonly("tokenstream", [](const Expression& self) { return self.getTokenStream();} );
 
 	exprClass<StringExpression>(module, "StringExpression")
 		.def_property("id",

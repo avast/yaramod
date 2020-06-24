@@ -77,7 +77,13 @@ rule empty_rule {
             '}'
         ])
         condition_ts = rule.condition.tokenstream
-        self.assertTrue(condition_ts.empty)
+        self.assertEqual(condition_ts.tokens_as_text, [ '\n',
+            'rule', 'empty_rule', '{', '\n',
+            'meta', ':', '\n',
+            'key', '=', 'another value', '\n',
+            'condition', ':', '\n', 'true', '\n',
+            '}'
+        ])
 
     def test_get_tokenstream_after_syntax_error_1(self):
         input_text = '''
