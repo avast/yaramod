@@ -4,7 +4,7 @@ Modifying Rulesets
 
 Modifying Metas
 ===============
-In Yaramod, we are able to modify existing Yara rules through many methods. For example, we can add new metas with method ``Rule::addMeta(const std::string& name, const Literal& value)`` which inserts a new meta also into the TokenStream. This method can be used through python as ``add_meta`` as follows:
+In Yaramod, we are able to modify existing Yara rules through many methods. For example, we can add new metas with method ``Rule::addMeta(const std::string& name, const Literal& value)`` which inserts a new meta also into the ``TokenStream``. This method can be used through python as ``add_meta`` as follows:
 
 .. tabs::
 
@@ -102,11 +102,11 @@ Conditions in Yaramod are tree-like structures where each node is a derived clas
 Visiting Expressions
 --------------------
 
-Yaramod provides two kinds of Visitors enabling the user to observe or modify existing Expressions. This page is about more interesting modifying Visitors:
+Yaramod provides two kinds of visitors enabling the user to observe or modify existing expressions. This page is about more interesting modifying visitors:
 
 Both ``ObservingVisitor`` and ``ModifyingVisitor`` classes define a visit method for each derived ``Expression`` class as a parameter. These methods are pre-defined not to change/do anything in the expression they are called with. The only thing these pre-defined methods do is they trigger visiting of all subexpressions. This means, that after calling a visit on an expression, the visit methods are recursively called upon each of the subnodes in the expression tree structure. Until we modify the visit methods, each such call performs no actions on the nodes.
 
-We will now focus on the ``ModifyingVisitor`` class which supplies also the ``modify`` method with an ``Expression* expr`` as a parameter. This method arranges that a correct ``visit`` method is called with ``expr`` as the parameter. Let us now describe three types of ModifyingVisitors we can write with three examples.
+We will now focus on the ``ModifyingVisitor`` class which supplies also the ``modify`` method with an ``Expression* expr`` as a parameter. This method arranges that a correct ``visit`` method is called with ``expr`` as the parameter. Let us now describe three types of modifying visitors we can write with three examples.
 
 
 
@@ -151,7 +151,7 @@ Following visitor provides specification of the ``visit`` method for ``StringExp
             }
         };
 
-We can now use this visitors instance ``visitor`` to alter all conditions of rules present in a given yara file simply by calling ``visitor.process(yara_file)``. The next example will show a case when we replace existing visited node in the ``Expression`` syntax tree by another new node:
+We can now use this visitors instance ``visitor`` to alter all conditions of rules present in a given yara file simply by calling ``visitor.process(yara_file)``. The next example will show a case when we replace existing visited node in the expression syntax tree by another new node:
 
 .. tabs::
 
@@ -187,9 +187,9 @@ We can now use this visitors instance ``visitor`` to alter all conditions of rul
             }
         };
 
-This ``visit`` methods requires calling of a ``exchange_tokens`` method which deletes all Tokens that the original expression refered to. Then it extracts all tokens from the supplied new Expression and moves them to place where the original expression had its tokens stored.
+This ``visit`` methods requires calling of a ``exchange_tokens`` method which deletes all tokens that the original expression refered to. Then it extracts all tokens from the supplied new expression and moves them to place where the original expression had its tokens stored.
 
-In the third example we will show how to deal with a situation where we need to modify existing expression while keeping part of it's subexpressions. The following approach will let us use Yaramod Expression Builders to create new Expressions from existing expressions that are already used in our rule.
+In the third example we will show how to deal with a situation where we need to modify existing expression while keeping part of it's subexpressions. The following approach will let us use Yaramod expression builders to create new expressions from existing expressions that are already used in our rule.
 
 Let's now assume that we need to modify each ``EqExpression`` in the expression syntax tree. We can do it by writing our own derived class of ``ModifyingVisitor``. The new class will override the ``visit(EqExpression* expr)`` method in the following manner:
 
@@ -199,7 +199,7 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
 
       .. code-block:: python
 
-        class EqModifyer(yaramod.ModifyingVisitor):
+        class EqModifier(yaramod.ModifyingVisitor):
             def add(self, yara_file: yaramod.YaraFile):
                 for rule in yara_file.rules:
                     rule.condition = self.modify(rule.condition)
@@ -215,7 +215,7 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
 
       .. code-block:: cpp
 
-        class EqModifyer : public yaramod::ModifyingVisitor
+        class EqModifier : public yaramod::ModifyingVisitor
         {
         public:
             void process_rule(const std::shared_ptr<Rule>& rule)
@@ -241,6 +241,6 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
         };
 
 
-The first line in the ``visit`` method is simply creating a snapshot ``context`` of the ``TokenStream`` and first and last ``Token`` of the processed ``Expression``.
-Because here we deal with an ``Expression`` of non-zero arity, we have to trigger the Visitor also on it's subnodes. This happens on the next two lines in Python.
-Then a new expression ``output`` is created. The ``cleanUpTokenStreams`` method makes sure, that all remaining tokens of the old version of the expression, that have not been used by the builder, are deleted. Then all tokens maintained by the builder are moved back to the original TokenStream on the right place.
+The first line in the ``visit`` method is simply creating a snapshot ``context`` of the ``TokenStream`` and first and last ``Token`` of the processed expression.
+Because here we deal with an expression of non-zero arity, we have to trigger the Visitor also on it's subnodes. This happens on the next two lines in Python.
+Then a new expression ``output`` is created. The ``cleanUpTokenStreams`` method makes sure, that all remaining tokens of the old version of the expression, that have not been used by the builder, are deleted. Then all tokens maintained by the builder are moved back to the original ``TokenStream`` on the right place.
