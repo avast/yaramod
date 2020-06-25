@@ -23,7 +23,7 @@ MetaConstruction) {
    TokenStream ts;
    TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
    TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
-   auto meta = Meta( key, value );
+   Meta meta{key, value};
 
    ASSERT_EQ(meta.getKey(), "author");
    ASSERT_TRUE(meta.getValue().isString());
@@ -37,7 +37,7 @@ MetaSetters) {
    TokenStream ts;
    TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
    TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
-   auto meta = Meta( key, value );
+   Meta meta{key, value};
    meta.setKey("strain");
    meta.setValue(Literal("cryptic"));
 
@@ -53,7 +53,7 @@ MetaCopyIsJustReference) {
    TokenStream ts;
    TokenIt key = ts.emplace_back(TokenType::META_KEY, "author");
    TokenIt value = ts.emplace_back(TokenType::META_VALUE, "Mr. Avastian");
-   auto meta = Meta(key, value);
+   Meta meta{key, value};
 
    auto copy = meta;
 
@@ -77,7 +77,7 @@ TEST_F(RepresentationTests,
 RegexpConstruction) {
    auto ts = std::make_shared<TokenStream>();
    auto unit1 = std::make_shared<RegexpText>("abc");
-   auto regexp1 = Regexp(ts, std::move(unit1));
+   Regexp regexp1{ts, std::move(unit1)};
    EXPECT_EQ(regexp1.getText(), "/abc/");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"/", "a", "b", "c", "/"}));
 
@@ -87,14 +87,14 @@ RegexpConstruction) {
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/"}));
 
    auto unit2 = std::make_shared<RegexpAnyChar>();
-   auto regexp2 = Regexp(ts, std::move(unit2));
+   Regexp regexp2{ts, std::move(unit2)};
    EXPECT_EQ(regexp2.getText(), "/./");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "/", ".", "/" }));
    regexp2.setIdentifier("$s2");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" }));
 
    auto unit3 = std::make_shared<RegexpEndOfLine>();
-   auto regexp3 = Regexp(ts, std::move(unit3), "$s3");
+   Regexp regexp3{ts, std::move(unit3), "$s3"};
    EXPECT_EQ(regexp3.getText(), "/$/");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({"$s1", "=", "/", "a", "b", "c", "/", "$s2", "=", "/", ".", "/" , "$s3", "=", "/", "$", "/" }));
 }
@@ -104,14 +104,14 @@ RegexpSetters) {
    auto ts = std::make_shared<TokenStream>();
 
    auto unit2 = std::make_shared<RegexpAnyChar>();
-   auto regexp2 = Regexp(ts, std::move(unit2));
+   Regexp regexp2{ts, std::move(unit2)};
    EXPECT_EQ(regexp2.getText(), "/./");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "/", ".", "/" }));
    regexp2.setIdentifier("$s2");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/" }));
 
    auto unit3 = std::make_shared<RegexpEndOfLine>();
-   auto regexp3 = Regexp(ts, std::move(unit3), "$s3");
+   Regexp regexp3{ts, std::move(unit3), "$s3"};
    EXPECT_EQ(regexp3.getText(), "/$/");
    EXPECT_EQ(ts->getTokensAsText(), std::vector<std::string>({ "$s2", "=", "/", ".", "/", "$s3", "=", "/", "$", "/" }));
 
@@ -146,7 +146,7 @@ RegexpConcat) {
 TEST_F(RepresentationTests,
 RegexpGroup) {
    auto unit = std::make_shared<RegexpStartOfLine>();
-   RegexpGroup group(std::move(unit));
+   RegexpGroup group{std::move(unit)};
    EXPECT_EQ(group.getText(), "(^)");
 
    auto ts = group.getTokenStream();
@@ -157,7 +157,7 @@ TEST_F(RepresentationTests,
 RegexpOr) {
    auto unit1 = std::make_shared<RegexpText>("abc");
    auto unit2 = std::make_shared<RegexpAnyChar>();
-   RegexpOr regexp_or(std::move(unit1), std::move(unit2));
+   RegexpOr regexp_or{std::move(unit1), std::move(unit2)};
    EXPECT_EQ(regexp_or.getText(), "abc|.");
 
    auto ts = regexp_or.getTokenStream();
@@ -183,7 +183,7 @@ TEST_F(RepresentationTests,
 RegexpOptional) {
    auto unit = std::make_shared<RegexpText>("abc");
    bool greedy = true;
-   auto regexp_optional = RegexpOptional(std::move(unit), greedy);
+   RegexpOptional regexp_optional{std::move(unit), greedy};
    EXPECT_EQ(regexp_optional.getText(), "abc?");
 
    auto ts = regexp_optional.getTokenStream();
@@ -194,7 +194,7 @@ TEST_F(RepresentationTests,
 RegexpPositiveIteration) {
    auto unit = std::make_shared<RegexpText>("abc");
    bool greedy = false;
-   auto regexp_iter = RegexpPositiveIteration(std::move(unit), greedy);
+   RegexpPositiveIteration regexp_iter{std::move(unit), greedy};
    EXPECT_EQ(regexp_iter.getText(), "abc+?");
 
    auto ts = regexp_iter.getTokenStream();
@@ -205,7 +205,7 @@ TEST_F(RepresentationTests,
 RegexpIteration) {
    auto unit = std::make_shared<RegexpText>("abc");
    bool greedy = false;
-   auto regexp_iter = RegexpIteration(std::move(unit), greedy);
+   RegexpIteration regexp_iter{std::move(unit), greedy};
    EXPECT_EQ(regexp_iter.getText(), "abc*?");
 
    auto ts = regexp_iter.getTokenStream();

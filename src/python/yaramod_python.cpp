@@ -117,6 +117,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("rules", &YaraFile::getRules)
 		.def_property_readonly("imports", &YaraFile::getImports)
 		.def_property_readonly("text_formatted", [](const YaraFile& self) { return self.getTextFormatted(); })
+		.def_property_readonly("tokenstream", [](const YaraFile& self) { return self.getTokenStream();} )
 		.def("find_symbol", &YaraFile::findSymbol)
 		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
@@ -292,6 +293,36 @@ void addBasicClasses(py::module& module)
 			});
 }
 
+void addTokenStreamClass(py::module& module)
+{
+	py::class_<Token>(module, "Token")
+		.def(py::init<yaramod::TokenType, const Literal&>())
+		.def_property_readonly("text", [](Token& self) { return self.getText(); })
+		.def_property_readonly("pure_text", &Token::getPureText)
+		.def_property_readonly("is_string", &Token::isString)
+		.def_property_readonly("is_bool", &Token::isBool)
+		.def_property_readonly("is_int", &Token::isInt)
+		.def_property_readonly("is_float", &Token::isFloat)
+		.def_property_readonly("is_symbol", &Token::isSymbol)
+		.def_property_readonly("literal", &Token::getLiteral)
+		.def_property_readonly("string", &Token::getString)
+		.def_property_readonly("bool", &Token::getBool)
+		.def_property_readonly("int", &Token::getInt)
+		.def_property_readonly("uint", &Token::getUInt)
+		.def_property_readonly("float", &Token::getFloat)
+		.def_property_readonly("symbol", &Token::getSymbol)
+		.def_property_readonly("literal_reference", &Token::getLiteralReference);
+
+	py::class_<TokenStream, std::shared_ptr<TokenStream>>(module, "TokenStream")
+		.def(py::init<>())
+		.def_property_readonly("empty", &TokenStream::empty)
+		.def_property_readonly("size", &TokenStream::size)
+		.def_property_readonly("front", &TokenStream::front)
+		.def_property_readonly("back", &TokenStream::back)
+		.def_property_readonly("tokens", &TokenStream::getTokens)
+		.def_property_readonly("tokens_as_text", &TokenStream::getTokensAsText);
+}
+
 void addExpressionClasses(py::module& module)
 {
 	py::class_<Expression, std::shared_ptr<Expression>>(module, "Expression")
@@ -302,7 +333,8 @@ void addExpressionClasses(py::module& module)
 				// getText() has default parameter and Python can't deal with it
 				[](const Expression* self) {
 					return self->getText();
-				});
+				})
+		.def_property_readonly("tokenstream", [](const Expression& self) { return self.getTokenStream();} );
 
 	exprClass<StringExpression>(module, "StringExpression")
 		.def_property("id",
@@ -639,7 +671,8 @@ void addMainClass(py::module& module)
 		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);
 				return self.parseStream(stream, parserMode);
-			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular);
+			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular)
+		.def_property_readonly("yara_file", &Yaramod::getParsedFile);
 }
 
 PYBIND11_MODULE(yaramod, module)
@@ -661,6 +694,7 @@ PYBIND11_MODULE(yaramod, module)
 	addVersionVariables(module);
 	addEnums(module);
 	addBasicClasses(module);
+	addTokenStreamClass(module);
 	addExpressionClasses(module);
 	addMainClass(module);
 	addVisitorClasses(module);

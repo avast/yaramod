@@ -99,6 +99,13 @@ public:
 	void swapTokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last);
 	/// @}
 
+	/// @name Element access
+	/// @{
+	const Token& front() const { return _tokens.front(); }
+	const Token& back() const { return _tokens.back(); }
+	const std::list<Token>& getTokens() const { return _tokens; }
+	/// @}
+
 	/// @name Iterators
 	/// @{
 	TokenIt begin();

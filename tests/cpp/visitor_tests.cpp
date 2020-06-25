@@ -966,7 +966,7 @@ private:
 		if (resultIsModified(rightResult))
 			expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
 		//create new expression
-		auto output = disjunction({YaraExpressionBuilder(expr->getRightOperand()), YaraExpressionBuilder(expr->getLeftOperand())}).get();
+		auto output = disjunction({YaraExpressionBuilder{expr->getRightOperand()}, YaraExpressionBuilder{expr->getLeftOperand()}}).get();
 
 		cleanUpTokenStreams(context, output.get());
 		return output;
@@ -1113,7 +1113,7 @@ public:
         if (resultIsModified(rightResult))
             expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
 
-        auto output = ((YaraExpressionBuilder(expr->getRightOperand())) != (YaraExpressionBuilder(expr->getLeftOperand()))).get();
+        auto output = ((YaraExpressionBuilder{expr->getRightOperand()}) != (YaraExpressionBuilder{expr->getLeftOperand()})).get();
 
         cleanUpTokenStreams(context, output.get());
         return output;
