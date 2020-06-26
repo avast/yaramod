@@ -822,6 +822,9 @@ rule rule_2
 		std::stringstream name;
 		name << "rule_" << i;
 		EXPECT_EQ(name.str(), rule->getName());
+		EXPECT_EQ("rule", rule->getFirstTokenIt()->getPureText());
+		EXPECT_EQ(name.str(), std::next(rule->getFirstTokenIt())->getPureText());
+		EXPECT_EQ("}", rule->getLastTokenIt()->getPureText());
 		EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 		auto strings = rule->getStrings();
 		ASSERT_EQ(1u, strings.size());
