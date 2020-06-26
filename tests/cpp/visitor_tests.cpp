@@ -361,7 +361,7 @@ public:
 		auto functionName = expr->getFunction()->getText();
 		if (isFunctionInBlacklist(functionName, avastOnlyFunctionsRemove))
 			_needsToBeRemoved = true;
-		return expr;
+		return {};
 	}
 	virtual VisitResult visit(ParenthesesExpression* expr) override
 	{
