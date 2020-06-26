@@ -70,7 +70,12 @@ public:
 	{
 		auto itr = std::stable_partition(_rules.begin(), _rules.end(), [&](const auto& i) { return !fn(i); });
 		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
+		{
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
+			auto behind = _tokenStream->erase((*rem_itr)->getFirstTokenIt(), std::next((*rem_itr)->getLastTokenIt()));
+			while (behind != _tokenStream->end() && behind->getType() == NEW_LINE)
+				behind = _tokenStream->erase(behind);
+		}
 		_rules.erase(itr, _rules.end());
 	}
 	/// @}
