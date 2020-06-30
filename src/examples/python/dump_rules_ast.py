@@ -202,7 +202,7 @@ class Dumper(yaramod.ObservingVisitor):
         self.indent_down()
 
     def visit_ForIntExpression(self, expr):
-        self.dump('ForInt', expr)
+        self.dump('ForInt', expr, ' id=', expr.id)
         self.indent_up()
         expr.variable.accept(self)
         expr.iterated_set.accept(self)
