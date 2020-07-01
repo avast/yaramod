@@ -7,6 +7,7 @@
 #pragma once
 
 #include <list>
+#include <set>
 #include <vector>
 
 #include "yaramod/types/token.h"
@@ -129,9 +130,11 @@ public:
 	TokenIt find(TokenType type);
 	TokenIt find(TokenType type, TokenIt from);
 	TokenIt find(TokenType type, TokenIt from, TokenIt to);
+	TokenIt find(const std::set<TokenType>& types, TokenIt from, TokenIt to);
 	TokenIt findBackwards(TokenType type);
 	TokenIt findBackwards(TokenType type, TokenIt to);
 	TokenIt findBackwards(TokenType type, TokenIt from, TokenIt to);
+	TokenIt findBackwards(const std::set<TokenType>& types, TokenIt from, TokenIt to);
 	/// @}
 
 	/// @name Text representation
