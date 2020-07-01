@@ -1174,5 +1174,218 @@ rule rule_1
 	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
 }
 
+class RuleDeleter : public yaramod::ModifyingVisitor
+{
+public:
+	void process(YaraFile& file)
+	{
+		setRulesForRemove(file);
+		file.removeRules([&](const std::shared_ptr<Rule>& rule){ return ruleShouldBeRemoved(rule); });
+		for (const std::shared_ptr<Rule>& rule : file.getRules())
+		{
+			auto modified = modify(rule->getCondition(), yaramod::boolVal(false).get());
+			rule->setCondition(std::move(modified));
+		}
+	}
+
+	virtual VisitResult visit(IdExpression* expr) override
+	{
+		if (rules_for_remove.count(expr->getSymbol()->getName()) != 0)
+			return VisitAction::Delete;
+		return {};
+	}
+private:
+
+	bool ruleShouldBeRemoved(const std::shared_ptr<Rule>& rule)
+	{
+		return rule->getName().rfind("delete", 0) != std::string::npos;
+	}
+
+	void setRulesForRemove(YaraFile& file)
+	{
+		rules_for_remove.clear();
+		for (const std::shared_ptr<Rule>& rule : file.getRules())
+			if (ruleShouldBeRemoved(rule))
+				rules_for_remove.insert(rule->getName());
+	}
+
+	std::set<std::string> rules_for_remove;
+};
+
+TEST_F(VisitorTests,
+DeletingVisitor1) {
+	prepareInput(
+R"(
+rule delete_rule_3 {
+	condition:
+		false
+}
+
+rule rule_4 {
+	condition:
+		delete_rule_3
+}
+
+rule rule_5 {
+	condition:
+		not delete_rule_3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(3u, yara_file.getRules().size());
+
+	RuleDeleter visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(2u, yara_file.getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_4 {
+	condition:
+		false
+}
+
+rule rule_5 {
+	condition:
+		false
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_4
+{
+	condition:
+		false
+}
+
+rule rule_5
+{
+	condition:
+		false
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+}
+
+TEST_F(VisitorTests,
+DeletingVisitor2) {
+	prepareInput(
+R"(
+rule delete_rule_1 {
+	strings:
+		$str0 = "a"
+	condition:
+		$str0
+}
+
+rule rule_5 {
+	strings:
+		$str0 = "ccc"
+	condition:
+		not delete_rule_1 and
+		$str0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(2u, yara_file.getRules().size());
+
+	RuleDeleter visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(1u, yara_file.getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_5 {
+	strings:
+		$str0 = "ccc"
+	condition:
+		$str0
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_5
+{
+	strings:
+		$str0 = "ccc"
+	condition:
+		$str0
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+}
+
+TEST_F(VisitorTests,
+DeletingVisitor3) {
+	prepareInput(
+R"(
+rule delete_rule_1 {
+	strings:
+		$str0 = "a"
+	condition:
+		$str0
+}
+
+rule delete_rule_3 {
+	strings:
+		$str0 = "c"
+	condition:
+		$str0
+}
+
+rule rule_5 {
+	condition:
+		delete_rule_1 and
+		delete_rule_3
+}
+
+rule rule_6 {
+	condition:
+		delete_rule_1 or
+		delete_rule_3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(4u, yara_file.getRules().size());
+
+	RuleDeleter visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(2u, yara_file.getRules().size());
+
+	EXPECT_EQ(
+R"(rule rule_5 {
+	condition:
+		false
+}
+
+rule rule_6 {
+	condition:
+		false
+})", yara_file.getText());
+
+	std::string expected = R"(
+rule rule_5
+{
+	condition:
+		false
+}
+
+rule rule_6
+{
+	condition:
+		false
+}
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+}
+
 }
 }

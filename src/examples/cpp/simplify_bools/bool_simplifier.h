@@ -15,6 +15,7 @@ class BoolSimplifier : public yaramod::ModifyingVisitor
 public:
 	virtual yaramod::VisitResult visit(yaramod::AndExpression* expr) override
 	{
+		yaramod::TokenStreamContext context{expr};
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
@@ -62,11 +63,12 @@ public:
 				return expr->getLeftOperand();
 		}
 
-		return defaultHandler(expr, retLeft, retRight);
+		return defaultHandler(context, expr, retLeft, retRight);
 	}
 
 	virtual yaramod::VisitResult visit(yaramod::OrExpression* expr) override
 	{
+		yaramod::TokenStreamContext context{expr};
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
@@ -114,7 +116,7 @@ public:
 				return expr->getLeftOperand();
 		}
 
-		return defaultHandler(expr, retLeft, retRight);
+		return defaultHandler(context, expr, retLeft, retRight);
 	}
 
 	virtual yaramod::VisitResult visit(yaramod::NotExpression* expr) override

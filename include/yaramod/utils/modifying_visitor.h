@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "yaramod/builder/yara_expression_builder.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/utils/visitor.h"
 
@@ -75,11 +76,18 @@ public:
 	 */
 	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
+		TokenStreamContext context{expr.get()};
+		
 		auto result = expr->accept(this);
 		if (auto newExpr = std::get_if<Expression::Ptr>(&result))
+		{
 			return *newExpr ? *newExpr : expr;
+		}
 		else
+		{
+			cleanUpTokenStreams(context, whenDeleted.get());
 			return whenDeleted;
+		}
 	}
 
 	/// @name Visit methods
@@ -331,6 +339,11 @@ public:
 	/// @}
 
 	/// @name Default handlers
+	/**
+	 * If a handler gets a Delete result from a subexpression of handled expression, it has two options:
+	 * A. Take care of the deletion of the expression and also it's tokens.
+	 * B. Emit Delete result so the whole expression will be deleted by the caller.
+	 */
 	/// @{
 	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
 	{
@@ -386,17 +399,21 @@ public:
 		if (auto operand = std::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
+			{
 				expr->setOperand(*operand);
+			}
 		}
 		else
+		{
 			return VisitAction::Delete;
+		}
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
-		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
+		defaultHandler(TokenStreamContext& context, T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
 		if (auto left = std::get_if<Expression::Ptr>(&leftRet))
 		{
@@ -417,9 +434,17 @@ public:
 		if (!expr->getLeftOperand() && !expr->getRightOperand())
 			return VisitAction::Delete;
 		else if (!expr->getLeftOperand() && expr->getRightOperand())
-			return expr->getRightOperand();
+		{
+			auto output = YaraExpressionBuilder{expr->getRightOperand()}.get();
+			cleanUpTokenStreams(context, output.get());
+			return output;
+		}
 		else if (expr->getLeftOperand() && !expr->getRightOperand())
-			return expr->getLeftOperand();
+		{
+			auto output = YaraExpressionBuilder{expr->getLeftOperand()}.get();
+			cleanUpTokenStreams(context, output.get());
+			return output;
+		}
 
 		return {};
 	}
@@ -453,6 +478,7 @@ public:
 		else
 			expr->setBody(nullptr);
 
+		// If any subnode needs to be deleted, we delete whole expr.
 		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
 			return VisitAction::Delete;
 
@@ -657,16 +683,18 @@ private:
 	template <typename T>
 	VisitResult _handleUnaryOperation(T* expr)
 	{
-		auto operand = expr->getOperand()->accept(this);
-		return defaultHandler(expr, operand);
+		auto operandRet = expr->getOperand()->accept(this);
+		return defaultHandler(expr, operandRet);
 	}
 
 	template <typename T>
 	VisitResult _handleBinaryOperation(T* expr)
 	{
+		
+		TokenStreamContext context{expr};
 		auto leftOperand = expr->getLeftOperand()->accept(this);
 		auto rightOperand = expr->getRightOperand()->accept(this);
-		return defaultHandler(expr, leftOperand, rightOperand);
+		return defaultHandler(context, expr, leftOperand, rightOperand);
 	}
 };
 
