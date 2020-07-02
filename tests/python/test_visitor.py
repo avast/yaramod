@@ -318,3 +318,179 @@ rule rule_5
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    import yaramod
+
+    def test_pe_iconhash_deleter(self):
+        class PeIconhashDeleter(yaramod.ModifyingVisitor):
+            """Temporary pe.iconhash() remover which removes pe.iconhash()
+            until we get it into the upstream.
+            """
+
+            def delete_pe_iconhash(self, yara_file):
+                pe_symbol = yara_file.find_symbol('pe')
+                if not pe_symbol:
+                    return
+
+                for rule in yara_file.rules:
+                    rule.condition = self.modify(rule.condition, when_deleted=yaramod.bool_val(False).get())
+
+            def visit_AndExpression(self, expr):
+                return self._visit_logical_ops(expr)
+
+            def visit_OrExpression(self, expr):
+                return self._visit_logical_ops(expr)
+
+            def visit_LeExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_LtExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_GeExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_GtExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_EqExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_NeqExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_PlusExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_MinusExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_MultiplyExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_DivideExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ModuloExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseXorExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseAndExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseOrExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ShiftLeftExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ShiftRightExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ContainsExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_MatchesExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_StringOffsetExpression(self, expr):
+                return self._visit_string_manipulation_ops(expr)
+
+            def visit_StringLengthExpression(self, expr):
+                return self._visit_string_manipulation_ops(expr)
+
+            def visit_FunctionCallExpression(self, expr):
+                if expr.function.text == 'pe.iconhash':
+                    return yaramod.VisitAction.Delete
+
+            def _visit_logical_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
+                left_result = expr.left_operand.accept(self)
+                right_result = expr.right_operand.accept(self)
+                if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
+                    if left_result == yaramod.VisitAction.Delete:
+                        new_operand = yaramod.bool_val(False).get()
+                        expr.left_operand.exchange_tokens(new_operand)
+                        expr.left_operand = new_operand
+                    if right_result == yaramod.VisitAction.Delete:
+                        new_operand = yaramod.bool_val(False).get()
+                        expr.right_operand.exchange_tokens(new_operand)
+                        expr.right_operand = new_operand
+                else:
+                    return self.default_handler(context, expr, left_result, right_result)
+
+            def _visit_binary_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
+                left_result = expr.left_operand.accept(self)
+                right_result = expr.right_operand.accept(self)
+                if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
+                    return yaramod.VisitAction.Delete
+                else:
+                    self.default_handler(context, expr, left_result, right_result)
+
+            def _visit_string_manipulation_ops(self, expr):
+                index_result = None
+                if expr.index_expr:
+                    index_result = expr.index_expr.accept(self)
+                    if index_result == yaramod.VisitAction.Delete:
+                        return yaramod.VisitAction.Delete
+                return self.default_handler(expr, index_result)
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "pe"
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and
+		(
+			pe.iconhash() == "9d0bd50f710" or
+			pe.iconhash() != "9d0bd50f711" or
+			"9d0bd50f712" == pe.iconhash() or
+			pe.iconhash() or
+			$str2 or
+			pe.iconhash() == "9d0bd50f714" or
+			pe.iconhash() == "9d0bd50f715"
+		)
+}
+''')
+
+        visitor = PeIconhashDeleter()
+        visitor.delete_pe_iconhash(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        self.assertEqual(r'''import "pe"
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and (false or false or false or false or $str2 or false or false)
+}''', yara_file.text)
+        expected = r'''
+import "pe"
+
+rule rule_1
+{
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and
+		(
+			false or
+			false or
+			false or
+			false or
+			$str2 or
+			false or
+			false
+		)
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
