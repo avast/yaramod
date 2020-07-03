@@ -309,7 +309,7 @@ public:
 
 	virtual yaramod::VisitResult visit(yaramod::ForIntExpression* expr) override
 	{
-		dump("ForInt", expr);
+		dump("ForInt", expr, " id=", expr->getId());
 		indentUp();
 		expr->getVariable()->accept(this);
 		expr->getIteratedSet()->accept(this);

@@ -1001,6 +1001,11 @@ public:
 	{
 	}
 
+	const std::string getId() { return _id->getString(); }
+
+	void setId(const std::string& id) { _id->setValue(id); }
+	void setId(std::string& id) { _id->setValue(std::move(id)); }
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);

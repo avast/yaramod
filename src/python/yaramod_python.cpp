@@ -423,7 +423,10 @@ void addExpressionClasses(py::module& module)
 		.def_property("body",
 				&ForExpression::getBody,
 				py::overload_cast<const Expression::Ptr&>(&ForExpression::setBody));
-	exprClass<ForIntExpression, ForExpression>(module, "ForIntExpression");
+	exprClass<ForIntExpression, ForExpression>(module, "ForIntExpression")
+		.def_property("id",
+				&ForIntExpression::getId,
+				py::overload_cast<const std::string&>(&ForIntExpression::setId));
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
 
