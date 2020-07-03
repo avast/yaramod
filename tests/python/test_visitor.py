@@ -319,8 +319,6 @@ rule rule_5
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
-    import yaramod
-
     def test_pe_iconhash_deleter(self):
         class PeIconhashDeleter(yaramod.ModifyingVisitor):
             """Temporary pe.iconhash() remover which removes pe.iconhash()
@@ -437,6 +435,7 @@ rule rule_5
                     if index_result == yaramod.VisitAction.Delete:
                         return yaramod.VisitAction.Delete
                 return self.default_handler(expr, index_result)
+
         yara_file = yaramod.Yaramod().parse_string(r'''
 import "pe"
 
@@ -474,6 +473,205 @@ rule rule_1 {
 }''', yara_file.text)
         expected = r'''
 import "pe"
+
+rule rule_1
+{
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and
+		(
+			false or
+			false or
+			false or
+			false or
+			$str2 or
+			false or
+			false
+		)
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_cuckoo_function_replacer(self):
+        class CuckooFunctionReplacer(yaramod.ModifyingVisitor):
+            def __init__(self):
+                super(CuckooFunctionReplacer, self).__init__()
+                self.filesystem_symbol = None
+                self.registry_symbol = None
+                self.FILESYSTEM_REPLACE = set([
+                    'cuckoo.filesystem.file_write',
+                    'cuckoo.filesystem.file_read',
+                    'cuckoo.filesystem.file_delete',
+                ])
+
+                self.REGISTRY_REPLACE = set([
+                    'cuckoo.registry.key_write',
+                    'cuckoo.registry.key_read',
+                    'cuckoo.registry.key_delete',
+                ])
+
+                self.WHITELIST = set([
+                    'cuckoo.network.dns_lookup',
+                    'cuckoo.network.http_get',
+                    'cuckoo.network.http_post',
+                    'cuckoo.network.http_request',
+                    'cuckoo.filesystem.file_access',
+                    'cuckoo.registry.key_access',
+                    'cuckoo.sync.mutex'
+                ])
+
+            def replace_functions(self, yara_file):
+                cuckoo_symbol = yara_file.find_symbol('cuckoo')
+                if not cuckoo_symbol:
+                    return
+
+                if not self.filesystem_symbol and not self.registry_symbol:
+                    self.filesystem_symbol = yara_file.find_symbol('cuckoo').get_attribute('filesystem').get_attribute('file_access')
+                    self.registry_symbol = yara_file.find_symbol('cuckoo').get_attribute('registry').get_attribute('key_access')
+
+                for rule in yara_file.rules:
+                    rule.condition = self.modify(rule.condition, when_deleted=yaramod.bool_val(False).get())
+
+            def visit_AndExpression(self, expr):
+                return self._visit_logical_ops(expr)
+
+            def visit_OrExpression(self, expr):
+                return self._visit_logical_ops(expr)
+
+            def visit_LeExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_LtExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_GeExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_GtExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_EqExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_NeqExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_PlusExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_MinusExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_MultiplyExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_DivideExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ModuloExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseXorExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseAndExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_BitwiseOrExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ShiftLeftExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_ShiftRightExpression(self, expr):
+                return self._visit_binary_ops(expr)
+
+            def visit_StringOffsetExpression(self, expr):
+                return self._visit_string_manipulation_ops(expr)
+
+            def visit_StringLengthExpression(self, expr):
+                return self._visit_string_manipulation_ops(expr)
+
+            def _visit_logical_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
+                left_result = expr.left_operand.accept(self)
+                right_result = expr.right_operand.accept(self)
+                if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
+                    if left_result == yaramod.VisitAction.Delete:
+                        new_operand = yaramod.bool_val(False).get()
+                        expr.left_operand.exchange_tokens(new_operand)
+                        expr.left_operand = new_operand
+                    if right_result == yaramod.VisitAction.Delete:
+                        new_operand = yaramod.bool_val(False).get()
+                        expr.right_operand.exchange_tokens(new_operand)
+                        expr.right_operand = new_operand
+                else:
+                    return self.default_handler(context, expr, left_result, right_result)
+
+            def _visit_binary_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
+                left_result = expr.left_operand.accept(self)
+                right_result = expr.right_operand.accept(self)
+                if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
+                    return yaramod.VisitAction.Delete
+                else:
+                    self.default_handler(context, expr, left_result, right_result)
+
+            def _visit_string_manipulation_ops(self, expr):
+                index_result = None
+                if expr.index_expr:
+                    index_result = expr.index_expr.accept(self)
+                    if index_result == yaramod.VisitAction.Delete:
+                        return yaramod.VisitAction.Delete
+                return self.default_handler(expr, index_result)
+
+            def visit_FunctionCallExpression(self, expr):
+                function_name = expr.function.text
+                if function_name.startswith('cuckoo.'):
+                    if function_name in self.FILESYSTEM_REPLACE:
+                        expr.function.symbol = self.filesystem_symbol
+                    elif function_name in self.REGISTRY_REPLACE:
+                        expr.function.symbol = self.registry_symbol
+                    elif function_name not in self.WHITELIST:
+                        return yaramod.VisitAction.Delete
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "cuckoo"
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and
+		(
+			cuckoo.filesystem.file_write(/C:\\Users\\Avastian\\file1.exe/i) or
+			cuckoo.filesystem.file_read(/C:\\Users\\Avastian\\file1.exe/i) or
+			cuckoo.filesystem.file_delete(/C:\\Users\\Avastian\\file2.exe/i) or
+			cuckoo.registry.key_write(/\\Microsoft\\Windows NT\\CurrentVersion/i) or
+			cuckoo.network.http_post(/\/.*\/tasks\.php/)
+		)
+}
+''')
+
+        visitor = CuckooFunctionReplacer()
+        visitor.replace_functions(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        self.assertEqual(r'''import "cuckoo"
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+		$str2 = "b"
+	condition:
+		$str1 and (false or false or false or false or $str2 or false or false)
+}''', yara_file.text)
+        expected = r'''
+import "cuckoo"
 
 rule rule_1
 {
