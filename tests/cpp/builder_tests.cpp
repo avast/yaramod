@@ -550,9 +550,13 @@ RuleWithCustomConditionWorks) {
 
 TEST_F(BuilderTests,
 RuleWithConditionWithSymbolsWorks) {
-	auto cond = forLoop(any(), "i", set({intVal(1), intVal(2), intVal(3)}), matchAt("$1", paren(entrypoint() + id("i")))).get();
+	auto cond = forLoop(any(), "n", set({intVal(1), intVal(2), intVal(3)}), matchAt("$1", paren(entrypoint() + id("i")))).get();
 	EXPECT_EQ("for", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
+	auto forExp = std::static_pointer_cast<ForIntExpression>(cond);
+	EXPECT_EQ(forExp->getId(), "n");
+	forExp->setId("i");
+	EXPECT_EQ(cond->getText(), "for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )");
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
