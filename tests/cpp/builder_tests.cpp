@@ -556,6 +556,7 @@ RuleWithConditionWithSymbolsWorks) {
 	auto forExp = std::static_pointer_cast<ForIntExpression>(cond);
 	EXPECT_EQ(forExp->getId(), "n");
 	forExp->setId("i");
+	EXPECT_EQ(forExp->getId(), "i");
 	EXPECT_EQ(cond->getText(), "for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )");
 
 	YaraRuleBuilder newRule;
