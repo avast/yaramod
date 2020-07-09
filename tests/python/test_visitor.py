@@ -502,24 +502,14 @@ rule rule_1
                 self.registry_symbol = None
                 self.FILESYSTEM_REPLACE = set([
                     'cuckoo.filesystem.file_write',
-                    'cuckoo.filesystem.file_read',
-                    'cuckoo.filesystem.file_delete',
                 ])
 
                 self.REGISTRY_REPLACE = set([
                     'cuckoo.registry.key_write',
-                    'cuckoo.registry.key_read',
-                    'cuckoo.registry.key_delete',
                 ])
 
                 self.WHITELIST = set([
-                    'cuckoo.network.dns_lookup',
-                    'cuckoo.network.http_get',
                     'cuckoo.network.http_post',
-                    'cuckoo.network.http_request',
-                    'cuckoo.filesystem.file_access',
-                    'cuckoo.registry.key_access',
-                    'cuckoo.sync.mutex'
                 ])
 
             def replace_functions(self, yara_file):
@@ -643,15 +633,14 @@ import "cuckoo"
 rule rule_1 {
 	strings:
 		$str1 = "a"
-		$str2 = "b"
 	condition:
 		$str1 and
 		(
 			cuckoo.filesystem.file_write(/C:\\Users\\Avastian\\file1.exe/i) or
 			cuckoo.filesystem.file_read(/C:\\Users\\Avastian\\file1.exe/i) or
-			cuckoo.filesystem.file_delete(/C:\\Users\\Avastian\\file2.exe/i) or
 			cuckoo.registry.key_write(/\\Microsoft\\Windows NT\\CurrentVersion/i) or
-			cuckoo.network.http_post(/\/.*\/tasks\.php/)
+			cuckoo.network.http_post(/\/.*\/tasks\.php/) or
+			cuckoo.process.executed_command(/(^|\\)a(\.exe|\s)/i)
 		)
 }
 ''')
@@ -660,15 +649,18 @@ rule rule_1 {
         visitor.replace_functions(yara_file)
 
         self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        cond = rule.condition
+        print(cond.text)
+        self.assertEqual(r'''$str1 and (cuckoo.filesystem.file_access(/C:\\Users\\Avastian\\file1.exe/i) or false or cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or cuckoo.network.http_post(/\/.*\/tasks\.php/) or false)''', cond.text)
 
         self.assertEqual(r'''import "cuckoo"
 
 rule rule_1 {
 	strings:
 		$str1 = "a"
-		$str2 = "b"
 	condition:
-		$str1 and (false or false or false or false or $str2 or false or false)
+		$str1 and (cuckoo.filesystem.file_access(/C:\\Users\\Avastian\\file1.exe/i) or false or cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or cuckoo.network.http_post(/\/.*\/tasks\.php/) or false)
 }''', yara_file.text)
         expected = r'''
 import "cuckoo"
@@ -677,16 +669,13 @@ rule rule_1
 {
 	strings:
 		$str1 = "a"
-		$str2 = "b"
 	condition:
 		$str1 and
 		(
+			cuckoo.filesystem.file_access(/C:\\Users\\Avastian\\file1.exe/i) or
 			false or
-			false or
-			false or
-			false or
-			$str2 or
-			false or
+			cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or
+			cuckoo.network.http_post(/\/.*\/tasks\.php/) or
 			false
 		)
 }

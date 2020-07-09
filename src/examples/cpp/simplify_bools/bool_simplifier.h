@@ -121,6 +121,7 @@ public:
 
 	virtual yaramod::VisitResult visit(yaramod::NotExpression* expr) override
 	{
+		yaramod::TokenStreamContext context{expr};
 		auto ret = expr->getOperand()->accept(this);
 
 		// Negate the value of boolean constant
@@ -131,11 +132,12 @@ public:
 				return std::make_shared<yaramod::BoolLiteralExpression>(!boolVal->getValue());
 		}
 
-		return defaultHandler(expr, ret);
+		return defaultHandler(context, expr, ret);
 	}
 
 	virtual yaramod::VisitResult visit(yaramod::ParenthesesExpression* expr) override
 	{
+		yaramod::TokenStreamContext context{expr};
 		auto ret = expr->getEnclosedExpression()->accept(this);
 
 		// Remove parentheses around boolean constants and lift their value up
@@ -146,7 +148,7 @@ public:
 				return std::make_shared<yaramod::BoolLiteralExpression>(boolVal->getValue());
 		}
 
-		return defaultHandler(expr, ret);
+		return defaultHandler(context, expr, ret);
 	}
 
 	virtual yaramod::VisitResult visit(yaramod::BoolLiteralExpression* expr) override
