@@ -213,9 +213,9 @@ rule rule_with_regexp_in_fnc_call
         self.assertEqual(expected, yara_file.text_formatted)
 
     def test_modifying_visitor_delete_rules(self):
-        class DeleteRulesDeleter(yaramod.ModifyingVisitor):
+        class RulesDeleter(yaramod.ModifyingVisitor):
             def __init__(self):
-                super(DeleteRulesDeleter, self).__init__()
+                super(RulesDeleter, self).__init__()
                 self.rule_map = {}
                 self.rules_for_remove = set()
 
@@ -270,7 +270,7 @@ rule rule_5 {
 }
 ''')
 
-        visitor = DeleteRulesDeleter()
+        visitor = RulesDeleter()
         visitor.remove_disabled_rules(yara_file)
 
         self.assertEqual(len(yara_file.rules), 3)
@@ -429,12 +429,13 @@ rule rule_5
                     self.default_handler(context, expr, left_result, right_result)
 
             def _visit_string_manipulation_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
                 index_result = None
                 if expr.index_expr:
                     index_result = expr.index_expr.accept(self)
                     if index_result == yaramod.VisitAction.Delete:
                         return yaramod.VisitAction.Delete
-                return self.default_handler(expr, index_result)
+                return self.default_handler(context, expr, index_result)
 
         yara_file = yaramod.Yaramod().parse_string(r'''
 import "pe"
@@ -610,12 +611,13 @@ rule rule_1
                     self.default_handler(context, expr, left_result, right_result)
 
             def _visit_string_manipulation_ops(self, expr):
+                context = yaramod.TokenStreamContext(expr)
                 index_result = None
                 if expr.index_expr:
                     index_result = expr.index_expr.accept(self)
                     if index_result == yaramod.VisitAction.Delete:
                         return yaramod.VisitAction.Delete
-                return self.default_handler(expr, index_result)
+                return self.default_handler(context, expr, index_result)
 
             def visit_FunctionCallExpression(self, expr):
                 function_name = expr.function.text
