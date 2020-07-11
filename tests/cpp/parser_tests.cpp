@@ -1640,7 +1640,6 @@ private rule private_rule
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
-
 TEST_F(ParserTests,
 PrivateGlobalRuleModifierWorks) {
 	prepareInput(
@@ -1662,6 +1661,170 @@ private global rule private_global_rule
 	EXPECT_TRUE(rule->isGlobal());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+SetRuleModifierWorks) {
+	prepareInput(
+R"(
+rule rule1
+{
+	condition:
+		true
+}
+
+rule rule2
+{
+	condition:
+		true
+}
+
+rule rule3
+{
+	condition:
+		true
+}
+
+rule rule4
+{
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
+
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	const auto& rule3 = driver.getParsedFile().getRules()[2];
+	const auto& rule4 = driver.getParsedFile().getRules()[3];
+	rule1->setModifiers(Rule::Modifier::None);
+	rule2->setModifiers(Rule::Modifier::Private);
+	rule3->setModifiers(Rule::Modifier::Global);
+	rule4->setModifiers(Rule::Modifier::PrivateGlobal);
+
+	EXPECT_EQ(Rule::Modifier::None, rule1->getModifier());
+	EXPECT_EQ(Rule::Modifier::Private, rule2->getModifier());
+	EXPECT_EQ(Rule::Modifier::Global, rule3->getModifier());
+	EXPECT_EQ(Rule::Modifier::PrivateGlobal, rule4->getModifier());
+	EXPECT_FALSE(rule1->isPrivate());
+	EXPECT_FALSE(rule1->isGlobal());
+	EXPECT_TRUE(rule2->isPrivate());
+	EXPECT_FALSE(rule2->isGlobal());
+	EXPECT_FALSE(rule3->isPrivate());
+	EXPECT_TRUE(rule3->isGlobal());
+	EXPECT_TRUE(rule4->isPrivate());
+	EXPECT_TRUE(rule4->isGlobal());
+
+	std::string expected = R"(
+rule rule1
+{
+	condition:
+		true
+}
+
+private rule rule2
+{
+	condition:
+		true
+}
+
+global rule rule3
+{
+	condition:
+		true
+}
+
+private global rule rule4
+{
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+SetRuleModifierWorksWithDeleting) {
+	prepareInput(
+R"(
+private rule rule1
+{
+	condition:
+		true
+}
+
+global rule rule2
+{
+	condition:
+		true
+}
+
+global rule rule3
+{
+	condition:
+		true
+}
+
+private global rule rule4
+{
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
+
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	const auto& rule3 = driver.getParsedFile().getRules()[2];
+	const auto& rule4 = driver.getParsedFile().getRules()[3];
+	rule1->setModifiers(Rule::Modifier::None);
+	rule2->setModifiers(Rule::Modifier::Private);
+	rule3->setModifiers(Rule::Modifier::PrivateGlobal);
+	rule4->setModifiers(Rule::Modifier::Global);
+
+	EXPECT_EQ(Rule::Modifier::None, rule1->getModifier());
+	EXPECT_EQ(Rule::Modifier::Private, rule2->getModifier());
+	EXPECT_EQ(Rule::Modifier::PrivateGlobal, rule3->getModifier());
+	EXPECT_EQ(Rule::Modifier::Global, rule4->getModifier());
+	EXPECT_FALSE(rule1->isPrivate());
+	EXPECT_FALSE(rule1->isGlobal());
+	EXPECT_TRUE(rule2->isPrivate());
+	EXPECT_FALSE(rule2->isGlobal());
+	EXPECT_TRUE(rule3->isPrivate());
+	EXPECT_TRUE(rule3->isGlobal());
+	EXPECT_FALSE(rule4->isPrivate());
+	EXPECT_TRUE(rule4->isGlobal());
+
+	std::string expected = R"(
+rule rule1
+{
+	condition:
+		true
+}
+
+private rule rule2
+{
+	condition:
+		true
+}
+
+private global rule rule3
+{
+	condition:
+		true
+}
+
+global rule rule4
+{
+	condition:
+		true
+}
+)";
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,

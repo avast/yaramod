@@ -316,6 +316,60 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
 	_location = { filePath, lineNumber };
 }
 
+void Rule::setModifiers(const Modifier& modifier)
+{
+	bool deletePrivate = false;
+	bool deleteGlobal = false;
+	bool addPrivate = false;
+	bool addGlobal = false;
+	if (modifier == Modifier::None)
+	{
+		deleteGlobal = isGlobal();
+		deletePrivate = isPrivate();
+	}
+	else if (modifier == Modifier::Private)
+	{
+		deleteGlobal = isGlobal();
+		addPrivate = ! isPrivate();
+	}
+	else if (modifier == Modifier::Global)
+	{
+		deletePrivate = isPrivate();
+		addGlobal = ! isGlobal();
+	}
+	else if (modifier == Modifier::PrivateGlobal)
+	{
+		addPrivate = ! isPrivate();
+		addGlobal = ! isGlobal();
+	}
+	else
+		assert(false && "Invalid rule modifier");
+
+	if (deletePrivate)
+	{
+		_tokenStream->erase(_mod_private.value());
+		_mod_private.reset();
+	}
+	if (deleteGlobal)
+	{
+		_tokenStream->erase(_mod_global.value());
+		_mod_global.reset();
+	}
+	if (addPrivate || addGlobal)
+	{
+		TokenIt rule_token = _tokenStream->findBackwards(RULE, _name);
+		if (addPrivate)
+		{
+			if (isGlobal())
+				_mod_private = _tokenStream->emplace(_mod_global.value(), PRIVATE, "private");
+			else
+				_mod_private = _tokenStream->emplace(rule_token, PRIVATE, "private");
+		}
+		if (addGlobal)
+			_mod_global = _tokenStream->emplace(rule_token, GLOBAL, "global");
+	}
+}
+
 /**
  * Returns whether the rule has global modifier set.
  *
