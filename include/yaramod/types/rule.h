@@ -80,6 +80,8 @@ public:
 	Meta* getMetaWithName(const std::string& key);
 	const Location& getLocation() const;
 	TokenStream* getTokenStream() const { return _tokenStream.get(); }
+	TokenIt getFirstTokenIt() const;
+	TokenIt getLastTokenIt() const;
 	/// @}
 
 	/// @name Setter methods

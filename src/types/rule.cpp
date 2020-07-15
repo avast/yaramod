@@ -239,6 +239,27 @@ const Rule::Location& Rule::getLocation() const
 	return _location;
 }
 
+
+/**
+ * Returns the first Token iterator associated with this Rule.
+ *
+ * @return First TokenIt of the rule.
+ */
+TokenIt Rule::getFirstTokenIt() const
+{
+	return _tokenStream->findBackwards(RULE, _name);
+}
+
+/**
+ * Returns the last Token iterator associated with this Rule.
+ *
+ * @return Last TokenIt of the rule.
+ */
+TokenIt Rule::getLastTokenIt() const
+{
+	return _tokenStream->find(RULE_END, _name);
+}
+
 /**
  * Sets the name of the rule.
  *

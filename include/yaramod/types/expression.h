@@ -143,10 +143,7 @@ public:
 		Expression* new_expression;
 		try
 		{
-			if (std::holds_alternative<Expression::Ptr>(result))
-				new_expression = (std::get<Expression::Ptr>(result)).get();
-			else
-				new_expression = std::get<Expression*>(result);
+			new_expression = (std::get<Expression::Ptr>(result)).get();
 		}
 		catch (std::bad_variant_access& err)
 		{

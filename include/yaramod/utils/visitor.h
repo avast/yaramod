@@ -138,8 +138,6 @@ public:
 	{
 		if (std::holds_alternative<std::shared_ptr<Expression>>(result))
 			return std::get<std::shared_ptr<Expression>>(result) != nullptr;
-		if (std::holds_alternative<Expression*>(result))
-			return std::get<Expression*>(result) != nullptr;
 		return true;
 	}
 };

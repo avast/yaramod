@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "yaramod/builder/yara_expression_builder.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/utils/visitor.h"
 
@@ -34,7 +35,7 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	std::shared_ptr<TokenStream>& oldTokenStream() { return _oldTokenStream; }
+	const std::shared_ptr<TokenStream>& oldTokenStream() const { return _oldTokenStream; }
 	TokenIt oldBeforeFirst() const { return _oldBeforeFirst; }
 	TokenIt oldAfterLast() const { return _oldAfterLast; }
 	/// @}
@@ -75,11 +76,18 @@ public:
 	 */
 	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
+		TokenStreamContext context{expr.get()};
+		
 		auto result = expr->accept(this);
 		if (auto newExpr = std::get_if<Expression::Ptr>(&result))
+		{
 			return *newExpr ? *newExpr : expr;
+		}
 		else
+		{
+			cleanUpTokenStreams(context, whenDeleted.get());
 			return whenDeleted;
+		}
 	}
 
 	/// @name Visit methods
@@ -89,38 +97,42 @@ public:
 
 	virtual VisitResult visit(StringAtExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto atExpr = expr->getAtExpression()->accept(this);
-		return defaultHandler(expr, atExpr);
+		return defaultHandler(context, expr, atExpr);
 	}
 
 	virtual VisitResult visit(StringInRangeExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto rangeExpr = expr->getRangeExpression()->accept(this);
-		return defaultHandler(expr, rangeExpr);
+		return defaultHandler(context, expr, rangeExpr);
 	}
 
 	virtual VisitResult visit(StringCountExpression*) override { return {}; }
 
 	virtual VisitResult visit(StringOffsetExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		if (expr->getIndexExpression())
 		{
 			auto indexExpr = expr->getIndexExpression()->accept(this);
-			return defaultHandler(expr, indexExpr);
+			return defaultHandler(context, expr, indexExpr);
 		}
 
-		return defaultHandler(expr, {});
+		return defaultHandler(context, expr, {});
 	}
 
 	virtual VisitResult visit(StringLengthExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		if (expr->getIndexExpression())
 		{
 			auto indexExpr = expr->getIndexExpression()->accept(this);
-			return defaultHandler(expr, indexExpr);
+			return defaultHandler(context, expr, indexExpr);
 		}
 
-		return defaultHandler(expr, {});
+		return defaultHandler(context, expr, {});
 	}
 
 	virtual VisitResult visit(NotExpression* expr) override
@@ -240,60 +252,68 @@ public:
 
 	virtual VisitResult visit(ForIntExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
 		auto body = expr->getBody()->accept(this);
-		return defaultHandler(expr, var, iteratedSet, body);
+		return defaultHandler(context, expr, var, iteratedSet, body);
 	}
 
 	virtual VisitResult visit(ForStringExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
 		auto body = expr->getBody()->accept(this);
-		return defaultHandler(expr, var, iteratedSet, body);
+		return defaultHandler(context, expr, var, iteratedSet, body);
 	}
 
 	virtual VisitResult visit(OfExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
 		auto iteratedSet = expr->getIteratedSet()->accept(this);
-		return defaultHandler(expr, var, iteratedSet, {});
+		return defaultHandler(context, expr, var, iteratedSet, {});
 	}
 
 	virtual VisitResult visit(SetExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		std::vector<VisitResult> newElements;
 		for (auto& element : expr->getElements())
 			newElements.push_back(element->accept(this));
 
-		return defaultHandler(expr, newElements);
+		return defaultHandler(context, expr, newElements);
 	}
 
 	virtual VisitResult visit(RangeExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto low = expr->getLow()->accept(this);
 		auto high = expr->getHigh()->accept(this);
-		return defaultHandler(expr, low, high);
+		return defaultHandler(context, expr, low, high);
 	}
 
 	virtual VisitResult visit(IdExpression*) override { return {}; }
 
 	virtual VisitResult visit(StructAccessExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto structure = expr->getStructure()->accept(this);
-		return defaultHandler(expr, structure);
+		return defaultHandler(context, expr, structure);
 	}
 
 	virtual VisitResult visit(ArrayAccessExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto array = expr->getArray()->accept(this);
 		auto accessor = expr->getAccessor()->accept(this);
-		return defaultHandler(expr, array, accessor);
+		return defaultHandler(context, expr, array, accessor);
 	}
 
 	virtual VisitResult visit(FunctionCallExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto function = expr->getFunction()->accept(this);
 
 		std::vector<VisitResult> arguments;
@@ -302,7 +322,7 @@ public:
 			arguments.push_back(arg->accept(this));
 		}
 
-		return defaultHandler(expr, function, arguments);
+		return defaultHandler(context, expr, function, arguments);
 	}
 
 	virtual VisitResult visit(BoolLiteralExpression*) override { return {}; }
@@ -317,22 +337,29 @@ public:
 
 	virtual VisitResult visit(ParenthesesExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto enclosedExpr = expr->getEnclosedExpression()->accept(this);
-		return defaultHandler(expr, enclosedExpr);
+		return defaultHandler(context, expr, enclosedExpr);
 	}
 
 	virtual VisitResult visit(IntFunctionExpression* expr) override
 	{
+		TokenStreamContext context{expr};
 		auto argument = expr->getArgument()->accept(this);
-		return defaultHandler(expr, argument);
+		return defaultHandler(context, expr, argument);
 	}
 
 	virtual VisitResult visit(RegexpExpression*) override { return {}; }
 	/// @}
 
 	/// @name Default handlers
+	/**
+	 * If a handler gets a Delete result from a subexpression of handled expression, it has two options:
+	 * A. Take care of the deletion of the expression and also it's tokens.
+	 * B. Emit Delete result so the whole expression will be deleted by the caller.
+	 */
 	/// @{
-	VisitResult defaultHandler(StringAtExpression* expr, const VisitResult& atExprRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, StringAtExpression* expr, const VisitResult& atExprRet)
 	{
 		if (auto atExpr = std::get_if<Expression::Ptr>(&atExprRet))
 		{
@@ -348,7 +375,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(StringInRangeExpression* expr, const VisitResult& rangeExprRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, StringInRangeExpression* expr, const VisitResult& rangeExprRet)
 	{
 		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeExprRet))
 		{
@@ -366,7 +393,7 @@ public:
 
 	template <typename T>
 	std::enable_if_t<isAnyOf<T, StringOffsetExpression, StringLengthExpression>::value, VisitResult>
-		defaultHandler(T* expr, const VisitResult& indexExprRet)
+		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& indexExprRet)
 	{
 		if (auto indexExpr = std::get_if<Expression::Ptr>(&indexExprRet))
 		{
@@ -381,22 +408,26 @@ public:
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<UnaryOpExpression, T>::value, VisitResult>
-		defaultHandler(T* expr, const VisitResult& operandRet)
+		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& operandRet)
 	{
 		if (auto operand = std::get_if<Expression::Ptr>(&operandRet))
 		{
 			if (*operand)
+			{
 				expr->setOperand(*operand);
+			}
 		}
 		else
+		{
 			return VisitAction::Delete;
+		}
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<BinaryOpExpression, T>::value, VisitResult>
-		defaultHandler(T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
+		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& leftRet, const VisitResult& rightRet)
 	{
 		if (auto left = std::get_if<Expression::Ptr>(&leftRet))
 		{
@@ -417,16 +448,24 @@ public:
 		if (!expr->getLeftOperand() && !expr->getRightOperand())
 			return VisitAction::Delete;
 		else if (!expr->getLeftOperand() && expr->getRightOperand())
-			return expr->getRightOperand();
+		{
+			auto output = YaraExpressionBuilder{expr->getRightOperand()}.get();
+			cleanUpTokenStreams(context, output.get());
+			return output;
+		}
 		else if (expr->getLeftOperand() && !expr->getRightOperand())
-			return expr->getLeftOperand();
+		{
+			auto output = YaraExpressionBuilder{expr->getLeftOperand()}.get();
+			cleanUpTokenStreams(context, output.get());
+			return output;
+		}
 
 		return {};
 	}
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
-		defaultHandler(T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
+		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
 	{
 		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
@@ -453,13 +492,14 @@ public:
 		else
 			expr->setBody(nullptr);
 
+		// If any subnode needs to be deleted, we delete whole expr.
 		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
 			return VisitAction::Delete;
 
 		return {};
 	}
 
-	VisitResult defaultHandler(SetExpression* expr, const std::vector<VisitResult>& elementsRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, SetExpression* expr, const std::vector<VisitResult>& elementsRet)
 	{
 		if (elementsRet.empty())
 			return VisitAction::Delete;
@@ -492,7 +532,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, RangeExpression* expr, const VisitResult& lowRet, const VisitResult& highRet)
 	{
 		if (auto low = std::get_if<Expression::Ptr>(&lowRet))
 		{
@@ -516,7 +556,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(StructAccessExpression* expr, const VisitResult& structureRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, StructAccessExpression* expr, const VisitResult& structureRet)
 	{
 		if (auto structure = std::get_if<Expression::Ptr>(&structureRet))
 		{
@@ -529,7 +569,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, ArrayAccessExpression* expr, const VisitResult& arrayRet, const VisitResult& accessorRet)
 	{
 		if (auto array = std::get_if<Expression::Ptr>(&arrayRet))
 		{
@@ -553,7 +593,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, FunctionCallExpression* expr, const VisitResult& functionRet, const std::vector<VisitResult>& argumentsRet)
 	{
 		if (auto function = std::get_if<Expression::Ptr>(&functionRet))
 		{
@@ -588,7 +628,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, ParenthesesExpression* expr, const VisitResult& enclosedExprRet)
 	{
 		if (auto enclosedExpr = std::get_if<Expression::Ptr>(&enclosedExprRet))
 		{
@@ -604,7 +644,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(IntFunctionExpression* expr, const VisitResult& argumentRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, IntFunctionExpression* expr, const VisitResult& argumentRet)
 	{
 		if (auto argument = std::get_if<Expression::Ptr>(&argumentRet))
 		{
@@ -632,7 +672,7 @@ public:
 	 * The expression is assigned the TokenStream.
 	 * @return true iff any changes performed (when the expression has different tokenstream)
 	 */
-	bool cleanUpTokenStreams(TokenStreamContext& context, Expression* new_expression)
+	bool cleanUpTokenStreams(const TokenStreamContext& context, Expression* new_expression)
 	{
 		auto& oldTokenStream = context.oldTokenStream();
 		if (oldTokenStream.get() != new_expression->getTokenStream())
@@ -657,16 +697,19 @@ private:
 	template <typename T>
 	VisitResult _handleUnaryOperation(T* expr)
 	{
-		auto operand = expr->getOperand()->accept(this);
-		return defaultHandler(expr, operand);
+		TokenStreamContext context{expr};
+		auto operandRet = expr->getOperand()->accept(this);
+		return defaultHandler(context, expr, operandRet);
 	}
 
 	template <typename T>
 	VisitResult _handleBinaryOperation(T* expr)
 	{
+		
+		TokenStreamContext context{expr};
 		auto leftOperand = expr->getLeftOperand()->accept(this);
 		auto rightOperand = expr->getRightOperand()->accept(this);
-		return defaultHandler(expr, leftOperand, rightOperand);
+		return defaultHandler(context, expr, leftOperand, rightOperand);
 	}
 };
 
