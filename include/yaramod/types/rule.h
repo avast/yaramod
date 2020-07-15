@@ -89,6 +89,7 @@ public:
 	void setTags(const std::vector<std::string>& tags);
 	void setCondition(const Expression::Ptr& condition);
 	void setLocation(const std::string& filePath, std::uint64_t lineNumber);
+	void setModifiers(const Modifier& modifier);
 	/// @}
 
 	/// @name Detection methods
