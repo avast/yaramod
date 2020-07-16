@@ -79,6 +79,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("section", Type::Int, Type::Regexp));
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("job", Type::Int, Type::Regexp));
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("timer", Type::Int, Type::Regexp));
+		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("desktop", Type::Int, Type::Regexp));
 	}
 	cuckooStruct->addAttribute(syncStruct);
 	if (features & (ImportFeatures::AvastOnly | ImportFeatures::Deprecated))

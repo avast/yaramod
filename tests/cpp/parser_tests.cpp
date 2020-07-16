@@ -6458,6 +6458,28 @@ rule cuckoo_scheduled
 }
 
 TEST_F(ParserTests,
+CuckooDesktopModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_desktop
+{
+	condition:
+		cuckoo.sync.desktop(/SomeEvilDesktop/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.sync.desktop(/SomeEvilDesktop/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 StringXorModifierWithArguments) {
 	prepareInput(
 R"(
