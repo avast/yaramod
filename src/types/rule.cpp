@@ -337,7 +337,7 @@ void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
 	_location = { filePath, lineNumber };
 }
 
-void Rule::setModifiers(const Modifier& modifier)
+void Rule::setModifier(const Modifier& modifier)
 {
 	bool deletePrivate = false;
 	bool deleteGlobal = false;
