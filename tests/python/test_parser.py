@@ -339,6 +339,14 @@ global rule global_rule {
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Global)
         self.assertTrue(rule.is_global)
         self.assertFalse(rule.is_private)
+        rule.modifier = yaramod.RuleModifier.PrivateGlobal
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.PrivateGlobal)
+        self.assertTrue(rule.is_global)
+        self.assertTrue(rule.is_private)
+        rule.modifier = yaramod.RuleModifier.Private
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Private)
+        self.assertFalse(rule.is_global)
+        self.assertTrue(rule.is_private)
 
     def test_private_rule(self):
         yara_file = yaramod.Yaramod().parse_string('''
@@ -354,6 +362,14 @@ private rule private_rule {
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Private)
         self.assertFalse(rule.is_global)
         self.assertTrue(rule.is_private)
+        rule.modifier = yaramod.RuleModifier.PrivateGlobal
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.PrivateGlobal)
+        self.assertTrue(rule.is_global)
+        self.assertTrue(rule.is_private)
+        rule.modifier = yaramod.RuleModifier.Empty
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertFalse(rule.is_global)
+        self.assertFalse(rule.is_private)
 
     def test_import(self):
         yara_file = yaramod.Yaramod().parse_string('''
