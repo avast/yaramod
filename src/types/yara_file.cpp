@@ -28,6 +28,7 @@ YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream, ImportFeatur
 	, _importTable()
 	, _ruleTable()
 	, _importFeatures(features)
+	, _formatted(false)
 {
 	if (_importFeatures & ImportFeatures::VirusTotalOnly)
 		initializeVTSymbols();
@@ -41,6 +42,7 @@ YaraFile::YaraFile(YaraFile&& o) noexcept
 	, _ruleTable(std::move(o._ruleTable))
 	, _importFeatures(std::move(o._importFeatures))
 	, _vtSymbols(std::move(o._vtSymbols))
+	, _formatted(o._formatted)
 {
 }
 
@@ -53,6 +55,7 @@ YaraFile& YaraFile::operator=(YaraFile&& o) noexcept
 	std::swap(_ruleTable, o._ruleTable);
 	std::swap(_importFeatures, o._importFeatures);
 	std::swap(_vtSymbols, o._vtSymbols);
+	std::swap(_formatted, o._formatted);
 	return *this;
 }
 
@@ -178,8 +181,10 @@ std::string YaraFile::getText() const
 	return trim(ss.str());
 }
 
-std::string YaraFile::getTextFormatted(bool withIncludes) const
+std::string YaraFile::getTextFormatted(bool withIncludes)
 {
+	autoformatRuleNames();
+	_formatted = true;
 	return getTokenStream()->getText(withIncludes);
 }
 
@@ -203,6 +208,7 @@ bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
 
 	_imports.push_back(std::move(module));
 	_importTable.emplace(_imports.back()->getName(), _imports.back().get());
+	_formatted = false;
 	return true;
 }
 
@@ -225,6 +231,7 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
 {
 	_rules.emplace_back(std::move(rule));
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
+	_formatted = false;
 }
 
 /**
@@ -236,6 +243,7 @@ void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
 {
 	_rules.emplace_back(rule);
 	_ruleTable.emplace(rule->getName(), _rules.back().get());
+	_formatted = false;
 }
 
 /**
@@ -279,6 +287,7 @@ void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 	position = std::min(position, _rules.size());
 	_rules.insert(_rules.begin() + position, std::move(rule));
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
+	_formatted = false;
 }
 
 /**
@@ -292,6 +301,7 @@ void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rul
 	position = std::min(position, _rules.size());
 	_rules.insert(_rules.begin() + position, rule);
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
+	_formatted = false;
 }
 
 /**
@@ -347,6 +357,32 @@ std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 	}
 
 	return nullptr;
+}
+
+/**
+ * Modifies names of rules so that:
+ *  - public rule names are written in lower-case
+ *  - private rule names are written in upper-case
+ */
+void YaraFile::autoformatRuleNames()
+{
+	for (const auto& rule : _rules)
+	{
+		bool changed = false;
+		bool is_private = rule->isPrivate();
+		std::string name = rule->getName();
+		for (auto& c : name)
+		{
+			auto n = is_private ? std::toupper(c) : std::tolower(c);
+			if (c != n)
+			{
+				c = n;
+				changed = true;
+			}
+		}
+		if (changed)
+			rule->setName(name);
+	}
 }
 
 /**

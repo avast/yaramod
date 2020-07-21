@@ -111,13 +111,13 @@ import "phish"
             .with_rule(rule) \
             .get()
 
-        self.assertEqual(yara_file.text_formatted, '''private rule private_rule
+        self.assertEqual(yara_file.text_formatted, '''private rule PRIVATE_RULE
 {
 	condition:
 		true
 }
 ''')
-        self.assertEqual(yara_file.text, '''private rule private_rule {
+        self.assertEqual(yara_file.text, '''private rule PRIVATE_RULE {
 	condition:
 		true
 }''')
@@ -135,13 +135,13 @@ import "phish"
 
         self.assertEqual(yara_file.text_formatted, '''/* multiline comment */
 // oneline comment
-private rule private_rule
+private rule PRIVATE_RULE
 {
 	condition:
 		true
 }
 ''')
-        self.assertEqual(yara_file.text, '''private rule private_rule {
+        self.assertEqual(yara_file.text, '''private rule PRIVATE_RULE {
 	condition:
 		true
 }''')

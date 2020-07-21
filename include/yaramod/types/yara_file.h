@@ -32,7 +32,7 @@ public:
 	/// @name String representation
 	/// @{
 	std::string getText() const;
-	std::string getTextFormatted(bool withIncludes = false) const;
+	std::string getTextFormatted(bool withIncludes = false);
 	/// @}
 
 	/// @name Addition methods
@@ -63,6 +63,7 @@ public:
 		for (auto rem_itr = itr; rem_itr != _imports.end(); ++rem_itr)
 			_importTable.erase(_importTable.find((*rem_itr)->getName()));
 		_imports.erase(itr, _imports.end());
+		_formatted = false;
 	}
 
 	template <typename Fn>
@@ -77,12 +78,18 @@ public:
 				behind = _tokenStream->erase(behind);
 		}
 		_rules.erase(itr, _rules.end());
+		_formatted = false;
 	}
 	/// @}
 
 	/// @name Symbol methods
 	/// @{
 	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
+	/// @}
+
+	/// @name Autoformatting methods
+	/// @{
+	void autoformatRuleNames();
 	/// @}
 
 	/// @name Detection methods
@@ -104,6 +111,8 @@ private:
 
 	ImportFeatures _importFeatures; ///< Determines which symbols are needed
 	std::vector<std::shared_ptr<Symbol>> _vtSymbols; ///< Virust Total symbols
+
+	bool _formatted;
 };
 
 }
