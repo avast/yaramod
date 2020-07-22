@@ -1,6 +1,8 @@
 include(ExternalProject)
-
 include(GNUInstallDirs)
+include(ProcessorCount)
+
+ProcessorCount(CPUS)
 
 set(RE2_INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/re2)
 set(RE2_INCLUDE_DIR       ${RE2_INSTALL_DIR}/include)
@@ -11,7 +13,7 @@ if(MSVC)
 	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
-	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
+	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j${CPUS})
 	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
 endif()
 

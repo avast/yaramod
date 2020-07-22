@@ -1,5 +1,8 @@
 include(GNUInstallDirs)
 include(ExternalProject)
+include(ProcessorCount)
+
+ProcessorCount(CPUS)
 
 set(FMT_INSTALL_DIR             ${CMAKE_CURRENT_BINARY_DIR}/fmt)
 set(FMT_INCLUDE_DIR             ${FMT_INSTALL_DIR}/include)
@@ -11,7 +14,7 @@ if(MSVC)
 	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
-	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
+	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j${CPUS})
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
 endif()
 
