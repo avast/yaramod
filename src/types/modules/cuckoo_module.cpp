@@ -43,6 +43,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("connection_ip", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("connection_country", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("irc_command", Type::Int, Type::Regexp, Type::Regexp));
+		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("suricata", Type::Int, Type::Regexp));
 	}
 	cuckooStruct->addAttribute(networkStruct);
 

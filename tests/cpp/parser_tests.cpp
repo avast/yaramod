@@ -6436,6 +6436,28 @@ rule abc
 }
 
 TEST_F(ParserTests,
+CuckooSuricataModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_suricata
+{
+	condition:
+		cuckoo.network.suricata(/SomeEvilSuricataSignature/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.network.suricata(/SomeEvilSuricataSignature/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 CuckooScheduledTaskModuleFunction) {
 	prepareInput(
 R"(
