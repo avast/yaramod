@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.7.1
+
+* Return to the root directory before deploying stage in Travis build so the deploy to pypi is succesful
+
 # v3.7.0 (2020-07-24)
 
 * Added function for suricata matching ([#115](https://github.com/avast/yaramod/pull/115))
