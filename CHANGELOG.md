@@ -1,5 +1,14 @@
 # Changelog
 
+# v3.7.0 (2020-07-24)
+
+* Added function for suricata matching ([#115](https://github.com/avast/yaramod/pull/115))
+* Added support for classes and windows matching in the cuckoo module ([#113](https://github.com/avast/yaramod/pull/113))
+* Modifiers of rules can be altered with `Rule::setModifier`. ([#110](https://github.com/avast/yaramod/pull/110), [#114](https://github.com/avast/yaramod/pull/114))
+* Tokens of expressions changed by modifying visitors are altered appropriately. ([#100](https://github.com/avast/yaramod/pull/100), ([#111](https://github.com/avast/yaramod/pull/111)), [#75](https://github.com/avast/yaramod/issues/75))
+* The documentation is built in Travis to check its correctness.
+* Improve links between individual constructs in internal representation. ([#96](https://github.com/avast/yaramod/pull/96), [#73](https://github.com/avast/yaramod/issues/73))
+
 # v3.6.0 (2020-04-20)
 
 * Added new `elf` module function `elf.symtab_symbol()` ([#94](https://github.com/avast/yaramod/pull/94))
