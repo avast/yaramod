@@ -143,7 +143,7 @@ void addBasicClasses(py::module& module)
 		.def("add_meta", &Rule::addMeta)
 		.def("remove_metas", &Rule::removeMetas)
 		.def("remove_string", &Rule::removeString)
-		.def("get_meta_with_name", &Rule::getMetaWithName, py::return_value_policy::reference)
+		.def("get_meta_with_name", py::overload_cast<const std::string&>(&Rule::getMetaWithName), py::return_value_policy::reference)
 		.def("add_tag", &Rule::addTag)
 		.def("remove_tags", py::overload_cast<const std::string&>(&Rule::removeTags));
 

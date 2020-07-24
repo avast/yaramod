@@ -78,6 +78,7 @@ public:
 	std::vector<std::string> getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	Meta* getMetaWithName(const std::string& key);
+	const Meta* getMetaWithName(const std::string& key) const;
 	const Location& getLocation() const;
 	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	TokenIt getFirstTokenIt() const;
