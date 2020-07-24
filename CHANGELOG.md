@@ -1,8 +1,11 @@
 # Changelog
 
-# v3.7.1
+
+# v3.7.2
 
 * Return to the root directory before deploying stage in Travis build so the deploy to pypi is succesful
+
+# v3.7.1
 
 # v3.7.0 (2020-07-24)
 
