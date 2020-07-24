@@ -1702,10 +1702,10 @@ rule rule4
 	const auto& rule2 = driver.getParsedFile().getRules()[1];
 	const auto& rule3 = driver.getParsedFile().getRules()[2];
 	const auto& rule4 = driver.getParsedFile().getRules()[3];
-	rule1->setModifiers(Rule::Modifier::None);
-	rule2->setModifiers(Rule::Modifier::Private);
-	rule3->setModifiers(Rule::Modifier::Global);
-	rule4->setModifiers(Rule::Modifier::PrivateGlobal);
+	rule1->setModifier(Rule::Modifier::None);
+	rule2->setModifier(Rule::Modifier::Private);
+	rule3->setModifier(Rule::Modifier::Global);
+	rule4->setModifier(Rule::Modifier::PrivateGlobal);
 
 	EXPECT_EQ(Rule::Modifier::None, rule1->getModifier());
 	EXPECT_EQ(Rule::Modifier::Private, rule2->getModifier());
@@ -1784,10 +1784,10 @@ private global rule rule4
 	const auto& rule2 = driver.getParsedFile().getRules()[1];
 	const auto& rule3 = driver.getParsedFile().getRules()[2];
 	const auto& rule4 = driver.getParsedFile().getRules()[3];
-	rule1->setModifiers(Rule::Modifier::None);
-	rule2->setModifiers(Rule::Modifier::Private);
-	rule3->setModifiers(Rule::Modifier::PrivateGlobal);
-	rule4->setModifiers(Rule::Modifier::Global);
+	rule1->setModifier(Rule::Modifier::None);
+	rule2->setModifier(Rule::Modifier::Private);
+	rule3->setModifier(Rule::Modifier::PrivateGlobal);
+	rule4->setModifier(Rule::Modifier::Global);
 
 	EXPECT_EQ(Rule::Modifier::None, rule1->getModifier());
 	EXPECT_EQ(Rule::Modifier::Private, rule2->getModifier());
