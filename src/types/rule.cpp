@@ -209,6 +209,14 @@ const std::shared_ptr<Symbol>& Rule::getSymbol() const
 }
 
 /**
+ * Non-const version of @c getMetaWithName().
+ */
+Meta* Rule::getMetaWithName(const std::string& key)
+{
+	return const_cast<Meta*>(const_cast<const Rule*>(this)->getMetaWithName(key));
+}
+
+/**
  * Returns the meta with the given key if one exists.
  *
  * @param key Key of the meta.
@@ -216,7 +224,7 @@ const std::shared_ptr<Symbol>& Rule::getSymbol() const
  * @return Pointer to meta if meta with the given key exists,
  *         @c nullptr otherwise.
  */
-Meta* Rule::getMetaWithName(const std::string& key)
+const Meta* Rule::getMetaWithName(const std::string& key) const
 {
 	for (auto& meta : _metas)
 	{
@@ -436,7 +444,7 @@ void Rule::addMeta(const std::string& name, const Literal& value)
 		++insert_before;
 	}
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, _tokenStream->getNewLineStyle());
-	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, name);	
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, name);
 	_tokenStream->emplace(insert_before, TokenType::EQ, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::META_VALUE, value);
 
