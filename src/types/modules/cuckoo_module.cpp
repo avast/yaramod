@@ -96,6 +96,10 @@ bool CuckooModule::initialize(ImportFeatures features)
 			processStruct->addAttribute(std::make_shared<FunctionSymbol>("api_call", Type::Int, Type::Regexp));
 			processStruct->addAttribute(std::make_shared<FunctionSymbol>("modified_clipboard", Type::Int, Type::Regexp));
 			processStruct->addAttribute(std::make_shared<FunctionSymbol>("scheduled_task", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("class_created", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("class_searched", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("window_created", Type::Int, Type::Regexp));
+			processStruct->addAttribute(std::make_shared<FunctionSymbol>("window_searched", Type::Int, Type::Regexp));
 			cuckooStruct->addAttribute(processStruct);
 
 			auto summaryStruct = std::make_shared<StructureSymbol>("summary");

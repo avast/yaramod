@@ -6480,6 +6480,94 @@ rule cuckoo_desktop
 }
 
 TEST_F(ParserTests,
+CuckooClassCreatedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_class_created
+{
+	condition:
+		cuckoo.process.class_created(/SomeEvilClass/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.class_created(/SomeEvilClass/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooClassSearchedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_class_searched
+{
+	condition:
+		cuckoo.process.class_searched(/SomeEvilClass/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.class_searched(/SomeEvilClass/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooWindowCreatedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_window_created
+{
+	condition:
+		cuckoo.process.window_created(/SomeEvilWindow/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.window_created(/SomeEvilWindow/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooWindowSearchedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_window_searched
+{
+	condition:
+		cuckoo.process.window_searched(/SomeEvilWindow/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.window_searched(/SomeEvilWindow/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 StringXorModifierWithArguments) {
 	prepareInput(
 R"(
