@@ -32,6 +32,7 @@ script:
   - cd docs/rtd
   - pip install -r requirements.txt
   - make clean && make html SPHINXOPTS="-W --keep-going -n"
+  - cd ~/
 
 deploy:
   provider: pypi
