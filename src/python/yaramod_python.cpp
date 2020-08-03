@@ -258,6 +258,15 @@ void addBasicClasses(py::module& module)
 				self.removeImports(pred);
 			});
 
+	py::class_<Location>(module, "Location")
+		.def_property_readonly("path", &Location::getFilePath)
+		.def_property_readonly("begin", &Location::begin)
+		.def_property_readonly("end", &Location::end);
+
+	py::class_<Location::Position>(module, "Position")
+		.def_property_readonly("line", &Location::Position::getLine)
+		.def_property_readonly("column", &Location::Position::getColumn);
+
 	py::class_<Rule, std::shared_ptr<Rule>>(module, "Rule")
 		.def_property_readonly("text", &Rule::getText)
 		.def_property("name", &Rule::getName, &Rule::setName)
@@ -436,6 +445,7 @@ void addTokenStreamClass(py::module& module)
 		.def_property_readonly("is_symbol", &Token::isSymbol)
 		.def_property_readonly("type", &Token::getType)
 		.def_property_readonly("literal", &Token::getLiteral)
+		.def_property_readonly("location", &Token::getLocation)
 		.def_property_readonly("string", &Token::getString)
 		.def_property_readonly("bool", &Token::getBool)
 		.def_property_readonly("int", &Token::getInt)

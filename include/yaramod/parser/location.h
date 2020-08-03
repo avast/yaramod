@@ -15,6 +15,21 @@ namespace yaramod {
 class Location
 {
 public:
+
+	/**
+	 * Class representing position (line, column) in the file.
+	 */
+	struct Position {
+
+		Position(std::size_t line, std::size_t column) : line(line), column(column) {}
+
+		std::size_t getLine() { return line; }
+		std::size_t getColumn() { return column; }
+
+		std::size_t line;
+		std::size_t column;
+	};
+
 	Location() : Location(std::string{}) {}
 	Location(const std::string& filePath) : Location(filePath, 1, 0) {}
 	Location(const std::string& filePath, std::size_t line, std::size_t column)
@@ -30,15 +45,15 @@ public:
 	void addLine(std::size_t count = 1)
 	{
 		std::swap(_begin, _end);
-		_end.first = _begin.first + count; // line
-		_end.second = 0; // column
+		_end.line = _begin.line + count; // line
+		_end.column = 0; // column
 	}
 
 	void addColumn(std::size_t count)
 	{
-		_begin.first = _end.first;
-		_begin.second = _end.second;
-		_end.second += count;
+		_begin.line = _end.line;
+		_begin.column = _end.column;
+		_end.column += count;
 	}
 
 	void reset()
@@ -52,24 +67,24 @@ public:
 	/// @{
 	bool isUnnamed() const { return _filePath == "[stream]"; }
 	const std::string& getFilePath() const { return _filePath; }
-	std::pair<std::size_t, std::size_t> begin() const { return {_begin.first, _begin.second + 1}; }
-	const std::pair<std::size_t, std::size_t>& end() const { return _end; }
+	Position begin() const { return {_begin.line, _begin.column + 1}; }
+	const Position& end() const { return _end; }
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Location& location)
 	{
 		if (!location.isUnnamed())
 			os << location.getFilePath() << ':';
-		os << location.begin().first << '.' << location.begin().second;
-		if (location.begin().second < location.end().second)
-			os << '-' << location.end().second;
+		os << location.begin().line << '.' << location.begin().column;
+		if (location.begin().column < location.end().column)
+			os << '-' << location.end().column;
 		return os;
 	}
 
 private:
 	std::string _filePath;
-	std::pair<std::size_t, std::size_t> _begin; // (line, column)
-	std::pair<std::size_t, std::size_t> _end; // (line, column)
+	Position _begin;
+	Position _end;
 };
 
 } //namespace yaramod
