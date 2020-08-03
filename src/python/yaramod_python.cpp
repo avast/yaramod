@@ -259,7 +259,9 @@ void addBasicClasses(py::module& module)
 			});
 
 	py::class_<Location>(module, "Location")
-		.def_property_readonly("path", &Location::getFilePath)
+		.def_property_readonly("file_path", &Location::getFilePath)
+		// `line_number` property is deprecated, preferred way is to use `begin.line`
+		.def_property_readonly("line_number", [](const Location& self) { return self.begin().getLine(); })
 		.def_property_readonly("begin", &Location::begin)
 		.def_property_readonly("end", &Location::end);
 
@@ -285,10 +287,6 @@ void addBasicClasses(py::module& module)
 		.def("get_meta_with_name", py::overload_cast<const std::string&>(&Rule::getMetaWithName), py::return_value_policy::reference)
 		.def("add_tag", &Rule::addTag)
 		.def("remove_tags", py::overload_cast<const std::string&>(&Rule::removeTags));
-
-	py::class_<Rule::Location>(module, "RuleLocation")
-		.def_readonly("file_path", &Rule::Location::filePath)
-		.def_readonly("line_number", &Rule::Location::lineNumber);
 
 	py::class_<Meta>(module, "Meta")
 		.def_property("key", &Meta::getKey, &Meta::setKey)

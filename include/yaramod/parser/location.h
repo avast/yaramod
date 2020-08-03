@@ -66,6 +66,11 @@ public:
 	/// @name Getters
 	/// @{
 	bool isUnnamed() const { return _filePath == "[stream]"; }
+	/**
+	 * Returns the absolute path of a file in which this rule was located.
+	 * Returns "[stream]" in case this rule was parsed from input stream and not a file,
+	 * or if this file was created with `YaraRuleBuilder`.
+	 */
 	const std::string& getFilePath() const { return _filePath; }
 	Position begin() const { return {_begin.line, _begin.column + 1}; }
 	const Position& end() const { return _end; }

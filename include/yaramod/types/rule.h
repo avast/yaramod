@@ -10,6 +10,7 @@
 #include <optional>
 #include <vector>
 
+#include "yaramod/parser/location.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/meta.h"
 #include "yaramod/types/string.h"
@@ -26,12 +27,6 @@ class YaraFileBuilder;
 class Rule
 {
 public:
-	struct Location
-	{
-		std::string filePath;
-		std::uint64_t lineNumber;
-	};
-
 	using StringsTrie = Trie<std::shared_ptr<String>>;
 
 	/**
@@ -79,7 +74,7 @@ public:
 	const std::shared_ptr<Symbol>& getSymbol() const;
 	Meta* getMetaWithName(const std::string& key);
 	const Meta* getMetaWithName(const std::string& key) const;
-	const Location& getLocation() const;
+	const Location& getLocation() const { return _location; }
 	TokenStream* getTokenStream() const { return _tokenStream.get(); }
 	TokenIt getFirstTokenIt() const;
 	TokenIt getLastTokenIt() const;
@@ -91,7 +86,7 @@ public:
 	void setMetas(const std::vector<Meta>& metas);
 	void setTags(const std::vector<std::string>& tags);
 	void setCondition(const Expression::Ptr& condition);
-	void setLocation(const std::string& filePath, std::uint64_t lineNumber);
+	void setLocation(const Location& location) { _location = location; }
 	void setModifier(const Modifier& modifier);
 	/// @}
 
