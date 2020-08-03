@@ -8,8 +8,8 @@
 
 #include <list>
 
+#include "yaramod/parser/location.h"
 #include "yaramod/types/literal.h"
-#include "yaramod/types/location.h"
 #include "yaramod/types/token_type.h"
 #include "yaramod/yaramod_error.h"
 

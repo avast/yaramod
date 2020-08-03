@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "yaramod/types/location.h"
+#include "yaramod/parser/location.h"
 #include "yaramod/types/token_stream.h"
 
 namespace yaramod {
