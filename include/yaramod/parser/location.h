@@ -1,5 +1,5 @@
 /**
- * @file src/types/location.h
+ * @file src/parser/location.h
  * @brief Declaration and Implementation of class Location.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
