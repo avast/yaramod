@@ -34,6 +34,8 @@ public:
 	Location(const std::string& filePath) : Location(filePath, 1, 0) {}
 	Location(const std::string& filePath, std::size_t line, std::size_t column)
 		: _filePath(filePath), _begin(line, column), _end(line, column) {}
+	Location(const std::string& filePath, const Position &begin, const Position& end)
+		: _filePath(filePath), _begin(begin), _end(end) {}
 	Location(const Location&) = default;
 	Location(Location&&) noexcept = default;
 

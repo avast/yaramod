@@ -335,6 +335,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_nocase", &String::isNocase)
 		.def_property_readonly("is_private", &String::isPrivate)
 		.def_property_readonly("is_xor", &String::isXor)
+		.def_property_readonly("location", &String::getLocation)
 		.def_property_readonly("modifiers_text", &String::getModifiersText);
 
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");

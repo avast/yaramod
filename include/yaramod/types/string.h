@@ -80,6 +80,7 @@ public:
 	/// @name Getter methods
 	/// @{
 	Type getType() const { return _type; }
+
 	const Literal* getIdentifierTokenIt() const
 	{
 		if (_id)
@@ -87,6 +88,7 @@ public:
 		else
 			return nullptr;
 	}
+
 	std::string getIdentifier() const
 	{
 		if (_id)
@@ -125,6 +127,14 @@ public:
 	}
 
 	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
+
+	const Location getLocation() const { 
+		return {
+			_id.value_or(getFirstTokenIt())->getLocation().getFilePath(), 
+			_id.value_or(getFirstTokenIt())->getLocation().begin(), 
+			getLastTokenIt()->getLocation().end()
+		}; 
+	}
 
 	virtual TokenIt getFirstTokenIt() const = 0;
 	virtual TokenIt getLastTokenIt() const = 0;
