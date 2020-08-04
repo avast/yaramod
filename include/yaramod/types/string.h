@@ -97,6 +97,20 @@ public:
 			return std::string();
 	}
 
+	std::optional<Token> getIdentifierToken() const
+	{
+		if (_id)
+			return *_id.value();
+		return {};
+	}
+
+	std::optional<Token> getAssignToken() const
+	{
+		if (_assignToken)
+			return *_assignToken.value();
+		return {};
+	}
+
 	std::string getModifiersText() const
 	{
 		if (_mods.empty())

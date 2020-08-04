@@ -280,6 +280,12 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_global", &Rule::isGlobal)
 		.def_property_readonly("location", &Rule::getLocation)
 		.def_property_readonly("symbol", &Rule::getSymbol)
+		.def_property_readonly("token_first", [](Rule& self) {
+				return *self.getFirstTokenIt();
+			})
+		.def_property_readonly("token_last", [](Rule& self) {
+				return *self.getLastTokenIt();
+			})
 		.def_property("condition", &Rule::getCondition, &Rule::setCondition)
 		.def("add_meta", &Rule::addMeta)
 		.def("remove_metas", &Rule::removeMetas)
@@ -336,7 +342,15 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_private", &String::isPrivate)
 		.def_property_readonly("is_xor", &String::isXor)
 		.def_property_readonly("location", &String::getLocation)
-		.def_property_readonly("modifiers_text", &String::getModifiersText);
+		.def_property_readonly("modifiers_text", &String::getModifiersText)
+		.def_property_readonly("token_id", &String::getIdentifierToken)
+		.def_property_readonly("token_assign", &String::getAssignToken)
+		.def_property_readonly("token_first", [](String& self) {
+				return *self.getFirstTokenIt();
+			})
+		.def_property_readonly("token_last", [](String& self) {
+				return *self.getLastTokenIt();
+			});
 
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
 	py::class_<HexString, String, std::shared_ptr<HexString>>(module, "HexString");
