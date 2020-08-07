@@ -987,7 +987,7 @@ rule rule_2 : Tag2 {
 }''')
 
     def test_rule_with_function_call_condition(self):
-        cond = yaramod.id('pe').access('is_dll')()
+        cond = yaramod.id('pe').access('is_dll')().comment(message="SOME COMMENT", multiline=True)
         rule = self.new_rule \
             .with_name('rule_with_function_call_condition') \
             .with_condition(cond.get()) \
@@ -1002,6 +1002,7 @@ rule rule_2 : Tag2 {
 rule rule_with_function_call_condition
 {
 	condition:
+		/* SOME COMMENT */
 		pe.is_dll()
 }
 ''')
@@ -1039,7 +1040,7 @@ rule rule_with_structure_access_condition {
 }''')
 
     def test_rule_with_array_access_condition(self):
-        cond = yaramod.id('pe').access('sections')[yaramod.int_val(0)].access('name')
+        cond = yaramod.id('pe').access('sections')[yaramod.int_val(0)].access('name').comment(message="SOME COMMENT")
         rule = self.new_rule \
             .with_name('rule_with_array_access_condition') \
             .with_condition(cond.get()) \
@@ -1054,6 +1055,7 @@ rule rule_with_structure_access_condition {
 rule rule_with_array_access_condition
 {
 	condition:
+		// SOME COMMENT
 		pe.sections[0].name
 }
 ''')
