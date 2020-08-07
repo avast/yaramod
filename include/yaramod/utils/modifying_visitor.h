@@ -13,6 +13,16 @@
 namespace yaramod {
 
 /**
+ * Represents error during modifying by ModifyingVisitor.
+ */
+class ModifyingVisitorError : public YaramodError
+{
+public:
+	ModifyingVisitorError(const std::string& errorMsg) : YaramodError("ModifyingVisitorError error: " + errorMsg) {}
+	ModifyingVisitorError(const ModifyingVisitorError&) = default;
+};
+
+/**
  * Class capturing current TokenStream and first and last TokenIi of the expression which it is given
  * in it's constructor. This data can be very useful at the end of the visit method of ModifyingVisitors
  * by the cleanUpTokenStreams function.
@@ -670,24 +680,20 @@ public:
 	 * Removes all tokens in the TokenStream that the given expression has been associated with.
 	 * Then all tokens, which are currently associated with the given expression are moved to the TokenStream
 	 * The expression is assigned the TokenStream.
-	 * @return true iff any changes performed (when the expression has different tokenstream)
 	 */
-	bool cleanUpTokenStreams(const TokenStreamContext& context, Expression* new_expression)
+	void cleanUpTokenStreams(const TokenStreamContext& context, Expression* new_expression)
 	{
 		auto& oldTokenStream = context.oldTokenStream();
-		if (oldTokenStream.get() != new_expression->getTokenStream())
-		{
-			auto oldBeforeFirst = context.oldBeforeFirst();
-			auto oldAfterLast = context.oldAfterLast();
-			// remove old tokens which has not been moved away by builder
-			oldTokenStream->erase(std::next(oldBeforeFirst), oldAfterLast);
-			// transfer builded tokens
-			oldTokenStream->moveAppend(oldAfterLast, new_expression->getTokenStream());
-			new_expression->setTokenStream(oldTokenStream);
-			return true;
-		}
-		else
-			return false;
+		if (oldTokenStream.get() == new_expression->getTokenStream())
+			throw ModifyingVisitorError("The expressions have the same TokenStreams. Use yaramod::YaraExpressionBuilder to extract new Expression first.");
+
+		auto oldBeforeFirst = context.oldBeforeFirst();
+		auto oldAfterLast = context.oldAfterLast();
+		// remove old tokens which has not been moved away by builder
+		oldTokenStream->erase(std::next(oldBeforeFirst), oldAfterLast);
+		// transfer builded tokens
+		oldTokenStream->moveAppend(oldAfterLast, new_expression->getTokenStream());
+		new_expression->setTokenStream(oldTokenStream);
 	}
 
 protected:
