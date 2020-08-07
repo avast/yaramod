@@ -19,19 +19,16 @@ public:
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
+		auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft);
+		auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight);
+
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft))
-		{
-			if (*leftExpr)
-				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
-		}
+		if (leftExpr and *leftExpr)
+			leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight))
-		{
-			if (*rightExpr)
-				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
-		}
+		if (rightExpr and *rightExpr)
+			rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 
 		std::shared_ptr<yaramod::Expression> output = nullptr;
 		// If both sides of AND are boolean constants then determine the value based on truth table of AND
@@ -49,7 +46,14 @@ public:
 				output = std::make_shared<yaramod::BoolLiteralExpression>(false);
 			// T and X = X
 			else
-				output = expr->getRightOperand();
+			{
+				if (rightExpr and *rightExpr)
+					output = *rightExpr;
+				else
+					output = expr->getRightOperand();
+				if (output)
+					output = yaramod::YaraExpressionBuilder(output).get();
+			}
 		}
 		// Only right-hand side is boolean constant
 		else if (rightBool)
@@ -59,12 +63,19 @@ public:
 				output = std::make_shared<yaramod::BoolLiteralExpression>(false);
 			// X and T = X
 			else
-				output = expr->getLeftOperand();
+			{
+				if (leftExpr and *leftExpr)
+					output = *leftExpr;
+				else
+					output = expr->getLeftOperand();
+				if (output)
+					output = yaramod::YaraExpressionBuilder(output).get();
+			}
 		}
 
 		if (output)
 		{
-			expr->exchangeTokens(output.get());
+			cleanUpTokenStreams(context, output.get());
 			return output;
 		}
 		else
@@ -77,19 +88,16 @@ public:
 		auto retLeft = expr->getLeftOperand()->accept(this);
 		auto retRight = expr->getRightOperand()->accept(this);
 
+		auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft);
+		auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight);
+
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (auto leftExpr = std::get_if<yaramod::Expression::Ptr>(&retLeft))
-		{
-			if (*leftExpr)
-				leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
-		}
+		if (leftExpr and *leftExpr)
+			leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight))
-		{
-			if (*rightExpr)
-				rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
-		}
+		if (rightExpr and *rightExpr)
+			rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 
 		std::shared_ptr<yaramod::Expression> output = nullptr;
 		// If both sides of OR are boolean constants then determine the value based on truth table of OR
@@ -109,7 +117,14 @@ public:
 				output = std::make_shared<yaramod::BoolLiteralExpression>(true);
 			// F or X = X
 			else
-				output = expr->getRightOperand();
+			{
+				if (rightExpr and *rightExpr)
+					output = *rightExpr;
+				else
+					output = expr->getRightOperand();
+				if(output)
+					output = yaramod::YaraExpressionBuilder(output).get();
+			}
 		}
 		// Only right-hand side is boolean constant
 		else if (rightBool)
@@ -119,13 +134,20 @@ public:
 				output = std::make_shared<yaramod::BoolLiteralExpression>(true);
 			// X or F = X
 			else
-				output = expr->getLeftOperand();
+			{
+				if (leftExpr and *leftExpr)
+					output = *leftExpr;
+				else
+					output = expr->getLeftOperand();
+				if(output)
+					output = yaramod::YaraExpressionBuilder(output).get();
+			}
 		}
 
 
 		if (output)
 		{
-			expr->exchangeTokens(output.get());
+			cleanUpTokenStreams(context, output.get());
 			return output;
 		}
 		else
@@ -144,7 +166,7 @@ public:
 			if (boolVal)
 			{
 				auto output = std::make_shared<yaramod::BoolLiteralExpression>(!boolVal->getValue());
-				expr->exchangeTokens(output.get());
+				cleanUpTokenStreams(context, output.get());
 				return output;
 			}
 		}
@@ -164,7 +186,7 @@ public:
 			if (boolVal)
 			{
 				auto output = std::make_shared<yaramod::BoolLiteralExpression>(boolVal->getValue());
-				expr->exchangeTokens(output.get());
+				cleanUpTokenStreams(context, output.get());
 				return output;
 			}
 		}
@@ -175,8 +197,9 @@ public:
 	virtual yaramod::VisitResult visit(yaramod::BoolLiteralExpression* expr) override
 	{
 		// Lift up boolean value
+		yaramod::TokenStreamContext context{expr};
 		auto output = std::make_shared<yaramod::BoolLiteralExpression>(expr->getValue());
-		expr->exchangeTokens(output.get());
+		cleanUpTokenStreams(context, output.get());
 		return output;
 	}
 };
