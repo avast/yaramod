@@ -6,6 +6,7 @@
 
 #include "yaramod/builder/yara_file_builder.h"
 #include "yaramod/parser/parser_driver.h"
+#include "yaramod/types/token_type.h"
 
 namespace yaramod {
 
@@ -72,7 +73,7 @@ void YaraFileBuilder::insertImportIntoTokenStream(TokenIt before, const std::str
 {
 	_tokenStream->emplace(before, TokenType::IMPORT_KEYWORD, "import");
 	auto moduleToken = _tokenStream->emplace(before, TokenType::IMPORT_MODULE, moduleName);
-	_tokenStream->emplace(before, NEW_LINE, "\n");
+	_tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
 	_module_tokens.insert(std::make_pair(moduleName, moduleToken));
 }
 
@@ -90,7 +91,7 @@ YaraFileBuilder& YaraFileBuilder::withModule(const std::string& moduleName)
 	{
 		auto before = _tokenStream->begin();
 		insertImportIntoTokenStream(before, moduleName);
-		_newline_after_imports = _tokenStream->emplace(before, NEW_LINE, "\n");
+		_newline_after_imports = _tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
 	}
 	else
 	{
@@ -130,10 +131,10 @@ YaraFileBuilder& YaraFileBuilder::withRule(Rule&& rule)
 YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 {
 	if (!_rules.empty())
-		_tokenStream->emplace_back(NEW_LINE, "\n");
+		_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 
 	_tokenStream->moveAppend(rule->getTokenStream());
-	_tokenStream->emplace_back(NEW_LINE, "\n");
+	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 
 	_rules.emplace_back(std::move(rule));
 	return *this;
@@ -149,10 +150,10 @@ YaraFileBuilder& YaraFileBuilder::withRule(std::unique_ptr<Rule>&& rule)
 YaraFileBuilder& YaraFileBuilder::withRule(const std::shared_ptr<Rule>& rule)
 {
 	if (!_rules.empty() || !_module_tokens.empty())
-		_tokenStream->emplace_back(NEW_LINE, "\n");
+		_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 
 	_tokenStream->moveAppend(rule->getTokenStream());
-	_tokenStream->emplace_back(NEW_LINE, "\n");
+	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 	_rules.emplace_back(rule);
 	return *this;
 }

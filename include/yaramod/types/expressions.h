@@ -28,8 +28,8 @@ namespace yaramod {
 class StringExpression : public Expression
 {
 public:
-	StringExpression(const std::string& id) { _id = _tokenStream->emplace_back(STRING_ID, id); }
-	StringExpression(std::string&& id) { _id = _tokenStream->emplace_back(STRING_ID, std::move(id)); }
+	StringExpression(const std::string& id) { _id = _tokenStream->emplace_back(TokenType::STRING_ID, id); }
+	StringExpression(std::string&& id) { _id = _tokenStream->emplace_back(TokenType::STRING_ID, std::move(id)); }
 	StringExpression(TokenIt id) : _id(id) {}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -70,7 +70,7 @@ public:
 	template <typename Str>
 	StringWildcardExpression(Str&& id)
 	{
-		_id = _tokenStream->emplace_back(STRING_ID, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_ID, std::forward<Str>(id));
 	}
 	StringWildcardExpression(TokenIt it) : _id(it) {}
 
@@ -111,8 +111,8 @@ public:
 	StringAtExpression(const std::string& id, ExpPtr&& at)
 		: _at(std::forward<ExpPtr>(at))
 	{
-		_id = _tokenStream->emplace_back(STRING_ID, id);
-		_at_symbol = _tokenStream->emplace_back(OP_AT, "at");
+		_id = _tokenStream->emplace_back(TokenType::STRING_ID, id);
+		_at_symbol = _tokenStream->emplace_back(TokenType::OP_AT, "at");
 		_tokenStream->moveAppend(_at->getTokenStream());
 	}
 
@@ -165,8 +165,8 @@ public:
 	template <typename ExpPtr>
 	StringInRangeExpression(const std::string& id, ExpPtr&& range)
 	{
-		_id = _tokenStream->emplace_back(STRING_ID, id);
-		_in_symbol = _tokenStream->emplace_back(OP_IN, "in");
+		_id = _tokenStream->emplace_back(TokenType::STRING_ID, id);
+		_in_symbol = _tokenStream->emplace_back(TokenType::OP_IN, "in");
 		_range = std::forward<ExpPtr>(range);
 		_tokenStream->moveAppend(_range->getTokenStream());
 	}
@@ -223,7 +223,7 @@ public:
 	template <typename Str>
 	StringCountExpression(Str&& id)
 	{
-		_id = _tokenStream->emplace_back(STRING_COUNT, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_COUNT, std::forward<Str>(id));
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -277,13 +277,13 @@ public:
 	template <typename Str>
 	StringOffsetExpression(Str&& id)
 	{
-		_id = _tokenStream->emplace_back(STRING_OFFSET, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_OFFSET, std::forward<Str>(id));
 	}
 	template <typename Str, typename ExpPtr>
 	StringOffsetExpression(Str&& id, ExpPtr&& expr)
 		: _expr(std::forward<ExpPtr>(expr))
 	{
-		_id = _tokenStream->emplace_back(STRING_OFFSET, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_OFFSET, std::forward<Str>(id));
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -341,13 +341,13 @@ public:
 	template <typename Str>
 	StringLengthExpression(Str&& id)
 	{
-		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_LENGTH, std::forward<Str>(id));
 	}
 	template <typename Str, typename ExpPtr>
 	StringLengthExpression(Str&& id, ExpPtr&& expr)
 		: _expr(std::forward<ExpPtr>(expr))
 	{
-		_id = _tokenStream->emplace_back(STRING_LENGTH, std::forward<Str>(id));
+		_id = _tokenStream->emplace_back(TokenType::STRING_LENGTH, std::forward<Str>(id));
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -387,7 +387,7 @@ class UnaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		if (_op->getType() == NOT)
+		if (_op->getType() == TokenType::NOT)
 			return _op->getString() + " " + _expr->getText(indent);
 		else
 			return _op->getString() + _expr->getText(indent);
@@ -1527,9 +1527,9 @@ public:
 		: LiteralExpression<bool>()
 	{
 		if (value)
-			_value = _tokenStream->emplace_back(BOOL_TRUE, value, "true");
+			_value = _tokenStream->emplace_back(TokenType::BOOL_TRUE, value, "true");
 		else
-			_value = _tokenStream->emplace_back(BOOL_FALSE, value, "false");
+			_value = _tokenStream->emplace_back(TokenType::BOOL_FALSE, value, "false");
 		_valid = true;
 	}
 

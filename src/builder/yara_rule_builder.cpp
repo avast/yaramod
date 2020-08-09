@@ -61,8 +61,8 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 
 	if (!_condition)
 	{
-		_condition = std::make_shared<BoolLiteralExpression>(_tokenStream->emplace(_rcb, BOOL_TRUE, true));
-		_tokenStream->emplace(_rcb, NEW_LINE, "\n");
+		_condition = std::make_shared<BoolLiteralExpression>(_tokenStream->emplace(_rcb, TokenType::BOOL_TRUE, true));
+		_tokenStream->emplace(_rcb, TokenType::NEW_LINE, "\n");
 	}
 
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name_it), std::move(_mod_private),
@@ -139,7 +139,7 @@ YaraRuleBuilder& YaraRuleBuilder::withTag(const std::string& tag)
 	if (tag.empty())
 		throw RuleBuilderError("Error: tag must be non-empty.");
 	if (_tags.empty())
-		_tokenStream->emplace(_lcb, COLON, ":");
+		_tokenStream->emplace(_lcb, TokenType::COLON, ":");
 	TokenIt it = _tokenStream->emplace(_lcb, TokenType::TAG, tag);
 	_tags.push_back(it);
 	return *this;
@@ -191,8 +191,8 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 
 	if (_metas.empty())
 	{
-		_tokenStream->emplace(insert_before, META, "meta");
-		_tokenStream->emplace(insert_before, COLON_BEFORE_NEWLINE, ":");
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
 		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
@@ -224,8 +224,8 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
 
 	if (_metas.empty())
 	{
-		_tokenStream->emplace(insert_before, META, "meta");
-		_tokenStream->emplace(insert_before, COLON_BEFORE_NEWLINE, ":");
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
 		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
@@ -255,8 +255,8 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
 
 	if (_metas.empty())
 	{
-		_tokenStream->emplace(insert_before, META, "meta");
-		_tokenStream->emplace(insert_before, COLON_BEFORE_NEWLINE, ":");
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
 		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
@@ -286,8 +286,8 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
 
 	if (_metas.empty())
 	{
-		_tokenStream->emplace(insert_before, META, "meta");
-		_tokenStream->emplace(insert_before, COLON_BEFORE_NEWLINE, ":");
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
 		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
@@ -317,8 +317,8 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 
 	if (_metas.empty())
 	{
-		_tokenStream->emplace(insert_before, META, "meta");
-		_tokenStream->emplace(insert_before, COLON_BEFORE_NEWLINE, ":");
+		_tokenStream->emplace(insert_before, TokenType::META, "meta");
+		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
 		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 	}
 
@@ -432,7 +432,7 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(Expression::Ptr&& condition)
 {
 	_condition = std::move(condition);
 	_tokenStream->moveAppend(_rcb, _condition->getTokenStream());
-	_tokenStream->emplace(_rcb, NEW_LINE, "\n");
+	_tokenStream->emplace(_rcb, TokenType::NEW_LINE, "\n");
 	return *this;
 }
 
@@ -447,92 +447,92 @@ YaraRuleBuilder& YaraRuleBuilder::withCondition(const Expression::Ptr& condition
 {
 	_condition = condition;
 	_tokenStream->moveAppend(_rcb, _condition->getTokenStream());
-	_tokenStream->emplace(_rcb, NEW_LINE, "\n");
+	_tokenStream->emplace(_rcb, TokenType::NEW_LINE, "\n");
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::ascii()
 {
-	auto token = _stringModsTokens->emplace_back(ASCII, "ascii");
+	auto token = _stringModsTokens->emplace_back(TokenType::ASCII, "ascii");
 	_stringMods.push_back(std::make_shared<AsciiStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::wide()
 {
-	auto token = _stringModsTokens->emplace_back(WIDE, "wide");
+	auto token = _stringModsTokens->emplace_back(TokenType::WIDE, "wide");
 	_stringMods.push_back(std::make_shared<WideStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::nocase()
 {
-	auto token = _stringModsTokens->emplace_back(NOCASE, "nocase");
+	auto token = _stringModsTokens->emplace_back(TokenType::NOCASE, "nocase");
 	_stringMods.push_back(std::make_shared<NocaseStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::fullword()
 {
-	auto token = _stringModsTokens->emplace_back(FULLWORD, "fullword");
+	auto token = _stringModsTokens->emplace_back(TokenType::FULLWORD, "fullword");
 	_stringMods.push_back(std::make_shared<FullwordStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::private_()
 {
-	auto token = _stringModsTokens->emplace_back(PRIVATE_STRING_MODIFIER, "private");
+	auto token = _stringModsTokens->emplace_back(TokenType::PRIVATE_STRING_MODIFIER, "private");
 	_stringMods.push_back(std::make_shared<PrivateStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::xor_()
 {
-	auto token = _stringModsTokens->emplace_back(XOR, "xor");
+	auto token = _stringModsTokens->emplace_back(TokenType::XOR, "xor");
 	_stringMods.push_back(std::make_shared<XorStringModifier>(token));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t key)
 {
-	auto firstToken = _stringModsTokens->emplace_back(XOR, "xor");
-	_stringModsTokens->emplace_back(LP, "(");
-	_stringModsTokens->emplace_back(INTEGER, key, numToStr(key));
-	auto lastToken = _stringModsTokens->emplace_back(RP, ")");
+	auto firstToken = _stringModsTokens->emplace_back(TokenType::XOR, "xor");
+	_stringModsTokens->emplace_back(TokenType::LP, "(");
+	_stringModsTokens->emplace_back(TokenType::INTEGER, key, numToStr(key));
+	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
 	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, key));
 	return *this;
 }
 
 YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t low, std::uint64_t high)
 {
-	auto firstToken = _stringModsTokens->emplace_back(XOR, "xor");
-	_stringModsTokens->emplace_back(LP, "(");
-	_stringModsTokens->emplace_back(INTEGER, low, numToStr(low));
-	_stringModsTokens->emplace_back(MINUS, "-");
-	_stringModsTokens->emplace_back(INTEGER, high, numToStr(high));
-	auto lastToken = _stringModsTokens->emplace_back(RP, ")");
+	auto firstToken = _stringModsTokens->emplace_back(TokenType::XOR, "xor");
+	_stringModsTokens->emplace_back(TokenType::LP, "(");
+	_stringModsTokens->emplace_back(TokenType::INTEGER, low, numToStr(low));
+	_stringModsTokens->emplace_back(TokenType::MINUS, "-");
+	_stringModsTokens->emplace_back(TokenType::INTEGER, high, numToStr(high));
+	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
 	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, low, high));
 	return *this;
 }
 
 void YaraRuleBuilder::initializeStrings()
 {
-	_strings_it = _tokenStream->emplace(_condition_it, STRINGS, "strings");
-	_tokenStream->emplace(_condition_it, COLON_BEFORE_NEWLINE, ":");
-	_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
+	_strings_it = _tokenStream->emplace(_condition_it, TokenType::STRINGS, "strings");
+	_tokenStream->emplace(_condition_it, TokenType::COLON_BEFORE_NEWLINE, ":");
+	_tokenStream->emplace(_condition_it, TokenType::NEW_LINE, "\n");
 }
 
 void YaraRuleBuilder::resetTokens()
 {
-	_rule_it = _tokenStream->emplace_back(RULE, "rule");
-	_name_it = _tokenStream->emplace_back(RULE_NAME, "unknown");
-	_lcb = _tokenStream->emplace_back(RULE_BEGIN, "{");
-	_tokenStream->emplace_back(NEW_LINE, "\n");
+	_rule_it = _tokenStream->emplace_back(TokenType::RULE, "rule");
+	_name_it = _tokenStream->emplace_back(TokenType::RULE_NAME, "unknown");
+	_lcb = _tokenStream->emplace_back(TokenType::RULE_BEGIN, "{");
+	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 	_strings_it = std::nullopt;
-	_condition_it = _tokenStream->emplace_back(CONDITION, "condition");
-	_colon_it = _tokenStream->emplace_back(COLON_BEFORE_NEWLINE, ":");
-	_tokenStream->emplace_back(NEW_LINE, "\n");
-	_rcb = _tokenStream->emplace_back(RULE_END, "}");
+	_condition_it = _tokenStream->emplace_back(TokenType::CONDITION, "condition");
+	_colon_it = _tokenStream->emplace_back(TokenType::COLON_BEFORE_NEWLINE, ":");
+	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
+	_rcb = _tokenStream->emplace_back(TokenType::RULE_END, "}");
 
 	_stringModsTokens = std::make_shared<TokenStream>();
 }
@@ -543,7 +543,7 @@ void YaraRuleBuilder::createLastString()
 	{
 		_lastString->setModifiersWithTokens(_stringMods, _stringModsTokens, true);
 		_tokenStream->moveAppend(_condition_it, _lastString->getTokenStream().get());
-		_tokenStream->emplace(_condition_it, NEW_LINE, "\n");
+		_tokenStream->emplace(_condition_it, TokenType::NEW_LINE, "\n");
 		_lastString.reset();
 		_stringMods.clear();
 	}

@@ -73,7 +73,7 @@ public:
 		{
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
 			auto behind = _tokenStream->erase((*rem_itr)->getFirstTokenIt(), std::next((*rem_itr)->getLastTokenIt()));
-			while (behind != _tokenStream->end() && behind->getType() == NEW_LINE)
+			while (behind != _tokenStream->end() && behind->getType() == TokenType::NEW_LINE)
 				behind = _tokenStream->erase(behind);
 		}
 		_rules.erase(itr, _rules.end());
