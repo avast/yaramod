@@ -416,19 +416,19 @@ bool TokenStream::determineNewlineSectors()
 	for (auto it = begin(); it != end();)
 	{
 		auto current = it->getType();
-		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
 			leftBrackets.push(it);
-		else if (current == RP || current == RP_ENUMERATION || current == HEX_JUMP_RIGHT_BRACKET || current == REGEXP_END_SLASH || current == HEX_END_BRACKET || current == RP_WITH_SPACE_BEFORE || current == RP_WITH_SPACES)
+		else if (current == TokenType::RP || current == TokenType::RP_ENUMERATION || current == TokenType::HEX_JUMP_RIGHT_BRACKET || current == TokenType::REGEXP_END_SLASH || current == TokenType::HEX_END_BRACKET || current == TokenType::RP_WITH_SPACE_BEFORE || current == TokenType::RP_WITH_SPACES)
 		{
 			if (leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
 				it->setFlag(true);
 			leftBrackets.pop();
 		}
-		else if (!leftBrackets.empty() && (current == NEW_LINE || current == OR || current == AND))
+		else if (!leftBrackets.empty() && (current == TokenType::NEW_LINE || current == TokenType::OR || current == TokenType::AND))
 			leftBrackets.top()->setFlag(true);
 
 		// Here we count lines and double lines:
-		if (current == NEW_LINE)
+		if (current == TokenType::NEW_LINE)
 		{
 			++lineCounter;
 			if (wasLine)
@@ -441,16 +441,16 @@ bool TokenStream::determineNewlineSectors()
 		// Here we move some tokens preceding some and/or conjunction after these conjunctions.
 		// We only move comments and newlines.
 		// We only move around conjunctions that were on the beginning of a line:
-		if ((current == AND || current == OR) && std::prev(it)->getType() == NEW_LINE)
+		if ((current == TokenType::AND || current == TokenType::OR) && std::prev(it)->getType() == TokenType::NEW_LINE)
 		{
 			auto pre_it = std::prev(it);
 			++it;
 			auto insert_before = it;
 			TokenType lastMoved = insert_before->getType();
 			// We invalidate iterators but only those pointing to COMMENTs or NEW_LINEs, which are not referenced from outside of TokenStream.
-			while (pre_it->getType() == NEW_LINE || pre_it->getType() == COMMENT || pre_it->getType() == ONELINE_COMMENT)
+			while (pre_it->getType() == TokenType::NEW_LINE || pre_it->getType() == TokenType::COMMENT || pre_it->getType() == TokenType::ONELINE_COMMENT)
 			{
-				if (lastMoved == NEW_LINE && pre_it->getType() == NEW_LINE)
+				if (lastMoved == TokenType::NEW_LINE && pre_it->getType() == TokenType::NEW_LINE)
 				{
 					pre_it = std::prev(erase(pre_it));
 				}
@@ -475,15 +475,15 @@ void TokenStream::removeRedundantDoubleNewlines()
 	for (auto it = begin(); it != end();)
 	{
 		auto current = it->getType();
-		if(current == RULE_BEGIN)
+		if(current == TokenType::RULE_BEGIN)
 			inside_rule = true;
-		if(current == RULE_END)
+		if(current == TokenType::RULE_END)
 			inside_rule = false;
 		auto nextIt = std::next(it);
 		if (nextIt == end())
 			break;
 		auto next = nextIt->getType();
-		if (inside_rule && current == NEW_LINE && next == NEW_LINE)
+		if (inside_rule && current == TokenType::NEW_LINE && next == TokenType::NEW_LINE)
 			erase(nextIt);
 		else
 			++it;
@@ -500,68 +500,68 @@ void TokenStream::addMissingNewLines()
 		auto nextIt = std::next(it);
 		if (nextIt == end())
 		{
-			if (current != NEW_LINE)
-				emplace(nextIt, NEW_LINE, _new_line_style);
+			if (current != TokenType::NEW_LINE)
+				emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 			break;
 		}
 		auto next = nextIt->getType();
-		if (current == LP || current == LP_ENUMERATION || current == HEX_JUMP_LEFT_BRACKET || current == REGEXP_START_SLASH || current == HEX_START_BRACKET || current == LP_WITH_SPACE_AFTER || current == LP_WITH_SPACES)
+		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
 		{
 			brackets.addLeftBracket(lineCounter, it->getFlag());
 			// ONELINE_COMMENTs are left right behind the left bracket. COMMENTs are put on separate new line.
-			if (brackets.putNewlineInCurrentSector() && next != NEW_LINE && next != ONELINE_COMMENT)
+			if (brackets.putNewlineInCurrentSector() && next != TokenType::NEW_LINE && next != TokenType::ONELINE_COMMENT)
 			{
-				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 		}
-		if (next == RP || next == RP_ENUMERATION || next == HEX_JUMP_RIGHT_BRACKET || next == REGEXP_END_SLASH || next == HEX_END_BRACKET || next == RP_WITH_SPACE_BEFORE || next == RP_WITH_SPACES)
+		if (next == TokenType::RP || next == TokenType::RP_ENUMERATION || next == TokenType::HEX_JUMP_RIGHT_BRACKET || next == TokenType::REGEXP_END_SLASH || next == TokenType::HEX_END_BRACKET || next == TokenType::RP_WITH_SPACE_BEFORE || next == TokenType::RP_WITH_SPACES)
 		{
-			if (brackets.putNewlineInCurrentSector() && current != NEW_LINE)
+			if (brackets.putNewlineInCurrentSector() && current != TokenType::NEW_LINE)
 			{
-				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 			else
 				brackets.addRightBracket();
 		}
-		if (current != NEW_LINE && (next == CONDITION || next == STRINGS || next == STRING_ID_AFTER_NEWLINE || next == META || next == META_KEY || next == RULE_END || next == RULE_BEGIN))
+		if (current != TokenType::NEW_LINE && (next == TokenType::CONDITION || next == TokenType::STRINGS || next == TokenType::STRING_ID_AFTER_NEWLINE || next == TokenType::META || next == TokenType::META_KEY || next == TokenType::RULE_END || next == TokenType::RULE_BEGIN))
 		{
-			nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+			nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 			next = nextIt->getType();
 		}
-		if ((next == RULE || next == GLOBAL || next == PRIVATE) && it != begin())
+		if ((next == TokenType::RULE || next == TokenType::GLOBAL || next == TokenType::PRIVATE) && it != begin())
 		{
-			if (current != GLOBAL && current != PRIVATE)
+			if (current != TokenType::GLOBAL && current != TokenType::PRIVATE)
 			{
-				if (current != NEW_LINE)
+				if (current != TokenType::NEW_LINE)
 				{
-					nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
-					nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+					nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
+					nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 					next = nextIt->getType();
 				}
 				else
 				{
 					auto prev = std::prev(it)->getType();
-					if (prev != NEW_LINE && prev != COMMENT && prev != ONELINE_COMMENT)
+					if (prev != TokenType::NEW_LINE && prev != TokenType::COMMENT && prev != TokenType::ONELINE_COMMENT)
 					{
-						nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+						nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 						next = nextIt->getType();
 					}
 				}
 			}
 		}
-		if (next != NEW_LINE && (current == COLON_BEFORE_NEWLINE || current == OR || current == AND))
+		if (next != TokenType::NEW_LINE && (current == TokenType::COLON_BEFORE_NEWLINE || current == TokenType::OR || current == TokenType::AND))
 		{
-			if (next == COMMENT)
+			if (next == TokenType::COMMENT)
 			{
 				auto nextNextIt = std::next(nextIt);
-				if ((nextNextIt != end()) && (nextNextIt->getType() != NEW_LINE))
-					emplace(nextNextIt, NEW_LINE, _new_line_style);
+				if ((nextNextIt != end()) && (nextNextIt->getType() != TokenType::NEW_LINE))
+					emplace(nextNextIt, TokenType::NEW_LINE, _new_line_style);
 			}
-			else if (next != ONELINE_COMMENT)
+			else if (next != TokenType::ONELINE_COMMENT)
 			{
-				nextIt = emplace(nextIt, NEW_LINE, _new_line_style);
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}
 		}
@@ -602,11 +602,11 @@ std::size_t TokenStream::PrintHelper::insertIntoStream(std::stringstream* ss, To
 	std::stringstream tmp;
 	tmp << *what;
 	const std::string& appendee = tmp.str();
-	assert(what->getType() != ONELINE_COMMENT);
+	assert(what->getType() != TokenType::ONELINE_COMMENT);
 	auto prevIt = ts->predecessor(what);
-	if (what->getType() == NEW_LINE)
+	if (what->getType() == TokenType::NEW_LINE)
 	{
-		if (!commentOnThisLine || (prevIt && (*prevIt)->getType() == COLON))
+		if (!commentOnThisLine || (prevIt && (*prevIt)->getType() == TokenType::COLON))
 		{
 			if (commentPool.size() >= 2)
 				for (auto comment : commentPool)
@@ -651,18 +651,18 @@ std::size_t TokenStream::PrintHelper::printComment(std::stringstream* ss, TokenS
 	if (ss)
 	{
 		// Comment at a beginning of a line
-		if (!prevIt || (*prevIt)->getType() == NEW_LINE)
+		if (!prevIt || (*prevIt)->getType() == TokenType::NEW_LINE)
 		{
 			if (ignoreUserIndent || indent.length() >= currentLineTabs)
 				*ss << std::string(currentLineTabs, '\t');
 			else
 				*ss << indent;
 		}
-		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != COLON))
+		else if (alignComment && columnCounter < indentation && (!prevIt || (*prevIt)->getType() != TokenType::COLON))
 			*ss << std::string(indentation - columnCounter, ' ');
 		*ss << it->getPureText();
 	}
-	else if (it->getType() == ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != COLON))
+	else if (it->getType() == TokenType::ONELINE_COMMENT && (!prevIt || (*prevIt)->getType() != TokenType::COLON))
 	{
 		commentOnThisLine = true;
 		commentPool.push_back(it);
@@ -714,9 +714,9 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	{
 		auto current = it->getType();
 
-		if (current == INCLUDE_DIRECTIVE && withIncludes)
+		if (current == TokenType::INCLUDE_DIRECTIVE && withIncludes)
 			continue;
-		else if (current == INCLUDE_PATH)
+		else if (current == TokenType::INCLUDE_PATH)
 		{
 			assert(it->isIncludeToken());
 			if (withIncludes)
@@ -728,7 +728,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			else
 				helper.insertIntoStream(os, this, it);
 		}
-		else if (current == ONELINE_COMMENT || current == COMMENT)
+		else if (current == TokenType::ONELINE_COMMENT || current == TokenType::COMMENT)
 		{
 			helper.printComment(os, this, it, current_line_tabs, alignComments, inside_condition_section);
 		}
@@ -739,42 +739,42 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		if (nextIt == end())
 			 break;
 		auto next = nextIt->getType();
-		if (current == RULE_BEGIN)
+		if (current == TokenType::RULE_BEGIN)
 		{
 			current_line_tabs = 2;
 			inside_rule = true;
 		}
-		else if (current == RULE_END)
+		else if (current == TokenType::RULE_END)
 		{
 			current_line_tabs = 0;
 			inside_rule = false;
 			inside_condition_section = false;
 		}
-		else if (current == HEX_START_BRACKET)
+		else if (current == TokenType::HEX_START_BRACKET)
 			inside_hex_string = true;
-		else if (current == HEX_END_BRACKET)
+		else if (current == TokenType::HEX_END_BRACKET)
 			inside_hex_string = false;
-		else if (current == HEX_JUMP_LEFT_BRACKET)
+		else if (current == TokenType::HEX_JUMP_LEFT_BRACKET)
 			inside_hex_jump = true;
-		else if (current == HEX_JUMP_RIGHT_BRACKET)
+		else if (current == TokenType::HEX_JUMP_RIGHT_BRACKET)
 			inside_hex_jump = false;
-		else if (current == REGEXP_START_SLASH)
+		else if (current == TokenType::REGEXP_START_SLASH)
 			inside_regexp = true;
-		else if (current == REGEXP_END_SLASH)
+		else if (current == TokenType::REGEXP_END_SLASH)
 			inside_regexp = false;
-		else if (current == LP_ENUMERATION)
+		else if (current == TokenType::LP_ENUMERATION)
 			inside_enumeration_brackets = true;
-		else if (current == RP_ENUMERATION)
+		else if (current == TokenType::RP_ENUMERATION)
 			inside_enumeration_brackets = false;
 		else if (it->isStringModifier())
 			inside_string_modifiers = true;
 
 		if (inside_string_modifiers)
 		{
-			if (next == LP)
+			if (next == TokenType::LP)
 				inside_string_modifiers_arguments = true;
 
-			if (inside_string_modifiers_arguments && current == RP)
+			if (inside_string_modifiers_arguments && current == TokenType::RP)
 				inside_string_modifiers_arguments = false;
 
 			if (!inside_string_modifiers_arguments && !it->isStringModifier())
@@ -791,18 +791,18 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		{
 			brackets.addRightBracket();
 		}
-		if (current == NEW_LINE)
+		if (current == TokenType::NEW_LINE)
 		{
-			if (inside_rule && next != ONELINE_COMMENT && next != COMMENT && next != NEW_LINE)
+			if (inside_rule && next != TokenType::ONELINE_COMMENT && next != TokenType::COMMENT && next != TokenType::NEW_LINE)
 			{
-				if (next == META
-					|| next == STRINGS
-					|| next == CONDITION)
+				if (next == TokenType::META
+					|| next == TokenType::STRINGS
+					|| next == TokenType::CONDITION)
 				{
-					inside_condition_section = next == CONDITION;
+					inside_condition_section = next == TokenType::CONDITION;
 					helper.insertIntoStream(os, "\t", tabulator_length);
 				}
-				else if (next != RULE_END)
+				else if (next != TokenType::RULE_END)
 				{
 					if (nextIt->isRightBracket() && nextIt->getFlag())
 						--current_line_tabs;
@@ -814,23 +814,23 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		{
 			switch(current)
 			{
-				case HEX_NIBBLE:
-				case HEX_WILDCARD_LOW:
-				case HEX_WILDCARD_HIGH:
+				case TokenType::HEX_NIBBLE:
+				case TokenType::HEX_WILDCARD_LOW:
+				case TokenType::HEX_WILDCARD_HIGH:
 					second_nibble = !second_nibble;
 					break;
-				case HEX_ALT:
-				case HEX_JUMP_FIXED:
-				case HEX_JUMP_RIGHT_BRACKET:
-				case HEX_START_BRACKET:
+				case TokenType::HEX_ALT:
+				case TokenType::HEX_JUMP_FIXED:
+				case TokenType::HEX_JUMP_RIGHT_BRACKET:
+				case TokenType::HEX_START_BRACKET:
 					second_nibble = true;
 					break;
 				default:
 					break;
 			}
-			if (!inside_hex_jump && next != NEW_LINE)
+			if (!inside_hex_jump && next != TokenType::NEW_LINE)
 			{
-				if (second_nibble && next != COMMA)
+				if (second_nibble && next != TokenType::COMMA)
 					helper.insertIntoStream(os, ' ');
 			}
 		}
@@ -838,50 +838,50 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		{
 			switch(current)
 			{
-				case META:
-				case STRINGS:
-				case CONDITION:
-				case UNARY_MINUS:
-				case BITWISE_NOT:
-				case INTEGER_FUNCTION:
-				case FUNCTION_SYMBOL:
-				case ARRAY_SYMBOL:
-				case LSQB:
-				case DOT:
-				case FUNCTION_CALL_LP:
+				case TokenType::META:
+				case TokenType::STRINGS:
+				case TokenType::CONDITION:
+				case TokenType::UNARY_MINUS:
+				case TokenType::BITWISE_NOT:
+				case TokenType::INTEGER_FUNCTION:
+				case TokenType::FUNCTION_SYMBOL:
+				case TokenType::ARRAY_SYMBOL:
+				case TokenType::LSQB:
+				case TokenType::DOT:
+				case TokenType::FUNCTION_CALL_LP:
 					break;
-				case LP:
-					if (next == COMMENT || next == ONELINE_COMMENT)
+				case TokenType::LP:
+					if (next == TokenType::COMMENT || next == TokenType::ONELINE_COMMENT)
 						helper.insertIntoStream(os, ' ');
 					break;
 				default:
 					switch(next)
 					{
-						case RP:
-						case RSQB:
-						case DOT:
-						case NEW_LINE:
-						case COMMA:
-						case LSQB:
-						case FUNCTION_CALL_LP:
-						case FUNCTION_CALL_RP:
+						case TokenType::RP:
+						case TokenType::RSQB:
+						case TokenType::DOT:
+						case TokenType::NEW_LINE:
+						case TokenType::COMMA:
+						case TokenType::LSQB:
+						case TokenType::FUNCTION_CALL_LP:
+						case TokenType::FUNCTION_CALL_RP:
 							break;
-						case REGEXP_MODIFIERS:
-							if (current != REGEXP_MODIFIERS)
+						case TokenType::REGEXP_MODIFIERS:
+							if (current != TokenType::REGEXP_MODIFIERS)
 								break;
 							[[fallthrough]];
 						default:
-							if (next != LSQB || (current != STRING_OFFSET && current != STRING_LENGTH))
+							if (next != TokenType::LSQB || (current != TokenType::STRING_OFFSET && current != TokenType::STRING_LENGTH))
 								helper.insertIntoStream(os, ' ');
 					}
 			}
 		}
 		else if (inside_enumeration_brackets)
 		{
-			if (current != LP_ENUMERATION && next != RP_ENUMERATION && next != COMMA && next != NEW_LINE)
+			if (current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION && next != TokenType::COMMA && next != TokenType::NEW_LINE)
 				helper.insertIntoStream(os, ' ');
 		}
-		else if (current == HEX_ALT_RIGHT_BRACKET || current == HEX_ALT_LEFT_BRACKET)
+		else if (current == TokenType::HEX_ALT_RIGHT_BRACKET || current == TokenType::HEX_ALT_LEFT_BRACKET)
 			helper.insertIntoStream(os, ' ');
 	}
 }
