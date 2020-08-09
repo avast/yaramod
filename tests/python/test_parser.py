@@ -1551,3 +1551,160 @@ rule rule2 : Tag1 {
         self.assertEqual(rule.strings[1].text, '"Good bye world!"')
         self.assertEqual(rule.strings[1].pure_text, b'Good bye world!')
         self.assertTrue(rule.strings[1].is_ascii)
+
+
+    def test_rule_locations(self):
+        ymod = yaramod.Yaramod();
+        yara_file = ymod.parse_string(r'''rule rule1 : Tag1 {
+    condition:
+        false
+}
+
+rule rule2 : Tag2 {
+    condition:
+        false
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 2)
+        rule1 = yara_file.rules[0]
+        self.assertEqual(rule1.name, 'rule1')
+        self.assertEqual(rule1.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule1.metas), 0)
+        self.assertEqual(len(rule1.strings), 0)
+        self.assertEqual(len(rule1.tags), 1)
+        self.assertEqual(rule1.location.begin.line, 1)
+        self.assertEqual(rule1.location.begin.column, 6)
+        self.assertEqual(rule1.location.end.line, 1)
+        self.assertEqual(rule1.location.end.column, 10)
+        self.assertEqual(rule1.token_first.type, yaramod.TokenType.Rule)
+        self.assertEqual(rule1.token_first.location.begin.line, 1)
+        self.assertEqual(rule1.token_first.location.begin.column, 1)
+        self.assertEqual(rule1.token_first.location.end.line, 1)
+        self.assertEqual(rule1.token_first.location.end.column, 4)
+        self.assertEqual(rule1.token_last.type, yaramod.TokenType.RuleEnd)
+        self.assertEqual(rule1.token_last.location.begin.line, 4)
+        self.assertEqual(rule1.token_last.location.begin.column, 1)
+        self.assertEqual(rule1.token_last.location.end.line, 4)
+        self.assertEqual(rule1.token_last.location.end.column, 1)
+
+        rule2 = yara_file.rules[1]
+        self.assertEqual(rule2.name, 'rule2')
+        self.assertEqual(rule2.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule2.metas), 0)
+        self.assertEqual(len(rule2.strings), 0)
+        self.assertEqual(len(rule2.tags), 1)
+        self.assertEqual(rule2.location.begin.line, 6)
+        self.assertEqual(rule2.location.begin.column, 6)
+        self.assertEqual(rule2.location.end.line, 6)
+        self.assertEqual(rule2.location.end.column, 10)
+        self.assertEqual(rule2.token_first.location.begin.line, 6)
+        self.assertEqual(rule2.token_first.location.begin.column, 1)
+        self.assertEqual(rule2.token_first.location.end.line, 6)
+        self.assertEqual(rule2.token_first.location.end.column, 4)
+        self.assertEqual(rule2.token_last.location.begin.line, 9)
+        self.assertEqual(rule2.token_last.location.begin.column, 1)
+        self.assertEqual(rule2.token_last.location.end.line, 9)
+        self.assertEqual(rule2.token_last.location.end.column, 1)
+
+
+    def test_string_locations(self):
+        ymod = yaramod.Yaramod();
+        yara_file = ymod.parse_string(r'''rule rule1 : Tag1 {
+    strings:
+        $1 = "Hello World!"
+        $2 = { 01 23 45 67 89 AB CD EF }
+        $3 = /def/is
+    condition:
+        false
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule1')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.strings), 3)
+        self.assertEqual(len(rule.tags), 1)
+
+        string1 = rule.strings[0]
+        self.assertEqual(string1.identifier, '$1')
+        self.assertEqual(string1.location.begin.line, 3)
+        self.assertEqual(string1.location.begin.column, 10)
+        self.assertEqual(string1.location.end.line, 3)
+        self.assertEqual(string1.location.end.column, 27)
+        self.assertEqual(string1.token_id.type, yaramod.TokenType.StringIdAfterNewline)
+        self.assertEqual(string1.token_id.location.begin.line, 3)
+        self.assertEqual(string1.token_id.location.begin.column, 9)
+        self.assertEqual(string1.token_id.location.end.line, 3)
+        self.assertEqual(string1.token_id.location.end.column, 10)
+        self.assertEqual(string1.token_assign.type, yaramod.TokenType.Assign)
+        self.assertEqual(string1.token_assign.location.begin.line, 3)
+        self.assertEqual(string1.token_assign.location.begin.column, 12)
+        self.assertEqual(string1.token_assign.location.end.line, 3)
+        self.assertEqual(string1.token_assign.location.end.column, 12)
+        self.assertEqual(string1.token_first.type, yaramod.TokenType.StringLiteral)
+        self.assertEqual(string1.token_first.location.begin.line, 3)
+        # self.assertEqual(string1.token_first.location.begin.column, 14)  # FIXME: 14 != 27
+        self.assertEqual(string1.token_first.location.end.line, 3)
+        self.assertEqual(string1.token_first.location.end.column, 27)
+        self.assertEqual(string1.token_last.type, yaramod.TokenType.StringLiteral)
+        self.assertEqual(string1.token_last.location.begin.line, 3)
+        # self.assertEqual(string1.token_last.location.begin.column, 14)  # FIXME: 14 != 27
+        self.assertEqual(string1.token_last.location.end.line, 3)
+        self.assertEqual(string1.token_last.location.end.column, 27)
+
+        string2 = rule.strings[1]
+        self.assertEqual(string2.identifier, '$2')
+        self.assertEqual(string2.location.begin.line, 4)
+        self.assertEqual(string2.location.begin.column, 10)
+        # self.assertEqual(string2.location.end.line, 4)  # FIXME: 4 != 8
+        # self.assertEqual(string2.location.end.column, 40)  # FIXME: 2 != 40
+        self.assertEqual(string2.token_id.type, yaramod.TokenType.StringIdAfterNewline)
+        self.assertEqual(string2.token_id.location.begin.line, 4)
+        self.assertEqual(string2.token_id.location.begin.column, 9)
+        self.assertEqual(string2.token_id.location.end.line, 4)
+        self.assertEqual(string2.token_id.location.end.column, 10)
+        self.assertEqual(string2.token_assign.type, yaramod.TokenType.Assign)
+        self.assertEqual(string2.token_assign.location.begin.line, 4)
+        self.assertEqual(string2.token_assign.location.begin.column, 12)
+        self.assertEqual(string2.token_assign.location.end.line, 4)
+        self.assertEqual(string2.token_assign.location.end.column, 12)
+        # self.assertEqual(string2.token_first.type, yaramod.TokenType.HexStartBracket)  # FIXME: not a TokenType.Rule
+        # self.assertEqual(string2.token_first.location.begin.line, 4)  # FIXME: 4 != 1
+        # self.assertEqual(string2.token_first.location.begin.column, 14)  # FIXME: 14 != 40
+        # self.assertEqual(string2.token_first.location.end.line, 4)  # FIXME: 4 != 1
+        # self.assertEqual(string2.token_first.location.end.column, 14)  # FIXME: 14 != 4
+        # self.assertEqual(string2.token_last.type, yaramod.TokenType.HexEndBracket)  # FIXME: not a TokenType.NewLine
+        # self.assertEqual(string2.token_last.location.begin.line, 4)  # FIXME: 4 != 8
+        # self.assertEqual(string2.token_last.location.begin.column, 40)  # FIXME: 40 != 2
+        # self.assertEqual(string2.token_last.location.end.line, 4)  # FIXME: 4 != 8
+        # self.assertEqual(string2.token_last.location.end.column, 40)  # FIXME: 40 != 2
+
+        string3 = rule.strings[2]
+        self.assertEqual(string3.identifier, '$3')
+        self.assertEqual(string3.location.begin.line, 5)
+        self.assertEqual(string3.location.begin.column, 10)
+        # self.assertEqual(string3.location.end.line, 5)  # FIXME: 5 != 1
+        # self.assertEqual(string3.location.end.column, 20)  # FIXME: 20 != 0
+        self.assertEqual(string3.token_id.type, yaramod.TokenType.StringIdAfterNewline)
+        self.assertEqual(string3.token_id.location.begin.line, 5)
+        self.assertEqual(string3.token_id.location.begin.column, 9)
+        self.assertEqual(string3.token_id.location.end.line, 5)
+        self.assertEqual(string3.token_id.location.end.column, 10)
+        self.assertEqual(string3.token_assign.type, yaramod.TokenType.Assign)
+        self.assertEqual(string3.token_assign.location.begin.line, 5)
+        self.assertEqual(string3.token_assign.location.begin.column, 12)
+        self.assertEqual(string3.token_assign.location.end.line, 5)
+        self.assertEqual(string3.token_assign.location.end.column, 12)
+        self.assertEqual(string3.token_first.type, yaramod.TokenType.RegexpStartSlash)
+        # self.assertEqual(string3.token_first.location.begin.line, 5)  # FIXME: 5 != 1
+        # self.assertEqual(string3.token_first.location.begin.column, 14)  # FIXME: 14 != 27
+        # self.assertEqual(string3.token_first.location.end.line, 5)  # FIXME: 5 != 1
+        # self.assertEqual(string3.token_first.location.end.column, 14)  # FIXME: 14 != 0
+        self.assertEqual(string3.token_last.type, yaramod.TokenType.RegexpModifiers)
+        # self.assertEqual(string3.token_last.location.begin.line, 5)  # FIXME: 5 != 1
+        # self.assertEqual(string3.token_last.location.begin.column, 19)  # FIXME: 19 != 27
+        # self.assertEqual(string3.token_last.location.end.line, 5)  # FIXME: 5 != 1
+        # self.assertEqual(string3.token_last.location.end.column, 20)  # FIXME: 20 != 0
