@@ -10,7 +10,7 @@ namespace yaramod {
 /**
  * Represents type of parsed tokens.
  */
-enum class TokenType
+enum TokenType
 {
 	RULE_NAME,
 	TAG,

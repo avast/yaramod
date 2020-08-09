@@ -19,17 +19,17 @@ std::string Token::getText(bool pure) const
 {
 	auto output = _value->getText(pure);
 	size_t changed_index = pure ? 0 : 1;
-	if (_type == TokenType::STRING_LENGTH)
+	if (_type == STRING_LENGTH)
 	{
 		assert(output.size() > changed_index);
 		output[changed_index] = '!';
 	}
-	else if (_type == TokenType::STRING_OFFSET)
+	else if (_type == STRING_OFFSET)
 	{
 		assert(output.size() > changed_index);
 		output[changed_index] = '@';
 	}
-	else if (_type == TokenType::STRING_COUNT)
+	else if (_type == STRING_COUNT)
 	{
 		assert(output.size() > changed_index);
 		output[changed_index] = '#';

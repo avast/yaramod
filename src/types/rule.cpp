@@ -242,7 +242,7 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
  */
 TokenIt Rule::getFirstTokenIt() const
 {
-	return _tokenStream->findBackwards(TokenType::RULE, _name);
+	return _tokenStream->findBackwards(RULE, _name);
 }
 
 /**
@@ -252,7 +252,7 @@ TokenIt Rule::getFirstTokenIt() const
  */
 TokenIt Rule::getLastTokenIt() const
 {
-	return _tokenStream->find(TokenType::RULE_END, _name);
+	return _tokenStream->find(RULE_END, _name);
 }
 
 /**
@@ -292,7 +292,7 @@ void Rule::setTags(const std::vector<std::string>& tags)
 	if (_tags.empty())
 	{
 		insert_before = std::find_if(_name, _tokenStream->end(),
-			[](const Token& t){ return t.getType() == TokenType::NEW_LINE || t.getType() == TokenType::RULE_BEGIN; }
+			[](const Token& t){ return t.getType() == NEW_LINE || t.getType() == RULE_BEGIN; }
 			);
 		assert(insert_before != _tokenStream->end() && "Called setTags on rule that does not contain '{'");
 		_tokenStream->emplace(insert_before, TokenType::COLON, ":");
@@ -363,16 +363,16 @@ void Rule::setModifier(const Modifier& modifier)
 	}
 	if (addPrivate || addGlobal)
 	{
-		TokenIt rule_token = _tokenStream->findBackwards(TokenType::RULE, _name);
+		TokenIt rule_token = _tokenStream->findBackwards(RULE, _name);
 		if (addPrivate)
 		{
 			if (isGlobal())
-				_mod_private = _tokenStream->emplace(_mod_global.value(), TokenType::PRIVATE, "private");
+				_mod_private = _tokenStream->emplace(_mod_global.value(), PRIVATE, "private");
 			else
-				_mod_private = _tokenStream->emplace(rule_token, TokenType::PRIVATE, "private");
+				_mod_private = _tokenStream->emplace(rule_token, PRIVATE, "private");
 		}
 		if (addGlobal)
-			_mod_global = _tokenStream->emplace(rule_token, TokenType::GLOBAL, "global");
+			_mod_global = _tokenStream->emplace(rule_token, GLOBAL, "global");
 	}
 }
 
@@ -442,7 +442,7 @@ void Rule::removeMetas(const std::string& name)
 		if (it->getKey() == name)
 		{
 			auto deleteTo = ++it->getValueTokenIt();
-			if (deleteTo->getType() == TokenType::NEW_LINE)
+			if (deleteTo->getType() == NEW_LINE)
 				++deleteTo;
 			toDelete.emplace_back(it->getKeyTokenIt(), deleteTo);
 		}
@@ -458,12 +458,12 @@ void Rule::removeMetas(const std::string& name)
 
 	if (_metas.empty() && !metasWasEmpty)
 	{
-		auto metaToken = _tokenStream->find(TokenType::META, _name);
+		auto metaToken = _tokenStream->find(META, _name);
 		TokenIt deleteTo;
 		if (!_strings->empty())
-			deleteTo = _tokenStream->find(TokenType::STRINGS, metaToken);
+			deleteTo = _tokenStream->find(STRINGS, metaToken);
 		else
-			deleteTo = _tokenStream->find(TokenType::CONDITION, metaToken);
+			deleteTo = _tokenStream->find(CONDITION, metaToken);
 		_tokenStream->erase(metaToken, deleteTo);
 	}
 }

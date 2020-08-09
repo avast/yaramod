@@ -110,12 +110,12 @@ public:
 
 	bool isStringModifier() const
 	{
-		return _type == TokenType::ASCII
-			|| _type == TokenType::WIDE
-			|| _type == TokenType::FULLWORD
-			|| _type == TokenType::NOCASE
-			|| _type == TokenType::XOR
-			|| _type == TokenType::PRIVATE;
+		return _type == ASCII
+			|| _type == WIDE
+			|| _type == FULLWORD
+			|| _type == NOCASE
+			|| _type == XOR
+			|| _type == PRIVATE;
 	}
 	/// @}
 

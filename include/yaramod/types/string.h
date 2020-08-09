@@ -54,8 +54,8 @@ public:
 		, _mods()
 	{
 		assert(_tokenStream);
-		_id = _tokenStream->emplace_back(TokenType::STRING_KEY, id);
-		_assignToken = _tokenStream->emplace_back(TokenType::ASSIGN, "=");
+		_id = _tokenStream->emplace_back(STRING_KEY, id);
+		_assignToken = _tokenStream->emplace_back(ASSIGN, "=");
 	}
 
 	explicit String(const std::shared_ptr<TokenStream>& ts, Type type, TokenIt id, TokenIt assignToken)
@@ -163,8 +163,8 @@ public:
 		else
 		{
 			auto first = getFirstTokenIt();
-			_id = _tokenStream->emplace(first, TokenType::STRING_KEY, std::move(id));
-			_assignToken = _tokenStream->emplace(first, TokenType::ASSIGN, "=");
+			_id = _tokenStream->emplace(first, STRING_KEY, std::move(id));
+			_assignToken = _tokenStream->emplace(first, ASSIGN, "=");
 		}
 	}
 
@@ -175,8 +175,8 @@ public:
 		else
 		{
 			auto first = getFirstTokenIt();
-			_id = _tokenStream->emplace(first, TokenType::STRING_KEY, id);
-			_assignToken = _tokenStream->emplace(first, TokenType::ASSIGN, "=");
+			_id = _tokenStream->emplace(first, STRING_KEY, id);
+			_assignToken = _tokenStream->emplace(first, ASSIGN, "=");
 		}
 	}
 

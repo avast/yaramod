@@ -728,7 +728,7 @@ rule hex_string_with_or_on_the_beginning_and_end
 	EXPECT_EQ("$1", hexString->getIdentifier());
 	EXPECT_EQ("{ ( 11 | 22 ) 33 44 ( 55 | 66 ) }", hexString->getText());
 
-	EXPECT_EQ(TokenType::NEW_LINE, driver.getParsedFile().getTokenStream()->back().getType());
+	EXPECT_EQ(NEW_LINE, driver.getParsedFile().getTokenStream()->back().getType());
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
