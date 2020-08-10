@@ -169,6 +169,8 @@ We can now use this visitors instance ``visitor`` to alter all conditions of rul
                 expr.exchange_tokens(output)
                 return output
 
+    .. tab:: C++
+
       .. code-block:: cpp
 
         class RegexpVisitor : public yaramod::ModifyingVisitor
@@ -213,6 +215,8 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
                 self.cleanUpTokenStreams(context, output)
                 return output
 
+    .. tab:: C++
+
       .. code-block:: cpp
 
         class EqModifier : public yaramod::ModifyingVisitor
@@ -232,7 +236,7 @@ Let's now assume that we need to modify each ``EqExpression`` in the expression 
                 auto rightResult = expr->getRightOperand()->accept(this);
                 if (resultIsModified(rightResult))
                     expr->setRightOperand(std::get<std::shared_ptr<Expression>>(rightResult));
-                
+
                 auto output = ((YaraExpressionBuilder(expr->getRightOperand())) != (YaraExpressionBuilder(expr->getLeftOperand()))).get();
 
                 cleanUpTokenStreams(context, output.get());
