@@ -21,13 +21,19 @@ public:
 	 */
 	struct Position {
 
+		Position() : line(1), column(0) {}
 		Position(std::size_t line, std::size_t column) : line(line), column(column) {}
 
-		std::size_t getLine() { return line; }
-		std::size_t getColumn() { return column; }
+		std::size_t getLine() const { return line; }
+		std::size_t getColumn() const { return column; }
 
 		std::size_t line;
 		std::size_t column;
+		friend std::ostream& operator<<(std::ostream& os, const Position& position)
+		{
+			os << position.getLine() << '.' << position.getColumn();
+			return os;
+		}
 	};
 
 	Location() : Location(std::string{}) {}
@@ -53,8 +59,7 @@ public:
 
 	void addColumn(std::size_t count)
 	{
-		_begin.line = _end.line;
-		_begin.column = _end.column;
+		_begin = _end;
 		_end.column += count;
 	}
 
@@ -62,6 +67,12 @@ public:
 	{
 		_begin = {1, 0};
 		_end = {1, 0};
+	}
+
+	void setBegin(const Position& begin)
+	{
+		_begin.line = begin.line;
+		_begin.column = begin.column - 1;
 	}
 	/// @}
 
@@ -82,8 +93,10 @@ public:
 	{
 		if (!location.isUnnamed())
 			os << location.getFilePath() << ':';
-		os << location.begin().line << '.' << location.begin().column;
-		if (location.begin().column < location.end().column)
+		os << location.begin();
+		if (location.begin().line != location.end().line)
+			os << '-' << location.end();
+		else if (location.begin().column < location.end().column)
 			os << '-' << location.end().column;
 		return os;
 	}

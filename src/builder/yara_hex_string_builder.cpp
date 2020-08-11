@@ -203,16 +203,22 @@ YaraHexStringBuilder::YaraHexStringBuilder(const std::shared_ptr<TokenStream>& t
  */
 std::shared_ptr<HexString> YaraHexStringBuilder::get(const std::shared_ptr<TokenStream>& acceptor /*= nullptr*/, bool addHexParentheses /*= true*/) const
 {
+	std::optional<TokenIt> leftBracket, rightBracket;
 	if (addHexParentheses)
 	{
-		_tokenStream->emplace(_tokenStream->begin(), HEX_START_BRACKET, "{");
-		_tokenStream->emplace_back(HEX_END_BRACKET, "}");
+		leftBracket = _tokenStream->emplace(_tokenStream->begin(), HEX_START_BRACKET, "{");
+		rightBracket = _tokenStream->emplace_back(HEX_END_BRACKET, "}");
 	}
 	if (acceptor)
 	{
 		acceptor->moveAppend(_tokenStream.get());
-		return std::make_shared<HexString>(acceptor, _units);
+		if (leftBracket && rightBracket)
+			return std::make_shared<HexString>(acceptor, *leftBracket, _units, *rightBracket);
+		else
+			return std::make_shared<HexString>(acceptor, _units);
 	}
+	else if (leftBracket && rightBracket)
+		return std::make_shared<HexString>(std::move(_tokenStream), *leftBracket, _units, *rightBracket);
 	else
 		return std::make_shared<HexString>(std::move(_tokenStream), _units);
 }
@@ -309,10 +315,10 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 YaraHexStringBuilder jumpVarying()
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
+	auto left = ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
 	ts->emplace_back(DASH, "-");
-	ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
-	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>());
+	auto right = ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(left, right));
 }
 
 /**
@@ -328,11 +334,11 @@ YaraHexStringBuilder jumpVarying()
 YaraHexStringBuilder jumpFixed(std::uint64_t value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
+	auto left = ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
 	TokenIt t = ts->emplace_back(HEX_NIBBLE, value);
-	ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
+	auto right = ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
 
-	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t, t));
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(left, t, t, right));
 }
 
 /**
@@ -348,12 +354,12 @@ YaraHexStringBuilder jumpFixed(std::uint64_t value)
 YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
+	auto left = ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
 	TokenIt t = ts->emplace_back(HEX_NIBBLE, low);
 	ts->emplace_back(DASH, "-");
-	ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
+	auto right = ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
 
-	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t));
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(left, t, right));
 }
 
 /**
@@ -369,13 +375,13 @@ YaraHexStringBuilder jumpVaryingRange(std::uint64_t low)
 YaraHexStringBuilder jumpRange(std::uint64_t low, std::uint64_t high)
 {
 	auto ts = std::make_shared<TokenStream>();
-	ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
+	auto left = ts->emplace_back(HEX_JUMP_LEFT_BRACKET, "[");
 	TokenIt t1 = ts->emplace_back(HEX_NIBBLE, low);
 	ts->emplace_back(DASH, "-");
 	TokenIt t2 = ts->emplace_back(HEX_NIBBLE, high);
-	ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
+	auto right = ts->emplace_back(HEX_JUMP_RIGHT_BRACKET, "]");
 
-	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(t1, t2));
+	return YaraHexStringBuilder(ts, std::make_shared<HexStringJump>(left, t1, t2, right));
 }
 
 /**

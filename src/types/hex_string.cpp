@@ -30,6 +30,26 @@ HexString::HexString(const std::shared_ptr<TokenStream>& ts, std::vector<std::sh
 }
 
 /**
+ * Constructor.
+ *
+ * @param units Units of the hex string.
+ */
+HexString::HexString(const std::shared_ptr<TokenStream>& ts, TokenIt leftBracket, const std::vector<std::shared_ptr<HexStringUnit>>& units, TokenIt rightBracket)
+	: String(ts, String::Type::Hex), _leftBracket(leftBracket), _units(units), _rightBracket(rightBracket)
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param units Units of the hex string.
+ */
+HexString::HexString(const std::shared_ptr<TokenStream>& ts, TokenIt leftBracket, std::vector<std::shared_ptr<HexStringUnit>>&& units, TokenIt rightBracket)
+	: String(ts, String::Type::Hex), _leftBracket(leftBracket), _units(std::move(units)), _rightBracket(rightBracket)
+{
+}
+
+/**
  * Return the string representation of the hex string.
  *
  * @return String representation.
@@ -72,15 +92,22 @@ std::string HexString::getPureText() const
 
 TokenIt HexString::getFirstTokenIt() const
 {
-	return _tokenStream->begin();
+	if (_leftBracket)
+		return *_leftBracket;
+	else if (_units.empty())
+		return _tokenStream->begin();
+	else
+		return _units.front()->getFirstTokenIt();
 }
 
 TokenIt HexString::getLastTokenIt() const
 {
-	if (_units.empty())
+	if (_rightBracket)
+		return *_rightBracket;
+	else if (_units.empty())
 		return _tokenStream->begin();
 	else
-		return std::prev(_tokenStream->end());
+		return _units.back()->getLastTokenIt();
 }
 
 /**
