@@ -236,19 +236,6 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
 }
 
 /**
- * Returns the absolute path of a file in which this rule was located.
- * Returns "[stream]" in case this rule was parsed from input stream and not a file,
- * or if this file was created with `YaraRuleBuilder`.
- *
- * @return Location of the rule.
- */
-const Rule::Location& Rule::getLocation() const
-{
-	return _location;
-}
-
-
-/**
  * Returns the first Token iterator associated with this Rule.
  *
  * @return First TokenIt of the rule.
@@ -333,16 +320,6 @@ void Rule::setTags(const std::vector<std::string>& tags)
 void Rule::setCondition(const Expression::Ptr& condition)
 {
 	_condition = condition;
-}
-
-/**
- * Sets the location of the rule.
- *
- * @param location Location to set.
- */
-void Rule::setLocation(const std::string& filePath, std::uint64_t lineNumber)
-{
-	_location = { filePath, lineNumber };
 }
 
 void Rule::setModifier(const Modifier& modifier)

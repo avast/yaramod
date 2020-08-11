@@ -1867,7 +1867,7 @@ void ParserDriver::addRule(Rule&& rule)
  */
 void ParserDriver::addRule(std::unique_ptr<Rule>&& rule)
 {
-	rule->setLocation(_lastRuleLocation.getFilePath(), _lastRuleLocation.begin().first);
+	rule->setLocation(_lastRuleLocation);
 
 	if (ruleExists(rule->getName()))
 		throw ParserError("Error: Redefinition of rule " + rule->getName());
