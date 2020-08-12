@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
+#include <sstream>
 
 namespace yaramod {
 
@@ -87,6 +88,12 @@ public:
 	const std::string& getFilePath() const { return _filePath; }
 	Position begin() const { return {_begin.line, _begin.column + 1}; }
 	const Position& end() const { return _end; }
+	std::string getText() const
+	{
+		std::ostringstream ss;
+		ss << *this;
+		return ss.str();
+	}
 	/// @}
 
 	friend std::ostream& operator<<(std::ostream& os, const Location& location)
