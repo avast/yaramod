@@ -223,6 +223,8 @@ void YaraFile::addRule(Rule&& rule)
  */
 void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
 {
+	if (rule->getTokenStream() != _tokenStream.get())
+		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(std::move(rule));
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
 }
@@ -234,8 +236,10 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
  */
 void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
 {
+	if (rule->getTokenStream() != _tokenStream.get())
+		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(rule);
-	_ruleTable.emplace(rule->getName(), _rules.back().get());
+	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
 }
 
 /**
@@ -277,6 +281,17 @@ bool YaraFile::addImports(const std::vector<TokenIt>& imports, ModulesPool& modu
 void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 {
 	position = std::min(position, _rules.size());
+	TokenIt before;
+	if (position == _rules.size())
+	{
+		before = _tokenStream->end();
+	}
+	else
+	{
+		before = _rules[position]->getFirstTokenIt();
+	}
+	_tokenStream->moveAppend(before, rule->getTokenStream());
+
 	_rules.insert(_rules.begin() + position, std::move(rule));
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
 }
@@ -290,6 +305,17 @@ void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rule)
 {
 	position = std::min(position, _rules.size());
+	TokenIt before;
+	if (position == _rules.size())
+	{
+		before = _tokenStream->end();
+	}
+	else
+	{
+		before = _rules[position]->getFirstTokenIt();
+	}
+	_tokenStream->moveAppend(before, rule->getTokenStream());
+
 	_rules.insert(_rules.begin() + position, rule);
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
 }

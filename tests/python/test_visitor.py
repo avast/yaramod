@@ -118,7 +118,7 @@ rule rule_with_regexp_in_fnc_call
                 expr.right_operand.accept(self)
                 output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
 
-                self.cleanUpTokenStreams(context, output)
+                self.cleanup_tokenstreams(context, output)
                 return output
 
         yara_file = yaramod.Yaramod().parse_string(r'''
@@ -171,7 +171,7 @@ rule rule_with_regexp_in_fnc_call
                 expr.right_operand.accept(self)
                 output = (yaramod.YaraExpressionBuilder(expr.right_operand) != yaramod.YaraExpressionBuilder(expr.left_operand)).get()
 
-                self.cleanUpTokenStreams(context, output)
+                self.cleanup_tokenstreams(context, output)
                 return output
 
         yara_file = yaramod.Yaramod().parse_string(r'''
@@ -405,16 +405,18 @@ rule rule_5
 
             def _visit_logical_ops(self, expr):
                 context = yaramod.TokenStreamContext(expr)
+                left_context = yaramod.TokenStreamContext(expr.left_operand)
+                right_context = yaramod.TokenStreamContext(expr.right_operand)
                 left_result = expr.left_operand.accept(self)
                 right_result = expr.right_operand.accept(self)
                 if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
                     if left_result == yaramod.VisitAction.Delete:
                         new_operand = yaramod.bool_val(False).get()
-                        expr.left_operand.exchange_tokens(new_operand)
+                        self.cleanup_tokenstreams(left_context, new_operand)
                         expr.left_operand = new_operand
                     if right_result == yaramod.VisitAction.Delete:
                         new_operand = yaramod.bool_val(False).get()
-                        expr.right_operand.exchange_tokens(new_operand)
+                        self.cleanup_tokenstreams(right_context, new_operand)
                         expr.right_operand = new_operand
                 else:
                     return self.default_handler(context, expr, left_result, right_result)
@@ -587,16 +589,18 @@ rule rule_1
 
             def _visit_logical_ops(self, expr):
                 context = yaramod.TokenStreamContext(expr)
+                left_context = yaramod.TokenStreamContext(expr.left_operand)
+                right_context = yaramod.TokenStreamContext(expr.right_operand)
                 left_result = expr.left_operand.accept(self)
                 right_result = expr.right_operand.accept(self)
                 if left_result == yaramod.VisitAction.Delete or right_result == yaramod.VisitAction.Delete:
                     if left_result == yaramod.VisitAction.Delete:
                         new_operand = yaramod.bool_val(False).get()
-                        expr.left_operand.exchange_tokens(new_operand)
+                        self.cleanup_tokenstreams(left_context, new_operand)
                         expr.left_operand = new_operand
                     if right_result == yaramod.VisitAction.Delete:
                         new_operand = yaramod.bool_val(False).get()
-                        expr.right_operand.exchange_tokens(new_operand)
+                        self.cleanup_tokenstreams(right_context, new_operand)
                         expr.right_operand = new_operand
                 else:
                     return self.default_handler(context, expr, left_result, right_result)
