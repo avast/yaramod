@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "yaramod/types/modules/module.h"
 #include "yaramod/types/modules/modules.h"
 
@@ -16,6 +18,9 @@ namespace yaramod {
  */
 class ModulesPool {
 public:
+	ModulesPool() : ModulesPool("/home/ts/dev/yaramod/include/modules") {}
+	ModulesPool(const std::string& directory);
+
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *
@@ -29,11 +34,10 @@ public:
 		auto itr = _knownModules.find(name);
 		// Check that the module exists
 		if (itr == _knownModules.end())
+		{
+			std::cout << "Could not find module '" << name << "'" << std::endl;
 			return nullptr;
-
-		// Check that the module is allowed to load with given `features`
-		if (!(itr->second->getFeatures() & features))
-			return nullptr;
+		}
 
 		// Initialize the module if it is not already initialized.
 		if (!itr->second->isInitialized())
@@ -43,20 +47,20 @@ public:
 	}
 
 private:
-	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {
-		{ "androguard", std::make_shared<AndroguardModule>() },
-		{ "cuckoo",     std::make_shared<CuckooModule>()     },
-		{ "dex",        std::make_shared<DexModule>()        },
-		{ "dotnet",     std::make_shared<DotnetModule>()     },
-		{ "elf",        std::make_shared<ElfModule>()        },
-		{ "hash",       std::make_shared<HashModule>()       },
-		{ "macho",      std::make_shared<MachoModule>()      },
-		{ "magic",      std::make_shared<MagicModule>()      },
-		{ "math",       std::make_shared<MathModule>()       },
-		{ "metadata",   std::make_shared<MetadataModule>()   },
-		{ "pe",         std::make_shared<PeModule>()         },
-		{ "phish",      std::make_shared<PhishModule>()      },
-		{ "time",       std::make_shared<TimeModule>()       }
+	std::unordered_map<std::string, std::shared_ptr<CustomModule>> _knownModules = {
+		// { "androguard", std::make_shared<AndroguardModule>() },
+		// // { "cuckoo",     std::make_shared<CuckooModule>()     },
+		// { "dex",        std::make_shared<DexModule>()        },
+		// { "dotnet",     std::make_shared<DotnetModule>()     },
+		// { "elf",        std::make_shared<ElfModule>()        },
+		// { "hash",       std::make_shared<HashModule>()       },
+		// { "macho",      std::make_shared<MachoModule>()      },
+		// { "magic",      std::make_shared<MagicModule>()      },
+		// { "math",       std::make_shared<MathModule>()       },
+		// { "metadata",   std::make_shared<MetadataModule>()   },
+		// { "pe",         std::make_shared<PeModule>()         },
+		// { "phish",      std::make_shared<PhishModule>()      },
+		// { "time",       std::make_shared<TimeModule>()       }
 	}; ///< Table of all known modules
 };
 
