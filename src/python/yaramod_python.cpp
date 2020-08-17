@@ -263,7 +263,8 @@ void addBasicClasses(py::module& module)
 		// `line_number` property is deprecated, preferred way is to use `begin.line`
 		.def_property_readonly("line_number", [](const Location& self) { return self.begin().getLine(); })
 		.def_property_readonly("begin", &Location::begin)
-		.def_property_readonly("end", &Location::end);
+		.def_property_readonly("end", &Location::end)
+		.def_property_readonly("text", &Location::getText);
 
 	py::class_<Location::Position>(module, "Position")
 		.def_property_readonly("line", &Location::Position::getLine)

@@ -179,6 +179,7 @@ protected:
 
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
+	Location::Position _positionBegin; ///< Variable storing the position the currently processed token begins at.
 	std::string _indent; ///< Variable storing current indentation
 	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.

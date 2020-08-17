@@ -580,7 +580,7 @@ TEST_F(ParserTests,
 HexStringWithSimpleOrWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_simple_or_jump
+rule hex_string_with_simple_or
 {
 	strings:
 		$1 = { 01 23 ( AB | CD ) 45 56 }
@@ -593,7 +593,7 @@ rule hex_string_with_simple_or_jump
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("hex_string_with_simple_or_jump", rule->getName());
+	EXPECT_EQ("hex_string_with_simple_or", rule->getName());
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	auto strings = rule->getStrings();
@@ -611,7 +611,7 @@ TEST_F(ParserTests,
 HexStringWithMultibyteSimpleOrWorks) {
 	prepareInput(
 R"(
-rule hex_string_with_multibyte_simple_or_jump
+rule hex_string_with_multibyte_simple_or
 {
 	strings:
 		$1 = { 01 23 ( AB CD EF | AA BB | EE | FF FF ) 45 56 }
@@ -624,7 +624,7 @@ rule hex_string_with_multibyte_simple_or_jump
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("hex_string_with_multibyte_simple_or_jump", rule->getName());
+	EXPECT_EQ("hex_string_with_multibyte_simple_or", rule->getName());
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	auto strings = rule->getStrings();
@@ -1873,7 +1873,7 @@ rule dummy_rule
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		ASSERT_EQ(0u, driver.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 2.15: Unrecognized module 'module' imported", err.getErrorMessage());
+		EXPECT_EQ("Error at 2.8-15: Unrecognized module 'module' imported", err.getErrorMessage());
 	}
 }
 
@@ -2987,7 +2987,7 @@ rule dummy_rule
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
 		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 2.19: Unrecognized module 'androguard' imported", err.getErrorMessage());
+		EXPECT_EQ("Error at 2.8-19: Unrecognized module 'androguard' imported", err.getErrorMessage());
 	}
 }
 
@@ -3042,7 +3042,7 @@ rule dummy_rule
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
 		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 2.14: Unrecognized module 'phish' imported", err.getErrorMessage());
+		EXPECT_EQ("Error at 2.8-14: Unrecognized module 'phish' imported", err.getErrorMessage());
 	}
 }
 
@@ -4311,7 +4311,7 @@ rule public_rule {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 1.11: Syntax error: Unknown symbol on input, expected one of @end, global, private, rule, import, include", err.getErrorMessage());
+		EXPECT_EQ("Error at 1.8-11: Syntax error: Unknown symbol on input, expected one of @end, global, private, rule, import, include", err.getErrorMessage());
 	}
 }
 

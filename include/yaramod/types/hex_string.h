@@ -45,6 +45,8 @@ public:
 	/// @{
 	virtual std::string getText() const = 0;
 	virtual std::size_t getLength() const = 0;
+	virtual TokenIt getFirstTokenIt() const = 0;
+	virtual TokenIt getLastTokenIt() const = 0;
 	/// @}
 
 	/// @name Detection methods
@@ -78,6 +80,8 @@ public:
 	/// @{
 	explicit HexString(const std::shared_ptr<TokenStream>& ts, const std::vector<std::shared_ptr<HexStringUnit>>& units);
 	explicit HexString(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<HexStringUnit>>&& units);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, TokenIt leftBracket, const std::vector<std::shared_ptr<HexStringUnit>>& units, TokenIt rightBracket);
+	explicit HexString(const std::shared_ptr<TokenStream>& ts, TokenIt leftBracket, std::vector<std::shared_ptr<HexStringUnit>>&& units, TokenIt rightBracket);
 	/// @}
 
 	/// @name Virtual methods.
@@ -109,7 +113,9 @@ public:
 	bool empty() const { return _units.empty(); }
 
 private:
+	std::optional<TokenIt> _leftBracket;
 	std::vector<std::shared_ptr<HexStringUnit>> _units; ///< Units in the hex string
+	std::optional<TokenIt> _rightBracket;
 };
 
 /**
@@ -148,9 +154,10 @@ public:
 		assert(output <= 0xf);
 		return output;
 	}
-	/// @}
-
 	virtual std::size_t getLength() const override { return 1; }
+	virtual TokenIt getFirstTokenIt() const override { return _value; }
+	virtual TokenIt getLastTokenIt() const override { return _value; }
+	/// @}
 
 private:
 	TokenIt _value; ///< Value of the nibble
@@ -173,6 +180,8 @@ public:
 	/// @{
 	virtual std::string getText() const override { return "?"; }
 	virtual std::size_t getLength() const override { return 1; }
+	virtual TokenIt getFirstTokenIt() const override { return _value; }
+	virtual TokenIt getLastTokenIt() const override { return _value; }
 	/// @}
 private:
 	TokenIt _value; ///< Value of the nibble
@@ -189,9 +198,27 @@ class HexStringJump : public HexStringUnit
 public:
 	/// @name Constructors
 	/// @{
-	HexStringJump() : HexStringUnit(Type::Jump) {}
-	HexStringJump(TokenIt low) : HexStringUnit(Type::Jump), _low(low), _high() {}
-	HexStringJump(TokenIt low, TokenIt high) : HexStringUnit(Type::Jump), _low(low), _high(high) {}
+	HexStringJump(TokenIt leftBracket, TokenIt rightBracket)
+		: HexStringUnit(Type::Jump)
+		, _leftBracket(leftBracket)
+		, _rightBracket(rightBracket)
+	{
+	}
+	HexStringJump(TokenIt leftBracket, TokenIt low, TokenIt rightBracket)
+		: HexStringUnit(Type::Jump)
+		, _leftBracket(leftBracket)
+		, _low(low)
+		, _rightBracket(rightBracket)
+	{
+	}
+	HexStringJump(TokenIt leftBracket, TokenIt low, TokenIt high, TokenIt rightBracket)
+		: HexStringUnit(Type::Jump)
+		, _leftBracket(leftBracket)
+		, _low(low)
+		, _high(high)
+		, _rightBracket(rightBracket)
+	{
+	}
 	/// @}
 
 	/// @name Virtual methods
@@ -233,10 +260,14 @@ public:
 			return _high.value()->getUInt();
 		return std::nullopt;
    }
+	virtual TokenIt getFirstTokenIt() const override { return _leftBracket; }
+	virtual TokenIt getLastTokenIt() const override { return _rightBracket; }
 	/// @}
 
 private:
+	TokenIt _leftBracket;
 	std::optional<TokenIt> _low, _high; ///< Low and high bounds of the jump.
+	TokenIt _rightBracket;
 };
 
 /**
@@ -282,6 +313,8 @@ public:
 	/// @name Getters
 	/// @{
 	const std::vector<std::shared_ptr<HexString>> getSubstrings() const { return _substrings; }
+	virtual TokenIt getFirstTokenIt() const override { assert(!_substrings.empty()); return _substrings.front()->getFirstTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { assert(!_substrings.empty()); return _substrings.back()->getLastTokenIt(); }
 	/// @}
 
 	/// @name Iterators

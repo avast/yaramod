@@ -227,6 +227,7 @@ void ParserDriver::defineTokens()
 	// $str tokens are not delegated with return Value but stored in _strLiteral
 	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
 		_strLiteral.clear();
+		_positionBegin = currentFileContext()->getLocation().begin();
 		_escapedContent = false;
 		return {};
 	});
@@ -241,6 +242,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentFileContext()->getLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
+		currentFileContext()->getLocation().setBegin(_positionBegin);
 		auto strIt = emplace_back(STRING_LITERAL, _strLiteral);
 		if (_escapedContent)
 			strIt->markEscaped();
@@ -597,7 +599,7 @@ void ParserDriver::defineGrammar()
 			},
 			"hex_string", "RCB", "hex_string_mods", [&](auto&& args) -> Value {
 				args[3].getTokenIt()->setType(HEX_END_BRACKET);
-				auto hexString = std::make_shared<HexString>(currentFileContext()->getTokenStream(), std::move(args[2].getMultipleHexUnits()));
+				auto hexString = std::make_shared<HexString>(currentFileContext()->getTokenStream(), args[0].getTokenIt(), std::move(args[2].getMultipleHexUnits()), args[3].getTokenIt());
 				hexString->setModifiers(std::move(args[4].getStringMods()));
 				return hexString;
 			}
@@ -802,22 +804,22 @@ void ParserDriver::defineGrammar()
 		.production("LSQB", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
-			return std::make_shared<HexStringJump>(args[1].getTokenIt(), args[1].getTokenIt());
+			return std::make_shared<HexStringJump>(args[0].getTokenIt(), args[1].getTokenIt(), args[1].getTokenIt(), args[2].getTokenIt());
 		})
 		.production("LSQB", "HEX_INTEGER", "DASH", "HEX_INTEGER", "RSQB", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[4].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
-			return std::make_shared<HexStringJump>(args[1].getTokenIt(), args[3].getTokenIt());
+			return std::make_shared<HexStringJump>(args[0].getTokenIt(), args[1].getTokenIt(), args[3].getTokenIt(), args[4].getTokenIt());
 		})
 		.production("LSQB", "HEX_INTEGER", "DASH", "RSQB", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[3].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
-			return std::make_shared<HexStringJump>(args[1].getTokenIt());
+			return std::make_shared<HexStringJump>(args[0].getTokenIt(), args[1].getTokenIt(), args[3].getTokenIt());
 		})
 		.production("LSQB", "DASH", "RSQB", [](auto&& args) -> Value {
 			args[0].getTokenIt()->setType(HEX_JUMP_LEFT_BRACKET);
 			args[2].getTokenIt()->setType(HEX_JUMP_RIGHT_BRACKET);
-			return std::make_shared<HexStringJump>();
+			return std::make_shared<HexStringJump>(args[0].getTokenIt(), args[2].getTokenIt());
 		})
 		;
 

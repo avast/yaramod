@@ -144,8 +144,8 @@ public:
 
 	const Location getLocation() const { 
 		return {
-			_id.value_or(getFirstTokenIt())->getLocation().getFilePath(), 
-			_id.value_or(getFirstTokenIt())->getLocation().begin(), 
+			_id.value_or(getFirstTokenIt())->getLocation().getFilePath(),
+			_id.value_or(getFirstTokenIt())->getLocation().begin(),
 			getLastTokenIt()->getLocation().end()
 		}; 
 	}
