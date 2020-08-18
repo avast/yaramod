@@ -1711,7 +1711,7 @@ rule rule2 : Tag2 {
 
 
     def test_include_file(self):
-        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_file.yar')
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_rules/testing_file.yar')
         rule = yara_file.rules[0]
 
         self.assertEqual('''rule RULE {
