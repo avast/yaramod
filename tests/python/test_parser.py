@@ -1708,3 +1708,29 @@ rule rule2 : Tag2 {
         # self.assertEqual(string3.token_last.location.begin.column, 19)  # FIXME: 19 != 27
         # self.assertEqual(string3.token_last.location.end.line, 5)  # FIXME: 5 != 1
         # self.assertEqual(string3.token_last.location.end.column, 20)  # FIXME: 20 != 0
+
+
+    def test_include_file(self):
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_file.yar')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        expected = r'''include "testing_include.yar"
+
+rule rule1
+{
+	condition:
+		RULE and
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
