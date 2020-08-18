@@ -249,7 +249,9 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text_formatted", [](const YaraFile& self) { return self.getTextFormatted(); })
 		.def_property_readonly("tokenstream", [](const YaraFile& self) { return self.getTokenStream();} )
 		.def("find_symbol", &YaraFile::findSymbol)
-		.def("add_rule", py::overload_cast<const std::shared_ptr<Rule>&>(&YaraFile::addRule))
+		.def("add_rule", [](YaraFile& self, const std::shared_ptr<Rule>& rule) {
+				self.addRule(rule, true);
+			})
 		.def("insert_rule", py::overload_cast<std::size_t, const std::shared_ptr<Rule>&>(&YaraFile::insertRule))
 		.def("remove_rules", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Rule>&)>& pred) {
 				self.removeRules(pred);

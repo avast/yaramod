@@ -657,7 +657,6 @@ rule rule_1 {
         self.assertEqual(len(yara_file.rules), 1)
         rule = yara_file.rules[0]
         cond = rule.condition
-        print(cond.text)
         self.assertEqual(r'''$str1 and (cuckoo.filesystem.file_access(/C:\\Users\\Avastian\\file1.exe/i) or false or cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or cuckoo.network.http_post(/\/.*\/tasks\.php/) or false)''', cond.text)
 
         self.assertEqual(r'''import "cuckoo"
@@ -683,6 +682,89 @@ rule rule_1
 			cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or
 			cuckoo.network.http_post(/\/.*\/tasks\.php/) or
 			false
+		)
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+
+    def test_cuckoo_function_replacer(self):
+        class InterestingRuleInserter(yaramod.ModifyingVisitor):
+            def insert_interesting_rule(self, yara_file):
+                """Insert the INTERESTING rule into yara ruleset."""
+
+                interesting_rule_cond = yaramod.conjunction([
+                    yaramod.id('first_file'),
+                    yaramod.id('second_file')
+                ])
+
+                interesting_rule = yaramod.YaraRuleBuilder() \
+                    .with_modifier(yaramod.RuleModifier.Private) \
+                    .with_name('INTERESTING') \
+                    .with_condition(interesting_rule_cond.get()) \
+                    .get()
+
+                for rule in yara_file.rules:
+                    if not rule.is_private:
+                        context = yaramod.TokenStreamContext(rule.condition)
+                        output = yaramod.conjunction([
+                            yaramod.id(interesting_rule.name),
+                            yaramod.paren(yaramod.YaraExpressionBuilder(rule.condition), linebreaks=True)
+                        ]).get()
+                        self.cleanup_tokenstreams(context, output)
+                        rule.condition = output
+
+                yara_file.insert_rule(0, interesting_rule)
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rule_1 {
+	strings:
+		$str1 = "a"
+	condition:
+		$str1
+}
+''')
+
+        visitor = InterestingRuleInserter()
+        visitor.insert_interesting_rule(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 2)
+        rule = yara_file.rules[1]
+        cond = rule.condition
+        # print(cond.text)
+        self.assertEqual(r'''INTERESTING and (
+	$str1
+)''', cond.text)
+
+        self.assertEqual(r'''private rule INTERESTING {
+	condition:
+		first_file and second_file
+}
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+	condition:
+		INTERESTING and (
+			$str1
+		)
+}''', yara_file.text)
+        expected = r'''
+private rule INTERESTING
+{
+	condition:
+		first_file and
+		second_file
+}
+
+rule rule_1
+{
+	strings:
+		$str1 = "a"
+	condition:
+		INTERESTING and
+		(
+			$str1
 		)
 }
 '''
