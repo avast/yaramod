@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.7.3 (2020-08-18)
+
+* Fixed token location computing of plain and hex strings ([#124](https://github.com/avast/yaramod/pull/124))
+* Exposed token and symbol file position via python bindings ([#120](https://github.com/avast/yaramod/pull/120))
+* Fixed both python and c++ bool Simplifiers ([#121](https://github.com/avast/yaramod/pull/121))
+* Renamed `ModifyingVisitor::cleanUpTokenStreams` to `ModifyingVisitor::cleanup_tokenstreams` ([#121](https://github.com/avast/yaramod/pull/121))
+* Unified duplicated `location.h` headers ([#118](https://github.com/avast/yaramod/pull/118))
 
 # v3.7.2
 
