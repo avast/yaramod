@@ -210,6 +210,7 @@ bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
  * Adds the rule to the YARA file.
  *
  * @param rule Rule to add.
+ * @param extractTokens set if the tokens should be extracted into the _tokenStream.
  */
 void YaraFile::addRule(Rule&& rule, bool extractTokens)
 {
