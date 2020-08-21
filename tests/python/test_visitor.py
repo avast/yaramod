@@ -769,3 +769,4 @@ rule rule_1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+        
