@@ -2049,7 +2049,6 @@ IncludeResult ParserDriver::includeFileImpl(const std::string& includePath, std:
 		_fileContexts.emplace_back(includePath, _includedFiles.back().get(), tokenStream.value());
 	else
 		_fileContexts.emplace_back(includePath, _includedFiles.back().get());
-	//_includedFileNames.push_back(includePath);
 	_includedFilesCache.emplace(absolutePath(includePath));
 
 	return IncludeResult::Included;

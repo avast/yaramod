@@ -657,7 +657,6 @@ rule rule_1 {
         self.assertEqual(len(yara_file.rules), 1)
         rule = yara_file.rules[0]
         cond = rule.condition
-        print(cond.text)
         self.assertEqual(r'''$str1 and (cuckoo.filesystem.file_access(/C:\\Users\\Avastian\\file1.exe/i) or false or cuckoo.registry.key_access(/\\Microsoft\\Windows NT\\CurrentVersion/i) or cuckoo.network.http_post(/\/.*\/tasks\.php/) or false)''', cond.text)
 
         self.assertEqual(r'''import "cuckoo"

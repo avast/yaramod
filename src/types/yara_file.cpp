@@ -210,20 +210,22 @@ bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
  * Adds the rule to the YARA file.
  *
  * @param rule Rule to add.
+ * @param extractTokens set if the tokens should be extracted into the _tokenStream.
  */
-void YaraFile::addRule(Rule&& rule)
+void YaraFile::addRule(Rule&& rule, bool extractTokens)
 {
-	addRule(std::make_unique<Rule>(std::move(rule)));
+	addRule(std::make_unique<Rule>(std::move(rule)), extractTokens);
 }
 
 /**
  * Adds the rule to the YARA file.
  *
  * @param rule Rule to add.
+ * @param extractTokens set if the tokens should be extracted into the _tokenStream.
  */
-void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
+void YaraFile::addRule(std::unique_ptr<Rule>&& rule, bool extractTokens)
 {
-	if (rule->getTokenStream() != _tokenStream.get())
+	if (extractTokens && (rule->getTokenStream() != _tokenStream.get()))
 		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(std::move(rule));
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
@@ -233,10 +235,11 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule)
  * Adds the rule to the YARA file.
  *
  * @param rule Rule to add.
+ * @param extractTokens set if the tokens should be extracted into the _tokenStream.
  */
-void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
+void YaraFile::addRule(const std::shared_ptr<Rule>& rule, bool extractTokens)
 {
-	if (rule->getTokenStream() != _tokenStream.get())
+	if (extractTokens && (rule->getTokenStream() != _tokenStream.get()))
 		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(rule);
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
@@ -246,11 +249,12 @@ void YaraFile::addRule(const std::shared_ptr<Rule>& rule)
  * Adds the rules to the YARA file.
  *
  * @param rules Rules to add.
+ * @param extractTokens set if the tokens should be extracted into the _tokenStream.
  */
-void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules)
+void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules, bool extractTokens)
 {
 	for (const auto& rule : rules)
-		addRule(rule);
+		addRule(rule, extractTokens);
 }
 
 /**

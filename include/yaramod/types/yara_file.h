@@ -38,10 +38,10 @@ public:
 	/// @name Addition methods
 	/// @{
 	bool addImport(TokenIt import, ModulesPool& modules);
-	void addRule(Rule&& rule);
-	void addRule(std::unique_ptr<Rule>&& rule);
-	void addRule(const std::shared_ptr<Rule>& rule);
-	void addRules(const std::vector<std::shared_ptr<Rule>>& rules);
+	void addRule(Rule&& rule, bool extractTokens = false);
+	void addRule(std::unique_ptr<Rule>&& rule, bool extractTokens = false);
+	void addRule(const std::shared_ptr<Rule>& rule, bool extractTokens = false);
+	void addRules(const std::vector<std::shared_ptr<Rule>>& rules, bool extractTokens = false);
 	bool addImports(const std::vector<TokenIt>& imports, ModulesPool& modules);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
