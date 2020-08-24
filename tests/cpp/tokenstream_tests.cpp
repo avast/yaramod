@@ -56,12 +56,12 @@ TokenStreamFind) {
 	ts.emplace_back(TokenType::COMMENT, "/*c5*/");
 	ts.emplace_back(TokenType::META_KEY, "k3");
 
-	ASSERT_EQ(ts.find(COMMENT), c1);
-	ASSERT_EQ(ts.find(COMMENT, k1), c3);
-	ASSERT_EQ(ts.find(COMMENT, c3), c3);
-	ASSERT_EQ(ts.find(META_VALUE),			ts.end());
-	ASSERT_EQ(ts.find(META_VALUE, c1),	  ts.end());
-	ASSERT_EQ(ts.find(META_VALUE, c1, c4), c4		);
+	ASSERT_EQ(ts.find(TokenType::COMMENT), c1);
+	ASSERT_EQ(ts.find(TokenType::COMMENT, k1), c3);
+	ASSERT_EQ(ts.find(TokenType::COMMENT, c3), c3);
+	ASSERT_EQ(ts.find(TokenType::META_VALUE), ts.end());
+	ASSERT_EQ(ts.find(TokenType::META_VALUE, c1), ts.end());
+	ASSERT_EQ(ts.find(TokenType::META_VALUE, c1, c4), c4);
 }
 
 TEST_F(TokenStreamTests,
@@ -87,12 +87,12 @@ TokenStreamFindBackwards) {
 	TokenIt c5 = ts.emplace_back(TokenType::COMMENT, "/*c5*/");
 	ts.emplace_back(TokenType::META_KEY, "k3");
 
-	ASSERT_EQ(ts.findBackwards(COMMENT), c5);
-	ASSERT_EQ(ts.findBackwards(COMMENT, k1), c2);
-	ASSERT_EQ(ts.findBackwards(COMMENT, c3), c2);
-	ASSERT_EQ(ts.findBackwards(META_VALUE),			ts.end());
-	ASSERT_EQ(ts.findBackwards(META_VALUE, c1),	  c1);
-	ASSERT_EQ(ts.findBackwards(META_KEY, c1, c4), k2		);
+	ASSERT_EQ(ts.findBackwards(TokenType::COMMENT), c5);
+	ASSERT_EQ(ts.findBackwards(TokenType::COMMENT, k1), c2);
+	ASSERT_EQ(ts.findBackwards(TokenType::COMMENT, c3), c2);
+	ASSERT_EQ(ts.findBackwards(TokenType::META_VALUE), ts.end());
+	ASSERT_EQ(ts.findBackwards(TokenType::META_VALUE, c1), c1);
+	ASSERT_EQ(ts.findBackwards(TokenType::META_KEY, c1, c4), k2);
 }
 
 TEST_F(TokenStreamTests,

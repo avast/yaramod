@@ -50,12 +50,12 @@ public:
 	{
 		switch(_type)
 		{
-			case Type::Value : return VALUE_SYMBOL;
-			case Type::Array : return ARRAY_SYMBOL;
-			case Type::Dictionary : return DICTIONARY_SYMBOL;
-			case Type::Function : return FUNCTION_SYMBOL;
-			case Type::Structure : return STRUCTURE_SYMBOL;
-			default: return INVALID;
+			case Type::Value : return TokenType::VALUE_SYMBOL;
+			case Type::Array : return TokenType::ARRAY_SYMBOL;
+			case Type::Dictionary : return TokenType::DICTIONARY_SYMBOL;
+			case Type::Function : return TokenType::FUNCTION_SYMBOL;
+			case Type::Structure : return TokenType::STRUCTURE_SYMBOL;
+			default: return TokenType::INVALID;
 		}
 	}
 	/// @}
