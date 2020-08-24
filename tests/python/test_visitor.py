@@ -686,3 +686,82 @@ rule rule_1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_rule_inserter(self):
+        class RuleInserter(yaramod.ModifyingVisitor):
+            def insert_rule(self, yara_file):
+                rule_cond = yaramod.conjunction([
+                    yaramod.id('first_file'),
+                    yaramod.id('second_file')
+                ])
+
+                another_rule = yaramod.YaraRuleBuilder() \
+                    .with_modifier(yaramod.RuleModifier.Private) \
+                    .with_name('ANOTHER_RULE') \
+                    .with_condition(rule_cond.get()) \
+                    .get()
+
+                for rule in yara_file.rules:
+                    if not rule.is_private:
+                        context = yaramod.TokenStreamContext(rule.condition)
+                        output = yaramod.conjunction([
+                            yaramod.id(another_rule.name),
+                            yaramod.paren(yaramod.YaraExpressionBuilder(rule.condition), linebreaks=True)
+                        ]).get()
+                        self.cleanup_tokenstreams(context, output)
+                        rule.condition = output
+
+                yara_file.insert_rule(0, another_rule)
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rule_1 {
+	strings:
+		$str1 = "a"
+	condition:
+		$str1
+}
+''')
+
+        visitor = RuleInserter()
+        visitor.insert_rule(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 2)
+        rule = yara_file.rules[1]
+        cond = rule.condition
+        self.assertEqual(r'''ANOTHER_RULE and (
+	$str1
+)''', cond.text)
+
+        self.assertEqual(r'''private rule ANOTHER_RULE {
+	condition:
+		first_file and second_file
+}
+
+rule rule_1 {
+	strings:
+		$str1 = "a"
+	condition:
+		ANOTHER_RULE and (
+			$str1
+		)
+}''', yara_file.text)
+        expected = r'''
+private rule ANOTHER_RULE
+{
+	condition:
+		first_file and
+		second_file
+}
+
+rule rule_1
+{
+	strings:
+		$str1 = "a"
+	condition:
+		ANOTHER_RULE and
+		(
+			$str1
+		)
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
