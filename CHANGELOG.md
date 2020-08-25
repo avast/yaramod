@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.7.4 (2020-08-25)
+
+* Converted `TokenType` enum to c++11 enum class ([#123](https://github.com/avast/yaramod/pull/123))
+* Fixed include directive not to extract tokens ([#129](https://github.com/avast/yaramod/pull/129))
+
 # v3.7.3 (2020-08-18)
 
 * Fixed token location computing of plain and hex strings ([#124](https://github.com/avast/yaramod/pull/124))
