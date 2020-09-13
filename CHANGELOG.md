@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.7.5 (2020-09-13)
+
+* Added new VirusTotal AV external variables
+
 # v3.7.4 (2020-08-25)
 
 * Converted `TokenType` enum to c++11 enum class ([#123](https://github.com/avast/yaramod/pull/123))
