@@ -243,6 +243,9 @@ bool PeModule::initialize(ImportFeatures/* features*/)
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports", Type::Int, Type::String));
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports", Type::Int, Type::Regexp));
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports", Type::Int, Type::Int));
+	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports_index", Type::Int, Type::String));
+	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports_index", Type::Int, Type::Regexp));
+	peStruct->addAttribute(std::make_shared<FunctionSymbol>("exports_index", Type::Int, Type::Int));
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("imports", Type::Int, Type::String, Type::String));
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("imports", Type::Int, Type::String, Type::Int));
 	peStruct->addAttribute(std::make_shared<FunctionSymbol>("imports", Type::Int, Type::String));
@@ -255,6 +258,16 @@ bool PeModule::initialize(ImportFeatures/* features*/)
 
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_imports", Type::Int));
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_exports", Type::Int));
+
+	peStruct->addAttribute(std::make_shared<ValueSymbol>("dll_name", Type::String));
+	peStruct->addAttribute(std::make_shared<ValueSymbol>("export_timestamp", Type::Int));
+
+	auto exportDetailsStruct = std::make_shared<StructureSymbol>("export_details");
+	exportDetailsStruct->addAttribute(std::make_shared<ValueSymbol>("offset", Type::Int));
+	exportDetailsStruct->addAttribute(std::make_shared<ValueSymbol>("name", Type::String));
+	exportDetailsStruct->addAttribute(std::make_shared<ValueSymbol>("forward_name", Type::String));
+	exportDetailsStruct->addAttribute(std::make_shared<ValueSymbol>("ordinal", Type::Int));
+	peStruct->addAttribute(std::make_shared<ArraySymbol>("export_details", exportDetailsStruct));
 
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("resource_timestamp", Type::Int));
 
@@ -275,6 +288,7 @@ bool PeModule::initialize(ImportFeatures/* features*/)
 	peStruct->addAttribute(std::make_shared<ArraySymbol>("resources", resourcesStruct));
 
 	peStruct->addAttribute(std::make_shared<ValueSymbol>("number_of_resources", Type::Int));
+	peStruct->addAttribute(std::make_shared<ValueSymbol>("pdb_path", Type::String));
 
 	auto signaturesStruct = std::make_shared<StructureSymbol>("signatures");
 	signaturesStruct->addAttribute(std::make_shared<ValueSymbol>("thumbprint", Type::String));

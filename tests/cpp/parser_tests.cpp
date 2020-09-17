@@ -3098,8 +3098,8 @@ try
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
-		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 7.17-20: Unrecognized identifier 'name' referenced", err.getErrorMessage());
+		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
+		EXPECT_EQ("Error at 2.8-17: Unrecognized module 'metadata' imported", err.getErrorMessage());
 	}
 }
 
@@ -3642,7 +3642,7 @@ rule rule_2
 	condition:
 		true
 		/* cuckoo */
-		
+
 		or false
 }
 )");
@@ -3723,12 +3723,12 @@ rule rule_3
 	condition:
 		//cuckoo
 		cuckoo.sync.mutex(/a/)
-		
+
 		or cuckoo.sync.mutex(/b/)
-		
+
 		//cuckoo 64-bit
 
-	
+
 		and cuckoo.sync.mutex(/c/)
 
 

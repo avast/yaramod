@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MetadataModule::MetadataModule() : Module("metadata", ImportFeatures::Basic)
+MetadataModule::MetadataModule() : Module("metadata", ImportFeatures::AvastOnly)
 {
 }
 
@@ -28,19 +28,13 @@ bool MetadataModule::initialize(ImportFeatures features)
 	auto metadataStruct = std::make_shared<StructureSymbol>("metadata");
 
 	auto fileStruct = std::make_shared<StructureSymbol>("file");
-	if (features & ImportFeatures::AvastOnly)
-	{
-		fileStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::String));
-		fileStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
-	}
+	fileStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::String));
+	fileStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
 	metadataStruct->addAttribute(fileStruct);
 
 	auto detectionStruct = std::make_shared<StructureSymbol>("detection");
-	if (features & ImportFeatures::AvastOnly)
-	{
-		detectionStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
-		detectionStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::String, Type::Regexp));
-	}
+	detectionStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
+	detectionStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::String, Type::Regexp));
 	metadataStruct->addAttribute(detectionStruct);
 
 	_structure = metadataStruct;

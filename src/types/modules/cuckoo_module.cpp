@@ -32,10 +32,16 @@ bool CuckooModule::initialize(ImportFeatures features)
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_get", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_post", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("host", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_user_agent", Type::Int, Type::Regexp));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp", Type::Int, Type::Regexp, Type::Int));
+	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("udp", Type::Int, Type::Regexp, Type::Int));
 	if (features & ImportFeatures::AvastOnly)
 	{
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int));
+		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp", Type::Int, Type::Regexp));
+		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("udp", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_request_body", Type::Int, Type::Regexp, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_response_body", Type::Int, Type::Regexp));
