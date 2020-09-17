@@ -34,9 +34,10 @@ public:
 	 * Regular -- regular YARA parser
 	 * IncludeGuarded -- protection against inclusion of the same file multiple times
 	 *
-	 * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
+	 * @param modulesDirectory directory containing modules
 	 */
 	Yaramod() : _driver() {}
+	Yaramod(const std::string& modulesDirectory) : _driver(modulesDirectory) {}
 	/**
 	 * Parses file at given path.
 	 *

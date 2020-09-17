@@ -6,9 +6,10 @@
 
 #pragma once
 
-#include <iostream>
-
+#include "yaramod/modules_path.h"
 #include "yaramod/types/modules/module.h"
+
+#include <filesystem>
 
 namespace yaramod {
 
@@ -17,7 +18,7 @@ namespace yaramod {
  */
 class ModulesPool {
 public:
-	ModulesPool() : ModulesPool("/home/ts/dev/yaramod/include/modules") {}
+	ModulesPool() : ModulesPool(YARAMOD_PUBLIC_MODULES_DIR)	{}
 	ModulesPool(const std::string& directory);
 
 	/**
@@ -33,10 +34,7 @@ public:
 		auto itr = _knownModules.find(name);
 		// Check that the module exists
 		if (itr == _knownModules.end())
-		{
-			std::cout << "Could not find module '" << name << "'" << std::endl;
 			return nullptr;
-		}
 
 		// Initialize the module if it is not already initialized.
 		if (!itr->second->isInitialized())
@@ -46,6 +44,7 @@ public:
 	}
 
 private:
+	bool _addModule(std::filesystem::path path);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
 };
 

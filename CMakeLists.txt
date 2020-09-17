@@ -23,6 +23,10 @@ set(YARAMOD_SRC_DIR     "${PROJECT_SOURCE_DIR}/src")
 set(YARAMOD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 set(YARAMOD_SRC_BIN_DIR "${PROJECT_BINARY_DIR}/src")
 set(YARAMOD_DEPS_DIR    "${PROJECT_SOURCE_DIR}/deps")
+set(YARAMOD_PUBLIC_MODULES_DIR     "${PROJECT_SOURCE_DIR}/src/modules")
+set(YARAMOD_PRIVATE_MODULES_DIR     "${PROJECT_SOURCE_DIR}/src/modules/private")
+
+configure_file("${PROJECT_SOURCE_DIR}/modules_path.h.in" "${PROJECT_SOURCE_DIR}/include/yaramod/modules_path.h")
 
 # Use C++17.
 set(CMAKE_CXX_STANDARD 17)
@@ -46,3 +50,36 @@ endif()
 if(YARAMOD_DOCS)
 	add_subdirectory(docs)
 endif()
+
+set(WRAP_MODULE_SOURCES
+	${YARAMOD_SRC_DIR}/modules/module_elf.cpp
+	${YARAMOD_SRC_DIR}/modules/module_macho.cpp
+	${YARAMOD_SRC_DIR}/modules/module_cuckoo.cpp
+	${YARAMOD_SRC_DIR}/modules/module_magic.cpp
+	${YARAMOD_SRC_DIR}/modules/module_dotnet.cpp
+	${YARAMOD_SRC_DIR}/modules/module_pe.cpp
+	${YARAMOD_SRC_DIR}/modules/module_metadata.cpp
+	${YARAMOD_SRC_DIR}/modules/module_dex.cpp
+	${YARAMOD_SRC_DIR}/modules/module_cuckoo_deprecated.cpp
+	${YARAMOD_SRC_DIR}/modules/module_math.cpp
+	${YARAMOD_SRC_DIR}/modules/module_time.cpp
+	${YARAMOD_SRC_DIR}/modules/module_hash.cpp
+)
+
+add_custom_command(
+	OUTPUT ${WRAP_MODULE_SOURCES}
+	COMMAND	python3 ${YARAMOD_SRC_DIR}/json_to_byte_array.py
+	# WORKING_DIRECTORY
+	# 	${CMAKE_CURRENT_SOURCE_DIR}
+	COMMENT
+		"Converting yaramod modules from JSON to byte arrays in .cpp files"
+	# VERBATIM
+)
+
+add_custom_target(modules_wrapping ALL
+	# WORKING_DIRECTORY
+	# 	${CMAKE_CURRENT_BINARY_DIR}
+	DEPENDS
+		${WRAP_MODULE_SOURCES}
+	VERBATIM
+)

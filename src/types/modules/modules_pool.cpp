@@ -7,52 +7,57 @@
 #include <sstream>
 
 #include "yaramod/types/modules/modules_pool.h"
-#include <filesystem>
-// #include "yaramod/utils/filesystem.h"
 
 
 namespace yaramod {
 
 using Json = nlohmann::json;
 
+bool ModulesPool::_addModule(std::filesystem::path p)
+{
+	if (p.extension() != ".cpp")
+		return false;
+
+	auto path = p.string();
+	auto json = readJsonFile(path);
+	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
+		return false;
+
+	auto name = accessJsonString(json, "name");
+	auto itr = _knownModules.find(name);
+	if (itr == _knownModules.end())
+	{
+		auto module = std::make_shared<Module>(name, path);
+		_knownModules.emplace(std::make_pair(name, std::move(module)));
+	}
+	else
+		itr->second->addPath(path);
+
+	return true;
+}
+
 ModulesPool::ModulesPool(const std::string& directory)
 {
-	std::vector<std::string> paths = {
-		"include/modules/module_cuckoo.json",
-		"include/modules/module_pe.json",
-		"include/modules/module_dotnet.json",
-		"include/modules/module_elf.json",
-		"include/modules/module_hash.json",
-		"include/modules/module_magic.json",
-		"include/modules/module_math.json",
-		"include/modules/module_metadata.json",
-		"include/modules/module_time.json",
+	bool found_modules = false;
 
-		// "/home/ts/dev/yaramod/include/modules/module_cuckoo_avast.json",
-		// "/home/ts/dev/yaramod/include/modules/module_cuckoo_deprecated.json",
-		// "/home/ts/dev/yaramod/include/modules/module_androguard_avast.json",
-		// "/home/ts/dev/yaramod/include/modules/module_dex.json",
-		// "/home/ts/dev/yaramod/include/modules/module_macho.json",
-		// "/home/ts/dev/yaramod/include/modules/module_metadata_avast.json",
-		// "/home/ts/dev/yaramod/include/modules/module_phish.json"
-	};
-
-	/* For each path create new module or add the path to existing one. */
-	/* for (const auto& entry : std::experimental::filesystem::directory_iterator(directory)) */
-	for (const auto& path : paths)
+	if (const char* env_p = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
 	{
-		// const auto& path = entry.path();
-		auto json = readJsonFile(path);
-		auto name = accessJsonString(json, "name");
-		auto itr = _knownModules.find(name);
-		if (itr == _knownModules.end())
-		{
-			auto module = std::make_shared<Module>(name, path);
-			_knownModules.emplace(std::make_pair(name, std::move(module)));
-		}
-		else
-			itr->second->addPath(path);
+		std::stringstream paths;
+		paths << env_p;
+		for (std::string path; std::getline(paths, path, ':'); )
+			found_modules = _addModule(std::filesystem::path(path));
 	}
+
+	// Try to load each file in the directory
+	if (!found_modules)
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(directory))
+		{
+			const auto& p = entry.path();
+			found_modules = _addModule(p);
+		}
+	}
+
 	// Initializes all modules
 	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
 		itr->second->initialize();
