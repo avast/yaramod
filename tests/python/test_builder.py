@@ -1092,6 +1092,39 @@ rule rule_with_dictionary_access_condition {
 		pe.version_info["CompanyName"]
 }''')
 
+    def test_rule_with_for_loop_over_dictionary(self):
+        cond = yaramod.for_loop(
+                yaramod.any(),
+                'k',
+                'v',
+                yaramod.id('pe').access('os_version'),
+                yaramod.id('v') == yaramod.int_val(3)
+            )
+        rule = self.new_rule \
+            .with_name('rule_with_for_loop_over_dictionary') \
+            .with_plain_string('$1', 'This is plain string.') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_for_loop_over_dictionary
+{
+	strings:
+		$1 = "This is plain string."
+	condition:
+		for any k, v in pe.os_version : ( v == 3 )
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_for_loop_over_dictionary {
+	strings:
+		$1 = "This is plain string."
+	condition:
+		for any k, v in pe.os_version : ( v == 3 )
+}''')
+
     def test_rule_with_complex_condition(self):
         cond = yaramod.for_loop(
                 yaramod.any(),
@@ -1141,6 +1174,10 @@ rule rule_with_dictionary_access_condition {
             .with_plain_string('$3', 'Hello').xor() \
             .with_plain_string('$4', 'Hello').xor(128) \
             .with_plain_string('$5', 'Hello').wide().xor(1, 255) \
+            .with_plain_string('$6', 'Hello').base64() \
+            .with_plain_string('$7', 'Hello').base64wide() \
+            .with_plain_string('$8', 'Hello').base64('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private()
+            .with_plain_string('$9', 'Hello').base64wide('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private()
             .get()
         yara_file = self.new_file \
             .with_rule(rule) \
@@ -1154,6 +1191,10 @@ rule rule_with_dictionary_access_condition {
 		$3 = "Hello" xor
 		$4 = "Hello" xor(128)
 		$5 = "Hello" wide xor(1-255)
+		$6 = "Hello" base64
+		$7 = "Hello" base64wide
+		$8 = "Hello" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
+		$9 = "Hello" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
 	condition:
 		true
 }
@@ -1165,6 +1206,10 @@ rule rule_with_dictionary_access_condition {
 		$3 = "Hello" xor
 		$4 = "Hello" xor(128)
 		$5 = "Hello" wide xor(1-255)
+		$6 = "Hello" base64
+		$7 = "Hello" base64wide
+		$8 = "Hello" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
+		$9 = "Hello" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
 	condition:
 		true
 }''')

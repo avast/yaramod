@@ -553,7 +553,7 @@ RuleWithConditionWithSymbolsWorks) {
 	auto cond = forLoop(any(), "n", set({intVal(1), intVal(2), intVal(3)}), matchAt("$1", paren(entrypoint() + id("i")))).get();
 	EXPECT_EQ("for", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
-	auto forExp = std::static_pointer_cast<ForIntExpression>(cond);
+	auto forExp = std::static_pointer_cast<ForArrayExpression>(cond);
 	EXPECT_EQ(forExp->getId(), "n");
 	forExp->setId("i");
 	EXPECT_EQ(forExp->getId(), "i");
@@ -636,6 +636,45 @@ RuleWithHexStringWorks) {
 		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
 		$1
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+RuleWithDictForConditionWorks) {
+	auto cond = forLoop(any(), "k", "v", id("pe").access("os_version"), id("v") == intVal(3)).get();
+	EXPECT_EQ("for", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_dict_for_condition")
+		.withPlainString("$1", "Hello World!")
+		.withPlainString("$2", "Ahoj Svet!")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(false, &driver);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_dict_for_condition {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		for any k, v in pe.os_version : ( v == 3 )
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_dict_for_condition
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		for any k, v in pe.os_version : ( v == 3 )
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1622,6 +1661,10 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		.withPlainString("$8", "Bye").xor_(12)
 		.withPlainString("$9", "Bye").xor_(1, 255)
 		.withPlainString("$10", "Bye").xor_(128).xor_(1, 255)
+		.withPlainString("$11", "Bye").base64()
+		.withPlainString("$12", "Bye").base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		.withPlainString("$13", "Bye").base64wide()
+		.withPlainString("$14", "Bye").base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 		.withCondition(cond)
 		.get();
 
@@ -1643,6 +1686,10 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		$8 = "Bye" xor(12)
 		$9 = "Bye" xor(1-255)
 		$10 = "Bye" xor(128)
+		$11 = "Bye" base64
+		$12 = "Bye" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$13 = "Bye" base64wide
+		$14 = "Bye" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		all of them
 })", yaraFile->getText());
@@ -1660,6 +1707,10 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		$8 = "Bye" xor(12)
 		$9 = "Bye" xor(1-255)
 		$10 = "Bye" xor(128)
+		$11 = "Bye" base64
+		$12 = "Bye" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$13 = "Bye" base64wide
+		$14 = "Bye" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		all of them
 }

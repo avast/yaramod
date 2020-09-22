@@ -307,12 +307,23 @@ public:
 		return {};
 	}
 
-	virtual yaramod::VisitResult visit(yaramod::ForIntExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::ForDictExpression* expr) override
+	{
+		dump("ForDict", expr, " id=", expr->getId());
+		indentUp();
+		expr->getVariable()->accept(this);
+		expr->getIterable()->accept(this);
+		expr->getBody()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::ForArrayExpression* expr) override
 	{
 		dump("ForInt", expr, " id=", expr->getId());
 		indentUp();
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
 		expr->getBody()->accept(this);
 		indentDown();
 		return {};
@@ -323,7 +334,7 @@ public:
 		dump("ForString", expr);
 		indentUp();
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
 		expr->getBody()->accept(this);
 		indentDown();
 		return {};
@@ -334,7 +345,7 @@ public:
 		dump("Of", expr);
 		indentUp();
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
 		indentDown();
 		return {};
 	}

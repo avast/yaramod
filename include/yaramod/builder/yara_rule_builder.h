@@ -76,6 +76,11 @@ public:
 	YaraRuleBuilder& xor_();
 	YaraRuleBuilder& xor_(std::uint64_t key);
 	YaraRuleBuilder& xor_(std::uint64_t low, std::uint64_t high);
+	YaraRuleBuilder& base64();
+	YaraRuleBuilder& base64(const std::string& alphabet);
+	YaraRuleBuilder& base64wide();
+	YaraRuleBuilder& base64wide(const std::string& alphabet);
+
 	/// @}
 
 private:

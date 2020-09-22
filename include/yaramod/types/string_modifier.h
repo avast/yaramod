@@ -26,7 +26,9 @@ public:
 		Nocase,
 		Fullword,
 		Private,
-		Xor
+		Xor,
+		Base64,
+		Base64Wide
 	};
 
 	StringModifier(Type type, const std::string& name, TokenIt firstToken, TokenIt lastToken) : _type(type), _name(name), _tokens(firstToken, lastToken) {}
@@ -51,6 +53,8 @@ public:
 	bool isFullword() const { return _type == Type::Fullword; }
 	bool isPrivate() const { return _type == Type::Private; }
 	bool isXor() const { return _type == Type::Xor; }
+	bool isBase64() const { return _type == Type::Base64; }
+	bool isBase64Wide() const { return _type == Type::Base64Wide; }
 
 	virtual std::string getText() const = 0;
 
@@ -142,6 +146,62 @@ public:
 
 private:
 	std::optional<std::uint32_t> _low, _high;
+};
+
+class Base64StringModifier : public StringModifier
+{
+public:
+	Base64StringModifier(TokenIt token) : StringModifier(Type::Base64, "base64", token, token), _alphabet() {}
+
+	Base64StringModifier(TokenIt firstToken, TokenIt lastToken, const std::string& alphabet) : StringModifier(Type::Base64, "base64", firstToken, lastToken), _alphabet(alphabet)
+	{
+		if (alphabet.length() != 64)
+			throw YaramodError("Error: The alphabet of base64 modifier must be 64 bytes long");
+	}
+
+	/**
+	 * Indicates whether it is base64 modifier with alphabet.
+	 */
+	bool hasAlphabet() const { return _alphabet.has_value(); }
+
+	virtual std::string getText() const override
+	{
+		if (hasAlphabet())
+			return getName() + "(\"" + escapeString(_alphabet.value()) + "\")";
+		else
+			return getName();
+	}
+
+private:
+	std::optional<std::string> _alphabet;
+};
+
+class Base64WideStringModifier : public StringModifier
+{
+public:
+	Base64WideStringModifier(TokenIt token) : StringModifier(Type::Base64Wide, "base64wide", token, token), _alphabet() {}
+
+	Base64WideStringModifier(TokenIt firstToken, TokenIt lastToken, const std::string& alphabet) : StringModifier(Type::Base64Wide, "base64wide", firstToken, lastToken), _alphabet(alphabet)
+	{
+		if (alphabet.length() != 64)
+			throw YaramodError("Error: The alphabet of base64wide modifier must be 64 bytes long");
+	}
+
+	/**
+	 * Indicates whether it is base64wide modifier with alphabet.
+	 */
+	bool hasAlphabet() const { return _alphabet.has_value(); }
+
+	virtual std::string getText() const override
+	{
+		if (hasAlphabet())
+			return getName() + "(\"" + escapeString(_alphabet.value()) + "\")";
+		else
+			return getName();
+	}
+
+private:
+	std::optional<std::string> _alphabet;
 };
 
 }

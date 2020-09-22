@@ -1025,7 +1025,7 @@ rule for_integer_set_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ForIntExpression))
+        self.assertTrue(isinstance(rule.condition, yaramod.ForArrayExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.AllExpression))
         self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
         self.assertTrue(isinstance(rule.condition.body, yaramod.IdExpression))

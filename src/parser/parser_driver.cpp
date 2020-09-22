@@ -996,7 +996,7 @@ void ParserDriver::defineGrammar()
 				removeLocalSymbol(id->getString());
 				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
 				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForIntExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
 				return output;
