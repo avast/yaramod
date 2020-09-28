@@ -1097,8 +1097,11 @@ rule rule_with_dictionary_access_condition {
                 yaramod.any(),
                 'k',
                 'v',
-                yaramod.id('pe').access('os_version'),
-                yaramod.id('v') == yaramod.int_val(3)
+                yaramod.id('pe').access('version_info'),
+                yaramod.conjunction([
+                    yaramod.id('k') == yaramod.string_val('CompanyName'),
+                    yaramod.id('v').contains(yaramod.string_val('Microsoft'))
+                ])
             )
         rule = self.new_rule \
             .with_name('rule_with_for_loop_over_dictionary') \
@@ -1115,14 +1118,17 @@ rule rule_with_dictionary_access_condition {
 	strings:
 		$1 = "This is plain string."
 	condition:
-		for any k, v in pe.os_version : ( v == 3 )
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
 }
 ''')
         self.assertEqual(yara_file.text, '''rule rule_with_for_loop_over_dictionary {
 	strings:
 		$1 = "This is plain string."
 	condition:
-		for any k, v in pe.os_version : ( v == 3 )
+		for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )
 }''')
 
     def test_rule_with_complex_condition(self):
@@ -1176,8 +1182,8 @@ rule rule_with_dictionary_access_condition {
             .with_plain_string('$5', 'Hello').wide().xor(1, 255) \
             .with_plain_string('$6', 'Hello').base64() \
             .with_plain_string('$7', 'Hello').base64wide() \
-            .with_plain_string('$8', 'Hello').base64('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private()
-            .with_plain_string('$9', 'Hello').base64wide('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private()
+            .with_plain_string('$8', 'Hello').base64('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private() \
+            .with_plain_string('$9', 'Hello').base64wide('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private() \
             .get()
         yara_file = self.new_file \
             .with_rule(rule) \
@@ -1208,8 +1214,8 @@ rule rule_with_dictionary_access_condition {
 		$5 = "Hello" wide xor(1-255)
 		$6 = "Hello" base64
 		$7 = "Hello" base64wide
-		$8 = "Hello" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
-		$9 = "Hello" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
+		$8 = "Hello" private base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$9 = "Hello" private base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		true
 }''')

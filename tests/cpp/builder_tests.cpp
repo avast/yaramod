@@ -1656,7 +1656,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		.withPlainString("$3", "World").ascii().wide().private_()
 		.withHexString("$4", YaraHexStringBuilder{std::vector<std::uint8_t>{0x01, 0x02, 0x03, 0x04}}.get())
 		.withRegexp("$5", "abc", "i").wide().nocase()
-		.withPlainString("$6", "Bye").nocase().xor_()
+		.withPlainString("$6", "Bye").wide().xor_()
 		.withPlainString("$7", "Bye").fullword().xor_()
 		.withPlainString("$8", "Bye").xor_(12)
 		.withPlainString("$9", "Bye").xor_(1, 255)
@@ -1681,7 +1681,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		$3 = "World" ascii wide private
 		$4 = { 01 02 03 04 }
 		$5 = /abc/i wide nocase
-		$6 = "Bye" nocase xor
+		$6 = "Bye" wide xor
 		$7 = "Bye" fullword xor
 		$8 = "Bye" xor(12)
 		$9 = "Bye" xor(1-255)
@@ -1702,7 +1702,7 @@ RuleWithStringsWithDifferentKindsOfModifiers) {
 		$3 = "World" ascii wide private
 		$4 = { 01 02 03 04 }
 		$5 = /abc/i wide nocase
-		$6 = "Bye" nocase xor
+		$6 = "Bye" wide xor
 		$7 = "Bye" fullword xor
 		$8 = "Bye" xor(12)
 		$9 = "Bye" xor(1-255)

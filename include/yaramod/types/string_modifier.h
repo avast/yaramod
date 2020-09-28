@@ -164,6 +164,8 @@ public:
 	 */
 	bool hasAlphabet() const { return _alphabet.has_value(); }
 
+	const std::optional<std::string>& getAlphabet() const { return _alphabet; }
+
 	virtual std::string getText() const override
 	{
 		if (hasAlphabet())
@@ -191,6 +193,8 @@ public:
 	 * Indicates whether it is base64wide modifier with alphabet.
 	 */
 	bool hasAlphabet() const { return _alphabet.has_value(); }
+
+	const std::optional<std::string>& getAlphabet() const { return _alphabet; }
 
 	virtual std::string getText() const override
 	{

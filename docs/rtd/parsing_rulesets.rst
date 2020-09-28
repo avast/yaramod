@@ -159,6 +159,8 @@ Iterating over available strings is also possible and you can distinguish which 
                 print(f'  fullword: {string.is_fullword}')
                 print(f'  private: {string.is_private}')
                 print(f'  xor: {string.is_xor}')
+                print(f'  base64: {string.is_base64}')
+                print(f'  base64wide: {string.is_base64_wide}')
 
     .. tab:: C++
 
@@ -178,7 +180,9 @@ Iterating over available strings is also possible and you can distinguish which 
                     << "  nocase: " << string->isNocase() << '\n'
                     << "  fullword: " << string->isFullword() << '\n'
                     << "  private: " << string->isPrivate() << '\n'
-                    << "  xor: " << string->isXor() << std::endl;
+                    << "  xor: " << string->isXor() << '\n'
+                    << "  base64: " << string->isBase64() << '\n'
+                    << "  base64wide: " << string->isBase64Wide() << std::endl;
             }
         }
 
