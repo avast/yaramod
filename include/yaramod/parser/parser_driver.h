@@ -138,6 +138,7 @@ protected:
 	void setCurrentStrings(const std::shared_ptr<Rule::StringsTrie>& currentStrings);
 	bool sectionStrings() const { return _sectionStrings; };
 	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
+	void checkStringModifier(const std::vector<std::shared_ptr<StringModifier>>& previousMods, const std::shared_ptr<StringModifier>& newMod);
 	/// @}
 
 	/// @name Methods for parser maintainance
@@ -184,7 +185,7 @@ private:
 	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser; ///< used pog parser
-	
+
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 

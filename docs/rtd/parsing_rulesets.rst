@@ -159,6 +159,8 @@ Iterating over available strings is also possible and you can distinguish which 
                 print(f'  fullword: {string.is_fullword}')
                 print(f'  private: {string.is_private}')
                 print(f'  xor: {string.is_xor}')
+                print(f'  base64: {string.is_base64}')
+                print(f'  base64wide: {string.is_base64_wide}')
 
     .. tab:: C++
 
@@ -178,7 +180,9 @@ Iterating over available strings is also possible and you can distinguish which 
                     << "  nocase: " << string->isNocase() << '\n'
                     << "  fullword: " << string->isFullword() << '\n'
                     << "  private: " << string->isPrivate() << '\n'
-                    << "  xor: " << string->isXor() << std::endl;
+                    << "  xor: " << string->isXor() << '\n'
+                    << "  base64: " << string->isBase64() << '\n'
+                    << "  base64wide: " << string->isBase64Wide() << std::endl;
             }
         }
 
@@ -305,9 +309,10 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
 **For expressions**
 
 All of these provide method ``getVariable()`` (``variable`` in Python) to return variable used for iterating over the set of values (can also be ``any`` or ``all``),
-``getIteratedSet()`` (``iterated_set`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
+``getIterable()`` (``iterable`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
 
-  * ``ForIntExpression`` - refers to ``for`` which operates on set of integers (``for all i in (1 .. 5) : ( ... )``)
+  * ``ForDictExpression`` - refers to ``for`` which operates on dictionary (``for all k, v in some_dict : ( ... )``)
+  * ``ForArrayExpression`` - refers to ``for`` which operates on array or set of integers (``for all section in pe.sectioins : ( ... )``)
   * ``ForStringExpression`` - refers to ``for`` which operates on set of string identifiers (``for all of ($str1, $str2) : ( ... )``)
   * ``OfExpression`` - refers to ``of`` (``all of ($str1, $str2)``)
 

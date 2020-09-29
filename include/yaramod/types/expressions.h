@@ -947,53 +947,111 @@ class ForExpression : public Expression
 {
 public:
 	const Expression::Ptr& getVariable() const { return _forExpr; }
-	const Expression::Ptr& getIteratedSet() const { return _set; }
+	const Expression::Ptr& getIterable() const { return _iterable; }
 	const Expression::Ptr& getBody() const { return _expr; }
 
 	void setVariable(const Expression::Ptr& forExpr) { _forExpr = forExpr; }
 	void setVariable(Expression::Ptr&& forExpr) { _forExpr = std::move(forExpr); }
-	void setIteratedSet(const Expression::Ptr& set) { _set = set; }
-	void setIteratedSet(Expression::Ptr&& set) { _set = std::move(set); }
+	void setIterable(const Expression::Ptr& iterable) { _iterable = iterable; }
+	void setIterable(Expression::Ptr&& iterable) { _iterable = std::move(iterable); }
 	void setBody(const Expression::Ptr& expr) { _expr = expr; }
 	void setBody(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 protected:
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& set, ExpPtr3&& expr)
+	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& iterable, ExpPtr3&& expr)
 		: _forExpr(std::forward<ExpPtr1>(forExpr))
-		, _set(std::forward<ExpPtr2>(set))
+		, _iterable(std::forward<ExpPtr2>(iterable))
 		, _expr(std::forward<ExpPtr3>(expr))
 		, _of_in(of_in)
 	{
 	}
 
 	template <typename ExpPtr1, typename ExpPtr2>
-	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& set)
+	ForExpression(ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& iterable)
 		: _forExpr(std::forward<ExpPtr1>(forExpr))
-		, _set(std::forward<ExpPtr2>(set))
+		, _iterable(std::forward<ExpPtr2>(iterable))
 		, _expr(nullptr)
 		, _of_in(of_in)
 	{
 	}
 
-	Expression::Ptr _forExpr, _set, _expr;
+	Expression::Ptr _forExpr, _iterable, _expr;
 	TokenIt _of_in;
 };
 
 /**
- * Class representing for loop over integer set or integer range.
+ * Class representing for loop over dictionary.
+ *
+ * For example:
+ * @code
+ * for all k, v in dome_dict : (  k == "foo" and v == "bar" }
+ * @endcode
+ */
+class ForDictExpression : public ForExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	ForDictExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id1, TokenIt comma, TokenIt id2, TokenIt in, ExpPtr2&& dict, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(dict), std::forward<ExpPtr3>(expr))
+		, _id1(id1)
+		, _comma(comma)
+		, _id2(id2)
+		, _for (for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
+	const std::string& getId1() const { return _id1->getString(); }
+	const std::string& getId2() const { return _id2->getString(); }
+
+	void setId1(const std::string& id) { _id1->setValue(id); }
+	void setId1(std::string&& id) { _id1->setValue(std::move(id)); }
+	void setId2(const std::string& id) { _id2->setValue(id); }
+	void setId2(std::string&& id) { _id2->setValue(std::move(id)); }
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual std::string getText(const std::string& indent = std::string{}) const override
+	{
+		assert(_iterable);
+		std::stringstream ss;
+		ss << _for->getString() << " " << _forExpr->getText(indent) << " " << _id1->getString() << ", " << _id2->getString()
+			<< " " << _of_in->getString() << " " << _iterable->getText(indent) << " : "
+			<< _left_bracket->getString()<< " " << _expr->getText(indent) << " " << _right_bracket->getString();
+		return ss.str();
+	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _for; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
+private:
+	TokenIt _id1; ///< Iterating identifier 1
+	TokenIt _comma; ///< TokenIt of ','
+	TokenIt _id2; ///< Iterating identifier 2
+	TokenIt _for; ///< TokenIt of 'for'
+	TokenIt _left_bracket; ///< TokenIt of '('
+	TokenIt _right_bracket; ///< TokenIt of ')'
+};
+
+/**
+ * Class representing for loop over integer set, integer range or array.
  *
  * For example:
  * @code
  * for all i in (1 .. 5) : ( #str[i] > 0 }
  * @endcode
  */
-class ForIntExpression : public ForExpression
+class ForArrayExpression : public ForExpression
 {
 public:
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	ForIntExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id, TokenIt in, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
-		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
+	ForArrayExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id, TokenIt in, ExpPtr2&& iterable, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(iterable), std::forward<ExpPtr3>(expr))
 		, _id(id)
 		, _for (for_token)
 		, _left_bracket(left_bracket)
@@ -1013,10 +1071,10 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		assert(_set);
+		assert(_iterable);
 		std::stringstream ss;
 		ss << _for->getString() << " " << _forExpr->getText(indent) << " " << _id->getString() << " "
-			<< _of_in->getString() << " " << _set->getText(indent) << " : "
+			<< _of_in->getString() << " " << _iterable->getText(indent) << " : "
 			<< _left_bracket->getString()<< " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
 	}
@@ -1063,7 +1121,7 @@ public:
 	{
 		std::stringstream ss;
 		ss	<< _for->getString() << " " << _forExpr->getText(indent) << " "
-			<< _of_in->getString() + " " << _set->getText(indent) << " : "
+			<< _of_in->getString() + " " << _iterable->getText(indent) << " : "
 			<< _left_bracket->getString() << " " << _expr->getText(indent) << " " << _right_bracket->getString();
 		return ss.str();
 	}
@@ -1104,11 +1162,11 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _set->getText(indent);
+		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent);
 	}
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _set->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _iterable->getLastTokenIt(); }
 };
 
 /**
@@ -1671,7 +1729,7 @@ protected:
 		assert(keyword->isString());
 	}
 	KeywordExpression(const std::shared_ptr<TokenStream>& ts, TokenIt keyword)
-		: Expression(ts) 
+		: Expression(ts)
 		, _keyword(keyword)
 	{
 		assert(keyword->isString());

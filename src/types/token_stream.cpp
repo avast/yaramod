@@ -154,7 +154,7 @@ void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStrea
 					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
 				}
 				else
-				{	
+				{
 					std::stringstream ss;
 					ss << "['" << *local_first << "','" << *local_last << "') and ['" << *other_first << "','" << *other_last << "') intersect in proper subset of each of them.";
 					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
@@ -208,7 +208,7 @@ void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStrea
 	{
 		TokenIt other_insert_before = other_last;
 		_tokens.splice(local_first, other->_tokens, other_first, other_last);
-		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);		
+		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);
 	}
 	_formatted = false;
 }
@@ -845,7 +845,6 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 				case TokenType::BITWISE_NOT:
 				case TokenType::INTEGER_FUNCTION:
 				case TokenType::FUNCTION_SYMBOL:
-				case TokenType::ARRAY_SYMBOL:
 				case TokenType::LSQB:
 				case TokenType::DOT:
 				case TokenType::FUNCTION_CALL_LP:

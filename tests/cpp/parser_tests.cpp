@@ -354,6 +354,10 @@ rule rule_with_plain_strings
 	strings:
 		$1 = "Hello World!" nocase wide
 		$2 = "Bye World." fullword
+		$3 = "string3" base64
+		$4 = "string4" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$5 = "string5" base64wide
+		$6 = "string6" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		true
 }
@@ -367,7 +371,7 @@ rule rule_with_plain_strings
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	auto strings = rule->getStrings();
-	ASSERT_EQ(2u, strings.size());
+	ASSERT_EQ(6u, strings.size());
 
 	auto helloWorld = strings[0];
 	ASSERT_TRUE(helloWorld->isPlain());
@@ -377,6 +381,8 @@ rule rule_with_plain_strings
 	EXPECT_TRUE(static_cast<const PlainString*>(helloWorld)->isWide());
 	EXPECT_TRUE(static_cast<const PlainString*>(helloWorld)->isNocase());
 	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isFullword());
+	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isBase64Wide());
 
 	auto byeWorld = strings[1];
 	ASSERT_TRUE(byeWorld->isPlain());
@@ -386,8 +392,93 @@ rule rule_with_plain_strings
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isWide());
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isNocase());
 	EXPECT_TRUE(static_cast<const PlainString*>(byeWorld)->isFullword());
+	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isBase64Wide());
+
+	auto string3 = strings[2];
+	ASSERT_TRUE(string3->isPlain());
+	EXPECT_EQ("$3", string3->getIdentifier());
+	EXPECT_EQ("\"string3\" base64", string3->getText());
+	EXPECT_TRUE(static_cast<const PlainString*>(string3)->isAscii());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isWide());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isNocase());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isFullword());
+	EXPECT_TRUE(static_cast<const PlainString*>(string3)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isBase64Wide());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+DuplicatedStringModifierForbidden) {
+	prepareInput(
+R"(
+rule duplicated_string_modifier {
+	strings:
+		$1 = "Hello" wide wide
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.21-24: Duplicated modifier wide", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+InvalidStringModifiersCombination) {
+	prepareInput(
+R"(
+rule invalid_string_modifiers_combination {
+	strings:
+		$1 = "Hello" base64 nocase
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.23-28: Invalid combination of string modifiers (base64, nocase)", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+MultipleBase64AlphabetsForbidden) {
+	prepareInput(
+R"(
+rule multiple_base64_alphabets {
+	strings:
+		$1 = "Hello" base64 base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.23-32: Can not specify multiple alphabets for base64 modifiers", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -2628,6 +2719,95 @@ rule for_integer_set_condition
 }
 
 TEST_F(ParserTests,
+ForArrayConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_array_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any section in pe.sections : ( section.name == ".text" )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any section in pe.sections : ( section.name == \".text\" )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+NestedForArrayConditionWorks) {
+	prepareInput(
+R"(
+import "macho"
+
+rule nested_for_array_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any segment in macho.segments : (
+			for any section in segment.sections : (
+				section.sectname == ".text"
+			)
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any segment in macho.segments : ( for any section in segment.sections : ( section.sectname == \".text\" ) )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+
+TEST_F(ParserTests,
+ForDictConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_dict_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any k, v in pe.version_info : ( k == \"CompanyName\" and v contains \"Microsoft\" )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ForStringSetConditionWorks) {
 	prepareInput(
 R"(
@@ -3098,8 +3278,8 @@ try
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driverNoAvastSymbols.getParsedFile().getRules().size());
-		ASSERT_EQ(1u, driverNoAvastSymbols.getParsedFile().getImports().size());
-		EXPECT_EQ("Error at 7.17-20: Unrecognized identifier 'name' referenced", err.getErrorMessage());
+		ASSERT_EQ(0u, driverNoAvastSymbols.getParsedFile().getImports().size());
+		EXPECT_EQ("Error at 2.8-17: Unrecognized module 'metadata' imported", err.getErrorMessage());
 	}
 }
 
@@ -3642,7 +3822,7 @@ rule rule_2
 	condition:
 		true
 		/* cuckoo */
-		
+
 		or false
 }
 )");
@@ -3723,12 +3903,12 @@ rule rule_3
 	condition:
 		//cuckoo
 		cuckoo.sync.mutex(/a/)
-		
+
 		or cuckoo.sync.mutex(/b/)
-		
+
 		//cuckoo 64-bit
 
-	
+
 		and cuckoo.sync.mutex(/c/)
 
 
