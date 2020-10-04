@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.8.0 (2020-10-04)
+
+* Yara 4.0 features as Base64 string modifier, for loop over dictionary and more ([#144](https://github.com/avast/yaramod/pull/144))
+
 # v3.7.5 (2020-09-13)
 
 * Added new VirusTotal AV external variables
