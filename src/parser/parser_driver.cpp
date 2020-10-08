@@ -1037,6 +1037,15 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("for_expression", "OF", "boolean_set", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto array = std::move(args[2].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("NOT", "expression", [&](auto&& args) -> Value {
 			TokenIt not_token = args[0].getTokenIt();
 			auto expr = std::move(args[1].getExpression());
@@ -1643,6 +1652,38 @@ void ParserDriver::defineGrammar()
 				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::make_shared<StringWildcardExpression>(id));
+			output.back()->setTokenStream(currentTokenStream());
+			return output;
+		})
+		;
+		
+	_parser.rule("boolean_set") // Expression::Ptr
+		.production("LSQB", "boolean_enumeration", "RSQB", [&](auto&& args) -> Value {
+			TokenIt lsqb = args[0].getTokenIt();
+			lsqb->setType(TokenType::LSQB);
+			TokenIt rsqb = args[2].getTokenIt();
+			rsqb->setType(TokenType::RSQB);
+			auto output = std::make_shared<SetExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		;
+
+	_parser.rule("boolean_enumeration") // vector<Expression::Ptr>
+		.production("expression", [&](auto&& args) -> Value {
+			auto expression = args[0].getExpression();
+			if (!expression->isBool())
+				error_handle(currentFileContext()->getLocation(), "boolean set expects boolean type");
+			auto output = std::vector<Expression::Ptr>{std::move(expression)};
+			output.front()->setTokenStream(currentTokenStream());
+			return output;
+		})
+		.production("boolean_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
+			auto expression = args[2].getExpression();
+			if (!expression->isBool())
+				error_handle(currentFileContext()->getLocation(), "boolean set expects boolean type");
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(expression));
 			output.back()->setTokenStream(currentTokenStream());
 			return output;
 		})
