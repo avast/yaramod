@@ -569,13 +569,6 @@ void ParserDriver::defineGrammar()
 			TokenIt key = args[1].getTokenIt();
 			key->setType(TokenType::VARIABLE_KEY);
 			auto expr = args[3].getExpression();
-			
-			/*for(auto iter = body.begin(); iter != body.end(); iter++)
-			{
-				if(key->getString().compare(iter->getKey()) == 0) {
-					error_handle(currentFileContext()->getLocation(), "Redefinition of variable " + key->getString());
-				}
-			}*/
 
 			auto symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
 			if(!addLocalSymbol(symbol)) {
