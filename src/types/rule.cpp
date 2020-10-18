@@ -33,13 +33,14 @@ Rule::Rule()
  * @param condition Condition expression.
  * @param tags Tags as token iterators.
  */
-Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings,
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::vector<Variable>&& variables, std::shared_ptr<StringsTrie>&& strings,
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
 	: _tokenStream(tokenStream)
 	, _name(name)
 	, _mod_private(mod_private)
 	, _mod_global(mod_global)
 	, _metas(std::move(metas))
+	, _variables(std::move(variables))
 	, _strings(std::move(strings))
 	, _condition(std::move(condition))
 	, _tags(tags)
@@ -84,6 +85,16 @@ std::string Rule::getText() const
 				[&](const Meta& meta)
 				{
 					ss << indent << meta.getText() << '\n';
+				});
+	}
+
+	if (!getVariables().empty())
+	{
+		ss << "\tvariables:\n";
+		std::for_each(getVariables().begin(), getVariables().end(),
+				[&](const Variable& variable)
+				{
+					ss << indent << variable.getText() << '\n';
 				});
 	}
 
@@ -146,6 +157,27 @@ std::vector<Meta>& Rule::getMetas()
 const std::vector<Meta>& Rule::getMetas() const
 {
 	return _metas;
+}
+
+
+/**
+ * Returns the variables of the YARA rule.
+ *
+ * @return Variables.
+ */
+std::vector<Variable>& Rule::getVariables()
+{
+	return _variables;
+}
+
+/**
+ * Returns the variables of the YARA rule.
+ *
+ * @return Variables.
+ */
+const std::vector<Variable>& Rule::getVariables() const
+{
+	return _variables;
 }
 
 /**
@@ -279,6 +311,16 @@ void Rule::setName(const std::string& name)
 void Rule::setMetas(const std::vector<Meta>& metas)
 {
 	_metas = metas;
+}
+
+/**
+ * Sets the variables of the rule.
+ *
+ * @param variables Variables to set.
+ */
+void Rule::setVariables(const std::vector<Variable>& variables)
+{
+	_variables = variables;
 }
 
 /**

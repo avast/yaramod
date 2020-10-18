@@ -22,6 +22,7 @@
 #include "yaramod/parser/value.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/meta.h"
+#include "yaramod/types/variable.h"
 #include "yaramod/types/rule.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/token_stream.h"

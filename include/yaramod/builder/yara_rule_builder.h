@@ -88,6 +88,7 @@ private:
 	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
+	std::vector<Variable> _variables; ///< Variables
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
 

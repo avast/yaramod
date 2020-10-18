@@ -66,7 +66,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	}
 
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name_it), std::move(_mod_private),
-		std::move(_mod_global), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+		std::move(_mod_global), std::move(_metas), std::move(_variables), std::move(_strings), std::move(_condition), std::move(_tags));
 
 	_tokenStream = std::make_shared<TokenStream>();
 	resetTokens();
@@ -75,6 +75,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	_mod_global = std::nullopt;
 	_tags.clear();
 	_metas.clear();
+	_variables.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
 
 	_lastString.reset();

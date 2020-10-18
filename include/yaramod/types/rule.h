@@ -13,6 +13,7 @@
 #include "yaramod/parser/location.h"
 #include "yaramod/types/expression.h"
 #include "yaramod/types/meta.h"
+#include "yaramod/types/variable.h"
 #include "yaramod/types/string.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/utils/trie.h"
@@ -49,7 +50,7 @@ public:
 	/// @{
 	Rule();
 	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global,
-		std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
+		std::vector<Meta>&& metas, std::vector<Variable>&& variables, std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
 
 	Rule(Rule&& rule) = default;
 	Rule(const Rule& rule) = default;
@@ -67,6 +68,8 @@ public:
 	Rule::Modifier getModifier() const;
 	std::vector<Meta>& getMetas();
 	const std::vector<Meta>& getMetas() const;
+	std::vector<Variable>& getVariables();
+	const std::vector<Variable>& getVariables() const;
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
 	const Expression::Ptr& getCondition() const;
@@ -84,6 +87,7 @@ public:
 	/// @{
 	void setName(const std::string& name);
 	void setMetas(const std::vector<Meta>& metas);
+	void setVariables(const std::vector<Variable>& variables);
 	void setTags(const std::vector<std::string>& tags);
 	void setCondition(const Expression::Ptr& condition);
 	void setLocation(const Location& location) { _location = location; }
@@ -113,6 +117,7 @@ private:
 	std::optional<TokenIt> _mod_private; ///< Private modifier
 	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<Meta> _metas; ///< Meta information
+	std::vector<Variable> _variables; ///< Variables
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
 	std::vector<TokenIt> _tags; ///< Tags

@@ -118,6 +118,7 @@ void ParserDriver::defineTokens()
 	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PRIVATE, std::string{str}); });
 	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RULE, std::string{str}); });
 	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
+	_parser.token("variables").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
 	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
 	_parser.token("condition").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(TokenType::CONDITION, std::string{str}); });
 	_parser.token("ascii").symbol("ASCII").description("ascii").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASCII, std::string{str}); });
@@ -445,7 +446,7 @@ void ParserDriver::defineGrammar()
 				args[3].getTokenIt()->setValue(std::make_shared<ValueSymbol>(name_text, Expression::Type::Bool));
 				return {};
 			},
-			"tags", "LCB", "metas", "strings", "condition", "RCB", [&](auto&& args) -> Value {
+			"tags", "LCB", "metas", "variables", "strings", "condition", "RCB", [&](auto&& args) -> Value {
 				std::optional<TokenIt> mod_private = {};
 				std::optional<TokenIt> mod_global = {};
 				const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
@@ -468,12 +469,17 @@ void ParserDriver::defineGrammar()
 				const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 				args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
 				std::vector<Meta> metas = std::move(args[7].getMetas());
-				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
-				Expression::Ptr condition = std::move(args[9].getExpression());
-				args[10].getTokenIt()->setType(TokenType::RULE_END);
+				std::vector<Variable> variables = std::move(args[8].getVariables());
+				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[9].getStringsTrie());
+				Expression::Ptr condition = std::move(args[10].getExpression());
+				args[11].getTokenIt()->setType(TokenType::RULE_END);
+
+				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+					removeLocalSymbol(iter->getKey());
+				}
 
 				addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
-					std::move(metas), std::move(strings), std::move(condition), std::move(tags)));
+					std::move(metas), std::move(variables), std::move(strings), std::move(condition), std::move(tags)));
 				return {};
 			});
 
@@ -547,6 +553,39 @@ void ParserDriver::defineGrammar()
 	_parser.rule("boolean") // TokenIt
 		.production("BOOL_TRUE", [](auto&& args) -> Value { return std::move(args[0]); })
 		.production("BOOL_FALSE", [](auto&& args) -> Value { return std::move(args[0]); })
+		;
+
+	_parser.rule("variables") // vector<Variable>
+		.production("VARIABLES", "COLON", "variables_body", [](auto&& args) -> Value {
+			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
+			return std::move(args[2]);
+		})
+		.production([](auto&&) -> Value { return std::vector<Variable>(); })
+		;
+
+	_parser.rule("variables_body") // vector<Variable>
+		.production("variables_body", "ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
+			std::vector<Variable> body = std::move(args[0].getVariables());
+			TokenIt key = args[1].getTokenIt();
+			key->setType(TokenType::VARIABLE_KEY);
+			auto expr = args[3].getExpression();
+			
+			/*for(auto iter = body.begin(); iter != body.end(); iter++)
+			{
+				if(key->getString().compare(iter->getKey()) == 0) {
+					error_handle(currentFileContext()->getLocation(), "Redefinition of variable " + key->getString());
+				}
+			}*/
+
+			auto symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
+			if(!addLocalSymbol(symbol)) {
+				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
+			}
+
+			body.emplace_back(key, expr);
+			return body;
+		})
+		.production([](auto&&) -> Value { return std::vector<Variable>(); })
 		;
 
 	_parser.rule("strings") // shared_ptr<StringsTrie>
