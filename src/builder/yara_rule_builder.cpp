@@ -347,11 +347,9 @@ YaraRuleBuilder& YaraRuleBuilder::withStringVariable(const std::string& key, con
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
@@ -382,11 +380,9 @@ YaraRuleBuilder& YaraRuleBuilder::withIntVariable(const std::string& key, std::i
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
@@ -415,11 +411,9 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntVariable(const std::string& key, std::
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
@@ -448,11 +442,9 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntVariable(const std::string& key, std
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
@@ -481,11 +473,9 @@ YaraRuleBuilder& YaraRuleBuilder::withDoubleVariable(const std::string& key, dou
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
@@ -514,11 +504,9 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolVariable(const std::string& key, bool 
 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
-	if (_variables.empty())
+	if (!_variables_it.has_value())
 	{
-		_tokenStream->emplace(insert_before, TokenType::VARIABLES, "variables");
-		_tokenStream->emplace(insert_before, TokenType::COLON_BEFORE_NEWLINE, ":");
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		initializeVariables();
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
