@@ -16,10 +16,7 @@ namespace yaramod {
  */
 std::string Variable::getText() const
 {
-	if(getValue()->isString())
-		return getKey() + " = \"" + getValue()->getText() + "\"";
-	else
-		return getKey() + " = " + getValue()->getText();
+	return getKey() + " = " + getValue()->getText();
 }
 
 /**

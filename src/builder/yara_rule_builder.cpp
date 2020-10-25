@@ -358,7 +358,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringVariable(const std::string& key, con
 	itValue->markEscaped();
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
-	auto expr = std::make_shared<StringExpression>(itValue);
+	auto expr = std::make_shared<StringLiteralExpression>(itValue);
 	expr->setType(Expression::Type::String);
 	_variables.emplace_back(itKey, expr);
 
