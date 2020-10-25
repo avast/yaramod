@@ -161,6 +161,7 @@ protected:
 	/// @{
 	std::shared_ptr<Symbol> findSymbol(const std::string& name) const;
 	bool addLocalSymbol(const std::shared_ptr<Symbol>& symbol);
+	bool addLocalSymbol(const std::string& name, const std::shared_ptr<Symbol>& symbol);
 	void removeLocalSymbol(const std::string& name);
 	/// @}
 

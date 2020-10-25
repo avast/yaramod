@@ -570,8 +570,14 @@ void ParserDriver::defineGrammar()
 			key->setType(TokenType::VARIABLE_KEY);
 			auto expr = args[3].getExpression();
 
-			auto symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
-			if(!addLocalSymbol(symbol)) {
+			std::shared_ptr<Symbol> symbol;
+			if(expr->isObject()) {
+				symbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			} else {
+				symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
+			}
+			
+			if(!addLocalSymbol(key->getString(), symbol)) {
 				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
 			}
 
@@ -2054,10 +2060,23 @@ std::shared_ptr<Symbol> ParserDriver::findSymbol(const std::string& name) const
  */
 bool ParserDriver::addLocalSymbol(const std::shared_ptr<Symbol>& symbol)
 {
-	if (findSymbol(symbol->getName()))
+	return addLocalSymbol(symbol->getName(), symbol);
+}
+
+/**
+ * Adds the symbol with specified name to the local symbol table. If symbol with that name already exists, method fails.
+ *
+ * @param name Name of symbol to add.
+ * @param symbol Symbol to add.
+ *
+ * @return @c true if symbol was successfully added, otherwise @c false.
+ */
+bool ParserDriver::addLocalSymbol(const std::string& name, const std::shared_ptr<Symbol>& symbol)
+{
+	if (findSymbol(name))
 		return false;
 
-	_localSymbols[symbol->getName()] = symbol;
+	_localSymbols[name] = symbol;
 	return true;
 }
 
