@@ -81,6 +81,39 @@ import "phish"
 		true
 }''')
 
+    def test_rule_with_variables(self):
+        rule = self.new_rule \
+            .with_name('rule_with_variables') \
+            .with_string_variable('string_var', 'string value') \
+            .with_int_variable('int_var', 42) \
+            .with_double_variable('double_var', 2.6) \
+            .with_bool_variable('bool_var', False) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_variables
+{
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+	condition:
+		true
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_variables {
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+	condition:
+		true
+}''')
+
     def test_rule_with_tags(self):
         rule = self.new_rule \
             .with_name('rule_with_tags') \

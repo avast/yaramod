@@ -157,6 +157,44 @@ rule rule_with_metas
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_rule_with_variables(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule rule_with_variables {
+    variables:
+        str_var = "string var"
+        int_var = 42
+        double_var = 2.6
+        bool_var = true
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_variables')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.variables), 4)
+        self.assertEqual(len(rule.strings), 0)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertEqual(rule.variables[0].key, 'str_var')
+        self.assertTrue(type(rule.variables[0].value.value) is str)
+        self.assertEqual(rule.variables[0].value.value, 'string var')
+
+        self.assertEqual(rule.variables[1].key, 'int_var')
+        self.assertTrue(type(rule.variables[1].value.value) is int)
+        self.assertEqual(rule.variables[1].value.value, 42)
+        
+        self.assertEqual(rule.variables[2].key, 'double_var')
+        self.assertTrue(type(rule.variables[2].value.value) is float)
+        self.assertEqual(rule.variables[2].value.value, 2.6)
+
+        self.assertEqual(rule.variables[3].key, 'bool_var')
+        self.assertTrue(type(rule.variables[3].value.value) is bool)
+        self.assertEqual(rule.variables[3].value.value, True)
+
     def test_rule_with_plain_strings(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_plain_strings {

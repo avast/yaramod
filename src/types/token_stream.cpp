@@ -525,7 +525,7 @@ void TokenStream::addMissingNewLines()
 			else
 				brackets.addRightBracket();
 		}
-		if (current != TokenType::NEW_LINE && (next == TokenType::CONDITION || next == TokenType::STRINGS || next == TokenType::STRING_ID_AFTER_NEWLINE || next == TokenType::META || next == TokenType::META_KEY || next == TokenType::RULE_END || next == TokenType::RULE_BEGIN))
+		if (current != TokenType::NEW_LINE && (next == TokenType::CONDITION || next == TokenType::STRINGS || next == TokenType::STRING_ID_AFTER_NEWLINE || next == TokenType::VARIABLES || next == TokenType::VARIABLE_KEY || next == TokenType::META || next == TokenType::META_KEY || next == TokenType::RULE_END || next == TokenType::RULE_BEGIN))
 		{
 			nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 			next = nextIt->getType();
@@ -796,6 +796,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			if (inside_rule && next != TokenType::ONELINE_COMMENT && next != TokenType::COMMENT && next != TokenType::NEW_LINE)
 			{
 				if (next == TokenType::META
+					|| next == TokenType::VARIABLES
 					|| next == TokenType::STRINGS
 					|| next == TokenType::CONDITION)
 				{
@@ -839,6 +840,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			switch(current)
 			{
 				case TokenType::META:
+				case TokenType::VARIABLES:
 				case TokenType::STRINGS:
 				case TokenType::CONDITION:
 				case TokenType::UNARY_MINUS:

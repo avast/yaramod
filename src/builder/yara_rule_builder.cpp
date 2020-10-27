@@ -386,7 +386,7 @@ YaraRuleBuilder& YaraRuleBuilder::withIntVariable(const std::string& key, std::i
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
-	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value);
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
@@ -417,7 +417,7 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntVariable(const std::string& key, std::
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
-	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value);
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
@@ -448,7 +448,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntVariable(const std::string& key, std
 	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
-	_tokenStream->emplace(insert_before, TokenType::EQ, Literal("="));
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
 	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value, std::make_optional<std::string>(numToStr(value, std::hex, true)));
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
 
@@ -705,7 +705,7 @@ YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t low, std::uint64_t high)
 
 void YaraRuleBuilder::initializeVariables()
 {
-	auto before = _strings_it.has_value() ? _strings_it.value() : _condition_it;
+	auto before = _strings_it.value_or(_condition_it);
 	
 	_variables_it = _tokenStream->emplace(before, TokenType::VARIABLES, "variables");
 	_tokenStream->emplace(before, TokenType::COLON_BEFORE_NEWLINE, ":");
