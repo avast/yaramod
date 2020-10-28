@@ -159,12 +159,14 @@ rule rule_with_metas
 
     def test_rule_with_variables(self):
         yara_file = yaramod.Yaramod().parse_string('''
+import "time"
 rule rule_with_variables {
     variables:
         str_var = "string var"
         int_var = 42
         double_var = 2.6
         bool_var = true
+        struct_var = time
     condition:
         true
 }''')
@@ -175,7 +177,7 @@ rule rule_with_variables {
         self.assertEqual(rule.name, 'rule_with_variables')
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
         self.assertEqual(len(rule.metas), 0)
-        self.assertEqual(len(rule.variables), 4)
+        self.assertEqual(len(rule.variables), 5)
         self.assertEqual(len(rule.strings), 0)
         self.assertEqual(len(rule.tags), 0)
 
@@ -194,6 +196,10 @@ rule rule_with_variables {
         self.assertEqual(rule.variables[3].key, 'bool_var')
         self.assertTrue(type(rule.variables[3].value.value) is bool)
         self.assertEqual(rule.variables[3].value.value, True)
+
+        self.assertEqual(rule.variables[4].key, 'struct_var')
+        self.assertTrue(rule.variables[4].value.symbol.is_structure)
+        self.assertEqual(rule.variables[4].value.symbol.name, 'time')
 
     def test_rule_with_plain_strings(self):
         yara_file = yaramod.Yaramod().parse_string('''

@@ -88,6 +88,7 @@ import "phish"
             .with_int_variable('int_var', 42) \
             .with_double_variable('double_var', 2.6) \
             .with_bool_variable('bool_var', False) \
+            .with_struct_variable('struct_var', 'time') \
             .get()
         yara_file = self.new_file \
             .with_rule(rule) \
@@ -100,6 +101,7 @@ import "phish"
 		int_var = 42
 		double_var = 2.6
 		bool_var = false
+		struct_var = time
 	condition:
 		true
 }
@@ -110,6 +112,7 @@ import "phish"
 		int_var = 42
 		double_var = 2.6
 		bool_var = false
+		struct_var = time
 	condition:
 		true
 }''')
@@ -316,6 +319,37 @@ rule rule_2 : Tag2 {
 		$2 = "This is plain string 2."
 	condition:
 		true
+}''')
+
+    def test_rule_with_variable_id_condition(self):
+        cond = yaramod.id('time_struct').access('now')() > yaramod.id('const')
+        rule = self.new_rule \
+            .with_name('rule_with_variable_id_condition') \
+            .with_struct_variable('time_struct', 'time') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_module('time') \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''import "time"
+
+rule rule_with_variable_id_condition
+{
+	variables:
+		time_struct = time
+	condition:
+		time_struct.now()
+}
+''')
+        self.assertEqual(yara_file.text, '''import "time"
+
+rule rule_with_variable_id_condition {
+	variables:
+		time_struct = time
+	condition:
+		time_struct.now()
 }''')
 
     def test_rule_with_string_id_condition(self):

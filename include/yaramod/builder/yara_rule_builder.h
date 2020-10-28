@@ -64,6 +64,7 @@ public:
 	YaraRuleBuilder& withHexIntVariable(const std::string& key, std::uint64_t value);
 	YaraRuleBuilder& withDoubleVariable(const std::string& key, double value);
 	YaraRuleBuilder& withBoolVariable(const std::string& key, bool value);
+	YaraRuleBuilder& withStructVariable(const std::string& key, const std::string& identifier);
 
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value);
 	YaraRuleBuilder& withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString);

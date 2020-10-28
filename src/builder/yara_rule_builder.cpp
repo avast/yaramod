@@ -6,6 +6,7 @@
 
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/symbols.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/utils/utils.h"
@@ -516,6 +517,39 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolVariable(const std::string& key, bool 
 
 	auto expr = std::make_shared<BoolLiteralExpression>(itValue);
 	expr->setType(Expression::Type::Bool);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds a struct variable to a rule.
+ *
+ * @param key Key of Variable.
+ * @param value Struct object identifier.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withStructVariable(const std::string& key, const std::string& identifier)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: Struct-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+	{
+		initializeVariables();
+	}
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::ID, identifier);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	const std::shared_ptr<Symbol>& symbol = std::make_shared<StructureSymbol>(identifier);
+	itValue->setValue(symbol);
+
+	auto expr = std::make_shared<IdExpression>(itValue);
 	_variables.emplace_back(itKey, expr);
 	return *this;
 }
