@@ -572,12 +572,12 @@ void ParserDriver::defineGrammar()
 
 			std::shared_ptr<Symbol> symbol;
 			if(expr->isObject()) {
-				symbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+				symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
 			} else {
 				symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
 			}
 			
-			if(!addLocalSymbol(key->getString(), symbol)) {
+			if(!addLocalSymbol(symbol)) {
 				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
 			}
 
@@ -1494,6 +1494,8 @@ void ParserDriver::defineGrammar()
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			while(parentSymbol->isReference())
+				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 			if (!parentSymbol->isStructure())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
 			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
@@ -1517,6 +1519,10 @@ void ParserDriver::defineGrammar()
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			assert(parentSymbol);
+
+			while(parentSymbol->isReference())
+				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
+
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
 
@@ -1539,6 +1545,10 @@ void ParserDriver::defineGrammar()
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+
+			while(parentSymbol->isReference())
+				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
+				
 			if (!parentSymbol->isFunction())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
 
@@ -2060,23 +2070,10 @@ std::shared_ptr<Symbol> ParserDriver::findSymbol(const std::string& name) const
  */
 bool ParserDriver::addLocalSymbol(const std::shared_ptr<Symbol>& symbol)
 {
-	return addLocalSymbol(symbol->getName(), symbol);
-}
-
-/**
- * Adds the symbol with specified name to the local symbol table. If symbol with that name already exists, method fails.
- *
- * @param name Name of symbol to add.
- * @param symbol Symbol to add.
- *
- * @return @c true if symbol was successfully added, otherwise @c false.
- */
-bool ParserDriver::addLocalSymbol(const std::string& name, const std::shared_ptr<Symbol>& symbol)
-{
-	if (findSymbol(name))
+	if (findSymbol(symbol->getName()))
 		return false;
 
-	_localSymbols[name] = symbol;
+	_localSymbols[symbol->getName()] = symbol;
 	return true;
 }
 

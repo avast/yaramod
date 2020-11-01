@@ -512,6 +512,22 @@ rule double_literal_condition {
         self.assertTrue(isinstance(rule.condition, yaramod.DoubleLiteralExpression))
         self.assertEqual(rule.condition.text, '1.23')
 
+    def test_variable_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''import "time"
+
+rule variable_condition {
+	variables:
+		time_struct = time
+	condition:
+		time_struct.now()
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.IdExpression))
+        self.assertEqual(rule.condition.text, 'time_struct.now()')
+
     def test_string_condition(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule string_condition {

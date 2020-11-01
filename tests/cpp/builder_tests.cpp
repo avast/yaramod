@@ -242,6 +242,49 @@ RuleWithMetasWorks) {
 }
 
 TEST_F(BuilderTests,
+RuleWithVariablesWorks) {
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_variables")
+		.withStringMeta("string_var", "string value")
+		.withIntMeta("int_var", 42)
+		.withDoubleVariable("double_var", 2.6)
+		.withBoolMeta("bool_var", false)
+		.withStructVariable("struct_var", "time")
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_variables {
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+		struct_var = time
+	condition:
+		true
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_variables
+{
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+		struct_var = time
+	condition:
+		truex
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 RuleWithEmptyStringMetaValueWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule

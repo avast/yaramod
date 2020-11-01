@@ -322,7 +322,7 @@ rule rule_2 : Tag2 {
 }''')
 
     def test_rule_with_variable_id_condition(self):
-        cond = yaramod.id('time_struct').access('now')() > yaramod.id('const')
+        cond = yaramod.id('time_struct').access('now')()
         rule = self.new_rule \
             .with_name('rule_with_variable_id_condition') \
             .with_struct_variable('time_struct', 'time') \
