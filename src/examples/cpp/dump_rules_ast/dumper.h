@@ -339,6 +339,16 @@ public:
 		return {};
 	}
 
+	virtual yaramod::VisitResult visit(yaramod::IteratorExpression* expr) override
+	{
+		dump("Iterator", expr, " size=", expr->getElements().size());
+		indentUp();
+		for (auto& elem : expr->getElements())
+			elem->accept(this);
+		indentDown();
+		return {};
+	}
+
 	virtual yaramod::VisitResult visit(yaramod::SetExpression* expr) override
 	{
 		dump("Set", expr, " size=", expr->getElements().size());

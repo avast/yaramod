@@ -1112,6 +1112,70 @@ public:
 };
 
 /**
+ * Class representing an iterator, which is an array of expressions typically
+ * used with an of operator
+ *
+ * For example:
+ * @code
+ * all of [ true, false, true ]
+ *        ^^^^^^^^^^^^^^^^^^^^^
+ * @endcode
+ */
+class IteratorExpression : public Expression
+{
+public:
+	/**
+	 * Constructor
+	 */
+	template <typename ExpPtrVector>
+	IteratorExpression(TokenIt left_square_bracket, ExpPtrVector&& elements, TokenIt right_square_bracket)
+		: _left_square_bracket(left_square_bracket)
+		, _elements(std::forward<ExpPtrVector>(elements))
+		, _right_square_bracket(right_square_bracket)
+	{
+	}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual std::string getText(const std::string& indent = std::string{}) const override
+	{
+		std::ostringstream ss;
+		ss << _left_square_bracket->getString();
+		for (const auto& elem : _elements)
+			ss << elem->getText(indent) << ", ";
+		ss <<_right_square_bracket->getString();
+
+		// Remove last ', ' from the result.
+		auto text = ss.str();
+		text.erase(text.length() - 3, 2);
+		return text;
+	}
+
+	const std::vector<Expression::Ptr>& getElements() const { return _elements; }
+
+	virtual TokenIt getFirstTokenIt() const override { return _left_square_bracket; }
+	virtual TokenIt getLastTokenIt() const override { return _right_square_bracket; }
+
+	void setElements(const std::vector<Expression::Ptr>& elements)
+	{
+		_elements = elements;
+	}
+
+	void setElements(std::vector<Expression::Ptr>&& elements)
+	{
+		_elements = std::move(elements);
+	}
+
+private:
+	TokenIt _left_square_bracket;
+	std::vector<Expression::Ptr> _elements; ///< Elements of the set
+	TokenIt _right_square_bracket;
+};
+
+/**
  * Class representing set of either strings or integers. String set may also contain
  * string wildcard referencing more than one string with single identifier.
  *

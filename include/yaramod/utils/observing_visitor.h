@@ -247,6 +247,13 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(IteratorExpression* expr) override
+	{
+		for (auto& element : expr->getElements())
+			element->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(SetExpression* expr) override
 	{
 		for (auto& element : expr->getElements())

@@ -1075,7 +1075,7 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("for_expression", "OF", "boolean_set", [&](auto&& args) -> Value {
+		.production("for_expression", "OF", "expression_iterator", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
 			auto array = std::move(args[2].getExpression());
@@ -1705,7 +1705,7 @@ void ParserDriver::defineGrammar()
 		})
 		;
 		
-	_parser.rule("boolean_set") // Expression::Ptr
+	_parser.rule("expression_iterator") // Expression::Ptr
 		.production("LSQB", "boolean_enumeration", "RSQB", [&](auto&& args) -> Value {
 			TokenIt lsqb = args[0].getTokenIt();
 			lsqb->setType(TokenType::LSQB);
@@ -1717,19 +1717,15 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("boolean_enumeration") // vector<Expression::Ptr>
+	_parser.rule("expression_enumeration") // vector<Expression::Ptr>
 		.production("expression", [&](auto&& args) -> Value {
 			auto expression = args[0].getExpression();
-			if (!expression->isBool())
-				error_handle(currentFileContext()->getLocation(), "boolean set expects boolean type");
 			auto output = std::vector<Expression::Ptr>{std::move(expression)};
 			output.front()->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("boolean_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
+		.production("expression_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
 			auto expression = args[2].getExpression();
-			if (!expression->isBool())
-				error_handle(currentFileContext()->getLocation(), "boolean set expects boolean type");
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(expression));
 			output.back()->setTokenStream(currentTokenStream());

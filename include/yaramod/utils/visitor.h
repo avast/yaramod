@@ -45,6 +45,7 @@ class ShiftRightExpression;
 class ForIntExpression;
 class ForStringExpression;
 class OfExpression;
+class IteratorExpression;
 class SetExpression;
 class RangeExpression;
 class IdExpression;
@@ -107,6 +108,7 @@ public:
 	virtual VisitResult visit(ForIntExpression* expr) = 0;
 	virtual VisitResult visit(ForStringExpression* expr) = 0;
 	virtual VisitResult visit(OfExpression* expr) = 0;
+	virtual VisitResult visit(IteratorExpression* expr) = 0;
 	virtual VisitResult visit(SetExpression* expr) = 0;
 	virtual VisitResult visit(RangeExpression* expr) = 0;
 	virtual VisitResult visit(IdExpression* expr) = 0;

@@ -594,6 +594,11 @@ void addExpressionClasses(py::module& module)
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
 
+	exprClass<IteratorExpression>(module, "IteratorExpression")
+		.def_property("elements",
+				&IteratorExpression::getElements,
+				py::overload_cast<const std::vector<Expression::Ptr>&>(&IteratorExpression::setElements));
+
 	exprClass<SetExpression>(module, "SetExpression")
 		.def_property("elements",
 				&SetExpression::getElements,
@@ -796,6 +801,8 @@ void addBuilderClasses(py::module& module)
 			const YaraExpressionBuilder&
 		>(&forLoop));
 	module.def("of", &of);
+
+	module.def("iterator", &iterator);
 
 	module.def("set", &set);
 	module.def("range", &range);

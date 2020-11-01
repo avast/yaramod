@@ -286,6 +286,16 @@ public:
 		return defaultHandler(context, expr, var, iteratedSet, {});
 	}
 
+	virtual VisitResult visit(IteratorExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+		std::vector<VisitResult> newElements;
+		for (auto& element : expr->getElements())
+			newElements.push_back(element->accept(this));
+
+		return defaultHandler(context, expr, newElements);
+	}
+
 	virtual VisitResult visit(SetExpression* expr) override
 	{
 		TokenStreamContext context{expr};
@@ -506,6 +516,39 @@ public:
 		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
 			return VisitAction::Delete;
 
+		return {};
+	}
+
+	VisitResult defaultHandler(const TokenStreamContext& context, IteratorExpression* expr, const std::vector<VisitResult>& elementsRet)
+	{
+		if (elementsRet.empty())
+			return VisitAction::Delete;
+
+		if (std::all_of(elementsRet.begin(), elementsRet.end(),
+				[](const auto& element) {
+					auto e = std::get_if<Expression::Ptr>(&element);
+					return e && (*e == nullptr);
+				}))
+		{
+			return {};
+		}
+
+		std::vector<Expression::Ptr> newElements;
+		for (std::size_t i = 0, end = elementsRet.size(); i < end; ++i)
+		{
+			if (auto element = std::get_if<Expression::Ptr>(&elementsRet[i]))
+			{
+				if (*element)
+					newElements.push_back(*element);
+				else
+					newElements.push_back(expr->getElements()[i]);
+			}
+		}
+
+		if (newElements.empty())
+			return VisitAction::Delete;
+
+		expr->setElements(newElements);
 		return {};
 	}
 
