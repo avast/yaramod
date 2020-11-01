@@ -1708,10 +1708,10 @@ void ParserDriver::defineGrammar()
 	_parser.rule("expression_iterator") // Expression::Ptr
 		.production("LSQB", "boolean_enumeration", "RSQB", [&](auto&& args) -> Value {
 			TokenIt lsqb = args[0].getTokenIt();
-			lsqb->setType(TokenType::LSQB);
+			lsqb->setType(TokenType::LSQB_ENUMERATION);
 			TokenIt rsqb = args[2].getTokenIt();
-			rsqb->setType(TokenType::RSQB);
-			auto output = std::make_shared<SetExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
+			lsqb->setType(TokenType::RSQB_ENUMERATION);
+			auto output = std::make_shared<IteratorExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})

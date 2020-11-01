@@ -224,6 +224,13 @@ class Dumper(yaramod.ObservingVisitor):
         expr.iterated_set.accept(self)
         self.indent_down()
 
+    def visit_IteratorExpression(self, expr):
+        self.dump('Iterator', expr)
+        self.indent_up()
+        for elem in expr.elements:
+            elem.accept(self)
+        self.indent_down()
+
     def visit_SetExpression(self, expr):
         self.dump('Set', expr)
         self.indent_up()

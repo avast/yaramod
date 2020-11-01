@@ -1050,14 +1050,14 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
 YaraExpressionBuilder iterator(const std::vector<YaraExpressionBuilder>& elements)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt lsqb = ts->emplace_back(TokenType::LSQB, "[");
+	TokenIt lsqb = ts->emplace_back(TokenType::LSQB_ENUMERATION, "[");
 	for (std::size_t i = 0; i < elements.size(); ++i)
 	{
 		ts->moveAppend(elements[i].getTokenStream());
 		if (i < elements.size() - 1)
 			ts->emplace_back(TokenType::COMMA, ",");
 	}
-	TokenIt rsqb = ts->emplace_back(TokenType::RSQB, "]");
+	TokenIt rsqb = ts->emplace_back(TokenType::RSQB_ENUMERATION, "]");
 
 	std::vector<Expression::Ptr> elementsExprs;
 	std::for_each(elements.begin(), elements.end(), [&elementsExprs](const YaraExpressionBuilder& expr) { elementsExprs.push_back(expr.get()); });
