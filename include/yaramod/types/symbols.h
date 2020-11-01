@@ -66,7 +66,7 @@ class DictionarySymbol : public IterableSymbol
 {
 public:
 	DictionarySymbol(const std::string& name, ExpressionType elementType) : IterableSymbol(Symbol::Type::Dictionary, name, elementType) {}
-	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Array, name, structuredType) {}
+	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Dictionary, name, structuredType) {}
 };
 
 /**

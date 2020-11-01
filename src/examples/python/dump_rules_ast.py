@@ -201,11 +201,19 @@ class Dumper(yaramod.ObservingVisitor):
         expr.right_operand.accept(self)
         self.indent_down()
 
-    def visit_ForIntExpression(self, expr):
+    def visit_ForDictExpression(self, expr):
+        self.dump('ForDict', expr, ' id=', expr.id)
+        self.indent_up()
+        expr.variable.accept(self)
+        expr.iterable.accept(self)
+        expr.body.accept(self)
+        self.indent_down()
+
+    def visit_ForArrayExpression(self, expr):
         self.dump('ForInt', expr, ' id=', expr.id)
         self.indent_up()
         expr.variable.accept(self)
-        expr.iterated_set.accept(self)
+        expr.iterable.accept(self)
         expr.body.accept(self)
         self.indent_down()
 
@@ -213,7 +221,7 @@ class Dumper(yaramod.ObservingVisitor):
         self.dump('ForString', expr)
         self.indent_up()
         expr.variable.accept(self)
-        expr.iterated_set.accept(self)
+        expr.iterable.accept(self)
         expr.body.accept(self)
         self.indent_down()
 
@@ -221,7 +229,7 @@ class Dumper(yaramod.ObservingVisitor):
         self.dump('Of', expr)
         self.indent_up()
         expr.variable.accept(self)
-        expr.iterated_set.accept(self)
+        expr.iterable.accept(self)
         self.indent_down()
 
     def visit_IteratorExpression(self, expr):

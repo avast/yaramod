@@ -32,6 +32,7 @@ bool DexModule::initialize(ImportFeatures/* features*/)
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_036", Type::String));
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_037", Type::String));
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_038", Type::String));
+	dexStruct->addAttribute(std::make_shared<ValueSymbol>("DEX_FILE_MAGIC_039", Type::String));
 
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("ENDIAN_CONSTANT", Type::Int));
 	dexStruct->addAttribute(std::make_shared<ValueSymbol>("REVERSE_ENDIAN_CONSTANT", Type::Int));
@@ -134,7 +135,7 @@ bool DexModule::initialize(ImportFeatures/* features*/)
 	auto classDefsStruct = std::make_shared<StructureSymbol>("class_defs");
 	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("class_idx", Type::Int));
 	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("access_flags", Type::Int));
-	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("superclass_idx", Type::Int));
+	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("super_class_idx", Type::Int));
 	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("interfaces_offset", Type::Int));
 	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("source_file_idx", Type::Int));
 	classDefsStruct->addAttribute(std::make_shared<ValueSymbol>("annotations_offset", Type::Int));

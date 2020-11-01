@@ -18,3 +18,4 @@ Welcome to the documentation of our project Yaramod. Parser and builder for YARA
    formatting_rulesets
    modifying_rulesets
    examples
+   future_of_yaramod

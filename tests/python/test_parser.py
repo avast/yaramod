@@ -304,6 +304,7 @@ rule rule_with_plain_strings_with_modifiers {
     strings:
         $1 = "Hello World!" nocase wide
         $2 = "Bye World." fullword
+        $3 = "String3" base64
     condition:
         true
 }''')
@@ -313,19 +314,28 @@ rule rule_with_plain_strings_with_modifiers {
         rule = yara_file.rules[0]
         self.assertEqual(rule.name, 'rule_with_plain_strings_with_modifiers')
         self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
-        self.assertEqual(len(rule.strings), 2)
+        self.assertEqual(len(rule.strings), 3)
 
         string = rule.strings[0]
         self.assertFalse(string.is_ascii)
         self.assertTrue(string.is_wide)
         self.assertTrue(string.is_nocase)
         self.assertFalse(string.is_fullword)
+        self.assertFalse(string.is_base64)
 
         string = rule.strings[1]
         self.assertTrue(string.is_ascii)
         self.assertFalse(string.is_wide)
         self.assertFalse(string.is_nocase)
         self.assertTrue(string.is_fullword)
+        self.assertFalse(string.is_base64)
+
+        string = rule.strings[2]
+        self.assertTrue(string.is_ascii)
+        self.assertFalse(string.is_wide)
+        self.assertFalse(string.is_nocase)
+        self.assertFalse(string.is_fullword)
+        self.assertTrue(string.is_base64)
 
     def test_rule_with_hex_string(self):
         yara_file = yaramod.Yaramod().parse_string('''
@@ -1085,11 +1095,52 @@ rule for_integer_set_condition {
         self.assertEqual(len(yara_file.rules), 1)
 
         rule = yara_file.rules[0]
-        self.assertTrue(isinstance(rule.condition, yaramod.ForIntExpression))
+        self.assertTrue(isinstance(rule.condition, yaramod.ForArrayExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.AllExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
         self.assertTrue(isinstance(rule.condition.body, yaramod.IdExpression))
         self.assertEqual(rule.condition.text, 'for all i in (1, 2, 3) : ( i )')
+
+    def test_for_array_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "pe"
+
+rule for_array_condition {
+    condition:
+        for any section in pe.sections : ( section.name == ".text" )
+}''')
+
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.ForArrayExpression))
+        self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.StructAccessExpression))
+        self.assertTrue(isinstance(rule.condition.body, yaramod.EqExpression))
+        self.assertEqual(rule.condition.text, 'for any section in pe.sections : ( section.name == ".text" )')
+
+    def test_for_dict_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "pe"
+
+rule for_dict_condition {
+    condition:
+        for any k, v in pe.version_info : (
+            k == "CompanyName" and
+            v contains "Microsoft"
+        )
+}''')
+
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.ForDictExpression))
+        self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.StructAccessExpression))
+        self.assertTrue(isinstance(rule.condition.body, yaramod.AndExpression))
+        self.assertEqual(rule.condition.text, 'for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )')
 
     def test_for_string_set_condition(self):
         yara_file = yaramod.Yaramod().parse_string('''
@@ -1108,7 +1159,7 @@ rule for_string_set_condition {
         rule = yara_file.rules[0]
         self.assertTrue(isinstance(rule.condition, yaramod.ForStringExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
         self.assertTrue(isinstance(rule.condition.body, yaramod.StringAtExpression))
         self.assertEqual(rule.condition.text, 'for any of ($a, $b) : ( $ at entrypoint )')
 
@@ -1129,7 +1180,7 @@ rule of_condition {
         rule = yara_file.rules[0]
         self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.IntLiteralExpression))
-        self.assertTrue(isinstance(rule.condition.iterated_set, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
         self.assertEqual(rule.condition.body, None)
         self.assertEqual(rule.condition.text, '1 of ($a, $b)')
 

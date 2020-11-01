@@ -224,10 +224,18 @@ public:
 		return {};
 	}
 
-	virtual VisitResult visit(ForIntExpression* expr) override
+	virtual VisitResult visit(ForDictExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
+		expr->getBody()->accept(this);
+		return {};
+	}
+
+	virtual VisitResult visit(ForArrayExpression* expr) override
+	{
+		expr->getVariable()->accept(this);
+		expr->getIterable()->accept(this);
 		expr->getBody()->accept(this);
 		return {};
 	}
@@ -235,7 +243,7 @@ public:
 	virtual VisitResult visit(ForStringExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
 		expr->getBody()->accept(this);
 		return {};
 	}
@@ -243,7 +251,7 @@ public:
 	virtual VisitResult visit(OfExpression* expr) override
 	{
 		expr->getVariable()->accept(this);
-		expr->getIteratedSet()->accept(this);
+		expr->getIterable()->accept(this);
 		return {};
 	}
 

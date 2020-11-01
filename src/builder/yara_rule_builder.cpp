@@ -746,6 +746,42 @@ void YaraRuleBuilder::initializeVariables()
 	_tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
 }
 
+YaraRuleBuilder& YaraRuleBuilder::base64()
+{
+	auto token = _stringModsTokens->emplace_back(TokenType::BASE64, "base64");
+	_stringMods.push_back(std::make_shared<Base64StringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::base64(const std::string& alphabet)
+{
+	auto escapedAlphabet = escapeString(alphabet);
+	auto firstToken = _stringModsTokens->emplace_back(TokenType::BASE64, "base64");
+	_stringModsTokens->emplace_back(TokenType::LP, "(");
+	_stringModsTokens->emplace_back(TokenType::STRING_LITERAL, escapedAlphabet, escapedAlphabet);
+	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
+	_stringMods.push_back(std::make_shared<Base64StringModifier>(firstToken, lastToken, alphabet));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::base64wide()
+{
+	auto token = _stringModsTokens->emplace_back(TokenType::BASE64WIDE, "base64wide");
+	_stringMods.push_back(std::make_shared<Base64WideStringModifier>(token));
+	return *this;
+}
+
+YaraRuleBuilder& YaraRuleBuilder::base64wide(const std::string& alphabet)
+{
+	auto escapedAlphabet = escapeString(alphabet);
+	auto firstToken = _stringModsTokens->emplace_back(TokenType::BASE64WIDE, "base64wide");
+	_stringModsTokens->emplace_back(TokenType::LP, "(");
+	_stringModsTokens->emplace_back(TokenType::STRING_LITERAL, escapedAlphabet, escapedAlphabet);
+	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
+	_stringMods.push_back(std::make_shared<Base64WideStringModifier>(firstToken, lastToken, alphabet));
+	return *this;
+}
+
 void YaraRuleBuilder::initializeStrings()
 {
 	_strings_it = _tokenStream->emplace(_condition_it, TokenType::STRINGS, "strings");

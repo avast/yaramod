@@ -126,6 +126,8 @@ void ParserDriver::defineTokens()
 	_parser.token("wide").symbol("WIDE").description("wide").action([&](std::string_view str) -> Value { return emplace_back(TokenType::WIDE, std::string{str}); });
 	_parser.token("fullword").symbol("FULLWORD").description("fullword").action([&](std::string_view str) -> Value { return emplace_back(TokenType::FULLWORD, std::string{str}); });
 	_parser.token("xor").symbol("XOR").description("xor").action([&](std::string_view str) -> Value { return emplace_back(TokenType::XOR, std::string{str}); });
+	_parser.token("base64").symbol("BASE64").description("base64").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64, std::string{str}); });
+	_parser.token("base64wide").symbol("BASE64WIDE").description("base64wide").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64WIDE, std::string{str}); });
 	_parser.token("true").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_TRUE, true); });
 	_parser.token("false").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_FALSE, false); });
 	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IMPORT_KEYWORD, std::string{str}); });
@@ -652,9 +654,11 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("plain_string_mods") // std::vector<std::shared_ptr<StringModifier>>
-		.production("plain_string_mods", "plain_string_mod", [](auto&& args) -> Value {
+		.production("plain_string_mods", "plain_string_mod", [&](auto&& args) -> Value {
 			auto stringMods = std::move(args[0].getStringMods());
-			stringMods.push_back(std::move(args[1].getStringMod()));
+			auto stringMod = std::move(args[1].getStringMod());
+			checkStringModifier(stringMods, stringMod);
+			stringMods.push_back(stringMod);
 			return stringMods;
 		})
 		.production([](auto&&) -> Value {
@@ -663,9 +667,11 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("regexp_mods") // std::vector<std::shared_ptr<StringModifier>>
-		.production("regexp_mods", "regexp_mod", [](auto&& args) -> Value {
+		.production("regexp_mods", "regexp_mod", [&](auto&& args) -> Value {
 			auto stringMods = std::move(args[0].getStringMods());
-			stringMods.push_back(std::move(args[1].getStringMod()));
+			auto stringMod = std::move(args[1].getStringMod());
+			checkStringModifier(stringMods, stringMod);
+			stringMods.push_back(stringMod);
 			return stringMods;
 		})
 		.production([](auto&&) -> Value {
@@ -674,9 +680,11 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("hex_string_mods") // std::vector<std::shared_ptr<StringModifier>>
-		.production("hex_string_mods", "hex_string_mod", [](auto&& args) -> Value {
+		.production("hex_string_mods", "hex_string_mod", [&](auto&& args) -> Value {
 			auto stringMods = std::move(args[0].getStringMods());
-			stringMods.push_back(std::move(args[1].getStringMod()));
+			auto stringMod = std::move(args[1].getStringMod());
+			checkStringModifier(stringMods, stringMod);
+			stringMods.push_back(stringMod);
 			return stringMods;
 		})
 		.production([](auto&&) -> Value {
@@ -696,6 +704,20 @@ void ParserDriver::defineGrammar()
 			auto low = args[2].getTokenIt()->getUInt();
 			auto high = args[4].getTokenIt()->getUInt();
 			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), low, high);
+		})
+		.production("BASE64", [](auto&& args) -> Value {
+			return std::make_shared<Base64StringModifier>(args[0].getTokenIt());
+		})
+		.production("BASE64", "LP", "STRING_LITERAL", "RP", [](auto&& args) -> Value {
+			auto alphabet = unescapeString(args[2].getTokenIt()->getString());
+			return std::make_shared<Base64StringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), alphabet);
+		})
+		.production("BASE64WIDE", [](auto&& args) -> Value {
+			return std::make_shared<Base64WideStringModifier>(args[0].getTokenIt());
+		})
+		.production("BASE64WIDE", "LP", "STRING_LITERAL", "RP", [](auto&& args) -> Value {
+			auto alphabet = unescapeString(args[2].getTokenIt()->getString());
+			return std::make_shared<Base64WideStringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), alphabet);
 		})
 		.production("regexp_mod", [](auto&& args) -> Value {
 			return std::move(args[0]);
@@ -1014,19 +1036,19 @@ void ParserDriver::defineGrammar()
 			return output;
 		})
 		.production(
-			"FOR", "for_expression", "ID", [&](auto&& args) -> Value {
+			"FOR", "for_expression", "ID", "IN", "integer_set", [&](auto&& args) -> Value {
 				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
 				if (!addLocalSymbol(symbol))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};
 			},
-			"IN", "integer_set", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
 				TokenIt for_token = args[0].getTokenIt();
 				auto for_expr = std::move(args[1].getExpression());
 				TokenIt id = args[2].getTokenIt();
 
-				TokenIt op_in = args[4].getTokenIt();
-				auto set = std::move(args[5].getExpression());
+				TokenIt op_in = args[3].getTokenIt();
+				auto set = std::move(args[4].getExpression());
 				TokenIt lp = args[7].getTokenIt();
 				auto expr = args[8].getExpression();
 				TokenIt rp = args[9].getTokenIt();
@@ -1034,7 +1056,104 @@ void ParserDriver::defineGrammar()
 				removeLocalSymbol(id->getString());
 				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
 				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForIntExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+				output->setType(Expression::Type::Bool);
+				output->setTokenStream(currentTokenStream());
+				return output;
+			}
+		)
+		.production(
+			"FOR", "for_expression", "ID", "IN", "identifier", [&](auto&& args) -> Value {
+				const auto& iterable = args[4].getExpression();
+				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+				assert(parentSymbol);
+				if (!parentSymbol->isArray())
+					error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
+
+				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+
+				std::shared_ptr<Symbol> symbol;
+				if (iterParentSymbol->isStructured())
+				{
+					symbol = iterParentSymbol->getStructuredElementType();
+					symbol->setName(args[2].getTokenIt()->getString());
+				}
+				else
+				{
+					symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterParentSymbol->getElementType());
+				}
+
+				if (!addLocalSymbol(symbol))
+					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
+				return {};
+			},
+			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+				TokenIt for_token = args[0].getTokenIt();
+				auto for_expr = std::move(args[1].getExpression());
+				TokenIt id = args[2].getTokenIt();
+				TokenIt op_in = args[3].getTokenIt();
+				auto array = std::move(args[4].getExpression());
+
+				TokenIt lp = args[7].getTokenIt();
+				auto expr = args[8].getExpression();
+				TokenIt rp = args[9].getTokenIt();
+
+				removeLocalSymbol(id->getString());
+				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
+				output->setType(Expression::Type::Bool);
+				output->setTokenStream(currentTokenStream());
+				return output;
+			}
+		)
+		.production(
+			"FOR", "for_expression", "ID", "COMMA", "ID", "IN", "identifier", [&](auto&& args) -> Value {
+				const auto& iterable = args[6].getExpression();
+				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+				assert(parentSymbol);
+				if (!parentSymbol->isDictionary())
+					error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
+
+				std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), ExpressionType::String);
+				if (!addLocalSymbol(symbol1))
+					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
+
+				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+
+				std::shared_ptr<Symbol> symbol2;
+				if (iterParentSymbol->isStructured())
+				{
+					symbol2 = iterParentSymbol->getStructuredElementType();
+					symbol2->setName(args[4].getTokenIt()->getString());
+				}
+				else
+				{
+					symbol2 = std::make_shared<ValueSymbol>(args[4].getTokenIt()->getString(), iterParentSymbol->getElementType());
+				}
+
+				if (!addLocalSymbol(symbol2))
+					error_handle(args[4].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[4].getTokenIt()->getString() + "'");
+				return {};
+			},
+			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+				TokenIt for_token = args[0].getTokenIt();
+				auto for_expr = std::move(args[1].getExpression());
+				TokenIt id1 = args[2].getTokenIt();
+				TokenIt comma = args[3].getTokenIt();
+				TokenIt id2 = args[4].getTokenIt();
+				TokenIt op_in = args[5].getTokenIt();
+				auto dict = std::move(args[6].getExpression());
+
+				TokenIt lp = args[9].getTokenIt();
+				auto expr = args[10].getExpression();
+				TokenIt rp = args[11].getTokenIt();
+
+				removeLocalSymbol(id1->getString());
+				removeLocalSymbol(id2->getString());
+				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+				auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
 				return output;
@@ -2138,6 +2257,44 @@ IncludeResult ParserDriver::includeFileImpl(const std::string& includePath, std:
 	_includedFilesCache.emplace(absolutePath(includePath));
 
 	return IncludeResult::Included;
+}
+
+void ParserDriver::checkStringModifier(const std::vector<std::shared_ptr<StringModifier>>& previousMods, const std::shared_ptr<StringModifier>& newMod)
+{
+	using T = StringModifier::Type;
+	// Table of invalid combinations of string modifiers; see
+	// https://yara.readthedocs.io/en/latest/writingrules.html#string-modifier-summary
+	const static std::map<T, std::vector<T>> invalidCombinationsTable = {
+		{T::Ascii, {}},
+		{T::Wide, {}},
+		{T::Nocase, {T::Xor, T::Base64, T::Base64Wide}},
+		{T::Fullword, {T::Base64, T::Base64Wide}},
+		{T::Private, {}},
+		{T::Xor, {T::Nocase, T::Base64, T::Base64Wide}},
+		{T::Base64, {T::Nocase, T::Fullword, T::Xor}},
+		{T::Base64Wide, {T::Nocase, T::Fullword, T::Xor}}
+	};
+	auto newModType = newMod->getType();
+	auto forbiddenMods = invalidCombinationsTable.find(newModType)->second;
+	for (const auto& previousMod: previousMods)
+	{
+		auto previousModType = previousMod->getType();
+		if (std::find(forbiddenMods.begin(), forbiddenMods.end(), previousModType) != forbiddenMods.end())
+			error_handle(newMod->getTokenRange().first->getLocation(), "Invalid combination of string modifiers (" + previousMod->getName() + ", " + newMod->getName() + ")");
+
+		if (newModType == previousModType)
+			error_handle(newMod->getTokenRange().first->getLocation(), "Duplicated modifier " + newMod->getName());
+
+		if ((newModType == T::Base64 && previousModType == T::Base64Wide &&
+		   std::static_pointer_cast<Base64StringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64WideStringModifier>(previousMod)->getAlphabet()) ||
+		   (newModType == T::Base64Wide && previousModType == T::Base64 &&
+   		   std::static_pointer_cast<Base64WideStringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64StringModifier>(previousMod)->getAlphabet()))
+		{
+			error_handle(newMod->getTokenRange().first->getLocation(), "Can not specify multiple alphabets for base64 modifiers");
+		}
+
+
+	}
 }
 
 } //namespace yaramod
