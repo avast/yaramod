@@ -1706,7 +1706,7 @@ void ParserDriver::defineGrammar()
 		;
 		
 	_parser.rule("expression_iterator") // Expression::Ptr
-		.production("LSQB", "boolean_enumeration", "RSQB", [&](auto&& args) -> Value {
+		.production("LSQB", "expression_enumeration", "RSQB", [&](auto&& args) -> Value {
 			TokenIt lsqb = args[0].getTokenIt();
 			lsqb->setType(TokenType::LSQB_ENUMERATION);
 			TokenIt rsqb = args[2].getTokenIt();
