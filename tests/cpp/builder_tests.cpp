@@ -255,12 +255,12 @@ RuleWithVariablesWorks) {
 
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
-		.withModule("pe")
+		.withModule("time")
 		.withRule(std::move(rule))
 		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
-	EXPECT_EQ(R"(import "pe"
+	EXPECT_EQ(R"(import "time"
 
 rule rule_with_variables {
 	variables:
@@ -273,7 +273,7 @@ rule rule_with_variables {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(import "pe"
+	EXPECT_EQ(R"(import "time"
 
 rule rule_with_variables
 {
