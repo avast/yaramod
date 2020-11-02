@@ -246,20 +246,23 @@ RuleWithVariablesWorks) {
 	YaraRuleBuilder newRule;
 	auto rule = newRule
 		.withName("rule_with_variables")
-		.withStringMeta("string_var", "string value")
-		.withIntMeta("int_var", 42)
+		.withStringVariable("string_var", "string value")
+		.withIntVariable("int_var", 42)
 		.withDoubleVariable("double_var", 2.6)
-		.withBoolMeta("bool_var", false)
+		.withBoolVariable("bool_var", false)
 		.withStructVariable("struct_var", "time")
 		.get();
 
 	YaraFileBuilder newFile;
 	auto yaraFile = newFile
+		.withModule("pe")
 		.withRule(std::move(rule))
 		.get(true);
 
 	ASSERT_NE(nullptr, yaraFile);
-	EXPECT_EQ(R"(rule rule_with_variables {
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_variables {
 	variables:
 		string_var = "string value"
 		int_var = 42
@@ -270,7 +273,9 @@ RuleWithVariablesWorks) {
 		true
 })", yaraFile->getText());
 
-	EXPECT_EQ(R"(rule rule_with_variables
+	EXPECT_EQ(R"(import "pe"
+
+rule rule_with_variables
 {
 	variables:
 		string_var = "string value"
@@ -279,7 +284,7 @@ RuleWithVariablesWorks) {
 		bool_var = false
 		struct_var = time
 	condition:
-		truex
+		true
 }
 )", yaraFile->getTextFormatted());
 }
