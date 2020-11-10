@@ -191,7 +191,8 @@ class ReferenceSymbol : public Symbol
 public:
 	ReferenceSymbol(const std::string& name, const std::shared_ptr<Symbol>& symbol) : Symbol(Symbol::Type::Reference, name, ExpressionType::Object), _symbol(symbol) {}
 
-	const std::shared_ptr<Symbol>& getSymbol() const {
+	const std::shared_ptr<Symbol>& getSymbol() const
+	{
 		return _symbol;
 	}
 

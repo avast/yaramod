@@ -295,7 +295,7 @@ public:
 		return defaultHandler(context, expr, var, iterable, {});
 	}
 
-	virtual VisitResult visit(IteratorExpression* expr) override
+	virtual VisitResult visit(IterableExpression* expr) override
 	{
 		TokenStreamContext context{expr};
 		std::vector<VisitResult> newElements;
@@ -528,7 +528,7 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(const TokenStreamContext& context, IteratorExpression* expr, const std::vector<VisitResult>& elementsRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, IterableExpression* expr, const std::vector<VisitResult>& elementsRet)
 	{
 		if (elementsRet.empty())
 			return VisitAction::Delete;

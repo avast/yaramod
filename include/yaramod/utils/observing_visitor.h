@@ -255,7 +255,7 @@ public:
 		return {};
 	}
 
-	virtual VisitResult visit(IteratorExpression* expr) override
+	virtual VisitResult visit(IterableExpression* expr) override
 	{
 		for (auto& element : expr->getElements())
 			element->accept(this);

@@ -158,7 +158,7 @@ rule rule_with_metas
         self.assertEqual(expected, yara_file.text_formatted)
 
     def test_rule_with_variables(self):
-        yara_file = yaramod.Yaramod().parse_string('''
+        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''
 import "time"
 rule rule_with_variables {
     variables:
@@ -200,6 +200,37 @@ rule rule_with_variables {
         self.assertEqual(rule.variables[4].key, 'struct_var')
         self.assertTrue(rule.variables[4].value.symbol.is_structure)
         self.assertEqual(rule.variables[4].value.symbol.name, 'time')
+
+    def test_rule_with_variable_and_string(self):
+        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''
+import "time"
+rule rule_with_variable_and_string {
+    variables:
+        str = "this is a variable"
+    strings:
+        $str = "this is a string"
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'rule_with_variable_and_string')
+        self.assertEqual(rule.modifier, yaramod.RuleModifier.Empty)
+        self.assertEqual(len(rule.metas), 0)
+        self.assertEqual(len(rule.variables), 1)
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(len(rule.tags), 0)
+
+        self.assertEqual(rule.variables[0].key, 'str')
+        self.assertTrue(type(rule.variables[0].value.value) is str)
+        self.assertEqual(rule.variables[0].value.value, 'this is a variable')
+
+        self.assertEqual(rule.strings[0].identifier, '$str')
+        self.assertEqual(rule.strings[0].text, '"this is a string"')
+        self.assertEqual(rule.strings[0].pure_text, b'this is a string')
+        self.assertTrue(rule.strings[0].is_ascii)
 
     def test_rule_with_plain_strings(self):
         yara_file = yaramod.Yaramod().parse_string('''
@@ -523,7 +554,7 @@ rule double_literal_condition {
         self.assertEqual(rule.condition.text, '1.23')
 
     def test_variable_condition(self):
-        yara_file = yaramod.Yaramod().parse_string('''import "time"
+        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''import "time"
 
 rule variable_condition {
 	variables:

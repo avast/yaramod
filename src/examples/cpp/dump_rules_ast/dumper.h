@@ -350,9 +350,9 @@ public:
 		return {};
 	}
 
-	virtual yaramod::VisitResult visit(yaramod::IteratorExpression* expr) override
+	virtual yaramod::VisitResult visit(yaramod::IterableExpression* expr) override
 	{
-		dump("Iterator", expr, " size=", expr->getElements().size());
+		dump("Iterable", expr, " size=", expr->getElements().size());
 		indentUp();
 		for (auto& elem : expr->getElements())
 			elem->accept(this);

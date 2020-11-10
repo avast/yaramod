@@ -1170,7 +1170,7 @@ public:
 };
 
 /**
- * Class representing an iterator, which is an array of expressions typically
+ * Class representing an iterable, which is an array of expressions typically
  * used with an of operator
  *
  * For example:
@@ -1179,14 +1179,14 @@ public:
  *        ^^^^^^^^^^^^^^^^^^^^^
  * @endcode
  */
-class IteratorExpression : public Expression
+class IterableExpression : public Expression
 {
 public:
 	/**
 	 * Constructor
 	 */
 	template <typename ExpPtrVector>
-	IteratorExpression(TokenIt left_square_bracket, ExpPtrVector&& elements, TokenIt right_square_bracket)
+	IterableExpression(TokenIt left_square_bracket, ExpPtrVector&& elements, TokenIt right_square_bracket)
 		: _left_square_bracket(left_square_bracket)
 		, _elements(std::forward<ExpPtrVector>(elements))
 		, _right_square_bracket(right_square_bracket)

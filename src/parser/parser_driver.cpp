@@ -558,7 +558,10 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("variables") // vector<Variable>
-		.production("VARIABLES", "COLON", "variables_body", [](auto&& args) -> Value {
+		.production("VARIABLES", "COLON", "variables_body", [this](auto&& args) -> Value {
+			if (!(_import_features & ImportFeatures::AvastOnly))
+				error_handle(args[1].getTokenIt()->getLocation(), "Variables can be defined only when Avast features are enabled");
+
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 			return std::move(args[2]);
 		})
@@ -573,13 +576,12 @@ void ParserDriver::defineGrammar()
 			auto expr = args[3].getExpression();
 
 			std::shared_ptr<Symbol> symbol;
-			if(expr->isObject()) {
+			if (expr->isObject())
 				symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
-			} else {
+			else
 				symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
-			}
 			
-			if(!addLocalSymbol(symbol)) {
+			if (!addLocalSymbol(symbol)) {
 				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
 			}
 
@@ -1194,7 +1196,10 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("for_expression", "OF", "expression_iterator", [&](auto&& args) -> Value {
+		.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
+			if (!(_import_features & ImportFeatures::AvastOnly))
+				error_handle(args[1].getTokenIt()->getLocation(), "Of expression over an iterable can be used only when Avast features are enabled");
+
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
 			auto array = std::move(args[2].getExpression());
@@ -1613,7 +1618,7 @@ void ParserDriver::defineGrammar()
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
-			while(parentSymbol->isReference())
+			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 			if (!parentSymbol->isStructure())
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
@@ -1639,7 +1644,7 @@ void ParserDriver::defineGrammar()
 			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			assert(parentSymbol);
 
-			while(parentSymbol->isReference())
+			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
@@ -1665,7 +1670,7 @@ void ParserDriver::defineGrammar()
 
 			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 
-			while(parentSymbol->isReference())
+			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 				
 			if (!parentSymbol->isFunction())
@@ -1824,13 +1829,13 @@ void ParserDriver::defineGrammar()
 		})
 		;
 		
-	_parser.rule("expression_iterator") // Expression::Ptr
+	_parser.rule("expression_iterable") // Expression::Ptr
 		.production("LSQB", "expression_enumeration", "RSQB", [&](auto&& args) -> Value {
 			TokenIt lsqb = args[0].getTokenIt();
 			lsqb->setType(TokenType::LSQB_ENUMERATION);
 			TokenIt rsqb = args[2].getTokenIt();
 			lsqb->setType(TokenType::RSQB_ENUMERATION);
-			auto output = std::make_shared<IteratorExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
+			auto output = std::make_shared<IterableExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})

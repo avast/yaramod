@@ -247,6 +247,87 @@ rule hex_and_decimal_integers_are_preserved
 }
 
 TEST_F(ParserTests,
+RuleWithVariablesWorks) {
+	prepareInput(
+R"(
+rule rule_with_variables
+{
+	variables:
+		int_var = 25
+		float_var = 2.5
+		bool_var = true
+		string_var = "Hello World!"
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_variables", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_FALSE(rule->getVariables().empty());
+
+	auto variables = rule->getVariables();
+	ASSERT_EQ(4u, variables.size());
+
+	auto int_var = variables[0];
+	EXPECT_EQ("int_var", int_var.getKey());
+	EXPECT_TRUE(int_var.getValue()->isInt());
+	EXPECT_EQ("25", int_var.getValue()->getText());
+
+	auto float_var = variables[1];
+	EXPECT_EQ("float_var", float_var.getKey());
+	EXPECT_TRUE(float_var.getValue()->isFloat());
+	EXPECT_EQ("2.5", float_var.getValue()->getText());
+
+	auto bool_var = variables[2];
+	EXPECT_EQ("bool_var", bool_var.getKey());
+	EXPECT_TRUE(bool_var.getValue()->isBool());
+	EXPECT_EQ("true", bool_var.getValue()->getText());
+
+	auto string_var = variables[3];
+	EXPECT_EQ("string_var", string_var.getKey());
+	EXPECT_TRUE(string_var.getValue()->isString());
+	EXPECT_EQ("\"Hello World!\"", string_var.getValue()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+VariableInConditionWorks) {
+	prepareInput(
+R"(
+rule variable_in_condition
+{
+	variables:
+		int_var = 25
+	condition:
+		int_var > 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("variable_in_condition", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_FALSE(rule->getVariables().empty());
+
+	auto variables = rule->getVariables();
+	ASSERT_EQ(1u, variables.size());
+
+	ASSERT_TRUE(rule->getCondition()->getFirstTokenIt()->isSymbol());
+	ASSERT_EQ(ExpressionType::Int, rule->getCondition()->getFirstTokenIt()->getSymbol()->getDataType());
+	ASSERT_EQ("int_var", rule->getCondition()->getFirstTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 RuleWithPlainTextStringsWorks) {
 	prepareInput(
 R"(
@@ -1686,6 +1767,40 @@ rule regexp_with_invalid_range
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 5.16: Range in regular expression has greater lower bound than higher bound", err.getErrorMessage());
 	}
+}
+
+TEST_F(ParserTests,
+RulesWithVariablesAndStringsWork) {
+	prepareInput(
+R"(rule rule1
+{
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
+	strings:
+		$string = "Hello World!"
+		$anotherstring = "Hello World! 2"
+	condition:
+		true
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule1
+{
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
+	strings:
+		$string = "Hello World!"
+		$anotherstring = "Hello World! 2"
+	condition:
+		true
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -6217,6 +6332,12 @@ rule rule_name_1 {
 
 		author = "Mr Avastien"
 
+	variables:
+
+		var1 = "a string value"
+
+		var2 = 25.4
+
 	strings:
 
 		$string1 = " Brandenburger Tor"
@@ -6238,6 +6359,14 @@ rule rule_name_2 {
 		title = "the very same title"
 
 		author = "Mr Avastien"
+
+	variables:
+
+		var1 = 1 + 4
+
+		var2 = true
+
+		var3 = 3.4
 
 	strings:
 
@@ -6266,6 +6395,9 @@ rule rule_name_1
 	meta:
 		title = "some unique title"
 		author = "Mr Avastien"
+	variables:
+		var1 = "a string value"
+		var2 = 25.4
 	strings:
 		$string1 = " Brandenburger Tor"
 		$string2 = "Fernsehrturm" wide
@@ -6280,6 +6412,10 @@ rule rule_name_2
 	meta:
 		title = "the very same title"
 		author = "Mr Avastien"
+	variables:
+		var1 = 1 + 4
+		var2 = true
+		var3 = 3.4
 	strings:
 		$string1 = " burger"
 		$string2 = "Fernsehr"
@@ -6423,6 +6559,33 @@ rule oneline_rule_2
 		$s01 = "string 234567" /*COMMENT 5*/
 	condition: /*COMMENT 6*/
 		any of ($s0*) /*COMMENT 7*/
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AutoformattingVariableInCondition) {
+	prepareInput(
+R"(rule rule1
+{
+	variables:
+		int_var = 1
+	condition:
+		int_var and
+		(	int_var<3 )
+})");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule1
+{
+	variables:
+		int_var = 1
+	condition:
+		int_var and
+		(int_var < 3)
 }
 )";
 

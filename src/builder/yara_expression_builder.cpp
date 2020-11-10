@@ -1071,13 +1071,13 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
 }
 
 /**
- * Creates iterator of elements.
+ * Creates an iterable array of elements.
  *
  * @param elements Elements.
  *
  * @return Builder.
  */
-YaraExpressionBuilder iterator(const std::vector<YaraExpressionBuilder>& elements)
+YaraExpressionBuilder iterable(const std::vector<YaraExpressionBuilder>& elements)
 {
 	auto ts = std::make_shared<TokenStream>();
 	TokenIt lsqb = ts->emplace_back(TokenType::LSQB_ENUMERATION, "[");
@@ -1092,7 +1092,7 @@ YaraExpressionBuilder iterator(const std::vector<YaraExpressionBuilder>& element
 	std::vector<Expression::Ptr> elementsExprs;
 	std::for_each(elements.begin(), elements.end(), [&elementsExprs](const YaraExpressionBuilder& expr) { elementsExprs.push_back(expr.get()); });
 
-	auto expression = std::make_shared<IteratorExpression>(lsqb, std::move(elementsExprs), rsqb);
+	auto expression = std::make_shared<IterableExpression>(lsqb, std::move(elementsExprs), rsqb);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression));
 }
 

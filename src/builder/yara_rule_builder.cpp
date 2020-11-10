@@ -349,9 +349,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringVariable(const std::string& key, con
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -382,9 +380,7 @@ YaraRuleBuilder& YaraRuleBuilder::withIntVariable(const std::string& key, std::i
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -413,9 +409,7 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntVariable(const std::string& key, std::
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -444,9 +438,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntVariable(const std::string& key, std
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -475,9 +467,7 @@ YaraRuleBuilder& YaraRuleBuilder::withDoubleVariable(const std::string& key, dou
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -506,9 +496,7 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolVariable(const std::string& key, bool 
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -537,9 +525,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStructVariable(const std::string& key, con
 	TokenIt insert_before = _strings_it.value_or(_condition_it);
 
 	if (!_variables_it.has_value())
-	{
 		initializeVariables();
-	}
 
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
 	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
@@ -737,15 +723,6 @@ YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t low, std::uint64_t high)
 	return *this;
 }
 
-void YaraRuleBuilder::initializeVariables()
-{
-	auto before = _strings_it.value_or(_condition_it);
-	
-	_variables_it = _tokenStream->emplace(before, TokenType::VARIABLES, "variables");
-	_tokenStream->emplace(before, TokenType::COLON_BEFORE_NEWLINE, ":");
-	_tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
-}
-
 YaraRuleBuilder& YaraRuleBuilder::base64()
 {
 	auto token = _stringModsTokens->emplace_back(TokenType::BASE64, "base64");
@@ -815,6 +792,15 @@ void YaraRuleBuilder::createLastString()
 		_lastString.reset();
 		_stringMods.clear();
 	}
+}
+
+void YaraRuleBuilder::initializeVariables()
+{
+	auto before = _strings_it.value_or(_condition_it);
+	
+	_variables_it = _tokenStream->emplace(before, TokenType::VARIABLES, "variables");
+	_tokenStream->emplace(before, TokenType::COLON_BEFORE_NEWLINE, ":");
+	_tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
 }
 
 } //namespace yaramod

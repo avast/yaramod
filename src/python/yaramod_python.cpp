@@ -613,10 +613,10 @@ void addExpressionClasses(py::module& module)
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
 
-	exprClass<IteratorExpression>(module, "IteratorExpression")
+	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",
-				&IteratorExpression::getElements,
-				py::overload_cast<const std::vector<Expression::Ptr>&>(&IteratorExpression::setElements));
+				&IterableExpression::getElements,
+				py::overload_cast<const std::vector<Expression::Ptr>&>(&IterableExpression::setElements));
 
 	exprClass<SetExpression>(module, "SetExpression")
 		.def_property("elements",
@@ -842,7 +842,7 @@ void addBuilderClasses(py::module& module)
 		>(&forLoop));
 	module.def("of", &of);
 
-	module.def("iterator", &iterator);
+	module.def("iterable", &iterable);
 
 	module.def("set", &set);
 	module.def("range", &range);
