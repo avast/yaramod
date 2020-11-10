@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-AndroguardModule::AndroguardModule() : Module("androguard", ImportFeatures::AvastOnly)
+AndroguardModule::AndroguardModule() : Module("androguard", Features::AvastOnly)
 {
 }
 
@@ -22,7 +22,7 @@ AndroguardModule::AndroguardModule() : Module("androguard", ImportFeatures::Avas
  *
  * @return @c true if success, otherwise @c false.
  */
-bool AndroguardModule::initialize(ImportFeatures)
+bool AndroguardModule::initialize(Features)
 {
 	using Type = Expression::Type;
 

@@ -3270,7 +3270,7 @@ rule dummy_rule
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(Features::VirusTotal);
 	std::stringstream input2(input_text);
 
 	try
@@ -3325,7 +3325,7 @@ rule dummy_rule
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(Features::VirusTotal);
 	std::stringstream input2(input_text);
 
 	try
@@ -3382,7 +3382,7 @@ rule dummy_rule
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(Features::VirusTotal);
 	std::stringstream input2(input_text);
 
 try
@@ -3443,7 +3443,7 @@ rule cuckoo_module
 }
 )");
 
-	ParserDriver driverNoAvastSymbols(ImportFeatures::VirusTotal);
+	ParserDriver driverNoAvastSymbols(Features::VirusTotal);
 	std::stringstream input2(input_text);
 
 	try
@@ -3474,7 +3474,7 @@ rule cuckoo_module_deprecated
 }
 )");
 
-	ParserDriver driverDeprecatedSymbols(ImportFeatures::Everything);
+	ParserDriver driverDeprecatedSymbols(Features::Everything);
 	std::stringstream input2(input_text);
 
 	EXPECT_TRUE(driverDeprecatedSymbols.parse(input));
@@ -3725,7 +3725,7 @@ rule virus_total_specific
 }
 )");
 
-	ParserDriver driverNoVTSymbols(ImportFeatures::Avast);
+	ParserDriver driverNoVTSymbols(Features::Avast);
 	std::stringstream input2(input_text);
 
 	try

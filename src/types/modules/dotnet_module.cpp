@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DotnetModule::DotnetModule() : Module("dotnet", ImportFeatures::Basic)
+DotnetModule::DotnetModule() : Module("dotnet", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ DotnetModule::DotnetModule() : Module("dotnet", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DotnetModule::initialize(ImportFeatures/* features*/)
+bool DotnetModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 

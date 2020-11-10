@@ -158,7 +158,7 @@ rule rule_with_metas
         self.assertEqual(expected, yara_file.text_formatted)
 
     def test_rule_with_variables(self):
-        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''
+        yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''
 import "time"
 rule rule_with_variables {
     variables:
@@ -202,7 +202,7 @@ rule rule_with_variables {
         self.assertEqual(rule.variables[4].value.symbol.name, 'time')
 
     def test_rule_with_variable_and_string(self):
-        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''
+        yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''
 import "time"
 rule rule_with_variable_and_string {
     variables:
@@ -481,7 +481,7 @@ rule dummy_rule {
     condition:
         true
 }'''
-        ymod = yaramod.Yaramod(yaramod.ImportFeatures.VirusTotal)
+        ymod = yaramod.Yaramod(yaramod.Features.VirusTotal)
         with self.assertRaises(yaramod.ParserError):
             ymod.parse_string(input_text)
 
@@ -493,12 +493,12 @@ rule dummy_rule {
     condition:
         true and new_file
 }'''
-        ymod = yaramod.Yaramod(yaramod.ImportFeatures.Avast)
+        ymod = yaramod.Yaramod(yaramod.Features.Avast)
         with self.assertRaises(yaramod.ParserError):
             ymod.parse_string(input_text)
 
     def test_imports_with_deprecated_symbols(self):
-        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Everything).parse_string('''
+        yara_file = yaramod.Yaramod(yaramod.Features.Everything).parse_string('''
 import "cuckoo"
 
 rule dummy_rule {
@@ -554,7 +554,7 @@ rule double_literal_condition {
         self.assertEqual(rule.condition.text, '1.23')
 
     def test_variable_condition(self):
-        yara_file = yaramod.Yaramod(yaramod.ImportFeatures.Avast).parse_string('''import "time"
+        yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''import "time"
 
 rule variable_condition {
 	variables:

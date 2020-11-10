@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-DexModule::DexModule() : Module("dex", ImportFeatures::Basic)
+DexModule::DexModule() : Module("dex", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ DexModule::DexModule() : Module("dex", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool DexModule::initialize(ImportFeatures/* features*/)
+bool DexModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 

@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-CuckooModule::CuckooModule() : Module("cuckoo", ImportFeatures::Basic)
+CuckooModule::CuckooModule() : Module("cuckoo", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ CuckooModule::CuckooModule() : Module("cuckoo", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool CuckooModule::initialize(ImportFeatures features)
+bool CuckooModule::initialize(Features features)
 {
 	using Type = Expression::Type;
 
@@ -36,7 +36,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("http_user_agent", Type::Int, Type::Regexp));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp", Type::Int, Type::Regexp, Type::Int));
 	networkStruct->addAttribute(std::make_shared<FunctionSymbol>("udp", Type::Int, Type::Regexp, Type::Int));
-	if (features & ImportFeatures::AvastOnly)
+	if (features & Features::AvastOnly)
 	{
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp));
 		networkStruct->addAttribute(std::make_shared<FunctionSymbol>("tcp_request", Type::Int, Type::Regexp, Type::Int));
@@ -55,7 +55,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 
 	auto registryStruct = std::make_shared<StructureSymbol>("registry");
 	registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_access", Type::Int, Type::Regexp));
-	if (features & ImportFeatures::AvastOnly)
+	if (features & Features::AvastOnly)
 	{
 		registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_read", Type::Int, Type::Regexp));
 		registryStruct->addAttribute(std::make_shared<FunctionSymbol>("key_write", Type::Int, Type::Regexp));
@@ -66,7 +66,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 
 	auto filesystemStruct = std::make_shared<StructureSymbol>("filesystem");
 	filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_access", Type::Int, Type::Regexp));
-	if (features & ImportFeatures::AvastOnly)
+	if (features & Features::AvastOnly)
 	{
 		filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_read", Type::Int, Type::Regexp));
 		filesystemStruct->addAttribute(std::make_shared<FunctionSymbol>("file_write", Type::Int, Type::Regexp));
@@ -78,7 +78,7 @@ bool CuckooModule::initialize(ImportFeatures features)
 
 	auto syncStruct = std::make_shared<StructureSymbol>("sync");
 	syncStruct->addAttribute(std::make_shared<FunctionSymbol>("mutex", Type::Int, Type::Regexp));
-	if (features & ImportFeatures::AvastOnly)
+	if (features & Features::AvastOnly)
 	{
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("event", Type::Int, Type::Regexp));
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("semaphore", Type::Int, Type::Regexp));
@@ -89,9 +89,9 @@ bool CuckooModule::initialize(ImportFeatures features)
 		syncStruct->addAttribute(std::make_shared<FunctionSymbol>("desktop", Type::Int, Type::Regexp));
 	}
 	cuckooStruct->addAttribute(syncStruct);
-	if (features & (ImportFeatures::AvastOnly | ImportFeatures::Deprecated))
+	if (features & (Features::AvastOnly | Features::Deprecated))
 	{
-		if (features & ImportFeatures::AvastOnly)
+		if (features & Features::AvastOnly)
 		{
 			auto processStruct = std::make_shared<StructureSymbol>("process");
 			processStruct->addAttribute(std::make_shared<FunctionSymbol>("executed_command", Type::Int, Type::Regexp));
@@ -114,16 +114,16 @@ bool CuckooModule::initialize(ImportFeatures features)
 			cuckooStruct->addAttribute(summaryStruct);
 		}
 		auto signatureStruct = std::make_shared<StructureSymbol>("signature");
-		if (features & ImportFeatures::AvastOnly)
+		if (features & Features::AvastOnly)
 		{
 			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp));
 			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::Regexp, Type::Regexp));
 			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String));
 			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("hits", Type::Int, Type::String, Type::Regexp));
 		}
-		if (features & ImportFeatures::Deprecated)
+		if (features & Features::Deprecated)
 		{
-			assert(features & ImportFeatures::Deprecated);
+			assert(features & Features::Deprecated);
 			signatureStruct->addAttribute(std::make_shared<FunctionSymbol>("name", Type::Int, Type::Regexp));
 		}
 		cuckooStruct->addAttribute(signatureStruct);

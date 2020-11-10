@@ -65,14 +65,14 @@ void addEnums(py::module& module)
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
 
-	py::enum_<ImportFeatures>(module, "ImportFeatures", py::arithmetic())
-		.value("Basic", ImportFeatures::Basic)
-		.value("AvastOnly", ImportFeatures::AvastOnly)
-		.value("VirusTotalOnly", ImportFeatures::VirusTotalOnly)
-		.value("Avast", ImportFeatures::Avast)
-		.value("VirusTotal", ImportFeatures::VirusTotal)
-		.value("AllCurrent", ImportFeatures::AllCurrent)
-		.value("Everything", ImportFeatures::Everything);
+	py::enum_<Features>(module, "Features", py::arithmetic())
+		.value("Basic", Features::Basic)
+		.value("AvastOnly", Features::AvastOnly)
+		.value("VirusTotalOnly", Features::VirusTotalOnly)
+		.value("Avast", Features::Avast)
+		.value("VirusTotal", Features::VirusTotal)
+		.value("AllCurrent", Features::AllCurrent)
+		.value("Everything", Features::Everything);
 
 	py::enum_<IntMultiplier>(module, "IntMultiplier")
 		.value("Empty", IntMultiplier::None)
@@ -693,7 +693,7 @@ void addExpressionClasses(py::module& module)
 void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
-		.def(py::init<ImportFeatures>(), py::arg("import_features") = ImportFeatures::AllCurrent)
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("get", [](YaraFileBuilder& self, bool recheck) {
 				return self.get(recheck, nullptr);
 			}, py::arg("recheck") = false)
@@ -888,7 +888,7 @@ void addBuilderClasses(py::module& module)
 void addMainClass(py::module& module)
 {
 	py::class_<Yaramod>(module, "Yaramod")
-		.def(py::init<ImportFeatures>(), py::arg("import_features") = ImportFeatures::AllCurrent)
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
 		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);

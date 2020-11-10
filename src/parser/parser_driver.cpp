@@ -559,7 +559,7 @@ void ParserDriver::defineGrammar()
 
 	_parser.rule("variables") // vector<Variable>
 		.production("VARIABLES", "COLON", "variables_body", [this](auto&& args) -> Value {
-			if (!(_import_features & ImportFeatures::AvastOnly))
+			if (!(_features & Features::AvastOnly))
 				error_handle(args[1].getTokenIt()->getLocation(), "Variables can be defined only when Avast features are enabled");
 
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
@@ -1197,7 +1197,7 @@ void ParserDriver::defineGrammar()
 			return output;
 		})
 		.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
-			if (!(_import_features & ImportFeatures::AvastOnly))
+			if (!(_features & Features::AvastOnly))
 				error_handle(args[1].getTokenIt()->getLocation(), "Of expression over an iterable can be used only when Avast features are enabled");
 
 			auto for_expr = std::move(args[0].getExpression());
@@ -1889,9 +1889,9 @@ void ParserDriver::initialize()
  * @param parserMode Parsing mode.
  * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(ImportFeatures features)
+ParserDriver::ParserDriver(Features features)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
-	_escapedContent(false), _mode(ParserMode::Regular), _import_features(features), _modules(),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0)
@@ -1925,7 +1925,7 @@ bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
 		return false;
 
 	_fileContexts.emplace_back(&stream);
-	_file = YaraFile(currentFileContext()->getTokenStream(), _import_features);
+	_file = YaraFile(currentFileContext()->getTokenStream(), _features);
 	return parseImpl();
 }
 
@@ -1937,7 +1937,7 @@ bool ParserDriver::parse(const std::string& filePath, ParserMode parserMode)
 	if (includeFileImpl(filePath) != IncludeResult::Included)
 		return false;
 
-	_file = YaraFile(currentFileContext()->getTokenStream(), _import_features);
+	_file = YaraFile(currentFileContext()->getTokenStream(), _features);
 	return parseImpl();
 }
 
