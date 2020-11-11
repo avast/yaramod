@@ -50,7 +50,7 @@ public:
 	/// @{
 	Rule();
 	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global,
-		std::vector<Meta>&& metas, std::vector<Variable>&& variables, std::shared_ptr<StringsTrie>&& strings, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
+		std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, std::vector<Variable>&& variables, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
 
 	Rule(Rule&& rule) = default;
 	Rule(const Rule& rule) = default;
@@ -68,10 +68,10 @@ public:
 	Rule::Modifier getModifier() const;
 	std::vector<Meta>& getMetas();
 	const std::vector<Meta>& getMetas() const;
-	std::vector<Variable>& getVariables();
-	const std::vector<Variable>& getVariables() const;
 	std::vector<const String*> getStrings() const;
 	const std::shared_ptr<StringsTrie>& getStringsTrie() const;
+	std::vector<Variable>& getVariables();
+	const std::vector<Variable>& getVariables() const;
 	const Expression::Ptr& getCondition() const;
 	std::vector<std::string> getTags() const;
 	const std::shared_ptr<Symbol>& getSymbol() const;
@@ -117,8 +117,8 @@ private:
 	std::optional<TokenIt> _mod_private; ///< Private modifier
 	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<Meta> _metas; ///< Meta information
-	std::vector<Variable> _variables; ///< Variables
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
+	std::vector<Variable> _variables; ///< Variables
 	Expression::Ptr _condition; ///< Condition expression
 	std::vector<TokenIt> _tags; ///< Tags
 	Location _location; ///< Which file was this rule included from and its textual position

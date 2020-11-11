@@ -30,18 +30,19 @@ Rule::Rule()
  * @param mod_global Optional global modifier token iterator.
  * @param metas Meta information.
  * @param strings Strings.
+ * @param variables Variables.
  * @param condition Condition expression.
  * @param tags Tags as token iterators.
  */
-Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::vector<Variable>&& variables, std::shared_ptr<StringsTrie>&& strings,
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, std::vector<Variable>&& variables, 
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
 	: _tokenStream(tokenStream)
 	, _name(name)
 	, _mod_private(mod_private)
 	, _mod_global(mod_global)
 	, _metas(std::move(metas))
-	, _variables(std::move(variables))
 	, _strings(std::move(strings))
+	, _variables(std::move(variables))
 	, _condition(std::move(condition))
 	, _tags(tags)
 	, _location({"[stream]", 0})
@@ -88,16 +89,6 @@ std::string Rule::getText() const
 				});
 	}
 
-	if (!getVariables().empty())
-	{
-		ss << "\tvariables:\n";
-		std::for_each(getVariables().begin(), getVariables().end(),
-				[&](const Variable& variable)
-				{
-					ss << indent << variable.getText() << '\n';
-				});
-	}
-
 	auto strings = getStrings();
 	if (!strings.empty())
 	{
@@ -108,6 +99,17 @@ std::string Rule::getText() const
 					ss << indent << string->getIdentifier() << " = " << string->getText() << '\n';
 				});
 	}
+
+	if (!getVariables().empty())
+	{
+		ss << "\tvariables:\n";
+		std::for_each(getVariables().begin(), getVariables().end(),
+				[&](const Variable& variable)
+				{
+					ss << indent << variable.getText() << '\n';
+				});
+	}
+
 	ss << "\tcondition:\n" << indent << getCondition()->getText(indent) << "\n}";
 	return ss.str();
 }

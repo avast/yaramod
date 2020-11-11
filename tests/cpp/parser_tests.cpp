@@ -1774,12 +1774,12 @@ RulesWithVariablesAndStringsWork) {
 	prepareInput(
 R"(rule rule1
 {
-	variables:
-		integer = 23
-		string = "Not a Hello World!"
 	strings:
 		$string = "Hello World!"
 		$anotherstring = "Hello World! 2"
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
 	condition:
 		true
 }
@@ -1789,12 +1789,12 @@ R"(rule rule1
 
 std::string expected = R"(rule rule1
 {
-	variables:
-		integer = 23
-		string = "Not a Hello World!"
 	strings:
 		$string = "Hello World!"
 		$anotherstring = "Hello World! 2"
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
 	condition:
 		true
 }
@@ -6332,12 +6332,6 @@ rule rule_name_1 {
 
 		author = "Mr Avastien"
 
-	variables:
-
-		var1 = "a string value"
-
-		var2 = 25.4
-
 	strings:
 
 		$string1 = " Brandenburger Tor"
@@ -6345,6 +6339,12 @@ rule rule_name_1 {
 		$string2 = "Fernsehrturm" wide
 
 		$string3 =   { AA ?? }
+
+	variables:
+
+		var1 = "a string value"
+
+		var2 = 25.4
 
 	condition:
 
@@ -6360,14 +6360,6 @@ rule rule_name_2 {
 
 		author = "Mr Avastien"
 
-	variables:
-
-		var1 = 1 + 4
-
-		var2 = true
-
-		var3 = 3.4
-
 	strings:
 
 		$string1 = " burger"
@@ -6375,6 +6367,14 @@ rule rule_name_2 {
 		$string2 = "Fernsehr"
 
 		$string3 =   { BB ?? }
+
+	variables:
+
+		var1 = 1 + 4
+
+		var2 = true
+
+		var3 = 3.4
 
 	condition:
 
@@ -6395,13 +6395,13 @@ rule rule_name_1
 	meta:
 		title = "some unique title"
 		author = "Mr Avastien"
-	variables:
-		var1 = "a string value"
-		var2 = 25.4
 	strings:
 		$string1 = " Brandenburger Tor"
 		$string2 = "Fernsehrturm" wide
 		$string3 = { AA ?? }
+	variables:
+		var1 = "a string value"
+		var2 = 25.4
 	condition:
 		all of them and
 		cuckoo.process.executed_command(/abc+/)
@@ -6412,14 +6412,14 @@ rule rule_name_2
 	meta:
 		title = "the very same title"
 		author = "Mr Avastien"
-	variables:
-		var1 = 1 + 4
-		var2 = true
-		var3 = 3.4
 	strings:
 		$string1 = " burger"
 		$string2 = "Fernsehr"
 		$string3 = { BB ?? }
+	variables:
+		var1 = 1 + 4
+		var2 = true
+		var3 = 3.4
 	condition:
 		all of them
 }

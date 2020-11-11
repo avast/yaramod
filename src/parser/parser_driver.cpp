@@ -448,7 +448,7 @@ void ParserDriver::defineGrammar()
 				args[3].getTokenIt()->setValue(std::make_shared<ValueSymbol>(name_text, Expression::Type::Bool));
 				return {};
 			},
-			"tags", "LCB", "metas", "variables", "strings", "condition", "RCB", [&](auto&& args) -> Value {
+			"tags", "LCB", "metas", "strings", "variables", "condition", "RCB", [&](auto&& args) -> Value {
 				std::optional<TokenIt> mod_private = {};
 				std::optional<TokenIt> mod_global = {};
 				const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
@@ -471,8 +471,8 @@ void ParserDriver::defineGrammar()
 				const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 				args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
 				std::vector<Meta> metas = std::move(args[7].getMetas());
-				std::vector<Variable> variables = std::move(args[8].getVariables());
-				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[9].getStringsTrie());
+				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
+				std::vector<Variable> variables = std::move(args[9].getVariables());
 				Expression::Ptr condition = std::move(args[10].getExpression());
 				args[11].getTokenIt()->setType(TokenType::RULE_END);
 
@@ -481,7 +481,7 @@ void ParserDriver::defineGrammar()
 				}
 
 				addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
-					std::move(metas), std::move(variables), std::move(strings), std::move(condition), std::move(tags)));
+					std::move(metas), std::move(strings), std::move(variables), std::move(condition), std::move(tags)));
 				return {};
 			});
 

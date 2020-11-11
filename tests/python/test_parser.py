@@ -205,10 +205,10 @@ rule rule_with_variables {
         yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''
 import "time"
 rule rule_with_variable_and_string {
-    variables:
-        str = "this is a variable"
     strings:
         $str = "this is a string"
+    variables:
+        str = "this is a variable"
     condition:
         true
 }''')
