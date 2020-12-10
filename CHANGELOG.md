@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.8.1 (2020-12-10)
+
+* Added building of Python wheel for Windows using Python 3.9
+
 # v3.8.0 (2020-10-04)
 
 * Yara 4.0 features as Base64 string modifier, for loop over dictionary and more ([#144](https://github.com/avast/yaramod/pull/144))
