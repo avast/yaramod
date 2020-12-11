@@ -455,7 +455,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_array", &Symbol::isArray)
 		.def_property_readonly("is_dictionary", &Symbol::isDictionary)
 		.def_property_readonly("is_function", &Symbol::isFunction)
-		.def_property_readonly("is_structure", &Symbol::isStructure);
+		.def_property_readonly("is_structure", &Symbol::isStructure)
+    .def_property_readonly("is_reference", &Symbol::isReference);
 
 	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
 	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
@@ -465,6 +466,8 @@ void addBasicClasses(py::module& module)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
 				return self.getAttribute(name).value_or(nullptr);
 			});
+  py::class_<ReferenceSymbol, Symbol, std::shared_ptr<ReferenceSymbol>>(module, "ReferenceSymbol")
+    .def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
 }
 
 void addTokenStreamClass(py::module& module)

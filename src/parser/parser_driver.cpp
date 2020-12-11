@@ -118,7 +118,8 @@ void ParserDriver::defineTokens()
 	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PRIVATE, std::string{str}); });
 	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RULE, std::string{str}); });
 	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
-	_parser.token("variables").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
+  if(_features & Features::AvastOnly)
+    _parser.token("variables").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
 	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
 	_parser.token("condition").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(TokenType::CONDITION, std::string{str}); });
 	_parser.token("ascii").symbol("ASCII").description("ascii").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASCII, std::string{str}); });
@@ -434,56 +435,96 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("rule") // {}
-		.production(
-			"rule_mods", "RULE", [&](auto&&) -> Value {
-				_lastRuleLocation = currentFileContext()->getLocation();
-				_lastRuleTokenStream = currentFileContext()->getTokenStream();
-				return {};
-			}, "ID", [&](auto&& args) -> Value {
-				const std::string& name_text = args[3].getTokenIt()->getString();
-				if (ruleExists(name_text))
-					error_handle(args[3].getTokenIt()->getLocation(), "Redefinition of rule '" + args[3].getTokenIt()->getString() + "'");
-				args[3].getTokenIt()->setType(TokenType::RULE_NAME);
-				args[3].getTokenIt()->setValue(std::make_shared<ValueSymbol>(name_text, Expression::Type::Bool));
-				return {};
-			},
-			"tags", "LCB", "metas", "strings", "variables", "condition", "RCB", [&](auto&& args) -> Value {
-				std::optional<TokenIt> mod_private = {};
-				std::optional<TokenIt> mod_global = {};
-				const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
-				for (const auto &token: mods)
-				{
-					if (token->getType() == TokenType::GLOBAL)
-					{
-						if (mod_global.has_value())
-							error_handle(token->getLocation(), "Duplicated global rule modifier");
-						mod_global = token;
-					}
-					else if (token->getType() == TokenType::PRIVATE)
-					{
-						if (mod_private.has_value())
-							error_handle(token->getLocation(), "Duplicated private rule modifier");
-						mod_private = token;
-					}
-				}
-				TokenIt name = args[3].getTokenIt();
-				const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
-				args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
-				std::vector<Meta> metas = std::move(args[7].getMetas());
-				std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
-				std::vector<Variable> variables = std::move(args[9].getVariables());
-				Expression::Ptr condition = std::move(args[10].getExpression());
-				args[11].getTokenIt()->setType(TokenType::RULE_END);
+  auto const common_last_rule = [&](auto&&) -> Value {
+  	_lastRuleLocation = currentFileContext()->getLocation();
+	  _lastRuleTokenStream = currentFileContext()->getTokenStream();
+		return {};
+	};
 
-				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-					removeLocalSymbol(iter->getKey());
-				}
+  auto const common_rule_init = [&](auto&& args) -> Value {
+		const std::string& name_text = args[3].getTokenIt()->getString();
+		if (ruleExists(name_text))
+		  error_handle(args[3].getTokenIt()->getLocation(), "Redefinition of rule '" + args[3].getTokenIt()->getString() + "'");
+		args[3].getTokenIt()->setType(TokenType::RULE_NAME);
+		args[3].getTokenIt()->setValue(std::make_shared<ValueSymbol>(name_text, Expression::Type::Bool));
+		return {};
+	};
 
-				addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
-					std::move(metas), std::move(strings), std::move(variables), std::move(condition), std::move(tags)));
-				return {};
-			});
+  if (_features & Features::AvastOnly)
+    _parser.rule("rule") // {}
+		  .production(
+			  "rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "variables", "condition" , "RCB", [&](auto&& args) -> Value {
+	        std::optional<TokenIt> mod_private = {};
+    		  std::optional<TokenIt> mod_global = {};
+		      const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+      		for (const auto &token: mods)
+		      {
+      			if (token->getType() == TokenType::GLOBAL)
+			      {
+      				if (mod_global.has_value())
+			      		error_handle(token->getLocation(), "Duplicated global rule modifier");
+      				mod_global = token;
+			      }
+      			else if (token->getType() == TokenType::PRIVATE)
+			      {
+      				if (mod_private.has_value())
+			      		error_handle(token->getLocation(), "Duplicated private rule modifier");
+      				mod_private = token;
+			      }
+      		}
+      		TokenIt name = args[3].getTokenIt();
+		      const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
+      		args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
+		      std::vector<Meta> metas = std::move(args[7].getMetas());
+		      std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
+		      std::vector<Variable> variables = std::move(args[9].getVariables());
+		      Expression::Ptr condition = std::move(args[10].getExpression());
+		      args[11].getTokenIt()->setType(TokenType::RULE_END);
+
+		      for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+			      removeLocalSymbol(iter->getKey());
+		      }
+
+          addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
+			      std::move(metas), std::move(strings), std::move(variables), std::move(condition), std::move(tags)));
+		      return {};
+      })
+      ;
+  else
+	  _parser.rule("rule") // {}
+		  .production(
+			  "rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "condition" , "RCB", [&](auto&& args) -> Value {
+		      std::optional<TokenIt> mod_private = {};
+  		    std::optional<TokenIt> mod_global = {};
+	  	    const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+		      for (const auto &token: mods)
+		      {
+			      if (token->getType() == TokenType::GLOBAL)
+			      {
+				      if (mod_global.has_value())
+					      error_handle(token->getLocation(), "Duplicated global rule modifier");
+  				    mod_global = token;
+      			}
+		      	else if (token->getType() == TokenType::PRIVATE)
+    	  		{
+		      		if (mod_private.has_value())
+				        error_handle(token->getLocation(), "Duplicated private rule modifier");
+				      mod_private = token;
+  			    }
+	  	    }
+		      TokenIt name = args[3].getTokenIt();
+    	  	const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
+		      args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
+      		std::vector<Meta> metas = std::move(args[7].getMetas());
+	  	    std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
+      		Expression::Ptr condition = std::move(args[9].getExpression());
+		      args[10].getTokenIt()->setType(TokenType::RULE_END);
+
+          addRule(Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
+	  		    std::move(metas), std::move(strings), std::move(std::vector<Variable>()), std::move(condition), std::move(tags)));
+		      return {};
+      })
+      ;
 
 	_parser.rule("rule_mods") // vector<TokenIt>
 		.production("rule_mods", "PRIVATE", [](auto&& args) -> Value {
@@ -557,39 +598,39 @@ void ParserDriver::defineGrammar()
 		.production("BOOL_FALSE", [](auto&& args) -> Value { return std::move(args[0]); })
 		;
 
-	_parser.rule("variables") // vector<Variable>
-		.production("VARIABLES", "COLON", "variables_body", [this](auto&& args) -> Value {
-			if (!(_features & Features::AvastOnly))
-				error_handle(args[1].getTokenIt()->getLocation(), "Variables can be defined only when Avast features are enabled");
+  if (_features & Features::AvastOnly)
+  {
+	  _parser.rule("variables") // vector<Variable>
+		  .production("VARIABLES", "COLON", "variables_body", [this](auto&& args) -> Value {
+			  args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
+			  return std::move(args[2]);
+		  })
+		  .production([](auto&&) -> Value { return std::vector<Variable>(); })
+		  ;
 
-			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
-			return std::move(args[2]);
-		})
-		.production([](auto&&) -> Value { return std::vector<Variable>(); })
-		;
+  	_parser.rule("variables_body") // vector<Variable>
+	  	.production("variables_body", "ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
+		  	std::vector<Variable> body = std::move(args[0].getVariables());
+			  TokenIt key = args[1].getTokenIt();
+  			key->setType(TokenType::VARIABLE_KEY);
+	  		auto expr = args[3].getExpression();
 
-	_parser.rule("variables_body") // vector<Variable>
-		.production("variables_body", "ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
-			std::vector<Variable> body = std::move(args[0].getVariables());
-			TokenIt key = args[1].getTokenIt();
-			key->setType(TokenType::VARIABLE_KEY);
-			auto expr = args[3].getExpression();
+		  	std::shared_ptr<Symbol> symbol;
+			  if (expr->isObject())
+  				symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
+	  		else
+		  		symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
 
-			std::shared_ptr<Symbol> symbol;
-			if (expr->isObject())
-				symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
-			else
-				symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
-			
-			if (!addLocalSymbol(symbol)) {
-				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
-			}
+			  if (!addLocalSymbol(symbol)) {
+				  error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
+  			}
 
-			body.emplace_back(key, expr);
-			return body;
-		})
-		.production([](auto&&) -> Value { return std::vector<Variable>(); })
-		;
+	  		body.emplace_back(key, expr);
+		  	return body;
+		  })
+		  .production([](auto&&) -> Value { return std::vector<Variable>(); })
+		  ;
+  }
 
 	_parser.rule("strings") // shared_ptr<StringsTrie>
 		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value {
