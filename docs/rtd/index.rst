@@ -20,6 +20,5 @@ Welcome to the documentation of our project Yaramod. Parser and builder for YARA
    examples
    development
    deployment
-   postmortems
    troubleshooting
    future_of_yaramod
