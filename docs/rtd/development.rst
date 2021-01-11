@@ -10,9 +10,9 @@ Yaramod is a C++ library with Python bindings capable of parsing, building, form
 
 Parser of YARA rules
     The main parser class is the ``ParserDriver`` class declared in the `header file <https://github.com/avast/yaramod/blob/master/include/yaramod/parser/parser_driver.h>`_ ``parser_driver.h``
-    and defined in `file <https://github.com/avast/yaramod/blob/master/src/parser/parser_driver.cpp>`_ ``parser_driver.cpp``.
+    and defined in `source file <https://github.com/avast/yaramod/blob/master/src/parser/parser_driver.cpp>`_ ``parser_driver.cpp``.
     The parser is based on `POG <https://github.com/metthal/pog>`_ and its grammar and tokens are defined in methods ``defineTokens``
-    and ``defineGrammar`` of the ``ParserDriver`` class. Detailed wiki page on how to use yaramod to parse YARA rules can be found `here <https://github.com/avast/yaramod/wiki/Parsing-YARA-files>`_ .
+    and ``defineGrammar`` of the ``ParserDriver`` class. Detailed wiki page on how to use yaramod to parse YARA rules can be found in `this <https://github.com/avast/yaramod/wiki/Parsing-YARA-files>`_ section.
 
 Builder of YARA rules
     The builder machinery is declared within the `builder folder <https://github.com/avast/yaramod/tree/master/include/yaramod/builder>`_.
