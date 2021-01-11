@@ -4,7 +4,7 @@ Modifying Rulesets
 
 Modifying Metas
 ===============
-In Yaramod, we are able to modify existing Yara rules through many methods. For example, we can add new metas with method ``Rule::addMeta(const std::string& name, const Literal& value)`` which inserts a new meta also into the ``TokenStream``. This method can be used through python as ``add_meta`` as follows:
+In Yaramod, we are able to modify existing YARA rules through many methods. For example, we can add new metas with method ``Rule::addMeta(const std::string& name, const Literal& value)`` which inserts a new meta also into the ``TokenStream``. This method can be used through python as ``add_meta`` as follows:
 
 .. tabs::
 
@@ -95,7 +95,7 @@ Modifying Visitors
 The Conditions in Yaramod
 -------------------------
 
-To demonstrate how to alter conditions of Yara rules we first need to make sure we understand their structure.
+To demonstrate how to alter conditions of YARA rules we first need to make sure we understand their structure.
 
 Conditions in Yaramod are tree-like structures where each node is a derived class of the ``Expression`` class. Based on the arity of each expression is the number of nodes under it. The leaves of the tree correspond to the expressions of arity 0 such as ``EntrypointExpression`` or ``StringExpression``. The expressions like ``NotExpression`` or other derived classes of ``UnaryOpExpression`` always have one other expression under them. And then we also have ``BinaryOpExpression`` with arity 2 or even more, because the ``ForExpression`` has another 3 expressions referenced under it.
 
