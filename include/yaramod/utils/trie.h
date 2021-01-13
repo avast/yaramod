@@ -7,6 +7,7 @@
 #pragma once
 
 #include <algorithm>
+#include <deque>
 #include <iterator>
 #include <map>
 #include <memory>
