@@ -368,6 +368,8 @@ public:
 				nodes.push_back(subnode);
 		}
 
+		std::reverse(result.begin(), result.end());
+
 		return result;
 	}
 
