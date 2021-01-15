@@ -368,7 +368,9 @@ public:
 				nodes.push_back(subnode);
 		}
 
-		return {result.rbegin(), result.rend()};
+		std::reverse(result.begin(), result.end());
+
+		return result;
 	}
 
 	/**
