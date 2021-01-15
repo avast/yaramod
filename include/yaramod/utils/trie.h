@@ -368,7 +368,7 @@ public:
 				nodes.push_back(subnode);
 		}
 
-		return result;
+		return {result.rbegin(), result.rend()};
 	}
 
 	/**
