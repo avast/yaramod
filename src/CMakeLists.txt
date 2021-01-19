@@ -12,6 +12,7 @@ set(SOURCES
 	types/hex_string.cpp
 	types/literal.cpp
 	types/meta.cpp
+	types/variable.cpp
 	types/modules/androguard_module.cpp
 	types/modules/cuckoo_module.cpp
 	types/modules/dex_module.cpp

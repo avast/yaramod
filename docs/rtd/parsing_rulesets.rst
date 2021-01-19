@@ -133,6 +133,47 @@ You can also access meta information of each rule
             }
         }
 
+Variables
+=========
+
+You can iterate over local variables available for each rule, see their identifier, type and value.
+
+.. tabs::
+
+    .. tab:: Python
+
+      .. code-block:: python
+
+        for rule in yara_file.rules:
+            for variable in rule.variables:
+                if variable.value is str:
+                    print('Plain string: ', end='')
+                elif variable.value is int:
+                    print('Integer: ', end='')
+                elif variable.value is float:
+                    print('Double: ', end='')
+                elif variable.value is bool:
+                    print('Boolean: ', end='')
+                print(f'{variable.key} = {variable.value.text}')
+
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        for (const auto& rule : yaraFile->getRules()) {
+            for (const auto& variable : rule->getVariables()) {
+                if (variable.getValue()->isString())
+                    std::cout << "String: ";
+                else if (variable.getValue()->isInt())
+                    std::cout << "Integer: ";
+                else if (variable.getValue()->isFloat())
+                    std::cout << "Double: ";
+                else if (variable.getValue()->isBool())
+                    std::cout << "Boolean: ";
+                std::cout << variable.getKey() << " = " << variable.getValue()->getText() << '\n';
+            }
+        }
+
 Strings
 =======
 

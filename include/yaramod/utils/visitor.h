@@ -46,6 +46,7 @@ class ForDictExpression;
 class ForArrayExpression;
 class ForStringExpression;
 class OfExpression;
+class IterableExpression;
 class SetExpression;
 class RangeExpression;
 class IdExpression;
@@ -109,6 +110,7 @@ public:
 	virtual VisitResult visit(ForArrayExpression* expr) = 0;
 	virtual VisitResult visit(ForStringExpression* expr) = 0;
 	virtual VisitResult visit(OfExpression* expr) = 0;
+	virtual VisitResult visit(IterableExpression* expr) = 0;
 	virtual VisitResult visit(SetExpression* expr) = 0;
 	virtual VisitResult visit(RangeExpression* expr) = 0;
 	virtual VisitResult visit(IdExpression* expr) = 0;

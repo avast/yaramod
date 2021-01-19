@@ -58,6 +58,14 @@ public:
 	YaraRuleBuilder& withHexIntMeta(const std::string& key, std::uint64_t value);
 	YaraRuleBuilder& withBoolMeta(const std::string& key, bool value);
 
+	YaraRuleBuilder& withStringVariable(const std::string& key, const std::string& value);
+	YaraRuleBuilder& withIntVariable(const std::string& key, std::int64_t value);
+	YaraRuleBuilder& withUIntVariable(const std::string& key, std::uint64_t value);
+	YaraRuleBuilder& withHexIntVariable(const std::string& key, std::uint64_t value);
+	YaraRuleBuilder& withDoubleVariable(const std::string& key, double value);
+	YaraRuleBuilder& withBoolVariable(const std::string& key, bool value);
+	YaraRuleBuilder& withStructVariable(const std::string& key, const std::string& identifier);
+
 	YaraRuleBuilder& withPlainString(const std::string& id, const std::string& value);
 	YaraRuleBuilder& withHexString(const std::string& id, const std::shared_ptr<HexString>& hexString);
 	YaraRuleBuilder& withRegexp(const std::string& id, const std::string& value, const std::string& suffixMods = std::string{});
@@ -85,6 +93,7 @@ public:
 
 private:
 	void resetTokens();
+	void initializeVariables();
 	void initializeStrings();
 	void createLastString();
 
@@ -93,12 +102,14 @@ private:
 	std::optional<TokenIt> _mod_global; ///< Global modifier
 	std::vector<TokenIt> _tags; ///< Tags
 	std::vector<Meta> _metas; ///< Meta information
+	std::vector<Variable> _variables; ///< Variables
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	Expression::Ptr _condition; ///< Condition expression
 
 	TokenIt _rule_it; ///< iterator pointing at 'rule' token
 	TokenIt _name_it; ///< iterator pointing at name token
 	TokenIt _lcb; ///< iterator pointing at '{' token
+	std::optional<TokenIt> _variables_it; ///< iterator pointing at 'variables' token
 	std::optional<TokenIt> _strings_it; ///< iterator pointing at 'strings' token
 	TokenIt _condition_it; ///< iterator pointing at 'condition' token
 	TokenIt _colon_it; ///< iterator pointing at ':' token

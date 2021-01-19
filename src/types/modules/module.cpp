@@ -13,7 +13,7 @@ namespace yaramod {
  *
  * @param name Name of the module
  */
-Module::Module(const std::string& name, ImportFeatures needed_features)
+Module::Module(const std::string& name, Features needed_features)
 	: _name(name)
 	, _structure()
 	, _needed_features(needed_features)
@@ -52,7 +52,7 @@ const std::shared_ptr<StructureSymbol>& Module::getStructure() const
  *
  * @return Module Import Features.
  */
-ImportFeatures Module::getFeatures() const
+Features Module::getFeatures() const
 {
 	return _needed_features;
 }

@@ -24,7 +24,7 @@ public:
 	 *
 	 * @return Module if found, @c nullptr otherwise.
 	 */
-	std::shared_ptr<Module> load(const std::string& name, ImportFeatures features)
+	std::shared_ptr<Module> load(const std::string& name, Features features)
 	{
 		auto itr = _knownModules.find(name);
 		// Check that the module exists

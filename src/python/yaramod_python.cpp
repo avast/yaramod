@@ -65,14 +65,14 @@ void addEnums(py::module& module)
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
 
-	py::enum_<ImportFeatures>(module, "ImportFeatures", py::arithmetic())
-		.value("Basic", ImportFeatures::Basic)
-		.value("AvastOnly", ImportFeatures::AvastOnly)
-		.value("VirusTotalOnly", ImportFeatures::VirusTotalOnly)
-		.value("Avast", ImportFeatures::Avast)
-		.value("VirusTotal", ImportFeatures::VirusTotal)
-		.value("AllCurrent", ImportFeatures::AllCurrent)
-		.value("Everything", ImportFeatures::Everything);
+	py::enum_<Features>(module, "Features", py::arithmetic())
+		.value("Basic", Features::Basic)
+		.value("AvastOnly", Features::AvastOnly)
+		.value("VirusTotalOnly", Features::VirusTotalOnly)
+		.value("Avast", Features::Avast)
+		.value("VirusTotal", Features::VirusTotal)
+		.value("AllCurrent", Features::AllCurrent)
+		.value("Everything", Features::Everything);
 
 	py::enum_<IntMultiplier>(module, "IntMultiplier")
 		.value("Empty", IntMultiplier::None)
@@ -165,6 +165,7 @@ void addEnums(py::module& module)
 		.value("Global", TokenType::GLOBAL)
 		.value("None", TokenType::NONE)
 		.value("Rule", TokenType::RULE)
+		.value("Variables", TokenType::VARIABLES)
 		.value("Strings", TokenType::STRINGS)
 		.value("Condition", TokenType::CONDITION)
 		.value("Ascii", TokenType::ASCII)
@@ -221,6 +222,7 @@ void addEnums(py::module& module)
 		.value("UnaryMinus", TokenType::UNARY_MINUS)
 		.value("MetaKey", TokenType::META_KEY)
 		.value("MetaValue", TokenType::META_VALUE)
+		.value("VariableKey", TokenType::VARIABLE_KEY)
 		.value("StringKey", TokenType::STRING_KEY)
 		.value("ValueSymbol", TokenType::VALUE_SYMBOL)
 		.value("FunctionSymbol", TokenType::FUNCTION_SYMBOL)
@@ -280,6 +282,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text", &Rule::getText)
 		.def_property("name", &Rule::getName, &Rule::setName)
 		.def_property("metas", py::overload_cast<>(&Rule::getMetas), &Rule::setMetas, py::return_value_policy::reference)
+		.def_property("variables", py::overload_cast<>(&Rule::getVariables), &Rule::setVariables, py::return_value_policy::reference)
 		.def_property("tags", &Rule::getTags, &Rule::setTags)
 		.def_property("modifier", &Rule::getModifier, &Rule::setModifier)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
@@ -304,6 +307,10 @@ void addBasicClasses(py::module& module)
 	py::class_<Meta>(module, "Meta")
 		.def_property("key", &Meta::getKey, &Meta::setKey)
 		.def_property("value", &Meta::getValue, &Meta::setValue);
+
+	py::class_<Variable>(module, "Variable")
+		.def_property("key", &Variable::getKey, &Variable::setKey)
+		.def_property("value", &Variable::getValue, &Variable::setValue);
 
 	py::class_<Literal>(module, "Literal")
 		.def(py::init<const std::string&>())
@@ -448,7 +455,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_array", &Symbol::isArray)
 		.def_property_readonly("is_dictionary", &Symbol::isDictionary)
 		.def_property_readonly("is_function", &Symbol::isFunction)
-		.def_property_readonly("is_structure", &Symbol::isStructure);
+		.def_property_readonly("is_structure", &Symbol::isStructure)
+    .def_property_readonly("is_reference", &Symbol::isReference);
 
 	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
 	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
@@ -458,6 +466,8 @@ void addBasicClasses(py::module& module)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
 				return self.getAttribute(name).value_or(nullptr);
 			});
+  py::class_<ReferenceSymbol, Symbol, std::shared_ptr<ReferenceSymbol>>(module, "ReferenceSymbol")
+    .def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
 }
 
 void addTokenStreamClass(py::module& module)
@@ -606,6 +616,11 @@ void addExpressionClasses(py::module& module)
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
 
+	exprClass<IterableExpression>(module, "IterableExpression")
+		.def_property("elements",
+				&IterableExpression::getElements,
+				py::overload_cast<const std::vector<Expression::Ptr>&>(&IterableExpression::setElements));
+
 	exprClass<SetExpression>(module, "SetExpression")
 		.def_property("elements",
 				&SetExpression::getElements,
@@ -681,7 +696,7 @@ void addExpressionClasses(py::module& module)
 void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
-		.def(py::init<ImportFeatures>(), py::arg("import_features") = ImportFeatures::AllCurrent)
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("get", [](YaraFileBuilder& self, bool recheck) {
 				return self.get(recheck, nullptr);
 			}, py::arg("recheck") = false)
@@ -705,6 +720,13 @@ void addBuilderClasses(py::module& module)
 		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
 		.def("with_hex_int_meta", &YaraRuleBuilder::withHexIntMeta)
 		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
+		.def("with_string_variable", &YaraRuleBuilder::withStringVariable)
+		.def("with_int_variable", &YaraRuleBuilder::withIntVariable)
+		.def("with_uint_variable", &YaraRuleBuilder::withUIntVariable)
+		.def("with_hex_int_variable", &YaraRuleBuilder::withHexIntVariable)
+		.def("with_double_variable", &YaraRuleBuilder::withDoubleVariable)
+		.def("with_bool_variable", &YaraRuleBuilder::withBoolVariable)
+		.def("with_struct_variable", &YaraRuleBuilder::withStructVariable)
 		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"))
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
 		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{})
@@ -823,6 +845,8 @@ void addBuilderClasses(py::module& module)
 		>(&forLoop));
 	module.def("of", &of);
 
+	module.def("iterable", &iterable);
+
 	module.def("set", &set);
 	module.def("range", &range);
 
@@ -867,7 +891,7 @@ void addBuilderClasses(py::module& module)
 void addMainClass(py::module& module)
 {
 	py::class_<Yaramod>(module, "Yaramod")
-		.def(py::init<ImportFeatures>(), py::arg("import_features") = ImportFeatures::AllCurrent)
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
 		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);

@@ -255,6 +255,13 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(IterableExpression* expr) override
+	{
+		for (auto& element : expr->getElements())
+			element->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(SetExpression* expr) override
 	{
 		for (auto& element : expr->getElements())

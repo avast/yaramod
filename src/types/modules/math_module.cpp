@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MathModule::MathModule() : Module("math", ImportFeatures::Basic)
+MathModule::MathModule() : Module("math", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ MathModule::MathModule() : Module("math", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MathModule::initialize(ImportFeatures/* features*/)
+bool MathModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 

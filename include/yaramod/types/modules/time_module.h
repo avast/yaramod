@@ -28,7 +28,7 @@ public:
 
 	/// @name Initialization method
 	/// @{
-	virtual bool initialize(ImportFeatures features) override;
+	virtual bool initialize(Features features) override;
 	/// @}
 };
 

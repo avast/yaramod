@@ -17,7 +17,7 @@ namespace yaramod {
  * Class representing features of module.
  * Every module has to provide its features to state what must hold for it to be loaded.
  */
-enum ImportFeatures
+enum Features
 {
 	Basic = 0x01,          // 0001 - such module is always loaded
 	AvastOnly = 0x02,      // 0010 - such module is loaded when Avast specified
@@ -38,7 +38,7 @@ class Module
 public:
 	/// @name Constructors
 	/// @{
-	Module(const std::string& name, ImportFeatures features);
+	Module(const std::string& name, Features features);
 	/// @}
 
 	/// @name Destructor
@@ -48,14 +48,14 @@ public:
 
 	/// @name Pure virtual initialization method
 	/// @{
-	virtual bool initialize(ImportFeatures features) = 0;
+	virtual bool initialize(Features features) = 0;
 	/// @}
 
 	/// @name Getter methods
 	/// @{
 	const std::string& getName() const;
 	const std::shared_ptr<StructureSymbol>& getStructure() const;
-	ImportFeatures getFeatures() const;
+	Features getFeatures() const;
 	/// @}
 
 	/// @name Detection methods
@@ -66,7 +66,7 @@ public:
 protected:
 	std::string _name; ///< Name of the module
 	std::shared_ptr<StructureSymbol> _structure; ///< Structure of the module
-	ImportFeatures _needed_features; ///< Specifies when this module can be loaded:
+	Features _needed_features; ///< Specifies when this module can be loaded:
 };
 
 }

@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-MetadataModule::MetadataModule() : Module("metadata", ImportFeatures::AvastOnly)
+MetadataModule::MetadataModule() : Module("metadata", Features::AvastOnly)
 {
 }
 
@@ -22,7 +22,7 @@ MetadataModule::MetadataModule() : Module("metadata", ImportFeatures::AvastOnly)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MetadataModule::initialize(ImportFeatures/* features*/)
+bool MetadataModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 	auto metadataStruct = std::make_shared<StructureSymbol>("metadata");

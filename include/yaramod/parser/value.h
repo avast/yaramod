@@ -51,7 +51,8 @@ public:
 		std::vector<std::shared_ptr<RegexpUnit>>, //18
 		TokenIt,
 		RegexpRangePair, //20
-		RegexpClassRecord
+		RegexpClassRecord,
+		std::vector<Variable> //22
 	>;
 
 	/// @name Constructors
@@ -99,6 +100,11 @@ public:
 	std::vector<Meta>&& getMetas()
 	{
 		return std::move(moveValue<std::vector<Meta>>());
+	}
+
+	std::vector<Variable>&& getVariables()
+	{
+		return std::move(moveValue<std::vector<Variable>>());
 	}
 
 	std::shared_ptr<Rule::StringsTrie>&& getStringsTrie()

@@ -6,6 +6,7 @@
 
 #include "yaramod/builder/yara_rule_builder.h"
 #include "yaramod/types/expressions.h"
+#include "yaramod/types/symbols.h"
 #include "yaramod/types/plain_string.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/utils/utils.h"
@@ -66,7 +67,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	}
 
 	auto rule = std::make_unique<Rule>(std::move(_tokenStream), std::move(_name_it), std::move(_mod_private),
-		std::move(_mod_global), std::move(_metas), std::move(_strings), std::move(_condition), std::move(_tags));
+		std::move(_mod_global), std::move(_metas), std::move(_strings), std::move(_variables), std::move(_condition), std::move(_tags));
 
 	_tokenStream = std::make_shared<TokenStream>();
 	resetTokens();
@@ -75,6 +76,7 @@ std::unique_ptr<Rule> YaraRuleBuilder::get()
 	_mod_global = std::nullopt;
 	_tags.clear();
 	_metas.clear();
+	_variables.clear();
 	_strings = std::make_shared<Rule::StringsTrie>();
 
 	_lastString.reset();
@@ -187,7 +189,7 @@ YaraRuleBuilder& YaraRuleBuilder::withStringMeta(const std::string& key, const s
 	if (key.empty())
 		throw RuleBuilderError("Error: String-Meta key must be non-empty.");
 
-	TokenIt insert_before = _strings_it.value_or(_condition_it);
+	TokenIt insert_before = _strings_it.value_or(_variables_it.value_or(_condition_it));
 
 	if (_metas.empty())
 	{
@@ -220,7 +222,7 @@ YaraRuleBuilder& YaraRuleBuilder::withIntMeta(const std::string& key, std::int64
 	if (key.empty())
 		throw RuleBuilderError("Error: Int-Meta key must be non-empty.");
 
-	TokenIt insert_before = _strings_it.value_or(_condition_it);
+	TokenIt insert_before = _strings_it.value_or(_variables_it.value_or(_condition_it));
 
 	if (_metas.empty())
 	{
@@ -251,7 +253,7 @@ YaraRuleBuilder& YaraRuleBuilder::withUIntMeta(const std::string& key, std::uint
 	if (key.empty())
 		throw RuleBuilderError("Error: UInt-Meta key must be non-empty.");
 
-	TokenIt insert_before = _strings_it.value_or(_condition_it);
+	TokenIt insert_before = _strings_it.value_or(_variables_it.value_or(_condition_it));
 
 	if (_metas.empty())
 	{
@@ -282,7 +284,7 @@ YaraRuleBuilder& YaraRuleBuilder::withHexIntMeta(const std::string& key, std::ui
 	if (key.empty())
 		throw RuleBuilderError("Error: HexInt-Meta key must be non-empty.");
 
-	TokenIt insert_before = _strings_it.value_or(_condition_it);
+	TokenIt insert_before = _strings_it.value_or(_variables_it.value_or(_condition_it));
 
 	if (_metas.empty())
 	{
@@ -313,7 +315,7 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 	if (key.empty())
 		throw RuleBuilderError("Error: Bool-Meta key must be non-empty.");
 
-	TokenIt insert_before = _strings_it.value_or(_condition_it);
+	TokenIt insert_before = _strings_it.value_or(_variables_it.value_or(_condition_it));
 
 	if (_metas.empty())
 	{
@@ -331,6 +333,212 @@ YaraRuleBuilder& YaraRuleBuilder::withBoolMeta(const std::string& key, bool valu
 	return *this;
 }
 
+/**
+ * Adds a string variable to a rule.
+ *
+ * @param key Key of variable.
+ * @param value String value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withStringVariable(const std::string& key, const std::string& value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: String-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::STRING_LITERAL, escapeString(value));
+	itValue->markEscaped();
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<StringLiteralExpression>(itValue);
+	expr->setType(Expression::Type::String);
+	_variables.emplace_back(itKey, expr);
+
+	return *this;
+}
+
+/**
+ * Adds an integer variable to a rule.
+ *
+ * @param key Key of variable.
+ * @param value Integer value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withIntVariable(const std::string& key, std::int64_t value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: Int-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<IntLiteralExpression>(itValue);
+	expr->setType(Expression::Type::Int);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds an unsigned integer variable to a rule.
+ *
+ * @param key Key of variable.
+ * @param value Unsigned integer value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withUIntVariable(const std::string& key, std::uint64_t value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: UInt-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<IntLiteralExpression>(itValue);
+	expr->setType(Expression::Type::Int);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds a hexadecimal integer variable to a rule.
+ *
+ * @param key Key of variable.
+ * @param value Hexadecimal integer value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withHexIntVariable(const std::string& key, std::uint64_t value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: HexInt-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::INTEGER, value, std::make_optional<std::string>(numToStr(value, std::hex, true)));
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<IntLiteralExpression>(itValue);
+	expr->setType(Expression::Type::Int);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds a boolean variable to a rule.
+ *
+ * @param key Key of Variable.
+ * @param value Boolean value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withDoubleVariable(const std::string& key, double value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: Bool-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::DOUBLE, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<DoubleLiteralExpression>(itValue);
+	expr->setType(Expression::Type::Float);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds a boolean variable to a rule.
+ *
+ * @param key Key of Variable.
+ * @param value Boolean value.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withBoolVariable(const std::string& key, bool value)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: Bool-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, value ? TokenType::BOOL_TRUE : TokenType::BOOL_FALSE, value);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	auto expr = std::make_shared<BoolLiteralExpression>(itValue);
+	expr->setType(Expression::Type::Bool);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
+
+/**
+ * Adds a struct variable to a rule.
+ *
+ * @param key Key of Variable.
+ * @param value Struct object identifier.
+ *
+ * @return Builder.
+ */
+YaraRuleBuilder& YaraRuleBuilder::withStructVariable(const std::string& key, const std::string& identifier)
+{
+	if (key.empty())
+		throw RuleBuilderError("Error: Struct-Variable key must be non-empty.");
+
+	TokenIt insert_before = _strings_it.value_or(_condition_it);
+
+	if (!_variables_it.has_value())
+		initializeVariables();
+
+	auto itKey = _tokenStream->emplace(insert_before, TokenType::VARIABLE_KEY, key);
+	_tokenStream->emplace(insert_before, TokenType::ASSIGN, "=");
+	auto itValue = _tokenStream->emplace(insert_before, TokenType::ID, identifier);
+	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+
+	const std::shared_ptr<Symbol>& symbol = std::make_shared<StructureSymbol>(identifier);
+	itValue->setValue(symbol);
+
+	auto expr = std::make_shared<IdExpression>(itValue);
+	_variables.emplace_back(itKey, expr);
+	return *this;
+}
 
 /**
  * Adds a plain string to a rule.
@@ -553,9 +761,11 @@ YaraRuleBuilder& YaraRuleBuilder::base64wide(const std::string& alphabet)
 
 void YaraRuleBuilder::initializeStrings()
 {
-	_strings_it = _tokenStream->emplace(_condition_it, TokenType::STRINGS, "strings");
-	_tokenStream->emplace(_condition_it, TokenType::COLON_BEFORE_NEWLINE, ":");
-	_tokenStream->emplace(_condition_it, TokenType::NEW_LINE, "\n");
+	auto before = _variables_it.value_or(_condition_it);
+
+	_strings_it = _tokenStream->emplace(before, TokenType::STRINGS, "strings");
+	_tokenStream->emplace(before, TokenType::COLON_BEFORE_NEWLINE, ":");
+	_tokenStream->emplace(before, TokenType::NEW_LINE, "\n");
 }
 
 void YaraRuleBuilder::resetTokens()
@@ -565,6 +775,7 @@ void YaraRuleBuilder::resetTokens()
 	_lcb = _tokenStream->emplace_back(TokenType::RULE_BEGIN, "{");
 	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
 	_strings_it = std::nullopt;
+	_variables_it = std::nullopt;
 	_condition_it = _tokenStream->emplace_back(TokenType::CONDITION, "condition");
 	_colon_it = _tokenStream->emplace_back(TokenType::COLON_BEFORE_NEWLINE, ":");
 	_tokenStream->emplace_back(TokenType::NEW_LINE, "\n");
@@ -583,6 +794,13 @@ void YaraRuleBuilder::createLastString()
 		_lastString.reset();
 		_stringMods.clear();
 	}
+}
+
+void YaraRuleBuilder::initializeVariables()
+{
+	_variables_it = _tokenStream->emplace(_condition_it, TokenType::VARIABLES, "variables");
+	_tokenStream->emplace(_condition_it, TokenType::COLON_BEFORE_NEWLINE, ":");
+	_tokenStream->emplace(_condition_it, TokenType::NEW_LINE, "\n");
 }
 
 } //namespace yaramod

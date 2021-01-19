@@ -61,7 +61,7 @@ void initializeCommonAttributes(const std::shared_ptr<StructureSymbol>& rootStru
 /**
  * Constructor.
  */
-MachoModule::MachoModule() : Module("macho", ImportFeatures::Basic)
+MachoModule::MachoModule() : Module("macho", Features::Basic)
 {
 }
 
@@ -70,7 +70,7 @@ MachoModule::MachoModule() : Module("macho", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool MachoModule::initialize(ImportFeatures /*features*/)
+bool MachoModule::initialize(Features /*features*/)
 {
 	using Type = Expression::Type;
 

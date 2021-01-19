@@ -22,6 +22,7 @@
 #include "yaramod/parser/value.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/meta.h"
+#include "yaramod/types/variable.h"
 #include "yaramod/types/rule.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/token_stream.h"
@@ -77,7 +78,7 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-	ParserDriver(ImportFeatures features = ImportFeatures::AllCurrent);
+	ParserDriver(Features features = Features::AllCurrent);
 	/// @}
 
 	/// @name Destructor
@@ -178,6 +179,11 @@ protected:
 	void popFileContext() { _fileContexts.pop_back(); }
 	/// @}
 
+	/// @name Method
+	// @{
+	Rule createCommonRule(std::vector<yaramod::Value>& args);
+	// @}
+
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
 	Location::Position _positionBegin; ///< Variable storing the position the currently processed token begins at.
@@ -191,7 +197,7 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	ImportFeatures _import_features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
+	Features _features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
 	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
 
 	std::vector<FileContext> _fileContexts;

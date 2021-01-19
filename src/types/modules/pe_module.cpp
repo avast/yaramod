@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-PeModule::PeModule() : Module("pe", ImportFeatures::Basic)
+PeModule::PeModule() : Module("pe", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ PeModule::PeModule() : Module("pe", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PeModule::initialize(ImportFeatures/* features*/)
+bool PeModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 

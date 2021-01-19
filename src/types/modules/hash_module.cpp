@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-HashModule::HashModule() : Module("hash", ImportFeatures::Basic)
+HashModule::HashModule() : Module("hash", Features::Basic)
 {
 }
 
@@ -22,7 +22,7 @@ HashModule::HashModule() : Module("hash", ImportFeatures::Basic)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool HashModule::initialize(ImportFeatures/* features*/)
+bool HashModule::initialize(Features/* features*/)
 {
 	using Type = Expression::Type;
 

@@ -13,7 +13,7 @@ namespace yaramod {
 /**
  * Constructor.
  */
-PhishModule::PhishModule() : Module("phish", ImportFeatures::AvastOnly)
+PhishModule::PhishModule() : Module("phish", Features::AvastOnly)
 {
 }
 
@@ -22,7 +22,7 @@ PhishModule::PhishModule() : Module("phish", ImportFeatures::AvastOnly)
  *
  * @return @c true if success, otherwise @c false.
  */
-bool PhishModule::initialize(ImportFeatures)
+bool PhishModule::initialize(Features)
 {
 	using Type = Expression::Type;
 
