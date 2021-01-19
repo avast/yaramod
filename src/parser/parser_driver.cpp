@@ -441,7 +441,7 @@ void ParserDriver::defineGrammar()
 		return {};
 	};
 
-  	auto const common_rule_init = [&](auto&& args) -> Value {
+	auto const common_rule_init = [&](auto&& args) -> Value {
 		const std::string& name_text = args[3].getTokenIt()->getString();
 		if (ruleExists(name_text))
 			error_handle(args[3].getTokenIt()->getLocation(), "Redefinition of rule '" + args[3].getTokenIt()->getString() + "'");
@@ -451,35 +451,35 @@ void ParserDriver::defineGrammar()
 	};
 
 	if (_features & Features::AvastOnly)
-    	_parser.rule("rule") // {}
-    		.production(
-        		"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "variables", "condition" , "RCB", [&](auto&& args) -> Value {
-          		auto rule = createCommonRule(args);
-		    	auto variables = std::move(args[9].getVariables());
-		    	rule.setVariables(std::move(variables));
-		    	rule.setCondition(std::move(args[10].getExpression()));
-		    	args[11].getTokenIt()->setType(TokenType::RULE_END);
+		_parser.rule("rule") // {}
+			.production(
+				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "variables", "condition" , "RCB", [&](auto&& args) -> Value {
+				auto rule = createCommonRule(args);
+				auto variables = std::move(args[9].getVariables());
+				rule.setVariables(std::move(variables));
+				rule.setCondition(std::move(args[10].getExpression()));
+				args[11].getTokenIt()->setType(TokenType::RULE_END);
 
-		    	for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-			    	removeLocalSymbol(iter->getKey());
-		    	}
+				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+					removeLocalSymbol(iter->getKey());
+				}
 
-		    	addRule(std::move(rule));
-		    	return {};
-      		})
-      		;
+				addRule(std::move(rule));
+				return {};
+			})
+			;
 	else
 		_parser.rule("rule") // {}
 			.production(
 				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "condition" , "RCB", [&](auto&& args) -> Value {
-		    	auto rule = createCommonRule(args);
-		    	rule.setCondition(std::move(args[9].getExpression()));
-		    	args[10].getTokenIt()->setType(TokenType::RULE_END);
+				auto rule = createCommonRule(args);
+				rule.setCondition(std::move(args[9].getExpression()));
+				args[10].getTokenIt()->setType(TokenType::RULE_END);
 
-		    	addRule(std::move(rule));
-		    	return {};
-    		})
-    		;
+				addRule(std::move(rule));
+				return {};
+			})
+			;
 
 	_parser.rule("rule_mods") // vector<TokenIt>
 		.production("rule_mods", "PRIVATE", [](auto&& args) -> Value {
@@ -560,30 +560,30 @@ void ParserDriver::defineGrammar()
 				args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 				return std::move(args[2]);
 			})
-		  	.production([](auto&&) -> Value { return std::vector<Variable>(); })
-		  	;
+			.production([](auto&&) -> Value { return std::vector<Variable>(); })
+			;
 
-  		_parser.rule("variables_body") // vector<Variable>
-	  		.production("variables_body", "ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
-		  		std::vector<Variable> body = std::move(args[0].getVariables());
-			  	TokenIt key = args[1].getTokenIt();
-  				key->setType(TokenType::VARIABLE_KEY);
-	  			auto expr = args[3].getExpression();
+		_parser.rule("variables_body") // vector<Variable>
+			.production("variables_body", "ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
+				std::vector<Variable> body = std::move(args[0].getVariables());
+				TokenIt key = args[1].getTokenIt();
+				key->setType(TokenType::VARIABLE_KEY);
+				auto expr = args[3].getExpression();
 
-		  		std::shared_ptr<Symbol> symbol;
-			  	if (expr->isObject())
-  					symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
-	  			else
-		  			symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
+				std::shared_ptr<Symbol> symbol;
+				if (expr->isObject())
+					symbol = std::make_shared<ReferenceSymbol>(key->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
+				else
+					symbol = std::make_shared<ValueSymbol>(key->getString(), expr->getType());
 
-			  	if (!addLocalSymbol(symbol))
+				if (!addLocalSymbol(symbol))
 				{
 					error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + key->getString());
-  				}
+				}
 
-	  			body.emplace_back(key, expr);
-		  		return body;
-		  	})
+				body.emplace_back(key, expr);
+				return body;
+			})
 			.production([](auto&&) -> Value { return std::vector<Variable>(); })
 			;
 	}
@@ -1312,7 +1312,7 @@ void ParserDriver::defineGrammar()
 		;
 
 	if (_features & Features::AvastOnly)
-    	expr.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
+		expr.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
 			auto array = std::move(args[2].getExpression());
@@ -1321,7 +1321,7 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
-    	;
+		;
 
 	_parser.rule("primary_expression") // Expression::Ptr
 		.production("LP", "primary_expression", "RP", [&](auto&& args) -> Value {
@@ -1837,8 +1837,8 @@ void ParserDriver::defineGrammar()
 				auto output = std::make_shared<IterableExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
 				output->setTokenStream(currentTokenStream());
 				return output;
-		  	})
-		  	;
+			})
+			;
 
 		_parser.rule("expression_enumeration") // vector<Expression::Ptr>
 			.production("expression", [&](auto&& args) -> Value {
@@ -2291,9 +2291,9 @@ void ParserDriver::checkStringModifier(const std::vector<std::shared_ptr<StringM
 			error_handle(newMod->getTokenRange().first->getLocation(), "Duplicated modifier " + newMod->getName());
 
 		if ((newModType == T::Base64 && previousModType == T::Base64Wide &&
-		   std::static_pointer_cast<Base64StringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64WideStringModifier>(previousMod)->getAlphabet()) ||
-		   (newModType == T::Base64Wide && previousModType == T::Base64 &&
-   		   std::static_pointer_cast<Base64WideStringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64StringModifier>(previousMod)->getAlphabet()))
+			std::static_pointer_cast<Base64StringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64WideStringModifier>(previousMod)->getAlphabet()) ||
+			(newModType == T::Base64Wide && previousModType == T::Base64 &&
+			std::static_pointer_cast<Base64WideStringModifier>(newMod)->getAlphabet() != std::static_pointer_cast<Base64StringModifier>(previousMod)->getAlphabet()))
 		{
 			error_handle(newMod->getTokenRange().first->getLocation(), "Can not specify multiple alphabets for base64 modifiers");
 		}
