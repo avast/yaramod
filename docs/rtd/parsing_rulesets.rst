@@ -12,7 +12,7 @@ Parsing a ruleset from a file is as easy as this.
 
         import yaramod
 
-        y = yaramod.Yaramod(yaramod.ImportFeatures.AllCurrent)
+        y = yaramod.Yaramod(yaramod.Features.AllCurrent)
         yara_file = y.parse_file('/opt/ruleset.yar')
         print(yara_file.text)
 
@@ -24,7 +24,7 @@ Parsing a ruleset from a file is as easy as this.
         #include <yaramod/yaramod.h>
 
         int main() {
-            auto y = yaramod::Yaramod(yaramod::ImportFeatures::AllCurrent);
+            auto y = yaramod::Yaramod(yaramod::Features::AllCurrent);
             auto yaraFile = y.parseFile("/opt/ruleset.yar");
             std::cout << yaraFile->getText() << std::endl;
             return 0;
@@ -40,7 +40,7 @@ You can alternatively also parse from memory.
 
         import yaramod
 
-        y = yaramod.Yaramod(yaramod.ImportFeatures.AllCurrent)
+        y = yaramod.Yaramod(yaramod.Features.AllCurrent)
         yara_file = y.parse_string(r'''
         rule abc {
             condition:
@@ -58,7 +58,7 @@ You can alternatively also parse from memory.
         #include <yaramod/yaramod.h>
 
         int main() {
-            auto y = yaramod::Yaramod(yaramod::ImportFeatures::AllCurrent);
+            auto y = yaramod::Yaramod(yaramod::Features::AllCurrent);
             std::istringstream input(R"(
             rule abc {
                 condition:
