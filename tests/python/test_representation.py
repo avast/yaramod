@@ -151,3 +151,46 @@ rule dummy_rule {
                 '\n',
                 'rule'
             ])
+
+    def test_meta_values_interface(self):
+        input_text = """rule test {
+    meta:
+        author = "Name Surname"
+        description = "Test checking the meta value tokens"
+    condition:
+        false
+}
+"""
+        ymod = yaramod.Yaramod()
+        yfile = ymod.parse_string(input_text)
+        self.assertEqual(len(yfile.rules[0].metas), 2)
+
+        meta = yfile.rules[0].metas[0]  # author
+        self.assertTrue(hasattr(meta, "token_key"))
+        token = meta.token_key
+        self.assertEqual(token.location.begin.line, 3)
+        self.assertEqual(token.location.begin.column, 9)
+        self.assertEqual(token.location.end.line, 3)
+        self.assertEqual(token.location.end.column, 14)
+
+        self.assertTrue(hasattr(meta, "token_value"))
+        token = meta.token_value
+        self.assertEqual(token.location.begin.line, 3)
+        self.assertEqual(token.location.begin.column, 18)
+        self.assertEqual(token.location.end.line, 3)
+        self.assertEqual(token.location.end.column, 31)
+
+        meta = yfile.rules[0].metas[1]  # description
+        self.assertTrue(hasattr(meta, "token_key"))
+        token = meta.token_key
+        self.assertEqual(token.location.begin.line, 4)
+        self.assertEqual(token.location.begin.column, 9)
+        self.assertEqual(token.location.end.line, 4)
+        self.assertEqual(token.location.end.column, 19)
+
+        self.assertTrue(hasattr(meta, "token_value"))
+        token = meta.token_value
+        self.assertEqual(token.location.begin.line, 4)
+        self.assertEqual(token.location.begin.column, 23)
+        self.assertEqual(token.location.end.line, 4)
+        self.assertEqual(token.location.end.column, 59)
