@@ -79,7 +79,6 @@ public:
 	/// @name Constructors
 	/// @{
 	ParserDriver(Features features = Features::AllCurrent);
-	ParserDriver(const std::string& modulesDirectory, Features features = Features::AllCurrent);
 	/// @}
 
 	/// @name Destructor

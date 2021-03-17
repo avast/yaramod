@@ -212,7 +212,7 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  */
 bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
 {
-	auto module = modules.load(import->getPureText(), _Features);
+	auto module = modules.load(import->getPureText());
 	if (!module)
 		return false;
 
