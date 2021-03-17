@@ -285,7 +285,7 @@ basic expressions and find the most suitable one.
         * ``with_hex_int_meta(key, value)`` - specify hexadecimal integer meta
         * ``with_bool_meta(key, value)`` - specify boolean meta
         * ``with_plain_string(id, value)`` - specify plain string with identifier ``id`` and content ``value``
-        * ``with_hex_string(id, str)`` - specify hex string (``str`` is of type ``std::shared_ptr<HexString>``)
+        * ``with_hex_string(id, str)`` - specify hex string (``str`` is of type ``HexString``)
         * ``with_regexp(id, value, mod)`` - specify regular expression with identifier ``id`` and content ``value with modifiers ``mod`` (These modifiers are tied to the regular expression and come after last ``/``.)
         * ``with_condition(cond)`` - specify condition
         * ``ascii()`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``ascii`` modifier to the list of its modifiers
