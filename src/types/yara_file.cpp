@@ -14,20 +14,23 @@ namespace yaramod {
 /**
  * Constructor.
  */
-YaraFile::YaraFile()
-	: YaraFile(std::make_shared<TokenStream>())
+YaraFile::YaraFile(Features features)
+	: YaraFile(std::make_shared<TokenStream>(), features)
 {
-	initializeVTSymbols();
+	if (_Features & Features::VirusTotalOnly)
+		initializeVTSymbols();
 }
 
-YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream)
+YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream, Features features)
 	: _tokenStream(std::move(tokenStream))
 	, _imports()
 	, _rules()
 	, _importTable()
 	, _ruleTable()
+	, _Features(features)
 {
-	initializeVTSymbols();
+	if (_Features & Features::VirusTotalOnly)
+		initializeVTSymbols();
 }
 
 YaraFile::YaraFile(YaraFile&& o) noexcept
@@ -36,6 +39,7 @@ YaraFile::YaraFile(YaraFile&& o) noexcept
 	, _rules(std::move(o._rules))
 	, _importTable(std::move(o._importTable))
 	, _ruleTable(std::move(o._ruleTable))
+	, _Features(std::move(o._Features))
 	, _vtSymbols(std::move(o._vtSymbols))
 {
 }
@@ -47,6 +51,7 @@ YaraFile& YaraFile::operator=(YaraFile&& o) noexcept
 	std::swap(_rules, o._rules);
 	std::swap(_importTable, o._importTable);
 	std::swap(_ruleTable, o._ruleTable);
+	std::swap(_Features, o._Features);
 	std::swap(_vtSymbols, o._vtSymbols);
 	return *this;
 }
@@ -69,6 +74,7 @@ void YaraFile::initializeVTSymbols()
 		std::make_shared<ValueSymbol>("file_name", Expression::Type::String),
 		// VirusTotal specific global variables of antiviruses
 		std::make_shared<ValueSymbol>("a_squared", Expression::Type::String),
+		std::make_shared<ValueSymbol>("acronis", Expression::Type::String),
 		std::make_shared<ValueSymbol>("ad_aware", Expression::Type::String),
 		std::make_shared<ValueSymbol>("aegislab", Expression::Type::String),
 		std::make_shared<ValueSymbol>("agnitum", Expression::Type::String),
@@ -79,9 +85,11 @@ void YaraFile::initializeVTSymbols()
 		std::make_shared<ValueSymbol>("antivir", Expression::Type::String),
 		std::make_shared<ValueSymbol>("antivir7", Expression::Type::String),
 		std::make_shared<ValueSymbol>("antiy_avl", Expression::Type::String),
+		std::make_shared<ValueSymbol>("apex", Expression::Type::String),
 		std::make_shared<ValueSymbol>("arcabit", Expression::Type::String),
 		std::make_shared<ValueSymbol>("authentium", Expression::Type::String),
 		std::make_shared<ValueSymbol>("avast", Expression::Type::String),
+		std::make_shared<ValueSymbol>("avast_mobile", Expression::Type::String),
 		std::make_shared<ValueSymbol>("avg", Expression::Type::String),
 		std::make_shared<ValueSymbol>("avira", Expression::Type::String),
 		std::make_shared<ValueSymbol>("avware", Expression::Type::String),
@@ -95,9 +103,14 @@ void YaraFile::initializeVTSymbols()
 		std::make_shared<ValueSymbol>("commtouch", Expression::Type::String),
 		std::make_shared<ValueSymbol>("comodo", Expression::Type::String),
 		std::make_shared<ValueSymbol>("crowdstrike", Expression::Type::String),
+		std::make_shared<ValueSymbol>("cybereason", Expression::Type::String),
+		std::make_shared<ValueSymbol>("cylance", Expression::Type::String),
+		std::make_shared<ValueSymbol>("cynet", Expression::Type::String),
 		std::make_shared<ValueSymbol>("cyren", Expression::Type::String),
 		std::make_shared<ValueSymbol>("drweb", Expression::Type::String),
+		std::make_shared<ValueSymbol>("egambit", Expression::Type::String),
 		std::make_shared<ValueSymbol>("emsisoft", Expression::Type::String),
+		std::make_shared<ValueSymbol>("endgame", Expression::Type::String),
 		std::make_shared<ValueSymbol>("esafe", Expression::Type::String),
 		std::make_shared<ValueSymbol>("escan", Expression::Type::String),
 		std::make_shared<ValueSymbol>("eset_nod32", Expression::Type::String),
@@ -113,6 +126,8 @@ void YaraFile::initializeVTSymbols()
 		std::make_shared<ValueSymbol>("kaspersky", Expression::Type::String),
 		std::make_shared<ValueSymbol>("kingsoft", Expression::Type::String),
 		std::make_shared<ValueSymbol>("malwarebytes", Expression::Type::String),
+		std::make_shared<ValueSymbol>("max", Expression::Type::String),
+		std::make_shared<ValueSymbol>("maxsecure", Expression::Type::String),
 		std::make_shared<ValueSymbol>("mcafee", Expression::Type::String),
 		std::make_shared<ValueSymbol>("mcafee_gw_edition", Expression::Type::String),
 		std::make_shared<ValueSymbol>("microsoft", Expression::Type::String),
@@ -121,26 +136,35 @@ void YaraFile::initializeVTSymbols()
 		std::make_shared<ValueSymbol>("nod32", Expression::Type::String),
 		std::make_shared<ValueSymbol>("norman", Expression::Type::String),
 		std::make_shared<ValueSymbol>("nprotect", Expression::Type::String),
+		std::make_shared<ValueSymbol>("paloalto", Expression::Type::String),
 		std::make_shared<ValueSymbol>("panda", Expression::Type::String),
 		std::make_shared<ValueSymbol>("pctools", Expression::Type::String),
 		std::make_shared<ValueSymbol>("prevx", Expression::Type::String),
 		std::make_shared<ValueSymbol>("prevx1", Expression::Type::String),
 		std::make_shared<ValueSymbol>("qihoo_360", Expression::Type::String),
 		std::make_shared<ValueSymbol>("rising", Expression::Type::String),
+		std::make_shared<ValueSymbol>("sangfor", Expression::Type::String),
+		std::make_shared<ValueSymbol>("sentinelone", Expression::Type::String),
 		std::make_shared<ValueSymbol>("sophos", Expression::Type::String),
 		std::make_shared<ValueSymbol>("sunbelt", Expression::Type::String),
 		std::make_shared<ValueSymbol>("superantispyware", Expression::Type::String),
 		std::make_shared<ValueSymbol>("symantec", Expression::Type::String),
+		std::make_shared<ValueSymbol>("symantecmobileinsight", Expression::Type::String),
+		std::make_shared<ValueSymbol>("tachyon", Expression::Type::String),
 		std::make_shared<ValueSymbol>("tencent", Expression::Type::String),
 		std::make_shared<ValueSymbol>("thehacker", Expression::Type::String),
 		std::make_shared<ValueSymbol>("totaldefense", Expression::Type::String),
 		std::make_shared<ValueSymbol>("trendmicro", Expression::Type::String),
 		std::make_shared<ValueSymbol>("trendmicro_housecall", Expression::Type::String),
+		std::make_shared<ValueSymbol>("trustlook", Expression::Type::String),
 		std::make_shared<ValueSymbol>("vba32", Expression::Type::String),
 		std::make_shared<ValueSymbol>("vipre", Expression::Type::String),
 		std::make_shared<ValueSymbol>("virobot", Expression::Type::String),
+		std::make_shared<ValueSymbol>("webroot", Expression::Type::String),
+		std::make_shared<ValueSymbol>("whitearmor", Expression::Type::String),
 		std::make_shared<ValueSymbol>("yandex", Expression::Type::String),
 		std::make_shared<ValueSymbol>("zillya", Expression::Type::String),
+		std::make_shared<ValueSymbol>("zonealarm", Expression::Type::String),
 		std::make_shared<ValueSymbol>("zoner", Expression::Type::String)
 	};
 }
@@ -188,7 +212,7 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  */
 bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
 {
-	auto module = modules.load(import->getPureText());
+	auto module = modules.load(import->getPureText(), _Features);
 	if (!module)
 		return false;
 

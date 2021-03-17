@@ -241,9 +241,12 @@ YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBui
 YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder& other);
 YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBuilder& other);
 
-YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr);
+YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id1, const std::string& id2, const YaraExpressionBuilder& dict, const YaraExpressionBuilder& expr);
+YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& iterable, const YaraExpressionBuilder& expr);
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr);
 YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressionBuilder& set);
+
+YaraExpressionBuilder iterable(const std::vector<YaraExpressionBuilder>& elements);
 
 YaraExpressionBuilder set(const std::vector<YaraExpressionBuilder>& elements);
 YaraExpressionBuilder range(const YaraExpressionBuilder& low, const YaraExpressionBuilder& high);

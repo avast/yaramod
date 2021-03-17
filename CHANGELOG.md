@@ -1,5 +1,28 @@
 # Changelog
 
+# v3.9.0 (2021-01-20)
+
+* Turned `ImportFeatures` into `Features` because it now affects more than just imported modules ([#148](https://github.com/avast/yaramod/pull/148))
+* Added support for `of` expression with user-defined arrays ([#148](https://github.com/avast/yaramod/pull/148))
+* Added support for user-defined variables inside rules scope ([#148](https://github.com/avast/yaramod/pull/148))
+
+# v3.8.1 (2020-12-10)
+
+* Added building of Python wheel for Windows using Python 3.9
+
+# v3.8.0 (2020-10-04)
+
+* Yara 4.0 features as Base64 string modifier, for loop over dictionary and more ([#144](https://github.com/avast/yaramod/pull/144))
+
+# v3.7.5 (2020-09-13)
+
+* Added new VirusTotal AV external variables
+
+# v3.7.4 (2020-08-25)
+
+* Converted `TokenType` enum to c++11 enum class ([#123](https://github.com/avast/yaramod/pull/123))
+* Fixed include directive not to extract tokens ([#129](https://github.com/avast/yaramod/pull/129))
+
 # v3.7.3 (2020-08-18)
 
 * Fixed token location computing of plain and hex strings ([#124](https://github.com/avast/yaramod/pull/124))

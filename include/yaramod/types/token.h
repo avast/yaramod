@@ -115,7 +115,9 @@ public:
 			|| _type == TokenType::FULLWORD
 			|| _type == TokenType::NOCASE
 			|| _type == TokenType::XOR
-			|| _type == TokenType::PRIVATE;
+			|| _type == TokenType::PRIVATE
+			|| _type == TokenType::BASE64
+			|| _type == TokenType::BASE64WIDE;
 	}
 	/// @}
 

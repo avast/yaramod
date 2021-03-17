@@ -22,8 +22,8 @@ class YaraFile
 public:
 	/// @name Constructors
 	/// @{
-	YaraFile();
-	YaraFile(const std::shared_ptr<TokenStream>& tokenStream);
+	YaraFile(Features features = Features::AllCurrent);
+	YaraFile(const std::shared_ptr<TokenStream>& tokenStream, Features features = Features::AllCurrent);
 	YaraFile(YaraFile&&) noexcept;
 
 	YaraFile& operator=(YaraFile&&) noexcept;
@@ -102,6 +102,7 @@ private:
 	std::unordered_map<std::string, Module*> _importTable;
 	std::unordered_map<std::string, Rule*> _ruleTable;
 
+	Features _Features; ///< Determines which symbols are needed
 	std::vector<std::shared_ptr<Symbol>> _vtSymbols; ///< Virust Total symbols
 };
 

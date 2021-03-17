@@ -970,29 +970,59 @@ YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBu
 }
 
 /**
- * Creates the for loop expression over set of integers using iterating variable with given name.
+ * Creates the for loop expression over dictionary using two iterating variable with given names.
  *
  * @param forExpr Expression specifying requirement of the for loop.
- * @param id Name of the iterating variable.
- * @param set Set of integers.
+ * @param id1 Name of the first iterating variable.
+ * @param id2 Name of the second iterating variable.
+ * @param dict Dictionary.
  * @param expr Body of the for loop.
  *
  * @return Builder.
  */
-YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr)
+YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id1, const std::string& id2, const YaraExpressionBuilder& dict, const YaraExpressionBuilder& expr)
+{
+	auto ts = std::make_shared<TokenStream>();
+	auto forToken = ts->emplace_back(TokenType::FOR, "for");
+	ts->moveAppend(forExpr.getTokenStream());
+	auto id1Token = ts->emplace_back(TokenType::ID, id1);
+	auto commaToken = ts->emplace_back(TokenType::COMMA, ",");
+	auto id2Token = ts->emplace_back(TokenType::ID, id2);
+	auto inToken = ts->emplace_back(TokenType::OP_IN, "in");
+	ts->moveAppend(dict.getTokenStream());
+	ts->emplace_back(TokenType::COLON, ":");
+	auto lb = ts->emplace_back(TokenType::LP_WITH_SPACE_AFTER, "(");
+	ts->moveAppend(expr.getTokenStream());
+	auto rb = ts->emplace_back(TokenType::RP_WITH_SPACE_BEFORE, ")");
+
+	auto expression = std::make_shared<ForDictExpression>(forToken, forExpr.get(), id1Token, commaToken, id2Token, inToken, dict.get(), lb, expr.get(), rb);
+	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
+ * Creates the for loop expression over set of integers or array using iterating variable with given name.
+ *
+ * @param forExpr Expression specifying requirement of the for loop.
+ * @param id Name of the iterating variable.
+ * @param iterable Set of integers or array.
+ * @param expr Body of the for loop.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& iterable, const YaraExpressionBuilder& expr)
 {
 	auto ts = std::make_shared<TokenStream>();
 	auto forToken = ts->emplace_back(TokenType::FOR, "for");
 	ts->moveAppend(forExpr.getTokenStream());
 	auto idToken = ts->emplace_back(TokenType::ID, id);
 	auto inToken = ts->emplace_back(TokenType::OP_IN, "in");
-	ts->moveAppend(set.getTokenStream());
+	ts->moveAppend(iterable.getTokenStream());
 	ts->emplace_back(TokenType::COLON, ":");
 	auto lb = ts->emplace_back(TokenType::LP_WITH_SPACE_AFTER, "(");
 	ts->moveAppend(expr.getTokenStream());
 	auto rb = ts->emplace_back(TokenType::RP_WITH_SPACE_BEFORE, ")");
 
-	auto expression = std::make_shared<ForIntExpression>(forToken, forExpr.get(), idToken, inToken, set.get(), lb, expr.get(), rb);
+	auto expression = std::make_shared<ForArrayExpression>(forToken, forExpr.get(), idToken, inToken, iterable.get(), lb, expr.get(), rb);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
 }
 
@@ -1038,6 +1068,32 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
 
 	auto expression = std::make_shared<OfExpression>(ofExpr.get(), ofToken, set.get());
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
+ * Creates an iterable array of elements.
+ *
+ * @param elements Elements.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder iterable(const std::vector<YaraExpressionBuilder>& elements)
+{
+	auto ts = std::make_shared<TokenStream>();
+	TokenIt lsqb = ts->emplace_back(TokenType::LSQB_ENUMERATION, "[");
+	for (std::size_t i = 0; i < elements.size(); ++i)
+	{
+		ts->moveAppend(elements[i].getTokenStream());
+		if (i < elements.size() - 1)
+			ts->emplace_back(TokenType::COMMA, ",");
+	}
+	TokenIt rsqb = ts->emplace_back(TokenType::RSQB_ENUMERATION, "]");
+
+	std::vector<Expression::Ptr> elementsExprs;
+	std::for_each(elements.begin(), elements.end(), [&elementsExprs](const YaraExpressionBuilder& expr) { elementsExprs.push_back(expr.get()); });
+
+	auto expression = std::make_shared<IterableExpression>(lsqb, std::move(elementsExprs), rsqb);
+	return YaraExpressionBuilder(std::move(ts), std::move(expression));
 }
 
 /**

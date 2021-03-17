@@ -18,9 +18,6 @@ namespace yaramod {
  */
 class ModulesPool {
 public:
-	ModulesPool() : ModulesPool(YARAMOD_PUBLIC_MODULES_DIR)	{}
-	ModulesPool(const std::string& directory);
-
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *

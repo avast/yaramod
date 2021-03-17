@@ -222,9 +222,11 @@ basic expressions and find the most suitable one.
         * ``match_at(ref, expr)`` - represents ``<ref> at <expr>`` (``match_at("$1", int_val(100))``)
         * ``match_inRange(ref, range)`` - represents ``<ref> in <range>`` (``match_in_range("$1", range(int_val(100), int_val(200)))``)
         * ``regexp(regexp, mods) - represents regular expression in form ``/<regexp>/<mods>`` (``regexp("^a.*b$", "i")``)
-        * ``for_loop(spec, var, set, body)`` - represents ``for`` loop over set of integers (``for_loop(any(), "i", range(int_val(100), int_val(200)), match_at("$1", id("i")))``)
+        * ``for_loop(spec, var, set, body)`` - represents ``for`` loop over array or set of integers (``for_loop(any(), "i", range(int_val(100), int_val(200)), match_at("$1", id("i")))``)
+        * ``for_loop(spec, var1, var2, set, body)`` - represents ``for`` loop over dictionary (``for_loop(any(), "k", "v", id("pe").access("version_info"), True)``)
         * ``for_loop(spec, set, body)`` - represents ``for`` loop over set of string references (``for_loop(any(), set({string_ref("$*")}), match_at("$", int_val(100))``)
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
+        * ``of(spec, iterable)`` - represents ``<spec> of <iterable>`` (``of(any(), iterable([bool_val(False), bool_val(True)]))``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(int_val(10))``)
         * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``)
         * ``disjunction(terms, [newline])`` - represents disjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``disjunction({id("rule1"), id("rule2")})``)
@@ -294,6 +296,10 @@ basic expressions and find the most suitable one.
         * ``xor()`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``xor`` modifier to the list of its modifiers
         * ``xor(key)`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``xor(key)`` modifier to the list of its modifiers
         * ``xor(low, high)`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``xor(low-high)`` modifier to the list of its modifiers
+        * ``base64`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``base64`` modifier to the list of its modifiers
+        * ``base64(alphabet)`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``base64(alphabet)`` modifier to the list of its modifiers
+        * ``base64wide`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``base64wide`` modifier to the list of its modifiers
+        * ``base64wide(alphabet)`` - ties to the latest defined ``with_plain_string()``, ``with_hex_string()`` or ``with_regexp()`` and adds ``base64wide(alphabet)`` modifier to the list of its modifiers
 
         **YARA file**
 
@@ -325,7 +331,8 @@ basic expressions and find the most suitable one.
         * ``matchAt(ref, expr)`` - represents ``<ref> at <expr>`` (``matchAt("$1", intVal(100))``)
         * ``matchInRange(ref, range)`` - represents ``<ref> in <range>`` (``matchInRange("$1", range(intVal(100), intVal(200)))``)
         * ``regexp(regexp, mods) - represents regular expression in form ``/<regexp>/<mods>`` (``regexp("^a.*b$", "i")``)
-        * ``forLoop(spec, var, set, body)`` - represents ``for`` loop over set of integers (``forLoop(any(), "i", range(intVal(100), intVal(200)), matchAt("$1", id("i")))``)
+        * ``forLoop(spec, var, set, body)`` - represents ``for`` loop over array or set of integers (``forLoop(any(), "i", range(intVal(100), intVal(200)), matchAt("$1", id("i")))``)
+        * ``forLoop(spec, var1, var2, set, body)`` - represents ``for`` loop over dictionary (``for_loop(any(), "k", "v", id("pe").access("version_info"), true)``)
         * ``forLoop(spec, set, body)`` - represents ``for`` loop over set of string references (``forLoop(any(), set({stringRef("$*")}), matchAt("$", intVal(100))``)
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(intVal(10))``)
@@ -400,6 +407,10 @@ basic expressions and find the most suitable one.
         * ``xor()`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``xor`` modifier to the list of its modifiers
         * ``xor(key)`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``xor(key)`` modifier to the list of its modifiers
         * ``xor(low, high)`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``xor(low-high)`` modifier to the list of its modifiers
+        * ``base64`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``base64`` modifier to the list of its modifiers
+        * ``base64(alphabet)`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``base64(alphabet)`` modifier to the list of its modifiers
+        * ``base64wide`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``base64wide`` modifier to the list of its modifiers
+        * ``base64wide(alphabet)`` - ties to the latest defined ``withPlainString()``, ``withHexString()`` or ``withRegexp()`` and adds ``base64wide(alphabet)`` modifier to the list of its modifiers
 
         **YARA file**
 

@@ -94,6 +94,19 @@ GetAllValuesPreservesInsertionOrderWorks) {
 }
 
 TEST_F(TrieTests,
+GetValuesWithPrefixWorks) {
+	Trie<std::string> trie;
+
+	ASSERT_TRUE(trie.insert("bcd", "value1"s));
+	ASSERT_TRUE(trie.insert("abd", "value2"s));
+	ASSERT_TRUE(trie.insert("abc", "value3"s));
+	ASSERT_TRUE(trie.insert("ab",  "value4"s));
+
+	const std::vector<std::string> expected = { "value2", "value3", "value4" };
+	EXPECT_EQ(expected, trie.getValuesWithPrefix("a"));
+}
+
+TEST_F(TrieTests,
 EmptyWorks) {
 	Trie<std::string> trie;
 

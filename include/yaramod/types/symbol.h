@@ -34,6 +34,7 @@ public:
 		Dictionary,
 		Function,
 		Structure,
+		Reference
 	};
 
 	/// @name Destructor
@@ -55,6 +56,7 @@ public:
 			case Type::Dictionary : return TokenType::DICTIONARY_SYMBOL;
 			case Type::Function : return TokenType::FUNCTION_SYMBOL;
 			case Type::Structure : return TokenType::STRUCTURE_SYMBOL;
+			case Type::Reference : return TokenType::REFERENCE_SYMBOL;
 			default: return TokenType::INVALID;
 		}
 	}
@@ -73,6 +75,7 @@ public:
 	bool isDictionary() const { return _type == Symbol::Type::Dictionary; }
 	bool isFunction() const { return _type == Symbol::Type::Function; }
 	bool isStructure() const { return _type == Symbol::Type::Structure; }
+	bool isReference() const { return _type == Symbol::Type::Reference; }
 	/// @}
 
 protected:

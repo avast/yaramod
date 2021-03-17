@@ -37,12 +37,14 @@ class YaraFileBuilder
 public:
 	/// @name Constructors
 	/// @{
-	YaraFileBuilder()
+	YaraFileBuilder(Features features = Features::AllCurrent)
 		: _tokenStream(std::make_shared<TokenStream>())
+		, _features(features)
 	{
 	}
-	YaraFileBuilder(const std::string& modulesDirectory)
+	YaraFileBuilder(const std::string& modulesDirectory, Features features = Features::AllCurrent)
 		: _tokenStream(std::make_shared<TokenStream>())
+		, _features(features)
 		, _modules_pool(modulesDirectory)
 	{
 	}
@@ -68,6 +70,7 @@ private:
 	std::shared_ptr<TokenStream> _tokenStream; ///< Tokens storage
 	std::map<std::string, TokenIt> _module_tokens; ///< Modules
 	TokenIt _newline_after_imports; ///< Always stands behind newline after last import in the TokenStream
+	Features _features; ///< Determines which modules should be possible to load
 	ModulesPool _modules_pool; ///< Storage of used modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 };

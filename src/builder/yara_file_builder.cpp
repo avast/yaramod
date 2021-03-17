@@ -20,7 +20,7 @@ namespace yaramod {
  */
 std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* external_driver)
 {
-	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream));
+	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream), _features);
 	for (const auto& module_token : _module_tokens)
 		yaraFile->addImport(module_token.second, _modules_pool);
 	yaraFile->addRules(_rules);
@@ -52,7 +52,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 		}
 		else
 		{
-			ParserDriver driver;
+			ParserDriver driver(Features::AllCurrent);
 			try
 			{
 				driver.parse(ss);

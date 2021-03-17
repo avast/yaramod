@@ -247,6 +247,87 @@ rule hex_and_decimal_integers_are_preserved
 }
 
 TEST_F(ParserTests,
+RuleWithVariablesWorks) {
+	prepareInput(
+R"(
+rule rule_with_variables
+{
+	variables:
+		int_var = 25
+		float_var = 2.5
+		bool_var = true
+		string_var = "Hello World!"
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("rule_with_variables", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_FALSE(rule->getVariables().empty());
+
+	auto variables = rule->getVariables();
+	ASSERT_EQ(4u, variables.size());
+
+	auto int_var = variables[0];
+	EXPECT_EQ("int_var", int_var.getKey());
+	EXPECT_TRUE(int_var.getValue()->isInt());
+	EXPECT_EQ("25", int_var.getValue()->getText());
+
+	auto float_var = variables[1];
+	EXPECT_EQ("float_var", float_var.getKey());
+	EXPECT_TRUE(float_var.getValue()->isFloat());
+	EXPECT_EQ("2.5", float_var.getValue()->getText());
+
+	auto bool_var = variables[2];
+	EXPECT_EQ("bool_var", bool_var.getKey());
+	EXPECT_TRUE(bool_var.getValue()->isBool());
+	EXPECT_EQ("true", bool_var.getValue()->getText());
+
+	auto string_var = variables[3];
+	EXPECT_EQ("string_var", string_var.getKey());
+	EXPECT_TRUE(string_var.getValue()->isString());
+	EXPECT_EQ("\"Hello World!\"", string_var.getValue()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+VariableInConditionWorks) {
+	prepareInput(
+R"(
+rule variable_in_condition
+{
+	variables:
+		int_var = 25
+	condition:
+		int_var > 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("variable_in_condition", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+	EXPECT_FALSE(rule->getVariables().empty());
+
+	auto variables = rule->getVariables();
+	ASSERT_EQ(1u, variables.size());
+
+	ASSERT_TRUE(rule->getCondition()->getFirstTokenIt()->isSymbol());
+	ASSERT_EQ(ExpressionType::Int, rule->getCondition()->getFirstTokenIt()->getSymbol()->getDataType());
+	ASSERT_EQ("int_var", rule->getCondition()->getFirstTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 RuleWithPlainTextStringsWorks) {
 	prepareInput(
 R"(
@@ -354,6 +435,10 @@ rule rule_with_plain_strings
 	strings:
 		$1 = "Hello World!" nocase wide
 		$2 = "Bye World." fullword
+		$3 = "string3" base64
+		$4 = "string4" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$5 = "string5" base64wide
+		$6 = "string6" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		true
 }
@@ -367,7 +452,7 @@ rule rule_with_plain_strings
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
 	auto strings = rule->getStrings();
-	ASSERT_EQ(2u, strings.size());
+	ASSERT_EQ(6u, strings.size());
 
 	auto helloWorld = strings[0];
 	ASSERT_TRUE(helloWorld->isPlain());
@@ -377,6 +462,8 @@ rule rule_with_plain_strings
 	EXPECT_TRUE(static_cast<const PlainString*>(helloWorld)->isWide());
 	EXPECT_TRUE(static_cast<const PlainString*>(helloWorld)->isNocase());
 	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isFullword());
+	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(helloWorld)->isBase64Wide());
 
 	auto byeWorld = strings[1];
 	ASSERT_TRUE(byeWorld->isPlain());
@@ -386,8 +473,93 @@ rule rule_with_plain_strings
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isWide());
 	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isNocase());
 	EXPECT_TRUE(static_cast<const PlainString*>(byeWorld)->isFullword());
+	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(byeWorld)->isBase64Wide());
+
+	auto string3 = strings[2];
+	ASSERT_TRUE(string3->isPlain());
+	EXPECT_EQ("$3", string3->getIdentifier());
+	EXPECT_EQ("\"string3\" base64", string3->getText());
+	EXPECT_TRUE(static_cast<const PlainString*>(string3)->isAscii());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isWide());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isNocase());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isFullword());
+	EXPECT_TRUE(static_cast<const PlainString*>(string3)->isBase64());
+	EXPECT_FALSE(static_cast<const PlainString*>(string3)->isBase64Wide());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+DuplicatedStringModifierForbidden) {
+	prepareInput(
+R"(
+rule duplicated_string_modifier {
+	strings:
+		$1 = "Hello" wide wide
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.21-24: Duplicated modifier wide", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+InvalidStringModifiersCombination) {
+	prepareInput(
+R"(
+rule invalid_string_modifiers_combination {
+	strings:
+		$1 = "Hello" base64 nocase
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.23-28: Invalid combination of string modifiers (base64, nocase)", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+MultipleBase64AlphabetsForbidden) {
+	prepareInput(
+R"(
+rule multiple_base64_alphabets {
+	strings:
+		$1 = "Hello" base64 base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ	LMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+	condition:
+		$1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.23-32: Can not specify multiple alphabets for base64 modifiers", err.getErrorMessage());
+	}
 }
 
 TEST_F(ParserTests,
@@ -1598,6 +1770,40 @@ rule regexp_with_invalid_range
 }
 
 TEST_F(ParserTests,
+RulesWithVariablesAndStringsWork) {
+	prepareInput(
+R"(rule rule1
+{
+	strings:
+		$string = "Hello World!"
+		$anotherstring = "Hello World! 2"
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
+	condition:
+		true
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule1
+{
+	strings:
+		$string = "Hello World!"
+		$anotherstring = "Hello World! 2"
+	variables:
+		integer = 23
+		string = "Not a Hello World!"
+	condition:
+		true
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 GlobalRuleModifierWorks) {
 	prepareInput(
 R"(
@@ -2628,6 +2834,95 @@ rule for_integer_set_condition
 }
 
 TEST_F(ParserTests,
+ForArrayConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_array_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any section in pe.sections : ( section.name == ".text" )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any section in pe.sections : ( section.name == \".text\" )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+NestedForArrayConditionWorks) {
+	prepareInput(
+R"(
+import "macho"
+
+rule nested_for_array_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any segment in macho.segments : (
+			for any section in segment.sections : (
+				section.sectname == ".text"
+			)
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any segment in macho.segments : ( for any section in segment.sections : ( section.sectname == \".text\" ) )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+
+TEST_F(ParserTests,
+ForDictConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_dict_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any k, v in pe.version_info : ( k == \"CompanyName\" and v contains \"Microsoft\" )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ForStringSetConditionWorks) {
 	prepareInput(
 R"(
@@ -3385,7 +3680,7 @@ rule rule_2
 	condition:
 		true
 		/* cuckoo */
-		
+
 		or false
 }
 )");
@@ -3466,12 +3761,12 @@ rule rule_3
 	condition:
 		//cuckoo
 		cuckoo.sync.mutex(/a/)
-		
+
 		or cuckoo.sync.mutex(/b/)
-		
+
 		//cuckoo 64-bit
 
-	
+
 		and cuckoo.sync.mutex(/c/)
 
 
@@ -5788,6 +6083,12 @@ rule rule_name_1 {
 
 		$string3 =   { AA ?? }
 
+	variables:
+
+		var1 = "a string value"
+
+		var2 = 25.4
+
 	condition:
 
 		all of them and cuckoo.registry.key_access(/abc+/)
@@ -5809,6 +6110,14 @@ rule rule_name_2 {
 		$string2 = "Fernsehr"
 
 		$string3 =   { BB ?? }
+
+	variables:
+
+		var1 = 1 + 4
+
+		var2 = true
+
+		var3 = 3.4
 
 	condition:
 
@@ -5833,6 +6142,9 @@ rule rule_name_1
 		$string1 = " Brandenburger Tor"
 		$string2 = "Fernsehrturm" wide
 		$string3 = { AA ?? }
+	variables:
+		var1 = "a string value"
+		var2 = 25.4
 	condition:
 		all of them and
 		cuckoo.registry.key_access(/abc+/)
@@ -5847,6 +6159,10 @@ rule rule_name_2
 		$string1 = " burger"
 		$string2 = "Fernsehr"
 		$string3 = { BB ?? }
+	variables:
+		var1 = 1 + 4
+		var2 = true
+		var3 = 3.4
 	condition:
 		all of them
 }
@@ -5986,6 +6302,33 @@ rule oneline_rule_2
 		$s01 = "string 234567" /*COMMENT 5*/
 	condition: /*COMMENT 6*/
 		any of ($s0*) /*COMMENT 7*/
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+AutoformattingVariableInCondition) {
+	prepareInput(
+R"(rule rule1
+{
+	variables:
+		int_var = 1
+	condition:
+		int_var and
+		(	int_var<3 )
+})");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule1
+{
+	variables:
+		int_var = 1
+	condition:
+		int_var and
+		(int_var < 3)
 }
 )";
 
@@ -6176,6 +6519,160 @@ rule abc
 )";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooSuricataModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_suricata
+{
+	condition:
+		cuckoo.network.suricata(/SomeEvilSuricataSignature/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.network.suricata(/SomeEvilSuricataSignature/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooScheduledTaskModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_scheduled
+{
+	condition:
+		cuckoo.process.scheduled_task(/SomeEvilTask/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.scheduled_task(/SomeEvilTask/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooDesktopModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_desktop
+{
+	condition:
+		cuckoo.sync.desktop(/SomeEvilDesktop/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.sync.desktop(/SomeEvilDesktop/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooClassCreatedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_class_created
+{
+	condition:
+		cuckoo.process.class_created(/SomeEvilClass/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.class_created(/SomeEvilClass/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooClassSearchedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_class_searched
+{
+	condition:
+		cuckoo.process.class_searched(/SomeEvilClass/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.class_searched(/SomeEvilClass/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooWindowCreatedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_window_created
+{
+	condition:
+		cuckoo.process.window_created(/SomeEvilWindow/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.window_created(/SomeEvilWindow/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+CuckooWindowSearchedModuleFunction) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule cuckoo_window_searched
+{
+	condition:
+		cuckoo.process.window_searched(/SomeEvilWindow/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(cuckoo.process.window_searched(/SomeEvilWindow/))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,

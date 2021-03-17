@@ -154,7 +154,7 @@ void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStrea
 					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
 				}
 				else
-				{	
+				{
 					std::stringstream ss;
 					ss << "['" << *local_first << "','" << *local_last << "') and ['" << *other_first << "','" << *other_last << "') intersect in proper subset of each of them.";
 					throw YaramodError("Error: Cannot swapTokens when " + ss.str());
@@ -208,7 +208,7 @@ void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStrea
 	{
 		TokenIt other_insert_before = other_last;
 		_tokens.splice(local_first, other->_tokens, other_first, other_last);
-		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);		
+		other->_tokens.splice(other_insert_before, _tokens, local_first, local_last);
 	}
 	_formatted = false;
 }
@@ -416,9 +416,9 @@ bool TokenStream::determineNewlineSectors()
 	for (auto it = begin(); it != end();)
 	{
 		auto current = it->getType();
-		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
+		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::LSQB_ENUMERATION || current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
 			leftBrackets.push(it);
-		else if (current == TokenType::RP || current == TokenType::RP_ENUMERATION || current == TokenType::HEX_JUMP_RIGHT_BRACKET || current == TokenType::REGEXP_END_SLASH || current == TokenType::HEX_END_BRACKET || current == TokenType::RP_WITH_SPACE_BEFORE || current == TokenType::RP_WITH_SPACES)
+		else if (current == TokenType::RP || current == TokenType::RP_ENUMERATION || current == TokenType::RSQB_ENUMERATION || current == TokenType::HEX_JUMP_RIGHT_BRACKET || current == TokenType::REGEXP_END_SLASH || current == TokenType::HEX_END_BRACKET || current == TokenType::RP_WITH_SPACE_BEFORE || current == TokenType::RP_WITH_SPACES)
 		{
 			if (leftBrackets.top()->getFlag()) // the '(' corresponding to the current ')' has new-line sector. Therefore we set this token flag too.
 				it->setFlag(true);
@@ -505,7 +505,7 @@ void TokenStream::addMissingNewLines()
 			break;
 		}
 		auto next = nextIt->getType();
-		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
+		if (current == TokenType::LP || current == TokenType::LP_ENUMERATION || current == TokenType::LSQB_ENUMERATION ||current == TokenType::HEX_JUMP_LEFT_BRACKET || current == TokenType::REGEXP_START_SLASH || current == TokenType::HEX_START_BRACKET || current == TokenType::LP_WITH_SPACE_AFTER || current == TokenType::LP_WITH_SPACES)
 		{
 			brackets.addLeftBracket(lineCounter, it->getFlag());
 			// ONELINE_COMMENTs are left right behind the left bracket. COMMENTs are put on separate new line.
@@ -515,7 +515,7 @@ void TokenStream::addMissingNewLines()
 				next = nextIt->getType();
 			}
 		}
-		if (next == TokenType::RP || next == TokenType::RP_ENUMERATION || next == TokenType::HEX_JUMP_RIGHT_BRACKET || next == TokenType::REGEXP_END_SLASH || next == TokenType::HEX_END_BRACKET || next == TokenType::RP_WITH_SPACE_BEFORE || next == TokenType::RP_WITH_SPACES)
+		if (next == TokenType::RP || next == TokenType::RP_ENUMERATION || next == TokenType::RSQB_ENUMERATION || next == TokenType::HEX_JUMP_RIGHT_BRACKET || next == TokenType::REGEXP_END_SLASH || next == TokenType::HEX_END_BRACKET || next == TokenType::RP_WITH_SPACE_BEFORE || next == TokenType::RP_WITH_SPACES)
 		{
 			if (brackets.putNewlineInCurrentSector() && current != TokenType::NEW_LINE)
 			{
@@ -525,7 +525,7 @@ void TokenStream::addMissingNewLines()
 			else
 				brackets.addRightBracket();
 		}
-		if (current != TokenType::NEW_LINE && (next == TokenType::CONDITION || next == TokenType::STRINGS || next == TokenType::STRING_ID_AFTER_NEWLINE || next == TokenType::META || next == TokenType::META_KEY || next == TokenType::RULE_END || next == TokenType::RULE_BEGIN))
+		if (current != TokenType::NEW_LINE && (next == TokenType::CONDITION || next == TokenType::STRINGS || next == TokenType::STRING_ID_AFTER_NEWLINE || next == TokenType::VARIABLES || next == TokenType::VARIABLE_KEY || next == TokenType::META || next == TokenType::META_KEY || next == TokenType::RULE_END || next == TokenType::RULE_BEGIN))
 		{
 			nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 			next = nextIt->getType();
@@ -766,6 +766,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			inside_enumeration_brackets = true;
 		else if (current == TokenType::RP_ENUMERATION)
 			inside_enumeration_brackets = false;
+		else if (current == TokenType::LSQB_ENUMERATION)
+			inside_enumeration_brackets = true;
+		else if (current == TokenType::RSQB_ENUMERATION)
+			inside_enumeration_brackets = false;
 		else if (it->isStringModifier())
 			inside_string_modifiers = true;
 
@@ -796,6 +800,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			if (inside_rule && next != TokenType::ONELINE_COMMENT && next != TokenType::COMMENT && next != TokenType::NEW_LINE)
 			{
 				if (next == TokenType::META
+					|| next == TokenType::VARIABLES
 					|| next == TokenType::STRINGS
 					|| next == TokenType::CONDITION)
 				{
@@ -839,13 +844,13 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			switch(current)
 			{
 				case TokenType::META:
+				case TokenType::VARIABLES:
 				case TokenType::STRINGS:
 				case TokenType::CONDITION:
 				case TokenType::UNARY_MINUS:
 				case TokenType::BITWISE_NOT:
 				case TokenType::INTEGER_FUNCTION:
 				case TokenType::FUNCTION_SYMBOL:
-				case TokenType::ARRAY_SYMBOL:
 				case TokenType::LSQB:
 				case TokenType::DOT:
 				case TokenType::FUNCTION_CALL_LP:
@@ -878,7 +883,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		}
 		else if (inside_enumeration_brackets)
 		{
-			if (current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION && next != TokenType::COMMA && next != TokenType::NEW_LINE)
+			if ((current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION) && (current != TokenType::LSQB_ENUMERATION && next != TokenType::RSQB_ENUMERATION) && current != TokenType::DOT && next != TokenType::COMMA && next != TokenType::DOT && next != TokenType::NEW_LINE)
 				helper.insertIntoStream(os, ' ');
 		}
 		else if (current == TokenType::HEX_ALT_RIGHT_BRACKET || current == TokenType::HEX_ALT_LEFT_BRACKET)

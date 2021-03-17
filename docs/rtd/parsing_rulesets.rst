@@ -12,7 +12,7 @@ Parsing a ruleset from a file is as easy as this.
 
         import yaramod
 
-        y = yaramod.Yaramod(yaramod.ImportFeatures.AllCurrent)
+        y = yaramod.Yaramod(yaramod.Features.AllCurrent)
         yara_file = y.parse_file('/opt/ruleset.yar')
         print(yara_file.text)
 
@@ -24,7 +24,7 @@ Parsing a ruleset from a file is as easy as this.
         #include <yaramod/yaramod.h>
 
         int main() {
-            auto y = yaramod::Yaramod(yaramod::ImportFeatures::AllCurrent);
+            auto y = yaramod::Yaramod(yaramod::Features::AllCurrent);
             auto yaraFile = y.parseFile("/opt/ruleset.yar");
             std::cout << yaraFile->getText() << std::endl;
             return 0;
@@ -40,7 +40,7 @@ You can alternatively also parse from memory.
 
         import yaramod
 
-        y = yaramod.Yaramod(yaramod.ImportFeatures.AllCurrent)
+        y = yaramod.Yaramod(yaramod.Features.AllCurrent)
         yara_file = y.parse_string(r'''
         rule abc {
             condition:
@@ -58,7 +58,7 @@ You can alternatively also parse from memory.
         #include <yaramod/yaramod.h>
 
         int main() {
-            auto y = yaramod::Yaramod(yaramod::ImportFeatures::AllCurrent);
+            auto y = yaramod::Yaramod(yaramod::Features::AllCurrent);
             std::istringstream input(R"(
             rule abc {
                 condition:
@@ -133,6 +133,47 @@ You can also access meta information of each rule
             }
         }
 
+Variables
+=========
+
+You can iterate over local variables available for each rule, see their identifier, type and value.
+
+.. tabs::
+
+    .. tab:: Python
+
+      .. code-block:: python
+
+        for rule in yara_file.rules:
+            for variable in rule.variables:
+                if variable.value is str:
+                    print('Plain string: ', end='')
+                elif variable.value is int:
+                    print('Integer: ', end='')
+                elif variable.value is float:
+                    print('Double: ', end='')
+                elif variable.value is bool:
+                    print('Boolean: ', end='')
+                print(f'{variable.key} = {variable.value.text}')
+
+    .. tab:: C++
+
+      .. code-block:: cpp
+
+        for (const auto& rule : yaraFile->getRules()) {
+            for (const auto& variable : rule->getVariables()) {
+                if (variable.getValue()->isString())
+                    std::cout << "String: ";
+                else if (variable.getValue()->isInt())
+                    std::cout << "Integer: ";
+                else if (variable.getValue()->isFloat())
+                    std::cout << "Double: ";
+                else if (variable.getValue()->isBool())
+                    std::cout << "Boolean: ";
+                std::cout << variable.getKey() << " = " << variable.getValue()->getText() << '\n';
+            }
+        }
+
 Strings
 =======
 
@@ -159,6 +200,8 @@ Iterating over available strings is also possible and you can distinguish which 
                 print(f'  fullword: {string.is_fullword}')
                 print(f'  private: {string.is_private}')
                 print(f'  xor: {string.is_xor}')
+                print(f'  base64: {string.is_base64}')
+                print(f'  base64wide: {string.is_base64_wide}')
 
     .. tab:: C++
 
@@ -178,7 +221,9 @@ Iterating over available strings is also possible and you can distinguish which 
                     << "  nocase: " << string->isNocase() << '\n'
                     << "  fullword: " << string->isFullword() << '\n'
                     << "  private: " << string->isPrivate() << '\n'
-                    << "  xor: " << string->isXor() << std::endl;
+                    << "  xor: " << string->isXor() << '\n'
+                    << "  base64: " << string->isBase64() << '\n'
+                    << "  base64wide: " << string->isBase64Wide() << std::endl;
             }
         }
 
@@ -305,9 +350,10 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
 **For expressions**
 
 All of these provide method ``getVariable()`` (``variable`` in Python) to return variable used for iterating over the set of values (can also be ``any`` or ``all``),
-``getIteratedSet()`` (``iterated_set`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
+``getIterable()`` (``iterable`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
 
-  * ``ForIntExpression`` - refers to ``for`` which operates on set of integers (``for all i in (1 .. 5) : ( ... )``)
+  * ``ForDictExpression`` - refers to ``for`` which operates on dictionary (``for all k, v in some_dict : ( ... )``)
+  * ``ForArrayExpression`` - refers to ``for`` which operates on array or set of integers (``for all section in pe.sectioins : ( ... )``)
   * ``ForStringExpression`` - refers to ``for`` which operates on set of string identifiers (``for all of ($str1, $str2) : ( ... )``)
   * ``OfExpression`` - refers to ``of`` (``all of ($str1, $str2)``)
 

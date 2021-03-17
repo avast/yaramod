@@ -22,6 +22,7 @@
 #include "yaramod/parser/value.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/meta.h"
+#include "yaramod/types/variable.h"
 #include "yaramod/types/rule.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/types/token_stream.h"
@@ -77,8 +78,8 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-	ParserDriver();
-	ParserDriver(const std::string& modulesDirectory);
+	ParserDriver(Features features = Features::AllCurrent);
+	ParserDriver(const std::string& modulesDirectory, Features features = Features::AllCurrent);
 	/// @}
 
 	/// @name Destructor
@@ -139,6 +140,7 @@ protected:
 	void setCurrentStrings(const std::shared_ptr<Rule::StringsTrie>& currentStrings);
 	bool sectionStrings() const { return _sectionStrings; };
 	void sectionStrings(bool new_value) { _sectionStrings = new_value; };
+	void checkStringModifier(const std::vector<std::shared_ptr<StringModifier>>& previousMods, const std::shared_ptr<StringModifier>& newMod);
 	/// @}
 
 	/// @name Methods for parser maintainance
@@ -185,12 +187,13 @@ private:
 	std::string _comment; ///< For incremental construction of parsed comments
 	std::string _regexpClass; ///< Currently processed regular expression class.
 	pog::Parser<Value> _parser; ///< used pog parser
-	
+
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
 
 	ParserMode _mode; ///< Parser mode.
 
+	Features _features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
 	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
 
 	std::vector<FileContext> _fileContexts;

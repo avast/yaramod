@@ -10,13 +10,13 @@
 #define STR(x) STR_HELPER(x)
 
 #define YARAMOD_VERSION_MAJOR 3
-#define YARAMOD_VERSION_MINOR 7
-#define YARAMOD_VERSION_PATCH 3
+#define YARAMOD_VERSION_MINOR 9
+#define YARAMOD_VERSION_PATCH 0
 #define YARAMOD_VERSION_ADDEND ""
 
 #define YARAMOD_VERSION STR(YARAMOD_VERSION_MAJOR) "." STR(YARAMOD_VERSION_MINOR) "." STR(YARAMOD_VERSION_PATCH) YARAMOD_VERSION_ADDEND
 
-#define YARA_SYNTAX_VERSION "3.11"
+#define YARA_SYNTAX_VERSION "4.0"
 
 #include <memory>
 
@@ -35,9 +35,10 @@ public:
 	 * IncludeGuarded -- protection against inclusion of the same file multiple times
 	 *
 	 * @param modulesDirectory directory containing modules
+	 * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
 	 */
-	Yaramod() : _driver() {}
-	Yaramod(const std::string& modulesDirectory) : _driver(modulesDirectory) {}
+	Yaramod(Features features = Features::AllCurrent) : _driver(features) {}
+	Yaramod(const std::string& modulesDirectory, Features features = Features::AllCurrent) : _driver(modulesDirectory, features) {}
 	/**
 	 * Parses file at given path.
 	 *

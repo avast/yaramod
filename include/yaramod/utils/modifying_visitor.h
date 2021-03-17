@@ -87,7 +87,7 @@ public:
 	Expression::Ptr modify(const Expression::Ptr& expr, Expression::Ptr whenDeleted = nullptr)
 	{
 		TokenStreamContext context{expr.get()};
-		
+
 		auto result = expr->accept(this);
 		if (auto newExpr = std::get_if<Expression::Ptr>(&result))
 		{
@@ -260,30 +260,49 @@ public:
 		return _handleBinaryOperation(expr);
 	}
 
-	virtual VisitResult visit(ForIntExpression* expr) override
+	virtual VisitResult visit(ForDictExpression* expr) override
 	{
 		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
-		auto iteratedSet = expr->getIteratedSet()->accept(this);
+		auto iterable = expr->getIterable()->accept(this);
 		auto body = expr->getBody()->accept(this);
-		return defaultHandler(context, expr, var, iteratedSet, body);
+		return defaultHandler(context, expr, var, iterable, body);
+	}
+
+	virtual VisitResult visit(ForArrayExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+		auto var = expr->getVariable()->accept(this);
+		auto iterable = expr->getIterable()->accept(this);
+		auto body = expr->getBody()->accept(this);
+		return defaultHandler(context, expr, var, iterable, body);
 	}
 
 	virtual VisitResult visit(ForStringExpression* expr) override
 	{
 		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
-		auto iteratedSet = expr->getIteratedSet()->accept(this);
+		auto iterable = expr->getIterable()->accept(this);
 		auto body = expr->getBody()->accept(this);
-		return defaultHandler(context, expr, var, iteratedSet, body);
+		return defaultHandler(context, expr, var, iterable, body);
 	}
 
 	virtual VisitResult visit(OfExpression* expr) override
 	{
 		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
-		auto iteratedSet = expr->getIteratedSet()->accept(this);
-		return defaultHandler(context, expr, var, iteratedSet, {});
+		auto iterable = expr->getIterable()->accept(this);
+		return defaultHandler(context, expr, var, iterable, {});
+	}
+
+	virtual VisitResult visit(IterableExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+		std::vector<VisitResult> newElements;
+		for (auto& element : expr->getElements())
+			newElements.push_back(element->accept(this));
+
+		return defaultHandler(context, expr, newElements);
 	}
 
 	virtual VisitResult visit(SetExpression* expr) override
@@ -475,7 +494,7 @@ public:
 
 	template <typename T>
 	std::enable_if_t<std::is_base_of<ForExpression, T>::value, VisitResult>
-		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& varRet, const VisitResult& iteratedSetRet, const VisitResult& bodyRet)
+		defaultHandler(const TokenStreamContext& context, T* expr, const VisitResult& varRet, const VisitResult& iterableRet, const VisitResult& bodyRet)
 	{
 		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
@@ -485,13 +504,13 @@ public:
 		else
 			expr->setVariable(nullptr);
 
-		if (auto iteratedSet = std::get_if<Expression::Ptr>(&iteratedSetRet))
+		if (auto iterable = std::get_if<Expression::Ptr>(&iterableRet))
 		{
-			if (*iteratedSet)
-				expr->setIteratedSet(*iteratedSet);
+			if (*iterable)
+				expr->setIterable(*iterable);
 		}
 		else
-			expr->setIteratedSet(nullptr);
+			expr->setIterable(nullptr);
 
 		auto oldBody = expr->getBody();
 		if (auto body = std::get_if<Expression::Ptr>(&bodyRet))
@@ -503,9 +522,42 @@ public:
 			expr->setBody(nullptr);
 
 		// If any subnode needs to be deleted, we delete whole expr.
-		if (!expr->getVariable() || !expr->getIteratedSet() || (oldBody && !expr->getBody()))
+		if (!expr->getVariable() || !expr->getIterable() || (oldBody && !expr->getBody()))
 			return VisitAction::Delete;
 
+		return {};
+	}
+
+	VisitResult defaultHandler(const TokenStreamContext& context, IterableExpression* expr, const std::vector<VisitResult>& elementsRet)
+	{
+		if (elementsRet.empty())
+			return VisitAction::Delete;
+
+		if (std::all_of(elementsRet.begin(), elementsRet.end(),
+				[](const auto& element) {
+					auto e = std::get_if<Expression::Ptr>(&element);
+					return e && (*e == nullptr);
+				}))
+		{
+			return {};
+		}
+
+		std::vector<Expression::Ptr> newElements;
+		for (std::size_t i = 0, end = elementsRet.size(); i < end; ++i)
+		{
+			if (auto element = std::get_if<Expression::Ptr>(&elementsRet[i]))
+			{
+				if (*element)
+					newElements.push_back(*element);
+				else
+					newElements.push_back(expr->getElements()[i]);
+			}
+		}
+
+		if (newElements.empty())
+			return VisitAction::Delete;
+
+		expr->setElements(newElements);
 		return {};
 	}
 
@@ -676,7 +728,7 @@ public:
 	 * contain some Tokens stolen from the original TS. In this method, the new TokenStream is move appended
 	 * inside the original TS and replaces all remaining tokens which were associated with the old version
 	 * of the expression.
-	 * 
+	 *
 	 * Removes all tokens in the TokenStream that the given expression has been associated with.
 	 * Then all tokens, which are currently associated with the given expression are moved to the TokenStream
 	 * The expression is assigned the TokenStream.
@@ -711,7 +763,7 @@ private:
 	template <typename T>
 	VisitResult _handleBinaryOperation(T* expr)
 	{
-		
+
 		TokenStreamContext context{expr};
 		auto leftOperand = expr->getLeftOperand()->accept(this);
 		auto rightOperand = expr->getRightOperand()->accept(this);

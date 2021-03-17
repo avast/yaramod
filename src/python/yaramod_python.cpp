@@ -65,6 +65,15 @@ void addEnums(py::module& module)
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded);
 
+	py::enum_<Features>(module, "Features", py::arithmetic())
+		.value("Basic", Features::Basic)
+		.value("AvastOnly", Features::AvastOnly)
+		.value("VirusTotalOnly", Features::VirusTotalOnly)
+		.value("Avast", Features::Avast)
+		.value("VirusTotal", Features::VirusTotal)
+		.value("AllCurrent", Features::AllCurrent)
+		.value("Everything", Features::Everything);
+
 	py::enum_<IntMultiplier>(module, "IntMultiplier")
 		.value("Empty", IntMultiplier::None)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
@@ -87,7 +96,9 @@ void addEnums(py::module& module)
 		.value("Fullword", StringModifier::Type::Fullword)
 		.value("Nocase", StringModifier::Type::Nocase)
 		.value("Private", StringModifier::Type::Private)
-		.value("Xor", StringModifier::Type::Xor);
+		.value("Xor", StringModifier::Type::Xor)
+		.value("Base64", StringModifier::Type::Base64)
+		.value("Base64Wide", StringModifier::Type::Base64Wide);
 
 	py::enum_<Expression::Type>(module, "ExpressionType")
 		.value("Undefined", Expression::Type::Undefined)
@@ -154,6 +165,7 @@ void addEnums(py::module& module)
 		.value("Global", TokenType::GLOBAL)
 		.value("None", TokenType::NONE)
 		.value("Rule", TokenType::RULE)
+		.value("Variables", TokenType::VARIABLES)
 		.value("Strings", TokenType::STRINGS)
 		.value("Condition", TokenType::CONDITION)
 		.value("Ascii", TokenType::ASCII)
@@ -162,6 +174,8 @@ void addEnums(py::module& module)
 		.value("Fullword", TokenType::FULLWORD)
 		.value("PrivateStringModifier", TokenType::PRIVATE_STRING_MODIFIER)
 		.value("Xor", TokenType::XOR)
+		.value("Base64", TokenType::BASE64)
+		.value("Base64Wide", TokenType::BASE64WIDE)
 		.value("ImportModule", TokenType::IMPORT_MODULE)
 		.value("ImportKeyword", TokenType::IMPORT_KEYWORD)
 		.value("Not", TokenType::NOT)
@@ -208,6 +222,7 @@ void addEnums(py::module& module)
 		.value("UnaryMinus", TokenType::UNARY_MINUS)
 		.value("MetaKey", TokenType::META_KEY)
 		.value("MetaValue", TokenType::META_VALUE)
+		.value("VariableKey", TokenType::VARIABLE_KEY)
 		.value("StringKey", TokenType::STRING_KEY)
 		.value("ValueSymbol", TokenType::VALUE_SYMBOL)
 		.value("FunctionSymbol", TokenType::FUNCTION_SYMBOL)
@@ -267,6 +282,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("text", &Rule::getText)
 		.def_property("name", &Rule::getName, &Rule::setName)
 		.def_property("metas", py::overload_cast<>(&Rule::getMetas), &Rule::setMetas, py::return_value_policy::reference)
+		.def_property("variables", py::overload_cast<>(&Rule::getVariables), &Rule::setVariables, py::return_value_policy::reference)
 		.def_property("tags", &Rule::getTags, &Rule::setTags)
 		.def_property("modifier", &Rule::getModifier, &Rule::setModifier)
 		.def_property_readonly("strings", &Rule::getStrings, py::return_value_policy::reference)
@@ -291,6 +307,10 @@ void addBasicClasses(py::module& module)
 	py::class_<Meta>(module, "Meta")
 		.def_property("key", &Meta::getKey, &Meta::setKey)
 		.def_property("value", &Meta::getValue, &Meta::setValue);
+
+	py::class_<Variable>(module, "Variable")
+		.def_property("key", &Variable::getKey, &Variable::setKey)
+		.def_property("value", &Variable::getValue, &Variable::setValue);
 
 	py::class_<Literal>(module, "Literal")
 		.def(py::init<const std::string&>())
@@ -335,6 +355,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_nocase", &String::isNocase)
 		.def_property_readonly("is_private", &String::isPrivate)
 		.def_property_readonly("is_xor", &String::isXor)
+		.def_property_readonly("is_base64", &String::isBase64)
+		.def_property_readonly("is_base64_wide", &String::isBase64Wide)
 		.def_property_readonly("location", &String::getLocation)
 		.def_property_readonly("modifiers_text", &String::getModifiersText)
 		.def_property_readonly("token_id", &String::getIdentifierToken)
@@ -363,6 +385,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_nocase", &StringModifier::isNocase)
 		.def_property_readonly("is_private", &StringModifier::isPrivate)
 		.def_property_readonly("is_xor", &StringModifier::isXor)
+		.def_property_readonly("is_base64", &StringModifier::isBase64)
+		.def_property_readonly("is_base64_wide", &StringModifier::isBase64Wide)
 		.def_property_readonly("text", &StringModifier::getText);
 
 	py::class_<AsciiStringModifier, StringModifier, std::shared_ptr<AsciiStringModifier>>(module, "AsciiStringModifier");
@@ -373,6 +397,10 @@ void addBasicClasses(py::module& module)
 	py::class_<XorStringModifier, StringModifier, std::shared_ptr<XorStringModifier>>(module, "XorStringModifier")
 		.def_property_readonly("is_range", &XorStringModifier::isRange)
 		.def_property_readonly("is_single_key", &XorStringModifier::isSingleKey);
+	py::class_<Base64StringModifier, StringModifier, std::shared_ptr<Base64StringModifier>>(module, "Base64StringModifier")
+		.def_property_readonly("has_alphabet", &Base64StringModifier::hasAlphabet);
+	py::class_<Base64WideStringModifier, StringModifier, std::shared_ptr<Base64WideStringModifier>>(module, "Base64WideStringModifier")
+		.def_property_readonly("has_alphabet", &Base64WideStringModifier::hasAlphabet);
 
 	py::class_<RegexpUnit, std::shared_ptr<RegexpUnit>>(module, "RegexpUnit")
 		.def("accept", &RegexpUnit::accept)
@@ -427,7 +455,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_array", &Symbol::isArray)
 		.def_property_readonly("is_dictionary", &Symbol::isDictionary)
 		.def_property_readonly("is_function", &Symbol::isFunction)
-		.def_property_readonly("is_structure", &Symbol::isStructure);
+		.def_property_readonly("is_structure", &Symbol::isStructure)
+		.def_property_readonly("is_reference", &Symbol::isReference);
 
 	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
 	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
@@ -437,6 +466,8 @@ void addBasicClasses(py::module& module)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
 				return self.getAttribute(name).value_or(nullptr);
 			});
+	py::class_<ReferenceSymbol, Symbol, std::shared_ptr<ReferenceSymbol>>(module, "ReferenceSymbol")
+		.def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
 }
 
 void addTokenStreamClass(py::module& module)
@@ -565,18 +596,30 @@ void addExpressionClasses(py::module& module)
 		.def_property("variable",
 				&ForExpression::getVariable,
 				py::overload_cast<const Expression::Ptr&>(&ForExpression::setVariable))
-		.def_property("iterated_set",
-				&ForExpression::getIteratedSet,
-				py::overload_cast<const Expression::Ptr&>(&ForExpression::setIteratedSet))
+		.def_property("iterable",
+				&ForExpression::getIterable,
+				py::overload_cast<const Expression::Ptr&>(&ForExpression::setIterable))
 		.def_property("body",
 				&ForExpression::getBody,
 				py::overload_cast<const Expression::Ptr&>(&ForExpression::setBody));
-	exprClass<ForIntExpression, ForExpression>(module, "ForIntExpression")
+	exprClass<ForDictExpression, ForExpression>(module, "ForDictExpression")
+		.def_property("id1",
+				&ForDictExpression::getId1,
+				py::overload_cast<const std::string&>(&ForDictExpression::setId1))
+		.def_property("id2",
+				&ForDictExpression::getId2,
+				py::overload_cast<const std::string&>(&ForDictExpression::setId2));
+	exprClass<ForArrayExpression, ForExpression>(module, "ForArrayExpression")
 		.def_property("id",
-				&ForIntExpression::getId,
-				py::overload_cast<const std::string&>(&ForIntExpression::setId));
+				&ForArrayExpression::getId,
+				py::overload_cast<const std::string&>(&ForArrayExpression::setId));
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
+
+	exprClass<IterableExpression>(module, "IterableExpression")
+		.def_property("elements",
+				&IterableExpression::getElements,
+				py::overload_cast<const std::vector<Expression::Ptr>&>(&IterableExpression::setElements));
 
 	exprClass<SetExpression>(module, "SetExpression")
 		.def_property("elements",
@@ -653,8 +696,8 @@ void addExpressionClasses(py::module& module)
 void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
-		.def(py::init<>())
-		.def(py::init<const std::string&>())
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
+		.def(py::init<const std::string&, Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("get", [](YaraFileBuilder& self, bool recheck) {
 				return self.get(recheck, nullptr);
 			}, py::arg("recheck") = false)
@@ -678,6 +721,13 @@ void addBuilderClasses(py::module& module)
 		.def("with_uint_meta", &YaraRuleBuilder::withUIntMeta)
 		.def("with_hex_int_meta", &YaraRuleBuilder::withHexIntMeta)
 		.def("with_bool_meta", &YaraRuleBuilder::withBoolMeta)
+		.def("with_string_variable", &YaraRuleBuilder::withStringVariable)
+		.def("with_int_variable", &YaraRuleBuilder::withIntVariable)
+		.def("with_uint_variable", &YaraRuleBuilder::withUIntVariable)
+		.def("with_hex_int_variable", &YaraRuleBuilder::withHexIntVariable)
+		.def("with_double_variable", &YaraRuleBuilder::withDoubleVariable)
+		.def("with_bool_variable", &YaraRuleBuilder::withBoolVariable)
+		.def("with_struct_variable", &YaraRuleBuilder::withStructVariable)
 		.def("with_plain_string", &YaraRuleBuilder::withPlainString, py::arg("id"), py::arg("value"))
 		.def("with_hex_string", &YaraRuleBuilder::withHexString)
 		.def("with_regexp", &YaraRuleBuilder::withRegexp, py::arg("id"), py::arg("value"), py::arg("suffix_mods") = std::string{})
@@ -695,6 +745,20 @@ void addBuilderClasses(py::module& module)
 			else if (args.size() == 2)
 				return self.xor_(args[0].cast<int>(), args[1].cast<int>());
 			throw std::invalid_argument("xor() expects either 0, 1 or 2 arguments");
+		})
+		.def("base64", [](YaraRuleBuilder& self, py::args args) {
+			if (args.size() == 0)
+				return self.base64();
+			else if (args.size() == 1)
+				return self.base64(args[0].cast<std::string>());
+			throw std::invalid_argument("base64() expects either 0 or 1 argument");
+		})
+		.def("base64wide", [](YaraRuleBuilder& self, py::args args) {
+			if (args.size() == 0)
+				return self.base64wide();
+			else if (args.size() == 1)
+				return self.base64wide(args[0].cast<std::string>());
+			throw std::invalid_argument("base64wide() expects either 0 or 1 argument");
 		});
 
 	py::class_<YaraExpressionBuilder>(module, "YaraExpressionBuilder")
@@ -765,6 +829,13 @@ void addBuilderClasses(py::module& module)
 	module.def("for_loop", py::overload_cast<
 			const YaraExpressionBuilder&,
 			const std::string&,
+			const std::string&,
+			const YaraExpressionBuilder&,
+			const YaraExpressionBuilder&
+		>(&forLoop));
+	module.def("for_loop", py::overload_cast<
+			const YaraExpressionBuilder&,
+			const std::string&,
 			const YaraExpressionBuilder&,
 			const YaraExpressionBuilder&
 		>(&forLoop));
@@ -774,6 +845,8 @@ void addBuilderClasses(py::module& module)
 			const YaraExpressionBuilder&
 		>(&forLoop));
 	module.def("of", &of);
+
+	module.def("iterable", &iterable);
 
 	module.def("set", &set);
 	module.def("range", &range);
@@ -819,8 +892,8 @@ void addBuilderClasses(py::module& module)
 void addMainClass(py::module& module)
 {
 	py::class_<Yaramod>(module, "Yaramod")
-		.def(py::init<>())
-		.def(py::init<const std::string&>())
+		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
+		.def(py::init<const std::string&, Features>(), py::arg("import_features") = Features::AllCurrent)
 		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
 		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);

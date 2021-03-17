@@ -4,7 +4,7 @@ import yaramod
 
 class BuilderTests(unittest.TestCase):
     def setUp(self):
-        self.new_file = yaramod.YaraFileBuilder()
+        self.new_file = yaramod.YaraFileBuilder(yaramod.Features.AllCurrent)
         self.new_rule = yaramod.YaraRuleBuilder()
 
     def test_empty_file(self):
@@ -77,6 +77,42 @@ import "pe"
 		int_meta = 42
 		hex_int_meta = 0x42
 		bool_meta = false
+	condition:
+		true
+}''')
+
+    def test_rule_with_variables(self):
+        rule = self.new_rule \
+            .with_name('rule_with_variables') \
+            .with_string_variable('string_var', 'string value') \
+            .with_int_variable('int_var', 42) \
+            .with_double_variable('double_var', 2.6) \
+            .with_bool_variable('bool_var', False) \
+            .with_struct_variable('struct_var', 'time') \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_variables
+{
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+		struct_var = time
+	condition:
+		true
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_variables {
+	variables:
+		string_var = "string value"
+		int_var = 42
+		double_var = 2.6
+		bool_var = false
+		struct_var = time
 	condition:
 		true
 }''')
@@ -283,6 +319,37 @@ rule rule_2 : Tag2 {
 		$2 = "This is plain string 2."
 	condition:
 		true
+}''')
+
+    def test_rule_with_variable_id_condition(self):
+        cond = yaramod.id('time_struct').access('now')()
+        rule = self.new_rule \
+            .with_name('rule_with_variable_id_condition') \
+            .with_struct_variable('time_struct', 'time') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_module('time') \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''import "time"
+
+rule rule_with_variable_id_condition
+{
+	variables:
+		time_struct = time
+	condition:
+		time_struct.now()
+}
+''')
+        self.assertEqual(yara_file.text, '''import "time"
+
+rule rule_with_variable_id_condition {
+	variables:
+		time_struct = time
+	condition:
+		time_struct.now()
 }''')
 
     def test_rule_with_string_id_condition(self):
@@ -1092,6 +1159,45 @@ rule rule_with_dictionary_access_condition {
 		pe.version_info["CompanyName"]
 }''')
 
+    def test_rule_with_for_loop_over_dictionary(self):
+        cond = yaramod.for_loop(
+                yaramod.any(),
+                'k',
+                'v',
+                yaramod.id('pe').access('version_info'),
+                yaramod.conjunction([
+                    yaramod.id('k') == yaramod.string_val('CompanyName'),
+                    yaramod.id('v').contains(yaramod.string_val('Microsoft'))
+                ])
+            )
+        rule = self.new_rule \
+            .with_name('rule_with_for_loop_over_dictionary') \
+            .with_plain_string('$1', 'This is plain string.') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_for_loop_over_dictionary
+{
+	strings:
+		$1 = "This is plain string."
+	condition:
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_for_loop_over_dictionary {
+	strings:
+		$1 = "This is plain string."
+	condition:
+		for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )
+}''')
+
     def test_rule_with_complex_condition(self):
         cond = yaramod.for_loop(
                 yaramod.any(),
@@ -1141,6 +1247,10 @@ rule rule_with_dictionary_access_condition {
             .with_plain_string('$3', 'Hello').xor() \
             .with_plain_string('$4', 'Hello').xor(128) \
             .with_plain_string('$5', 'Hello').wide().xor(1, 255) \
+            .with_plain_string('$6', 'Hello').base64() \
+            .with_plain_string('$7', 'Hello').base64wide() \
+            .with_plain_string('$8', 'Hello').base64('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private() \
+            .with_plain_string('$9', 'Hello').base64wide('!@#$%^&*(){}[].,|ABCDEFGHIJ\x09LMNOPQRSTUVWXYZabcdefghijklmnopqrstu').private() \
             .get()
         yara_file = self.new_file \
             .with_rule(rule) \
@@ -1154,6 +1264,10 @@ rule rule_with_dictionary_access_condition {
 		$3 = "Hello" xor
 		$4 = "Hello" xor(128)
 		$5 = "Hello" wide xor(1-255)
+		$6 = "Hello" base64
+		$7 = "Hello" base64wide
+		$8 = "Hello" base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
+		$9 = "Hello" base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu") private
 	condition:
 		true
 }
@@ -1165,6 +1279,10 @@ rule rule_with_dictionary_access_condition {
 		$3 = "Hello" xor
 		$4 = "Hello" xor(128)
 		$5 = "Hello" wide xor(1-255)
+		$6 = "Hello" base64
+		$7 = "Hello" base64wide
+		$8 = "Hello" private base64("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
+		$9 = "Hello" private base64wide("!@#$%^&*(){}[].,|ABCDEFGHIJ\\tLMNOPQRSTUVWXYZabcdefghijklmnopqrstu")
 	condition:
 		true
 }''')

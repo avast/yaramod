@@ -7,6 +7,7 @@
 #pragma once
 
 #include <algorithm>
+#include <deque>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -71,7 +72,7 @@ public:
 	 *
 	 * @return @c true if it has, otherwise @c false.
 	 */
-	const std::map<char, TrieNode*> getSubnodes() const
+	const std::map<char, TrieNode*>& getSubnodes() const
 	{
 		return _subnodes;
 	}
@@ -302,21 +303,9 @@ public:
 	 */
 	bool find(const std::string& key, ValueType& value) const
 	{
-		// No nodes, nothing to search for
-		if (_nodes.empty())
+		auto node = _getNodeOfPrefix(key);
+		if (node == nullptr)
 			return false;
-
-		// Iteratively descend down the trie
-		auto node = _nodes.front().get();
-		for (auto itr = key.begin(), end = key.end(); itr != end; ++itr)
-		{
-			// If node for the character doesn't exist, just end
-			auto childNode = node->getSubnode(*itr);
-			if (childNode == nullptr)
-				return false;
-
-			node = childNode;
-		}
 
 		// If the found node has value then copy it
 		const auto& nodeValue = node->getValue();
@@ -337,23 +326,8 @@ public:
 	 */
 	bool isPrefix(const std::string& key) const
 	{
-		// No nodes, nothing to search for
-		if (_nodes.empty())
-			return false;
-
-		// Iteratively descend down the trie
-		const NodeType* node = _nodes.front().get();
-		for (auto itr = key.begin(), end = key.end(); itr != end; ++itr)
-		{
-			// If node for the character doesn't exist, just end
-			auto childNode = node->getSubnode(*itr);
-			if (childNode == nullptr)
-				return false;
-
-			node = childNode;
-		}
-
-		return true;
+		auto node = _getNodeOfPrefix(key);
+		return node != nullptr;
 	}
 
 	/**
@@ -370,6 +344,36 @@ public:
 	}
 
 	/**
+	 * Returns set values with the specified prefix ordered according to their key alphabetical order.
+	 *
+	 * @return Vector of values.
+	 */
+	std::vector<ValueType> getValuesWithPrefix(const std::string& key) const
+	{
+		auto node = _getNodeOfPrefix(key);
+		if (node == nullptr)
+			return {};
+
+		std::vector<ValueType> result;
+		std::deque<const NodeType*> nodes = {node};
+		while (!nodes.empty())
+		{
+			node = nodes.front();
+			nodes.pop_front();
+
+			if (node->getValue().has_value())
+				result.push_back(node->getValue().value());
+
+			for (auto& [ch, subnode] : node->getSubnodes())
+				nodes.push_back(subnode);
+		}
+
+		std::reverse(result.begin(), result.end());
+
+		return result;
+	}
+
+	/**
 	 * Returns whether trie is empty or not.
 	 *
 	 * @return @c true if is empty, @c false otherwise.
@@ -381,6 +385,27 @@ public:
 	/// @}
 
 private:
+	const NodeType* _getNodeOfPrefix(const std::string& key) const
+	{
+		// No nodes, nothing to search for
+		if (_nodes.empty())
+			return nullptr;
+
+		// Iteratively descend down the trie
+		const NodeType* node = _nodes.front().get();
+		for (auto itr = key.begin(), end = key.end(); itr != end; ++itr)
+		{
+			// If node for the character doesn't exist, just end
+			auto childNode = node->getSubnode(*itr);
+			if (childNode == nullptr)
+				return nullptr;
+
+			node = childNode;
+		}
+
+		return node;
+	}
+
 	std::vector<std::unique_ptr<NodeType>> _nodes; ///< Nodes.
 	std::vector<const ValueType*> _values; ///< Values.
 };

@@ -127,7 +127,9 @@ public:
 			StringModifier::Type::Nocase,
 			StringModifier::Type::Fullword,
 			StringModifier::Type::Private,
-			StringModifier::Type::Xor
+			StringModifier::Type::Xor,
+			StringModifier::Type::Base64,
+			StringModifier::Type::Base64Wide
 		};
 
 		std::string text;
@@ -142,12 +144,12 @@ public:
 
 	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
 
-	const Location getLocation() const { 
+	const Location getLocation() const {
 		return {
 			_id.value_or(getFirstTokenIt())->getLocation().getFilePath(),
 			_id.value_or(getFirstTokenIt())->getLocation().begin(),
 			getLastTokenIt()->getLocation().end()
-		}; 
+		};
 	}
 
 	virtual TokenIt getFirstTokenIt() const = 0;
@@ -266,6 +268,8 @@ public:
 	bool isFullword() const { return _mods.find(StringModifier::Type::Fullword) != _mods.end(); }
 	bool isPrivate() const { return _mods.find(StringModifier::Type::Private) != _mods.end(); }
 	bool isXor() const { return _mods.find(StringModifier::Type::Xor) != _mods.end(); }
+	bool isBase64() const { return _mods.find(StringModifier::Type::Base64) != _mods.end(); }
+	bool isBase64Wide() const { return _mods.find(StringModifier::Type::Base64Wide) != _mods.end(); }
 	/// @}
 
 protected:

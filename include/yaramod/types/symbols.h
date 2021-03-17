@@ -66,7 +66,7 @@ class DictionarySymbol : public IterableSymbol
 {
 public:
 	DictionarySymbol(const std::string& name, ExpressionType elementType) : IterableSymbol(Symbol::Type::Dictionary, name, elementType) {}
-	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Array, name, structuredType) {}
+	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Dictionary, name, structuredType) {}
 };
 
 /**
@@ -198,6 +198,21 @@ public:
 
 private:
 	std::unordered_map<std::string, std::shared_ptr<Symbol>> _attributes; ///< Attributes of the structure
+};
+
+
+class ReferenceSymbol : public Symbol
+{
+public:
+	ReferenceSymbol(const std::string& name, const std::shared_ptr<Symbol>& symbol) : Symbol(Symbol::Type::Reference, name, ExpressionType::Object), _symbol(symbol) {}
+
+	const std::shared_ptr<Symbol>& getSymbol() const
+	{
+		return _symbol;
+	}
+
+private:
+	std::shared_ptr<Symbol> _symbol;
 };
 
 }

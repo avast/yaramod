@@ -785,6 +785,69 @@ rule rule_2
 	EXPECT_EQ(expected, rule2->getCondition()->getTokenStream()->getText());
 }
 
+TEST_F(VisitorTests,
+IterableModifyingVisitorImpactOnTokenStream) {
+	class TestModifyingVisitor : public yaramod::ModifyingVisitor
+	{
+	public:
+		void process_rule(const std::shared_ptr<Rule>& rule)
+		{
+			modify(rule->getCondition());
+		}
+		virtual yaramod::VisitResult visit(IterableExpression* expr) override
+		{
+			setNewIterableElements();
+			auto new_condition = iterable(iterable_elements).get();
+			expr->exchangeTokens(new_condition.get());
+			return new_condition;
+		}
+	private:
+		void setNewIterableElements() {
+			iterable_elements.clear();
+			iterable_elements.push_back(id("var")>doubleVal(5.5));
+			iterable_elements.push_back(id("time").access("now()")>intVal(500));
+		}
+
+		std::vector<YaraExpressionBuilder> iterable_elements;
+	};
+	prepareInput(
+R"(import "time"
+rule rule_name {
+	variables:
+		var = 1.5
+	condition:
+		(true and all of ["string"=="strong" and var<3.0, true, time.now() < 1000]) or false
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(1u, yara_file.getRules().size());
+	const auto& rule = yara_file.getRules()[0];
+
+	TestModifyingVisitor visitor;
+	visitor.process_rule(rule);
+
+	EXPECT_EQ("rule_name", rule->getName());
+	EXPECT_EQ("(true and all of [var > 5.5, time.now() > 500]) or false", rule->getCondition()->getText());
+
+	std::string expected = R"(import "time"
+
+rule rule_name
+{
+	variables:
+		var = 1.5
+	condition:
+		(
+			true and
+			all of [var > 5.5, time.now() > 500]
+		) or
+		false
+}
+)";
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+	EXPECT_EQ(expected, rule->getCondition()->getTokenStream()->getText());
+}
+
 class AndExpressionSwitcher : public ModifyingVisitor
 {
 public:
