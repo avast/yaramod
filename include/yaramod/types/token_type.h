@@ -7,6 +7,7 @@
 #pragma once
 
 namespace yaramod {
+
 /**
  * Represents type of parsed tokens.
  */

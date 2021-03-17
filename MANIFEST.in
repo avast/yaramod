@@ -4,6 +4,4 @@ include CHANGELOG.md
 recursive-include deps *
 recursive-include src *
 recursive-include include *.h
-include modules_path.h.in
-include src/public.py
 include CMakeLists.txt

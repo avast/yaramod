@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "yaramod/types/features.h"
 #include "yaramod/types/modules/modules_pool.h"
 #include "yaramod/types/rule.h"
 

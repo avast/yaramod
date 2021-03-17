@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 from distutils.command.build import build
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
 
