@@ -27,10 +27,10 @@ It all starts with ``YaraFileBuilder`` which is a main building block for creati
 
       .. code-block:: python
 
-        new_file = yaramod.YaraFileBuilder()
+        new_file = yaramod.YaraFileBuilder() \
         yara_file = new_file \
-            .with_module('pe')
-            .with_rule(rule)
+            .with_module('pe') \
+            .with_rule(rule) \
             .get()
 
     .. tab:: C++
