@@ -179,6 +179,11 @@ protected:
 	void popFileContext() { _fileContexts.pop_back(); }
 	/// @}
 
+	/// @name Method
+	/// @{
+	Rule createCommonRule(std::vector<yaramod::Value>& args);
+	/// @}
+
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
 	Location::Position _positionBegin; ///< Variable storing the position the currently processed token begins at.

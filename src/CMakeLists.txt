@@ -12,6 +12,7 @@ set(SOURCES
 	types/hex_string.cpp
 	types/literal.cpp
 	types/meta.cpp
+	types/variable.cpp
 	types/modules/module.cpp
 	types/modules/modules_pool.cpp
 	types/plain_string.cpp

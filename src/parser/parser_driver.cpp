@@ -1311,6 +1311,18 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
+	if (_features & Features::AvastOnly)
+		expr.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto array = std::move(args[2].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		;
+
 	_parser.rule("primary_expression") // Expression::Ptr
 		.production("LP", "primary_expression", "RP", [&](auto&& args) -> Value {
 			auto type = args[1].getExpression()->getType();
