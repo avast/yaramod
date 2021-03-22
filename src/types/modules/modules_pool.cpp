@@ -15,7 +15,7 @@ using Json = nlohmann::json;
 
 bool ModulesPool::_addModule(std::filesystem::path p)
 {
-	if (p.extension() != ".cpp")
+	if (p.extension() != ".cpp" && p.extension() != ".json")
 		return false;
 
 	auto path = p.string();
@@ -36,7 +36,24 @@ bool ModulesPool::_addModule(std::filesystem::path p)
 	return true;
 }
 
-ModulesPool::ModulesPool(const std::string& directory)
+bool ModulesPool::_addDirectory(const std::string& directory)
+{
+	bool found_modules = false;
+
+	for (const auto& entry : std::filesystem::directory_iterator(directory))
+	{
+		const auto& p = entry.path();
+		found_modules = _addModule(p);
+	}
+
+	// Initializes all modules
+	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
+		itr->second->initialize();
+
+	return found_modules;
+}
+
+bool ModulesPool::_init()
 {
 	bool found_modules = false;
 
@@ -47,20 +64,18 @@ ModulesPool::ModulesPool(const std::string& directory)
 		for (std::string path; std::getline(paths, path, ':'); )
 			found_modules = _addModule(std::filesystem::path(path));
 	}
+	else
+		found_modules = _addDirectory(YARAMOD_PUBLIC_MODULES_DIR);
+	return found_modules;
+}
 
-	// Try to load each file in the directory
-	if (!found_modules)
-	{
-		for (const auto& entry : std::filesystem::directory_iterator(directory))
-		{
-			const auto& p = entry.path();
-			found_modules = _addModule(p);
-		}
-	}
+ModulesPool::ModulesPool(const std::string& directory)
+{
+	_init();
 
-	// Initializes all modules
-	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
-		itr->second->initialize();
+	// Try to load each file in the directory too
+	if (!directory.empty())
+		_addDirectory(directory);
 }
 
 }

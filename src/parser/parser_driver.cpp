@@ -1886,11 +1886,12 @@ void ParserDriver::initialize()
 /**
  * Constructor.
  *
+ * @param modulesDirectory determines a directory for additional YARA modules to be added
  * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(Features features)
+ParserDriver::ParserDriver(const std::string& modulesDirectory, Features features)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
-	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(modulesDirectory),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0)
