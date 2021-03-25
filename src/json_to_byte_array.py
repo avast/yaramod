@@ -1,3 +1,4 @@
+import pickle
 import getopt
 import os
 import sys
@@ -23,18 +24,20 @@ def main(argv):
 
     for file in os.listdir(input_directory):
         filename, extension = os.path.splitext(file)
-        if extension == ".json":
-            source_path = os.path.join(input_directory, file)
-            output_file = os.path.join(output_directory, filename + '.cpp')
-            with open(source_path, 'r') as f:
-                module_content = f.read()
-            array = bytearray(module_content.encode('utf-8'))
-
-            with open(output_file, 'wb') as f:
-                print('Created module', output_file, 'from', filename)
-                f.write(array)
-        else:
+        if extension != ".json":
             continue
+        source_path = os.path.join(input_directory, file)
+        output_file = os.path.join(output_directory, filename + '.cpp')
+        with open(source_path, 'r') as f:
+            module_content = f.read()
+
+        with open(output_file, 'wb') as f:
+            pickle.dump(module_content.encode('utf-8'), f)
+            print('################################################', 'Created module', output_file, 'from', filename)
+
+        with open(output_file, 'rb') as f:
+            content = pickle.load(f)
+            # print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', content)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,6 @@ set(YARAMOD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 set(YARAMOD_SRC_BIN_DIR "${PROJECT_BINARY_DIR}/src")
 set(YARAMOD_DEPS_DIR    "${PROJECT_SOURCE_DIR}/deps")
 set(YARAMOD_PUBLIC_MODULES_DIR     "${PROJECT_SOURCE_DIR}/src/modules")
-set(YARAMOD_PRIVATE_MODULES_DIR     "${PROJECT_SOURCE_DIR}/src/modules/private")
 set(WRAP_MODULE_SOURCES
 	${YARAMOD_SRC_DIR}/modules/module_elf.cpp
 	${YARAMOD_SRC_DIR}/modules/module_macho.cpp
