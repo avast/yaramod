@@ -21,25 +21,24 @@ endif()
 set(YARAMOD_DOC_DIR     "${PROJECT_SOURCE_DIR}/doc")
 set(YARAMOD_SRC_DIR     "${PROJECT_SOURCE_DIR}/src")
 set(YARAMOD_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(YARAMOD_SCRIPTS_DIR "${PROJECT_SOURCE_DIR}")
 set(YARAMOD_SRC_BIN_DIR "${PROJECT_BINARY_DIR}/src")
 set(YARAMOD_DEPS_DIR    "${PROJECT_SOURCE_DIR}/deps")
-set(YARAMOD_PUBLIC_MODULES_DIR     "${PROJECT_SOURCE_DIR}/src/modules")
+set(YARAMOD_MODULES_DIR     "${PROJECT_SOURCE_DIR}/modules")
+set(YARAMOD_MODULES_GENERATED_DIR     "${YARAMOD_INCLUDE_DIR}/yaramod/types/modules/generated")
 set(WRAP_MODULE_SOURCES
-	${YARAMOD_SRC_DIR}/modules/module_elf.cpp
-	${YARAMOD_SRC_DIR}/modules/module_macho.cpp
-	${YARAMOD_SRC_DIR}/modules/module_cuckoo.cpp
-	${YARAMOD_SRC_DIR}/modules/module_magic.cpp
-	${YARAMOD_SRC_DIR}/modules/module_dotnet.cpp
-	${YARAMOD_SRC_DIR}/modules/module_pe.cpp
-	${YARAMOD_SRC_DIR}/modules/module_metadata.cpp
-	${YARAMOD_SRC_DIR}/modules/module_dex.cpp
-	${YARAMOD_SRC_DIR}/modules/module_cuckoo_deprecated.cpp
-	${YARAMOD_SRC_DIR}/modules/module_math.cpp
-	${YARAMOD_SRC_DIR}/modules/module_time.cpp
-	${YARAMOD_SRC_DIR}/modules/module_hash.cpp
+	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_deprecated_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_dex_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_elf_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_hash_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_macho_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_magic_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_math_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_pe_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_list.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_time_generated.h
 )
-
-configure_file("${PROJECT_SOURCE_DIR}/modules_path.h.in" "${PROJECT_SOURCE_DIR}/include/yaramod/modules_path.h")
 
 # Use C++17.
 set(CMAKE_CXX_STANDARD 17)
@@ -67,8 +66,8 @@ endif()
 # Command that creates modules stated in ${WRAP_MODULE_SOURCES}
 add_custom_command(
 	OUTPUT ${WRAP_MODULE_SOURCES}
-	# Create .cpp modules from .json modules
-	COMMAND	python ${YARAMOD_SRC_DIR}/json_to_byte_array.py -i "${YARAMOD_PUBLIC_MODULES_DIR}/public" -o "${YARAMOD_PUBLIC_MODULES_DIR}"
+	# Create .h modules from .json modules
+	COMMAND	python ${YARAMOD_SCRIPTS_DIR}/json_to_array.py -i "${YARAMOD_MODULES_DIR}" -o "${YARAMOD_MODULES_GENERATED_DIR}"
 	COMMENT
 		"Converting yaramod modules from JSON to byte arrays in .cpp files"
 )

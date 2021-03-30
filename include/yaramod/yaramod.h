@@ -37,7 +37,7 @@ public:
 	 * @param modulesDirectory determines a directory for additional YARA modules to be added
 	 * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
 	 */
-	Yaramod(const std::string& modulesDirectory, Features features = Features::AllCurrent) : _driver(modulesDirectory, features) {}
+	// Yaramod(const std::string& modulesDirectory, Features features = Features::AllCurrent) : _driver(modulesDirectory, features) {}
 	/**
 	 * Parses file at given path.
 	 *

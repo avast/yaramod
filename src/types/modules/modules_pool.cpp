@@ -13,12 +13,13 @@ namespace yaramod {
 
 using Json = nlohmann::json;
 
-bool ModulesPool::_addModule(std::filesystem::path p)
+bool ModulesPool::_processPath(std::filesystem::path p)
 {
 	if (p.extension() != ".cpp" && p.extension() != ".json")
 		return false;
 
 	auto path = p.string();
+
 	auto json = readJsonFile(path);
 	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
 		return false;
@@ -36,21 +37,25 @@ bool ModulesPool::_addModule(std::filesystem::path p)
 	return true;
 }
 
-bool ModulesPool::_addDirectory(const std::string& directory)
+bool ModulesPool::_processModuleContent(const ModuleContent& content)
 {
-	bool found_modules = false;
+	auto json = readJsonString(content.getContent());
+	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
+		return false;
 
-	for (const auto& entry : std::filesystem::directory_iterator(directory))
+	auto name = accessJsonString(json, "name");
+	assert(content.getName() == name);
+
+	auto itr = _knownModules.find(name);
+	if (itr == _knownModules.end())
 	{
-		const auto& p = entry.path();
-		found_modules = _addModule(p);
+		auto module = std::make_shared<Module>(name, std::move(json));
+		_knownModules.emplace(std::make_pair(name, std::move(module)));
 	}
+	else
+		itr->second->addJson(std::move(json));
 
-	// Initializes all modules
-	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
-		itr->second->initialize();
-
-	return found_modules;
+	return true;
 }
 
 bool ModulesPool::_init()
@@ -62,20 +67,25 @@ bool ModulesPool::_init()
 		std::stringstream paths;
 		paths << env_p;
 		for (std::string path; std::getline(paths, path, ':'); )
-			found_modules = _addModule(std::filesystem::path(path));
+			found_modules = _processPath(std::filesystem::path(path));
 	}
 	else
-		found_modules = _addDirectory(YARAMOD_PUBLIC_MODULES_DIR);
+	{
+		for (const auto& content : _modules_list.list)
+		{
+			found_modules = _processModuleContent(content);
+		}
+	}
 	return found_modules;
 }
 
-ModulesPool::ModulesPool(const std::string& directory)
+ModulesPool::ModulesPool()
 {
 	_init();
 
-	// Try to load each file in the directory too
-	if (!directory.empty())
-		_addDirectory(directory);
+	// Initializes all modules
+	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
+		itr->second->initialize();
 }
 
 }

@@ -40,12 +40,25 @@ std::optional<ExpressionType> stringToExpressionType (const std::string& str)
  * Constructor.
  *
  * @param name Name of the module
+ * @param filePath path to the module contents
  */
 Module::Module(const std::string& name, const std::string& filePath)
 	: _name(name)
 	, _structure()
 {
 	addPath(filePath);
+}
+
+/**
+ * Constructor.
+ *
+ * @param name Name of the module
+ * @param fileContent module content
+ */
+Module::Module(const std::string& name, nlohmann::json&& json)
+	: _name(name)
+{
+	_jsons.emplace_back(json);
 }
 
 /**
@@ -58,6 +71,11 @@ Module::~Module()
 void Module::addPath(const std::string& path)
 {
 	_filePaths.push_back(path);
+}
+
+void Module::addJson(const nlohmann::json& json)
+{
+	_jsons.push_back(json);
 }
 
 /**
@@ -305,27 +323,37 @@ void Module::_addAttributeFromJson(StructureSymbol* base, const Json& json)
  */
 bool Module::initialize()
 {
-	if (_filePaths.empty())
+	if (_filePaths.empty() && _jsons.empty())
 		throw ModuleError("No .json file supplied to initialize a module.");
 
 	for (const auto& filePath : _filePaths)
 	{
 		auto json = readJsonFile(filePath);
-		auto name = accessJsonString(json, "name");
-		if (name == std::string{})
-			throw ModuleError("Module name must be non-empty.");
-		else if (!_structure) // First iteration - need to create the structure.
-			_structure = _addStruct(nullptr, json);
-		else if (_name != name) // Throws - name of the module must be the same accross the files.
-			throw ModuleError("Module name must be the same in all files, but " + name + " != " + _name + ".\n" + getPathsAsString());
-		else // _struct already created, need only to add new attributes
-		{
-			const auto& attributes = accessJsonArray(json, "attributes");
-			for (const auto& attr : attributes)
-				_addAttributeFromJson(_structure.get(), attr);
-		}
+		_importJson(json);
+	}
+	for (const auto& json : _jsons)
+	{
+		_importJson(json);
 	}
 	return true;
+}
+
+void Module::_importJson(const Json& json)
+{
+	auto name = accessJsonString(json, "name");
+
+	if (name == std::string{})
+		throw ModuleError("Module name must be non-empty.");
+	else if (!_structure) // First iteration - need to create the structure.
+		_structure = _addStruct(nullptr, json);
+	else if (_name != name) // Throws - name of the module must be the same accross the files.
+		throw ModuleError("Module name must be the same in all files, but " + name + " != " + _name + ".\n" + getPathsAsString());
+	else // _struct already created, need only to add new attributes
+	{
+		const auto& attributes = accessJsonArray(json, "attributes");
+		for (const auto& attr : attributes)
+			_addAttributeFromJson(_structure.get(), attr);
+	}
 }
 
 }

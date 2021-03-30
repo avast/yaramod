@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "yaramod/modules_path.h"
+#include "yaramod/types/modules/generated/modules_list.h"
 #include "yaramod/types/modules/module.h"
 
 #include <filesystem>
@@ -20,13 +20,10 @@ class ModulesPool {
 public:
 	/*
 	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we load all modules from it.
-	 * Otherwise we load all modules in the YARAMOD_PUBLIC_MODULES_DIR directory
-	 * Additionaly to YARAMOD_MODULE_SPEC_PATH or YARAMOD_PUBLIC_MODULES_DIR we load all modules
-	 * in the @directory specified as the parameter if it is non-empty string.
-	 *
-	 * @param directory The directory to load the modules from apart from YARAMOD_MODULE_SPEC_PATH or YARAMOD_PUBLIC_MODULES_DIR
+	 * Additionaly to YARAMOD_MODULE_SPEC_PATH we load all modules
+	 * specified by ModuleList
 	 */
-	ModulesPool(const std::string& directory = "");
+	ModulesPool();
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *
@@ -51,9 +48,11 @@ public:
 
 private:
 	bool _init();
-	bool _addDirectory(const std::string& directory);
-	bool _addModule(std::filesystem::path path);
+	// bool _addDirectory(const std::string& directory);
+	bool _processPath(std::filesystem::path path);
+	bool _processModuleContent(const ModuleContent& content);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
+	modules::ModulesList _modules_list;
 };
 
 } //namespace yaramod

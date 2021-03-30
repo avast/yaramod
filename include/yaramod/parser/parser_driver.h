@@ -78,8 +78,7 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-	ParserDriver(Features features = Features::AllCurrent) : ParserDriver("", features) {}
-	ParserDriver(const std::string& modulesDirectory, Features features = Features::AllCurrent);
+	ParserDriver(Features features = Features::AllCurrent);
 	/// @}
 
 	/// @name Destructor
@@ -198,8 +197,8 @@ private:
 
 	ParserMode _mode; ///< Parser mode.
 
-	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
 	Features _features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
+	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
 
 	std::vector<FileContext> _fileContexts;
 	std::vector<TokenIt> _comments; ///< Tokens of parsed comments

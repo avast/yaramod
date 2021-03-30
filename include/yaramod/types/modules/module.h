@@ -38,6 +38,7 @@ public:
 	/// @name Constructors
 	/// @{
 	Module(const std::string& name, const std::string& path);
+	Module(const std::string& name, nlohmann::json&& json);
 	/// @}
 
 	/// @name Destructor
@@ -49,6 +50,7 @@ public:
 	/// @{
 	bool initialize();
 	void addPath(const std::string& path);
+	void addJson(const nlohmann::json& json);
 	/// @}
 
 	/// @name Getter methods
@@ -70,9 +72,11 @@ protected:
 	void _addFunctions(StructureSymbol* base, const nlohmann::json& json);
 	std::shared_ptr<StructureSymbol> _addStruct(StructureSymbol* base, const nlohmann::json& json);
 	void _addValue(StructureSymbol* base, const nlohmann::json& json);
+	void _importJson(const nlohmann::json& json);
 
 	std::string _name; ///< Name of the module
 	std::vector<std::string> _filePaths; ///< The paths to JSON files which determine this module
+	std::vector<nlohmann::json> _jsons; ///< The jsons which determine this module
 	std::shared_ptr<StructureSymbol> _structure; ///< Structure of the module
 };
 

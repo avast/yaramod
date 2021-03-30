@@ -22,7 +22,12 @@ nlohmann::json readJsonFile(const std::string& filePath)
 		throw YaramodError("Could not open '" + filePath);
 	std::stringstream buffer;
 	buffer << input.rdbuf();
-	return nlohmann::json::parse(buffer.str());
+	return readJsonString(buffer.str());
+}
+
+nlohmann::json readJsonString(const std::string& jsonString)
+{
+	return nlohmann::json::parse(jsonString);
 }
 
 template<typename T>

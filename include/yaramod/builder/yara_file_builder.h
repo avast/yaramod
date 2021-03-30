@@ -38,13 +38,8 @@ public:
 	/// @name Constructors
 	/// @{
 	YaraFileBuilder(Features features = Features::AllCurrent)
-		: YaraFileBuilder("", features)
-	{
-	}
-
-	YaraFileBuilder(const std::string& modulesDirectory, Features features = Features::AllCurrent)
 		: _tokenStream(std::make_shared<TokenStream>())
-		, _modules_pool(modulesDirectory)
+		, _modules_pool()
 		, _features(features)
 	{
 	}
