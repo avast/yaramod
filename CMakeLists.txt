@@ -78,3 +78,4 @@ add_custom_target(modules_wrapping ALL
 		${WRAP_MODULE_SOURCES}
 	VERBATIM
 )
+add_dependencies(yaramod modules_wrapping)
