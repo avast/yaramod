@@ -1886,7 +1886,6 @@ void ParserDriver::initialize()
 /**
  * Constructor.
  *
- * @param modulesDirectory determines a directory for additional YARA modules to be added
  * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
 ParserDriver::ParserDriver(Features features)

@@ -65,7 +65,7 @@ if(YARAMOD_DOCS)
 	add_subdirectory(docs)
 endif()
 
-# Command that creates modules stated in ${WRAP_MODULE_SOURCES}
+# Command that creates files in ${WRAP_MODULE_SOURCES}
 add_custom_command(
 	OUTPUT ${WRAP_MODULE_SOURCES}
 	# Create .h modules from .json modules

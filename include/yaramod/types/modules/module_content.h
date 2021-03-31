@@ -1,7 +1,7 @@
 /**
- * @file src/types/modules/module.h
- * @brief Declaration of class Module.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @file src/types/modules/module_content.h
+ * @brief Declaration of class ModuleContent.
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
 #pragma once

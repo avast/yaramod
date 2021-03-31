@@ -72,9 +72,7 @@ bool ModulesPool::_init()
 	else
 	{
 		for (const auto& content : _modules_list.list)
-		{
 			found_modules = _processModuleContent(content);
-		}
 	}
 	return found_modules;
 }

@@ -44,7 +44,6 @@ std::optional<ExpressionType> stringToExpressionType (const std::string& str)
  */
 Module::Module(const std::string& name, const std::string& filePath)
 	: _name(name)
-	, _structure()
 {
 	addPath(filePath);
 }
@@ -327,14 +326,11 @@ bool Module::initialize()
 		throw ModuleError("No .json file supplied to initialize a module.");
 
 	for (const auto& filePath : _filePaths)
-	{
-		auto json = readJsonFile(filePath);
-		_importJson(json);
-	}
+		_importJson(readJsonFile(filePath));
+
 	for (const auto& json : _jsons)
-	{
 		_importJson(json);
-	}
+
 	return true;
 }
 

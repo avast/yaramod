@@ -48,11 +48,10 @@ public:
 
 private:
 	bool _init();
-	// bool _addDirectory(const std::string& directory);
 	bool _processPath(std::filesystem::path path);
 	bool _processModuleContent(const ModuleContent& content);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
-	modules::ModulesList _modules_list;
+	modules::ModulesList _modules_list; ///< list of contents of the modules to be loaded from JSON
 };
 
 } //namespace yaramod
