@@ -456,3 +456,34 @@ Checking what modules are imported. Keep in mind that imports are merged from al
 
         for (const auto& module : yaraFile->getImports())
             std::cout << module->getName() << std::endl;
+
+Tokens
+======
+
+Yaramod provides an interface to access information about the underlying tokens
+related to a particular object. This information can be used to determine
+object location within the parsed file.
+
+.. code-block:: python
+
+    for rule in yara_file.rules:
+        for string in rule.strings:
+            start = string.token_first.location.begin
+            end = string.token_last.location.end
+            print(f'[{start.line}, {start.column}] - [{end.line}, {end.column}]')
+
+Token exposes the `Location` which consists of two `Positions`: `begin` and
+`end`.  `Position` represents a position of charater within the parsed file
+given by `line` and `column`.  Currently supported token getters are:
+
+.. list-table:: Supported token getters
+   :header-rows: 1
+
+   * - Object
+     - Accessor
+   * - Rule
+     - `token_first`, `token_last`
+   * - Meta
+     - `token_key`, `token_value`
+   * - String
+     - `token_first`, `token_last`, `token_id`, `token_assign`

@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.9.1 (2021-03-29)
+
+* Exposed token from `Meta` objects ([#155](https://github.com/avast/yaramod/pull/155))
+* Fixed documentation in parsing_rulesets.rst ([#153](https://github.com/avast/yaramod/pull/153))
+
 # v3.9.0 (2021-01-20)
 
 * Turned `ImportFeatures` into `Features` because it now affects more than just imported modules ([#148](https://github.com/avast/yaramod/pull/148))

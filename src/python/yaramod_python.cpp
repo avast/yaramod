@@ -306,7 +306,13 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Meta>(module, "Meta")
 		.def_property("key", &Meta::getKey, &Meta::setKey)
-		.def_property("value", &Meta::getValue, &Meta::setValue);
+		.def_property("value", &Meta::getValue, &Meta::setValue)
+		.def_property_readonly("token_key", [](Meta& self) {
+				return *self.getKeyTokenIt();
+			})
+		.def_property_readonly("token_value", [](Meta& self) {
+				return *self.getValueTokenIt();
+			});
 
 	py::class_<Variable>(module, "Variable")
 		.def_property("key", &Variable::getKey, &Variable::setKey)
