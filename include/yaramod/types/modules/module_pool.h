@@ -1,6 +1,6 @@
 /**
- * @file src/types/modules/modules_pool.h
- * @brief Declaration of class Module.
+ * @file src/types/modules/module_pool.h
+ * @brief Declaration of class ModulePool.
  * @copyright (c) 2020 Avast Software, licensed under the MIT license
  */
 
@@ -16,14 +16,14 @@ namespace yaramod {
 /**
  * Class maintaining importable modules.
  */
-class ModulesPool {
+class ModulePool {
 public:
 	/*
 	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we load all modules from it.
 	 * Additionaly to YARAMOD_MODULE_SPEC_PATH we load all modules
 	 * specified by ModuleList
 	 */
-	ModulesPool();
+	ModulePool();
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *

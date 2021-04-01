@@ -198,7 +198,7 @@ private:
 	ParserMode _mode; ///< Parser mode.
 
 	Features _features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
-	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
+	ModulePool _modules; ///< Storage of all modules used by this ParserDriver
 
 	std::vector<FileContext> _fileContexts;
 	std::vector<TokenIt> _comments; ///< Tokens of parsed comments

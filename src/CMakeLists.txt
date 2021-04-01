@@ -14,7 +14,7 @@ set(SOURCES
 	types/meta.cpp
 	types/variable.cpp
 	types/modules/module.cpp
-	types/modules/modules_pool.cpp
+	types/modules/module_pool.cpp
 	types/plain_string.cpp
 	types/rule.cpp
 	types/token.cpp

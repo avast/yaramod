@@ -1,19 +1,19 @@
 /**
- * @file src/types/modules/modules_pool.cpp
+ * @file src/types/modules/module_pool.cpp
  * @brief Implementation of CustomModule.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
 
 #include <sstream>
 
-#include "yaramod/types/modules/modules_pool.h"
+#include "yaramod/types/modules/module_pool.h"
 
 
 namespace yaramod {
 
 using Json = nlohmann::json;
 
-bool ModulesPool::_processPath(std::filesystem::path p)
+bool ModulePool::_processPath(std::filesystem::path p)
 {
 	if (p.extension() != ".cpp" && p.extension() != ".json")
 		return false;
@@ -37,7 +37,7 @@ bool ModulesPool::_processPath(std::filesystem::path p)
 	return true;
 }
 
-bool ModulesPool::_processModuleContent(const ModuleContent& content)
+bool ModulePool::_processModuleContent(const ModuleContent& content)
 {
 	auto json = readJsonString(content.getContent());
 	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
@@ -58,7 +58,7 @@ bool ModulesPool::_processModuleContent(const ModuleContent& content)
 	return true;
 }
 
-bool ModulesPool::_init()
+bool ModulePool::_init()
 {
 	bool found_modules = false;
 
@@ -77,7 +77,7 @@ bool ModulesPool::_init()
 	return found_modules;
 }
 
-ModulesPool::ModulesPool()
+ModulePool::ModulePool()
 {
 	_init();
 
