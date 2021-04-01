@@ -1918,6 +1918,16 @@ const YaraFile& ParserDriver::getParsedFile() const
 	return _file;
 }
 
+/**
+ * Returns ModulePool used in the parser, which gives information on which modules are available.
+ *
+ * @return Used ModulePool
+ */
+std::map<std::string, Module*> ParserDriver::getModules() const
+{
+	return _modules.getModules();
+}
+
 bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
 {
 	if (!prepareParser(parserMode))

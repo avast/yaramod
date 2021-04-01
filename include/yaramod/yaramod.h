@@ -58,6 +58,13 @@ public:
 
 	const YaraFile& getParsedFile() const;
 
+	/**
+	 * Returns ModulePool used in the parser, which gives information on which modules are available.
+	 *
+	 * @return Used ModulePool
+	 */
+	std::map<std::string, Module*> getModules() const;
+
 private:
 	ParserDriver _driver;
 };

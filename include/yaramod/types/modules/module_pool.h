@@ -18,10 +18,11 @@ namespace yaramod {
  */
 class ModulePool {
 public:
-	/*
-	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we load all modules from it.
-	 * Additionaly to YARAMOD_MODULE_SPEC_PATH we load all modules
-	 * specified by ModuleList
+	/**
+	 * Constructor.
+	 *
+	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we create all modules from it.
+	 * Additionaly to YARAMOD_MODULE_SPEC_PATH we create all modules specified by ModuleList
 	 */
 	ModulePool();
 	/**
@@ -32,19 +33,14 @@ public:
 	 *
 	 * @return Module if found, @c nullptr otherwise.
 	 */
-	std::shared_ptr<Module> load(const std::string& name)
-	{
-		auto itr = _knownModules.find(name);
-		// Check that the module exists
-		if (itr == _knownModules.end())
-			return nullptr;
-
-		// Initialize the module if it is not already initialized.
-		if (!itr->second->isInitialized())
-			itr->second->initialize();
-
-		return itr->second;
-	}
+	std::shared_ptr<Module> load(const std::string& name);
+	/**
+	 *
+	 * Method returns sorted map of pointers to modules stored.
+	 *
+	 * @return modules stored.
+	 */
+	std::map<std::string, Module*> getModules() const;
 
 private:
 	bool _init();

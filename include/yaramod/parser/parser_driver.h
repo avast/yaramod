@@ -90,6 +90,7 @@ public:
 	/// @{
 	YaraFile&& getParsedFile();
 	const YaraFile& getParsedFile() const;
+	std::map<std::string, Module*> getModules() const;
 	/// @}
 
 	/// @name Parsing methods

@@ -13,6 +13,39 @@ namespace yaramod {
 
 using Json = nlohmann::json;
 
+ModulePool::ModulePool()
+{
+	_init();
+
+	// Initializes all modules
+	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
+		itr->second->initialize();
+}
+
+std::shared_ptr<Module> ModulePool::load(const std::string& name)
+{
+	auto itr = _knownModules.find(name);
+	// Check that the module exists
+	if (itr == _knownModules.end())
+		return nullptr;
+
+	// Initialize the module if it is not already initialized.
+	if (!itr->second->isInitialized())
+		itr->second->initialize();
+
+	return itr->second;
+}
+
+std::map<std::string, Module*> ModulePool::getModules() const
+{
+	std::map<std::string, Module*> m;
+	for (const auto& item : _knownModules)
+	{
+		m.insert(std::pair(item.first, item.second.get()));
+	}
+	return m;
+}
+
 bool ModulePool::_processPath(std::filesystem::path p)
 {
 	if (p.extension() != ".cpp" && p.extension() != ".json")
@@ -75,15 +108,6 @@ bool ModulePool::_init()
 			found_modules = _processModuleContent(content);
 	}
 	return found_modules;
-}
-
-ModulePool::ModulePool()
-{
-	_init();
-
-	// Initializes all modules
-	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
-		itr->second->initialize();
 }
 
 }

@@ -151,3 +151,16 @@ rule dummy_rule {
                 '\n',
                 'rule'
             ])
+
+    def test_get_modulepool(self):
+        ymod = yaramod.Yaramod()
+        modules = ymod.modules
+        self.assertTrue("cuckoo" in modules)
+        self.assertTrue("dex" in modules)
+        self.assertTrue("elf" in modules)
+        self.assertTrue("hash" in modules)
+        self.assertTrue("macho" in modules)
+        self.assertTrue("magic" in modules)
+        self.assertTrue("math" in modules)
+        self.assertTrue("pe" in modules)
+        self.assertTrue("time" in modules)

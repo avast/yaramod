@@ -897,7 +897,8 @@ void addMainClass(py::module& module)
 				std::istringstream stream(str);
 				return self.parseStream(stream, parserMode);
 			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular)
-		.def_property_readonly("yara_file", &Yaramod::getParsedFile);
+		.def_property_readonly("yara_file", &Yaramod::getParsedFile)
+		.def_property_readonly("modules", &Yaramod::getModules);
 }
 
 PYBIND11_MODULE(yaramod, module)
