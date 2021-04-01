@@ -343,7 +343,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("symbol", &Literal::getSymbol);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
-		.def_property_readonly("name", &Module::getName);
+		.def_property_readonly("name", &Module::getName)
+		.def_property_readonly("structure", &Module::getStructure);
 
 	py::class_<String, std::shared_ptr<String>>(module, "String")
 		.def_property_readonly("text", &String::getText)
@@ -465,10 +466,17 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_reference", &Symbol::isReference);
 
 	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
-	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
-	py::class_<DictionarySymbol, Symbol, std::shared_ptr<DictionarySymbol>>(module, "DictionarySymbol");
-	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol");
+	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol")
+		.def_property_readonly("element_type", &ArraySymbol::getElementType)
+		.def_property_readonly("structure", &ArraySymbol::getStructuredElementType);
+	py::class_<DictionarySymbol, Symbol, std::shared_ptr<DictionarySymbol>>(module, "DictionarySymbol")
+		.def_property_readonly("element_type", &DictionarySymbol::getElementType)
+		.def_property_readonly("structure", &DictionarySymbol::getStructuredElementType);
+	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol")
+		.def_property_readonly("return_type", &FunctionSymbol::getReturnType)
+		.def_property_readonly("overloads", &FunctionSymbol::getAllOverloads);
 	py::class_<StructureSymbol, Symbol, std::shared_ptr<StructureSymbol>>(module, "StructureSymbol")
+		.def_property_readonly("attributes", &StructureSymbol::getAttributes)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
 				return self.getAttribute(name).value_or(nullptr);
 			});

@@ -169,6 +169,11 @@ public:
 		return { itr->second };
 	}
 
+	const std::unordered_map<std::string, std::shared_ptr<Symbol>>& getAttributes() const
+	{
+		return _attributes;
+	}
+
 	bool addAttribute(const std::shared_ptr<Symbol>& attribute)
 	{
 		// Insertion result is pair of iterator and boolean indicator whether insertion was successful

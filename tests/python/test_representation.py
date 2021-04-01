@@ -195,7 +195,7 @@ rule dummy_rule {
         self.assertEqual(token.location.end.line, 4)
         self.assertEqual(token.location.end.column, 59)
 
-def test_get_modulepool(self):
+    def test_get_modulepool(self):
         ymod = yaramod.Yaramod()
         modules = ymod.modules
         self.assertTrue("cuckoo" in modules)
@@ -207,3 +207,45 @@ def test_get_modulepool(self):
         self.assertTrue("math" in modules)
         self.assertTrue("pe" in modules)
         self.assertTrue("time" in modules)
+
+    def test_module_interface(self):
+        modules = yaramod.Yaramod().modules
+
+        self.assertTrue("cuckoo" in modules)
+        cuckoo_symbol = modules["cuckoo"].structure
+        self.assertEqual("cuckoo", cuckoo_symbol.name)
+        self.assertTrue(cuckoo_symbol.is_structure)
+        cuckoo_attributes = cuckoo_symbol.attributes
+
+        self.assertTrue("network" in cuckoo_attributes)
+        network_symbol = cuckoo_attributes["network"]
+        self.assertTrue(network_symbol.is_structure)
+        network_attributes = network_symbol.attributes
+
+        self.assertTrue("http_get" in network_attributes)
+        http_get_symbol = network_attributes["http_get"]
+        self.assertTrue(http_get_symbol.is_function)
+        self.assertEqual(http_get_symbol.return_type, yaramod.ExpressionType.Int)
+
+        self.assertTrue("pe" in modules)
+        pe_symbol = modules["pe"].structure
+        self.assertEqual("pe", pe_symbol.name)
+        self.assertTrue(pe_symbol.is_structure)
+        pe_attributes = pe_symbol.attributes
+
+        self.assertTrue("MACHINE_UNKNOWN" in pe_attributes)
+        machine_symbol = pe_attributes["MACHINE_UNKNOWN"]
+        self.assertTrue(machine_symbol.is_value)
+        self.assertEqual(machine_symbol.data_type, yaramod.ExpressionType.Int)
+
+        self.assertTrue("sections" in pe_attributes)
+        section_array_sumbol = pe_attributes['sections']
+        self.assertEqual(section_array_sumbol.name, 'sections')
+        self.assertTrue(section_array_sumbol.is_array)
+        self.assertEqual(section_array_sumbol.element_type, yaramod.ExpressionType.Object)
+        section_symbol = section_array_sumbol.structure
+        self.assertEqual(section_symbol.name, 'sections')
+        self.assertTrue(section_symbol.is_structure)
+        section_attributes = section_symbol.attributes
+
+        self.assertTrue("characteristics" in section_attributes)
