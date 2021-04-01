@@ -69,7 +69,7 @@ Module::~Module()
 
 void Module::addPath(const std::string& path)
 {
-	_filePaths.push_back(path);
+	_filePaths.emplace_back(path, false);
 }
 
 void Module::addJson(const nlohmann::json& json)
@@ -92,9 +92,12 @@ const std::string& Module::getName() const
  *
  * @return Module JSON file paths.
  */
-const std::vector<std::string>& Module::getPaths() const
+std::vector<std::string> Module::getPaths() const
 {
-	return _filePaths;
+	std::vector<std::string> p;
+	for (const auto& item : _filePaths)
+		p.push_back(item.first);
+	return p;
 }
 
 /**
@@ -105,8 +108,8 @@ const std::vector<std::string>& Module::getPaths() const
 std::string Module::getPathsAsString() const
 {
 	std::stringstream ss;
-	for (const auto& path : getPaths())
-		ss << "'" << path << "', ";
+	for (const auto& item : _filePaths)
+		ss << "'" << item.first << "', ";
 	auto message = ss.str();
 	message.erase(message.size()-2, 2);
 	return message;
@@ -325,8 +328,14 @@ bool Module::initialize()
 	if (_filePaths.empty() && _jsons.empty())
 		throw ModuleError("No .json file supplied to initialize a module.");
 
-	for (const auto& filePath : _filePaths)
-		_importJson(readJsonFile(filePath));
+	for (auto& filePath : _filePaths)
+	{
+		if (!filePath.second)
+		{
+			addJson(readJsonFile(filePath.first));
+			filePath.second = true;
+		}
+	}
 
 	for (const auto& json : _jsons)
 		_importJson(json);

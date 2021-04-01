@@ -57,7 +57,7 @@ public:
 	/// @{
 	const std::string& getName() const;
 	std::string getPathsAsString() const;
-	const std::vector<std::string>& getPaths() const;
+	std::vector<std::string> getPaths() const;
 	const std::shared_ptr<StructureSymbol>& getStructure() const;
 	/// @}
 
@@ -75,7 +75,7 @@ protected:
 	void _importJson(const nlohmann::json& json);
 
 	std::string _name; ///< Name of the module
-	std::vector<std::string> _filePaths; ///< The paths to JSON files which determine this module
+	std::vector<std::pair<std::string, bool>> _filePaths; ///< The custom paths to JSON files which help to determine this module. Elements: [<path>, true iff <path> was loaded]. May be empty if no private modules.
 	std::vector<nlohmann::json> _jsons; ///< The jsons which determine this module
 	std::shared_ptr<StructureSymbol> _structure; ///< Structure of the module
 };
