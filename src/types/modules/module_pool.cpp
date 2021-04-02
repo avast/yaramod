@@ -103,7 +103,10 @@ void ModulePool::_init(const std::string& directory)
 		{
 			bool found_modules = false;
 			for (const auto& entry : std::filesystem::directory_iterator(directory))
-				found_modules = found_modules || _processPath(entry.path());
+			{
+				bool result = _processPath(entry.path());
+				found_modules = found_modules || result;
+			}
 			if (!found_modules)
 				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules only, set directory=\"\".");
 		}

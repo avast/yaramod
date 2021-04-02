@@ -249,3 +249,26 @@ rule dummy_rule {
         section_attributes = section_symbol.attributes
 
         self.assertTrue("characteristics" in section_attributes)
+
+    def test_custom_module_interface(self):
+        modules = yaramod.Yaramod("./tests/python/testing_modules").modules
+
+        self.assertTrue("module_test" in modules)
+        module_symbol = modules["module_test"].structure
+        self.assertEqual("module_test", module_symbol.name)
+        self.assertTrue(module_symbol.is_structure)
+        cuckoo_attributes = module_symbol.attributes
+
+        self.assertTrue("structure_test" in cuckoo_attributes)
+        structure_symbol = cuckoo_attributes["structure_test"]
+        self.assertTrue(structure_symbol.is_structure)
+        structure_attributes = structure_symbol.attributes
+
+        self.assertTrue("function_test" in structure_attributes)
+        function_symbol = structure_attributes["function_test"]
+        self.assertTrue(function_symbol.is_function)
+        self.assertEqual(function_symbol.return_type, yaramod.ExpressionType.String)
+
+        self.assertTrue("value_test" in cuckoo_attributes)
+        value_symbol = cuckoo_attributes["value_test"]
+        self.assertTrue(value_symbol.is_value)

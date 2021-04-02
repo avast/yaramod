@@ -1,0 +1,33 @@
+{
+    "kind": "struct",
+    "name": "module_test",
+    "attributes": [
+        {
+            "kind": "struct",
+            "name": "structure_test",
+            "attributes": [
+                {
+                    "kind": "function",
+                    "name": "function_test",
+                    "return_type": "s",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r"
+                                }
+                            ],
+                            "documentation": "Testing function overload documentation."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "value",
+            "name": "value_test",
+            "documentation": "Testing value documentation. Example: ```module_test.value_test > 10```",
+            "type": "i"
+        }
+    ]
+}
