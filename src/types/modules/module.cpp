@@ -57,7 +57,7 @@ Module::Module(const std::string& name, const std::string& filePath)
 Module::Module(const std::string& name, nlohmann::json&& json)
 	: _name(name)
 {
-	_jsons.emplace_back(json);
+	addJson(json);
 }
 
 /**
@@ -67,14 +67,20 @@ Module::~Module()
 {
 }
 
-void Module::addPath(const std::string& path)
-{
-	_filePaths.emplace_back(path, false);
-}
-
+/**
+ * Add source json to this module.
+ */
 void Module::addJson(const nlohmann::json& json)
 {
 	_jsons.push_back(json);
+}
+
+/**
+ * Add path to this module. The json located on path will be read and added to module.
+ */
+void Module::addPath(const std::string& path)
+{
+	_filePaths.emplace_back(path, false);
 }
 
 /**
