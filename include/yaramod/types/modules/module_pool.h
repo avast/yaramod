@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "yaramod/types/modules/generated/modules_list.h"
+#include "yaramod/types/modules/generated/module_list.h"
 #include "yaramod/types/modules/module.h"
 
 #include <filesystem>
@@ -47,7 +47,7 @@ private:
 	bool _processPath(std::filesystem::path path);
 	bool _processModuleContent(const ModuleContent& content);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
-	modules::ModulesList _modules_list; ///< list of contents of the modules to be loaded from JSON
+	modules::ModuleList _module_list; ///< list of contents of the modules to be loaded from JSON
 };
 
 } //namespace yaramod
