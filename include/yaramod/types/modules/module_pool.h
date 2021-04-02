@@ -21,10 +21,13 @@ public:
 	/**
 	 * Constructor.
 	 *
-	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we create all modules from it.
-	 * Additionaly to YARAMOD_MODULE_SPEC_PATH we create all modules specified by ModuleList
+	 * When environmental variable YARAMOD_MODULE_SPEC_PATH is set, we create all modules from it and only from it.
+	 *
+	 * Otherwise we load all modules specified in generated ModuleList and also when directory is nonempty, we load all modules from there too.
+	 *
+	 * @param directory The directory to load the modules from apart from YARAMOD_MODULE_SPEC_PATH
 	 */
-	ModulePool();
+	ModulePool(const std::string& directory);
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *
@@ -43,9 +46,9 @@ public:
 	std::map<std::string, Module*> getModules() const;
 
 private:
-	bool _init();
+	void _init(const std::string& directory);
 	bool _processPath(std::filesystem::path path);
-	bool _processModuleContent(const ModuleContent& content);
+	void _processModuleContent(const ModuleContent& content);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
 	modules::ModuleList _module_list; ///< list of contents of the modules to be loaded from JSON
 };

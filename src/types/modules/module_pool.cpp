@@ -13,9 +13,9 @@ namespace yaramod {
 
 using Json = nlohmann::json;
 
-ModulePool::ModulePool()
+ModulePool::ModulePool(const std::string& directory)
 {
-	_init();
+	_init(directory);
 
 	// Initializes all modules
 	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
@@ -70,11 +70,10 @@ bool ModulePool::_processPath(std::filesystem::path p)
 	return true;
 }
 
-bool ModulePool::_processModuleContent(const ModuleContent& content)
+void ModulePool::_processModuleContent(const ModuleContent& content)
 {
 	auto json = readJsonString(content.getContent());
-	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
-		return false;
+	assert(json.contains("kind") && accessJsonString(json, "kind") == "struct");
 
 	auto name = accessJsonString(json, "name");
 	assert(content.getName() == name);
@@ -87,27 +86,30 @@ bool ModulePool::_processModuleContent(const ModuleContent& content)
 	}
 	else
 		itr->second->addJson(std::move(json));
-
-	return true;
 }
 
-bool ModulePool::_init()
+void ModulePool::_init(const std::string& directory)
 {
-	bool found_modules = false;
-
 	if (const char* env_p = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
 	{
 		std::stringstream paths;
 		paths << env_p;
 		for (std::string path; std::getline(paths, path, ':'); )
-			found_modules = _processPath(std::filesystem::path(path));
+			_processPath(std::filesystem::path(path));
 	}
 	else
 	{
-		for (const auto& content : _modules_list.list)
-			found_modules = _processModuleContent(content);
+		if (directory != "")
+		{
+			bool found_modules = false;
+			for (const auto& entry : std::filesystem::directory_iterator(directory))
+				found_modules = found_modules || _processPath(entry.path());
+			if (!found_modules)
+				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules only, set directory=\"\".");
+		}
+		for (const auto& content : _module_list.list)
+			_processModuleContent(content);
 	}
-	return found_modules;
 }
 
 }
