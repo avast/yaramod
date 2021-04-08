@@ -251,7 +251,7 @@ rule dummy_rule {
         self.assertTrue("characteristics" in section_attributes)
 
     def test_custom_module_interface(self):
-        modules = yaramod.Yaramod("./tests/python/testing_modules").modules
+        modules = yaramod.Yaramod(yaramod.Features.AllCurrent, "./tests/python/testing_modules").modules
 
         self.assertTrue("module_test" in modules)
         module_symbol = modules["module_test"].structure
