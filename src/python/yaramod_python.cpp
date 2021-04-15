@@ -457,6 +457,7 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)
+		.def_property_readonly("documentation", &Symbol::getDocumentation)
 		.def_property_readonly("data_type", &Symbol::getDataType)
 		.def_property_readonly("is_value", &Symbol::isValue)
 		.def_property_readonly("is_array", &Symbol::isArray)
@@ -474,7 +475,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("structure", &DictionarySymbol::getStructuredElementType);
 	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol")
 		.def_property_readonly("return_type", &FunctionSymbol::getReturnType)
-		.def_property_readonly("overloads", &FunctionSymbol::getAllOverloads);
+		.def_property_readonly("overloads", &FunctionSymbol::getAllOverloads)
+		.def_property_readonly("documentations", &FunctionSymbol::getAllDocumentations);
 	py::class_<StructureSymbol, Symbol, std::shared_ptr<StructureSymbol>>(module, "StructureSymbol")
 		.def_property_readonly("attributes", &StructureSymbol::getAttributes)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {

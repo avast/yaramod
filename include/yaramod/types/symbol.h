@@ -45,6 +45,7 @@ public:
 	/// @name Getter methods
 	/// @{
 	const std::string& getName() const { return _name; }
+	const std::string& getDocumentation() const { return _documentation; }
 	ExpressionType getDataType() const { return _dataType; }
 	Symbol::Type getType() const { return _type; }
 	TokenType getTokenType() const
@@ -81,12 +82,15 @@ public:
 protected:
 	/// @name Constructors
 	/// @{
-	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType)
-		: _type(type), _name(name), _dataType(dataType) {}
+	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType, const std::string& documentation = "")
+		: _type(type), _name(name), _documentation(documentation), _dataType(dataType)
+	{
+	}
 	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol
 	std::string _name; ///< Name
+	std::string _documentation; ///< Documentation
 	ExpressionType _dataType; ///< Data type of the symbol
 };
 

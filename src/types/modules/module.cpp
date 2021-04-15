@@ -168,26 +168,30 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 		if (!is_dictionary && existing.value()->getType() != Symbol::Type::Array)
 			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected array." + getPathsAsString());
 	}
-	else if(json.contains("structure"))
-	{
-		auto structure_json = accessJsonSubjson(json, "structure");
-		auto embedded_structure = _addStruct(nullptr, structure_json);
-
-		if (is_dictionary)
-			base->addAttribute(std::make_shared<DictionarySymbol>(name, embedded_structure));
-		else
-			base->addAttribute(std::make_shared<ArraySymbol>(name, embedded_structure));
-	}
 	else
 	{
-		auto t = stringToExpressionType(accessJsonString(json, "type"));
-		if (!t)
-			throw ModuleError("Unknown dictionary type '" + accessJsonString(json, "type") + "'");
-		auto type = t.value();
-		if (is_dictionary)
-			base->addAttribute(std::make_shared<DictionarySymbol>(name, type));
+		std::string documentation = json.contains("documentation") ? accessJsonString(json, "documentation") : "";
+		if (json.contains("structure"))
+		{
+			auto structure_json = accessJsonSubjson(json, "structure");
+			auto embedded_structure = _addStruct(nullptr, structure_json);
+
+			if (is_dictionary)
+				base->addAttribute(std::make_shared<DictionarySymbol>(name, embedded_structure, documentation));
+			else
+				base->addAttribute(std::make_shared<ArraySymbol>(name, embedded_structure, documentation));
+		}
 		else
-			base->addAttribute(std::make_shared<ArraySymbol>(name, type));
+		{
+			auto t = stringToExpressionType(accessJsonString(json, "type"));
+			if (!t)
+				throw ModuleError("Unknown dictionary type '" + accessJsonString(json, "type") + "'");
+			auto type = t.value();
+			if (is_dictionary)
+				base->addAttribute(std::make_shared<DictionarySymbol>(name, type, documentation));
+			else
+				base->addAttribute(std::make_shared<ArraySymbol>(name, type, documentation));
+		}
 	}
 }
 
@@ -214,6 +218,7 @@ void Module::_addFunctions(StructureSymbol* base, const Json& json)
 	{
 		auto typeVector = std::vector<ExpressionType> {return_type.value()};
 		auto arguments = accessJsonArray(overload, "arguments");
+
 		for (const auto& item : arguments)
 		{
 			auto t = accessJsonString(item, "type");
@@ -222,7 +227,9 @@ void Module::_addFunctions(StructureSymbol* base, const Json& json)
 				throw ModuleError("Unknown function parameter type '" + t + "'");
 			typeVector.emplace_back(type.value());
 		}
-		auto function = std::make_shared<FunctionSymbol>(name, typeVector);
+
+		std::string documentation = overload.contains("documentation") ? accessJsonString(overload, "documentation") : "";
+		auto function = std::make_shared<FunctionSymbol>(name, documentation, typeVector);
 		base->addAttribute(function);
 	}
 }
@@ -282,6 +289,7 @@ void Module::_addValue(StructureSymbol* base, const Json& json)
 
 	auto name = accessJsonString(json, "name");
 	auto t = stringToExpressionType(accessJsonString(json, "type"));
+	std::string documentation = json.contains("documentation") ? accessJsonString(json, "documentation") : "";
 
 	if (!t)
 		throw ModuleError("Unknown value type '" + accessJsonString(json, "type") + "'");
@@ -298,7 +306,7 @@ void Module::_addValue(StructureSymbol* base, const Json& json)
 	}
 	else
 	{
-		auto newValue = std::make_shared<ValueSymbol>(name, type);
+		auto newValue = std::make_shared<ValueSymbol>(name, type, documentation);
 		base->addAttribute(newValue);
 	}
 }

@@ -14,10 +14,24 @@
                         {
                             "arguments": [
                                 {
-                                    "type": "r"
+                                    "type": "r",
+                                    "name": "some regexp"
                                 }
                             ],
                             "documentation": "Testing function overload documentation."
+                        },
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "some cool regexp"
+                                },
+                                {
+                                    "type": "s",
+                                    "name": "some cool string"
+                                }
+                            ],
+                            "documentation": "Testing function cool overload documentation."
                         }
                     ]
                 }

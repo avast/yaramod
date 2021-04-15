@@ -225,7 +225,12 @@ rule dummy_rule {
         self.assertTrue("http_get" in network_attributes)
         http_get_symbol = network_attributes["http_get"]
         self.assertTrue(http_get_symbol.is_function)
+        self.assertEqual("http_get", http_get_symbol.name)
         self.assertEqual(http_get_symbol.return_type, yaramod.ExpressionType.Int)
+        http_get_overloads = http_get_symbol.overloads
+        self.assertEqual(len(http_get_overloads), 1)
+        self.assertEqual(http_get_overloads[0], [yaramod.ExpressionType.Regexp])
+
 
         self.assertTrue("pe" in modules)
         pe_symbol = modules["pe"].structure
@@ -268,7 +273,17 @@ rule dummy_rule {
         function_symbol = structure_attributes["function_test"]
         self.assertTrue(function_symbol.is_function)
         self.assertEqual(function_symbol.return_type, yaramod.ExpressionType.String)
+        function_overloads = function_symbol.overloads
+        self.assertEqual(len(function_overloads), 2)
+        self.assertEqual(function_overloads[0], [yaramod.ExpressionType.Regexp])
+        self.assertEqual(function_overloads[1], [yaramod.ExpressionType.Regexp, yaramod.ExpressionType.String])
+        function_documentations = function_symbol.documentations
+        print(function_documentations)
+        self.assertEqual(len(function_documentations), 2)
+        self.assertEqual(function_documentations[0], "Testing function overload documentation.")
+        self.assertEqual(function_documentations[1], "Testing function cool overload documentation.")
 
         self.assertTrue("value_test" in cuckoo_attributes)
         value_symbol = cuckoo_attributes["value_test"]
         self.assertTrue(value_symbol.is_value)
+        self.assertEqual(value_symbol.documentation, "Testing value documentation. Example: ```module_test.value_test > 10```")

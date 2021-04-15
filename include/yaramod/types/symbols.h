@@ -20,7 +20,7 @@ namespace yaramod {
 class ValueSymbol : public Symbol
 {
 public:
-	ValueSymbol(const std::string& name, ExpressionType dataType) : Symbol(Symbol::Type::Value, name, dataType) {}
+	ValueSymbol(const std::string& name, ExpressionType dataType, const std::string& documentation = "") : Symbol(Symbol::Type::Value, name, dataType, documentation) {}
 };
 
 /**
@@ -38,10 +38,10 @@ public:
 	bool isStructured() const { return _elementType == ExpressionType::Object && _structuredType; }
 
 protected:
-	IterableSymbol(Symbol::Type type, const std::string& name, ExpressionType elementType)
-		: Symbol(type, name, ExpressionType::Object), _elementType(elementType), _structuredType() {}
-	IterableSymbol(Symbol::Type type, const std::string& name, const std::shared_ptr<Symbol>& structuredType)
-		: Symbol(type, name, ExpressionType::Object), _elementType(ExpressionType::Object), _structuredType(structuredType) {}
+	IterableSymbol(Symbol::Type type, const std::string& name, ExpressionType elementType, const std::string& documentation)
+		: Symbol(type, name, ExpressionType::Object, documentation), _elementType(elementType), _structuredType() {}
+	IterableSymbol(Symbol::Type type, const std::string& name, const std::shared_ptr<Symbol>& structuredType, const std::string& documentation)
+		: Symbol(type, name, ExpressionType::Object, documentation), _elementType(ExpressionType::Object), _structuredType(structuredType) {}
 
 	ExpressionType _elementType; ///< Element of the iterated data
 	std::shared_ptr<Symbol> _structuredType; ///< Structured type of the object elements
@@ -54,8 +54,8 @@ protected:
 class ArraySymbol : public IterableSymbol
 {
 public:
-	ArraySymbol(const std::string& name, ExpressionType elementType) : IterableSymbol(Symbol::Type::Array, name, elementType) {}
-	ArraySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Array, name, structuredType) {}
+	ArraySymbol(const std::string& name, ExpressionType elementType, const std::string& documentation = "") : IterableSymbol(Symbol::Type::Array, name, elementType, documentation) {}
+	ArraySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType, const std::string& documentation = "") : IterableSymbol(Symbol::Type::Array, name, structuredType, documentation) {}
 };
 
 /**
@@ -65,8 +65,8 @@ public:
 class DictionarySymbol : public IterableSymbol
 {
 public:
-	DictionarySymbol(const std::string& name, ExpressionType elementType) : IterableSymbol(Symbol::Type::Dictionary, name, elementType) {}
-	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType) : IterableSymbol(Symbol::Type::Dictionary, name, structuredType) {}
+	DictionarySymbol(const std::string& name, ExpressionType elementType, const std::string& documentation = "") : IterableSymbol(Symbol::Type::Dictionary, name, elementType, documentation) {}
+	DictionarySymbol(const std::string& name, const std::shared_ptr<Symbol>& structuredType, const std::string& documentation = "") : IterableSymbol(Symbol::Type::Dictionary, name, structuredType, documentation) {}
 };
 
 /**
@@ -78,19 +78,33 @@ class FunctionSymbol : public Symbol
 public:
 	template <typename... Args>
 	FunctionSymbol(const std::string& name, ExpressionType returnType, const Args&... args)
+		: FunctionSymbol(name, "", returnType, args...)
+	{
+	}
+
+	template <typename... Args>
+	FunctionSymbol(const std::string& name, const std::string& documentation, ExpressionType returnType, const Args&... args)
 		: Symbol(Symbol::Type::Function, name, ExpressionType::Object), _returnType(returnType), _argTypesOverloads(1)
 	{
 		_initArgs(args...);
+		_addDocumentation(documentation);
 	}
 
 	// The first element of @param type is the return type, then the arguments types follow.
 	FunctionSymbol(const std::string& name, const std::vector<ExpressionType>& type)
+		: FunctionSymbol(name, "", type)
+	{
+	}
+
+	// The first element of @param type is the return type, then the arguments types follow.
+	FunctionSymbol(const std::string& name, const std::string& documentation, const std::vector<ExpressionType>& type)
 		: Symbol(Symbol::Type::Function, name, ExpressionType::Object), _argTypesOverloads(1)
 	{
 		assert(type.size() > 0 && "Return type must be specified.");
 		_returnType = type[0];
 		for (auto arg = ++type.begin(); arg != type.end(); ++arg)
 			_initAddArgument(*arg);
+		_addDocumentation(documentation);
 	}
 
 	ExpressionType getReturnType() const { return _returnType; }
@@ -108,15 +122,25 @@ public:
 		return _argTypesOverloads[overloadIndex];
 	}
 
-	bool addOverload(const std::vector<ExpressionType>& argTypes)
+	const std::vector<std::string>& getAllDocumentations() const { return _overloadDocumentations; }
+
+	const std::string& getDocumentation(std::size_t overloadIndex = 0) const
+	{
+		assert(overloadIndex < _overloadDocumentations.size());
+		assert(_overloadDocumentations.size() == _argTypesOverloads.size());
+		return _overloadDocumentations[overloadIndex];
+	}
+
+	bool addOverload(const std::vector<ExpressionType>& argTypes, const std::string& documentation = "")
 	{
 		if (overloadExists(argTypes))
 			return false;
 
 		_argTypesOverloads.push_back(argTypes);
+		_addDocumentation(documentation);
 		return true;
 	}
-
+	
 	bool overloadExists(const std::vector<ExpressionType>& args) const
 	{
 		for (const auto& overload : _argTypesOverloads)
@@ -134,6 +158,11 @@ public:
 	}
 
 private:
+	void _addDocumentation(const std::string& documentation)
+	{
+		_overloadDocumentations.push_back(documentation);
+	}
+
 	void _initArgs() {}
 
 	template <typename... Args>
@@ -150,6 +179,7 @@ private:
 
 	ExpressionType _returnType; ///< Return type of the function
 	std::vector<std::vector<ExpressionType>> _argTypesOverloads; ///< All possible overloads of the function
+	std::vector<std::string> _overloadDocumentations;
 };
 
 /**
@@ -195,7 +225,7 @@ public:
 			if (oldFunction->getReturnType() != newFunction->getReturnType())
 				return false;
 
-			return oldFunction->addOverload(newFunction->getArgumentTypes());
+			return oldFunction->addOverload(newFunction->getArgumentTypes(), newFunction->getDocumentation());
 		}
 
 		return false;
