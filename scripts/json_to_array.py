@@ -4,6 +4,21 @@ import os
 import sys
 
 
+def escapeAndQuoteCharacter(c):
+    if c == "\"":
+        return "'\\\"', "
+    elif c == "\'":
+        return"'\\'', "
+    elif c == "\n":
+        return"'\\n', "
+    elif c == "\t":
+        return"'\\t', "
+    elif c == "\\":
+        return"'\\\\', "
+    else:
+        return"\'" + c + "\', "
+
+
 def main(argv):
     input_directory = ""
     output_directory = ""
@@ -72,16 +87,7 @@ def main(argv):
  class G''' + filename + " : public ModuleContent\n"
  + '{\npublic:\n\tG' + filename + '() : ModuleContent("' + name + '", {')
             for c in module_content:
-                if c == "\"":
-                    f.write("'\\\"', ")
-                elif c == "\'":
-                    f.write("'\\'', ")
-                elif c == "\n":
-                    f.write("'\\n', ")
-                elif c == "\\":
-                    f.write("'\\\\', ")
-                else:
-                    f.write("\'" + c + "\', ")
+                f.write(escapeAndQuoteCharacter(c))
             f.write('\'\\n\'})\n\t{\n\t}\n};\n\n} // namespace modules\n\n} // namespace yaramod\n')
 
         print("Created ModuleContent", output_file, "from", filename)
