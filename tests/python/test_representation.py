@@ -239,11 +239,11 @@ rule dummy_rule {
         self.assertEqual(machine_symbol.data_type, yaramod.ExpressionType.Int)
 
         self.assertTrue("sections" in pe_attributes)
-        section_array_sumbol = pe_attributes['sections']
-        self.assertEqual(section_array_sumbol.name, 'sections')
-        self.assertTrue(section_array_sumbol.is_array)
-        self.assertEqual(section_array_sumbol.element_type, yaramod.ExpressionType.Object)
-        section_symbol = section_array_sumbol.structure
+        section_array_symbol = pe_attributes['sections']
+        self.assertEqual(section_array_symbol.name, 'sections')
+        self.assertTrue(section_array_symbol.is_array)
+        self.assertEqual(section_array_symbol.element_type, yaramod.ExpressionType.Object)
+        section_symbol = section_array_symbol.structure
         self.assertEqual(section_symbol.name, 'sections')
         self.assertTrue(section_symbol.is_structure)
         section_attributes = section_symbol.attributes
