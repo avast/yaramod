@@ -243,11 +243,16 @@ rule dummy_rule {
         self.assertTrue(machine_symbol.is_value)
         self.assertEqual(machine_symbol.data_type, yaramod.ExpressionType.Int)
 
+        self.assertTrue("version_info" in pe_attributes)
+        version_info_symbol = pe_attributes["version_info"]
+        self.assertEqual(version_info_symbol.documentation[0:10], "Dictionary")
+
         self.assertTrue("sections" in pe_attributes)
         section_array_symbol = pe_attributes['sections']
         self.assertEqual(section_array_symbol.name, 'sections')
         self.assertTrue(section_array_symbol.is_array)
         self.assertEqual(section_array_symbol.element_type, yaramod.ExpressionType.Object)
+        self.assertEqual(section_array_symbol.documentation[0:10], 'Individual')
         section_symbol = section_array_symbol.structure
         self.assertEqual(section_symbol.name, 'sections')
         self.assertTrue(section_symbol.is_structure)
