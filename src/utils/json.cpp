@@ -1,7 +1,7 @@
 /**
- * @file src/utils/utils.cpp
+ * @file src/utils/json.cpp
  * @brief Implementation of utility functions.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
 #include <fstream>
@@ -12,8 +12,6 @@
 #include "yaramod/yaramod_error.h"
 
 namespace yaramod {
-
-// using Json = nlohmann::json;
 
 nlohmann::json readJsonFile(const std::string& filePath)
 {

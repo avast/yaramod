@@ -159,6 +159,7 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 		assert(accessJsonString(json, "kind") == "array");
 
 	auto name = accessJsonString(json, "name");
+	std::string documentation = json.contains("documentation") ? accessJsonString(json, "documentation") : "";
 
 	std::optional<std::shared_ptr<Symbol>> existing = base->getAttribute(name);
 	if (existing)
@@ -167,10 +168,31 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected dictionary." + getPathsAsString());
 		if (!is_dictionary && existing.value()->getType() != Symbol::Type::Array)
 			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected array." + getPathsAsString());
+		auto existingIterable = std::static_pointer_cast<IterableSymbol>(existing.value());
+		if (json.contains("structure"))
+		{
+			auto structure_json = accessJsonSubjson(json, "structure");
+			if (accessJsonString(structure_json, "kind") != "struct")
+				throw ModuleError("Colliding definitions of " + name + " attribute. Expected embedded structure to have kind 'struct'." + getPathsAsString());
+			if (accessJsonString(structure_json, "name") != name)
+				throw ModuleError("Colliding definitions of " + name + " attribute. '" + name + "' != '" + accessJsonString(structure_json, "name") + "'." + getPathsAsString());
+			if (structure_json.contains("attributes"))
+			{
+				if (!existingIterable->isStructured())
+					throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected structured iterable." + getPathsAsString());
+				if (existingIterable->getElementType() != ExpressionType::Object)
+					throw ModuleError("Not object");
+				auto attributes = accessJsonArray(structure_json, "attributes");
+				auto existingEmbeddedStructure = std::static_pointer_cast<StructureSymbol>(existingIterable->getStructuredElementType());
+				for (const auto& attr : attributes)
+					_addAttributeFromJson(existingEmbeddedStructure.get(), attr);
+			}		
+		}
+		else if (existingIterable->isStructured())
+			throw ModuleError("Colliding definitions of " + name + " attribute. Expected structured iterable." + getPathsAsString());
 	}
 	else
 	{
-		std::string documentation = json.contains("documentation") ? accessJsonString(json, "documentation") : "";
 		if (json.contains("structure"))
 		{
 			auto structure_json = accessJsonSubjson(json, "structure");

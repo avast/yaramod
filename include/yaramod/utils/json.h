@@ -1,7 +1,7 @@
 /**
  * @file include/yaramod/utils/json.h
  * @brief Declaration of utility functions.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
 #pragma once
