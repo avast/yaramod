@@ -152,10 +152,10 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 {
 	assert(base);
 
-	bool is_dictionary = false;
+	bool isDictionary = false;
 	if (accessJsonString(json, "kind") == "dictionary")
-		is_dictionary = true;
-	if (!is_dictionary)
+		isDictionary = true;
+	if (!isDictionary)
 		assert(accessJsonString(json, "kind") == "array");
 
 	auto name = accessJsonString(json, "name");
@@ -164,25 +164,25 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 	std::optional<std::shared_ptr<Symbol>> existing = base->getAttribute(name);
 	if (existing)
 	{
-		if (is_dictionary && existing.value()->getType() != Symbol::Type::Dictionary)
+		if (isDictionary && existing.value()->getType() != Symbol::Type::Dictionary)
 			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected dictionary." + getPathsAsString());
-		if (!is_dictionary && existing.value()->getType() != Symbol::Type::Array)
+		if (!isDictionary && existing.value()->getType() != Symbol::Type::Array)
 			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected array." + getPathsAsString());
 		auto existingIterable = std::static_pointer_cast<IterableSymbol>(existing.value());
 		if (json.contains("structure"))
 		{
-			auto structure_json = accessJsonSubjson(json, "structure");
-			if (accessJsonString(structure_json, "kind") != "struct")
+			auto structureJson = accessJsonSubjson(json, "structure");
+			if (accessJsonString(structureJson, "kind") != "struct")
 				throw ModuleError("Colliding definitions of " + name + " attribute. Expected embedded structure to have kind 'struct'." + getPathsAsString());
-			if (accessJsonString(structure_json, "name") != name)
-				throw ModuleError("Colliding definitions of " + name + " attribute. '" + name + "' != '" + accessJsonString(structure_json, "name") + "'." + getPathsAsString());
-			if (structure_json.contains("attributes"))
+			if (accessJsonString(structureJson, "name") != name)
+				throw ModuleError("Colliding definitions of " + name + " attribute. '" + name + "' != '" + accessJsonString(structureJson, "name") + "'." + getPathsAsString());
+			if (structureJson.contains("attributes"))
 			{
 				if (!existingIterable->isStructured())
 					throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected structured iterable." + getPathsAsString());
 				if (existingIterable->getElementType() != ExpressionType::Object)
 					throw ModuleError("Not object");
-				auto attributes = accessJsonArray(structure_json, "attributes");
+				auto attributes = accessJsonArray(structureJson, "attributes");
 				auto existingEmbeddedStructure = std::static_pointer_cast<StructureSymbol>(existingIterable->getStructuredElementType());
 				for (const auto& attr : attributes)
 					_addAttributeFromJson(existingEmbeddedStructure.get(), attr);
@@ -195,13 +195,13 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 	{
 		if (json.contains("structure"))
 		{
-			auto structure_json = accessJsonSubjson(json, "structure");
-			auto embedded_structure = _addStruct(nullptr, structure_json);
+			auto structureJson = accessJsonSubjson(json, "structure");
+			auto embeddedStructure = _addStruct(nullptr, structureJson);
 
-			if (is_dictionary)
-				base->addAttribute(std::make_shared<DictionarySymbol>(name, embedded_structure, documentation));
+			if (isDictionary)
+				base->addAttribute(std::make_shared<DictionarySymbol>(name, embeddedStructure, documentation));
 			else
-				base->addAttribute(std::make_shared<ArraySymbol>(name, embedded_structure, documentation));
+				base->addAttribute(std::make_shared<ArraySymbol>(name, embeddedStructure, documentation));
 		}
 		else
 		{
@@ -209,7 +209,7 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 			if (!t)
 				throw ModuleError("Unknown dictionary type '" + accessJsonString(json, "type") + "'");
 			auto type = t.value();
-			if (is_dictionary)
+			if (isDictionary)
 				base->addAttribute(std::make_shared<DictionarySymbol>(name, type, documentation));
 			else
 				base->addAttribute(std::make_shared<ArraySymbol>(name, type, documentation));
@@ -231,14 +231,14 @@ void Module::_addFunctions(StructureSymbol* base, const Json& json)
 	assert(base);
 
 	auto name = accessJsonString(json, "name");
-	auto return_type = stringToExpressionType(accessJsonString(json, "return_type"));
-	if (!return_type)
+	auto returnType = stringToExpressionType(accessJsonString(json, "return_type"));
+	if (!returnType)
 		throw ModuleError("Unknown function return type type '" + accessJsonString(json, "return_type") + "'");
 
 	auto overloads = accessJsonArray(json, "overloads");
 	for (const auto& overload : overloads)
 	{
-		auto typeVector = std::vector<ExpressionType> {return_type.value()};
+		auto typeVector = std::vector<ExpressionType> {returnType.value()};
 		auto arguments = accessJsonArray(overload, "arguments");
 
 		for (const auto& item : arguments)

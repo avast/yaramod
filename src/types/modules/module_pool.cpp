@@ -90,10 +90,10 @@ void ModulePool::_processModuleContent(const ModuleContent& content)
 
 void ModulePool::_init(const std::string& directory)
 {
-	if (const char* env_p = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+	if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
 	{
 		std::stringstream paths;
-		paths << env_p;
+		paths << envProperty;
 		for (std::string path; std::getline(paths, path, ':'); )
 			_processPath(std::filesystem::path(path));
 	}
@@ -101,16 +101,16 @@ void ModulePool::_init(const std::string& directory)
 	{
 		if (directory != "")
 		{
-			bool found_modules = false;
+			bool foundModules = false;
 			for (const auto& entry : std::filesystem::directory_iterator(directory))
 			{
 				bool result = _processPath(entry.path());
-				found_modules = found_modules || result;
+				foundModules = foundModules || result;
 			}
-			if (!found_modules)
+			if (!foundModules)
 				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules only, set directory=\"\".");
 		}
-		for (const auto& content : _module_list.list)
+		for (const auto& content : _moduleList.list)
 			_processModuleContent(content);
 	}
 }

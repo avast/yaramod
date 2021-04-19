@@ -50,7 +50,7 @@ private:
 	bool _processPath(std::filesystem::path path);
 	void _processModuleContent(const ModuleContent& content);
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
-	modules::ModuleList _module_list; ///< list of contents of the modules to be loaded from JSON
+	modules::ModuleList _moduleList; ///< list of contents of the modules to be loaded from JSON
 };
 
 } //namespace yaramod
