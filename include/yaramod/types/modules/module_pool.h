@@ -10,6 +10,7 @@
 #include "yaramod/types/modules/module.h"
 
 #include <filesystem>
+#include <map>
 
 namespace yaramod {
 
