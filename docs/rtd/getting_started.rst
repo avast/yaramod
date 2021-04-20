@@ -25,13 +25,25 @@ Modules
 YARA is easily extensible with modules which provide you a way to call C functions from your YARA ruleset. We realize that modules are important
 and yaramod therefore supports all modules in upstream YARA. 
 
-You might however need to use some custom made modules that cannot be found anywhere in upstream YARA.
-For example, we at Avast use YARA daily and sometimes there are things we would like to match in our YARA rules something that is not accessible to the outside
-world so we improve existing or develop our own modules and then supply yaramod with these modules as jsons.
+We at Avast use YARA daily and sometimes there are things we would like to match in our YARA rules something that is not accessible to the outside
+world so we improve existing or develop our own modules and then supply yaramod with these modules as jsons. We will now describe how to use some custom modules.
 
-If you want to use this library with some additional symbols that are not present in upstream YARA, you can request yaramod to support any custom made modules.
-The first thing that needs to be done is to write each of your custom made modules in a ``.json`` file in a similar way the upstream modules are written in (see `cuckoo module <https://github.com/avast/yaramod/blob/master/modules/module_hash.json>`_)
-and save the ``.json`` files in the same directory. Then you need to supply the path to the directory where your custom modules are to the ``Yaramod`` class constructor as described in the ``Yaramod instance`` section.
+First thing that needs to be done is to write each of the custom modules in a ``.json`` file in a similar way the upstream modules are written in (see `cuckoo module <https://github.com/avast/yaramod/blob/master/modules/module_hash.json>`_).
+Then you have two options on how to supply the modules to yaramod depending on your preference:
+
+* Supply the directory, where the custom modules are stored, to ``Yaramod`` constructor with parameter *modules directory* as described in the ``Yaramod instance`` section.
+This means yaramod will load modules from specified directory instead of the directory, where the default upstream modules are specified.
+
+* Supply the paths to the modules through environmental variable ``YARAMOD_MODULE_SPEC_PATH`` or ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE``:
+Setting ``YARAMOD_MODULE_SPEC_PATH="<path to first module>:<path to second module>:<path to third module>"`` means that you want to use the default YARA modules together with three aditional module specifications.
+Any number of paths separated by colon can be specified here.
+When the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environmental variable is set instead, yaramod will only consider the custom modules and no other modules will be available.
+Note, that when both variables are set yaramod throws an error.
+
+* You can combine the two options and load modules from specified directory and additionaly some modules specified via ``YARAMOD_MODULE_SPEC_PATH``.
+
+When yaramod gets multiple different jsons describing the same module, it merges both specifications and builds module with functionality of boths specifications.
+We can merge structures, functions, add overloads of functions and more. An exception is thrown when there is type inconsistence or other conflict between the two specifications.
 
 VirusTotal symbols
 ==================
