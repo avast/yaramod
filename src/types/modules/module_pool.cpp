@@ -1,7 +1,7 @@
 /**
  * @file src/types/modules/module_pool.cpp
  * @brief Implementation of CustomModule.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
 #include <sstream>

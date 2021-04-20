@@ -1,7 +1,7 @@
 /**
  * @file src/types/modules/module_pool.h
  * @brief Declaration of class ModulePool.
- * @copyright (c) 2020 Avast Software, licensed under the MIT license
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
 #pragma once

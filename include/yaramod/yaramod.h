@@ -1,7 +1,7 @@
 /**
  * @file src/yaramod.h
  * @brief Declaration of yaramod interface.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @copyright (c) 2019 Avast Software, licensed under the MIT license
  */
 
 #pragma once
