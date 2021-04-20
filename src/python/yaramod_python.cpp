@@ -476,7 +476,8 @@ void addBasicClasses(py::module& module)
 	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol")
 		.def_property_readonly("return_type", &FunctionSymbol::getReturnType)
 		.def_property_readonly("overloads", &FunctionSymbol::getAllOverloads)
-		.def_property_readonly("documentations", &FunctionSymbol::getAllDocumentations);
+		.def_property_readonly("documentations", &FunctionSymbol::getAllDocumentations)
+		.def_property_readonly("argument_names", &FunctionSymbol::getAllArgumentNames);
 	py::class_<StructureSymbol, Symbol, std::shared_ptr<StructureSymbol>>(module, "StructureSymbol")
 		.def_property_readonly("attributes", &StructureSymbol::getAttributes)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {

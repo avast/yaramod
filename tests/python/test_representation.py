@@ -358,3 +358,7 @@ rule dummy_rule {
         self.assertEqual(version_overloads[0], [yaramod.ExpressionType.Int])
         self.assertEqual(version_overloads[1], [yaramod.ExpressionType.Int, yaramod.ExpressionType.Int])
         self.assertEqual(version_overloads[2], [yaramod.ExpressionType.Int, yaramod.ExpressionType.String])
+        version_overloads_names = version_symbol.argument_names
+        self.assertEqual(version_overloads_names[0], ["version"])
+        self.assertEqual(version_overloads_names[1], ["version", "toolid"])
+        self.assertEqual(version_overloads_names[2], ["version", "test string argument"])

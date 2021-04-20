@@ -78,33 +78,33 @@ class FunctionSymbol : public Symbol
 public:
 	template <typename... Args>
 	FunctionSymbol(const std::string& name, ExpressionType returnType, const Args&... args)
-		: FunctionSymbol(name, "", returnType, args...)
+		: FunctionSymbol(name, "", {""}, returnType, args...)
 	{
 	}
 
 	template <typename... Args>
-	FunctionSymbol(const std::string& name, const std::string& documentation, ExpressionType returnType, const Args&... args)
+	FunctionSymbol(const std::string& name, const std::string& documentation, const std::vector<std::string>& argumentsNames, ExpressionType returnType, const Args&... args)
 		: Symbol(Symbol::Type::Function, name, ExpressionType::Object), _returnType(returnType), _argTypesOverloads(1)
 	{
 		_initArgs(args...);
-		_addDocumentation(documentation);
+		_addDocumentation(documentation, argumentsNames);
 	}
 
 	// The first element of @param type is the return type, then the arguments types follow.
 	FunctionSymbol(const std::string& name, const std::vector<ExpressionType>& type)
-		: FunctionSymbol(name, "", type)
+		: FunctionSymbol(name, "", {""}, type)
 	{
 	}
 
 	// The first element of @param type is the return type, then the arguments types follow.
-	FunctionSymbol(const std::string& name, const std::string& documentation, const std::vector<ExpressionType>& type)
+	FunctionSymbol(const std::string& name, const std::string& documentation, const std::vector<std::string>& argumentsNames, const std::vector<ExpressionType>& type)
 		: Symbol(Symbol::Type::Function, name, ExpressionType::Object), _argTypesOverloads(1)
 	{
 		assert(type.size() > 0 && "Return type must be specified.");
 		_returnType = type[0];
 		for (auto arg = ++type.begin(); arg != type.end(); ++arg)
 			_initAddArgument(*arg);
-		_addDocumentation(documentation);
+		_addDocumentation(documentation, argumentsNames);
 	}
 
 	ExpressionType getReturnType() const { return _returnType; }
@@ -116,10 +116,21 @@ public:
 		return _argTypesOverloads[overloadIndex].size();
 	}
 
-	std::vector<ExpressionType> getArgumentTypes(std::size_t overloadIndex = 0) const
+	const std::vector<ExpressionType>& getArgumentTypes(std::size_t overloadIndex = 0) const
 	{
 		assert(overloadIndex < _argTypesOverloads.size());
 		return _argTypesOverloads[overloadIndex];
+	}
+
+	const std::vector<std::vector<std::string>> getAllArgumentNames() const
+	{
+		return _overloadArgumentsNames;
+	}
+
+	const std::vector<std::string> getArgumentNames(std::size_t overloadIndex = 0) const
+	{
+		assert(overloadIndex < _overloadArgumentsNames.size());
+		return _overloadArgumentsNames[overloadIndex];
 	}
 
 	const std::vector<std::string>& getAllDocumentations() const { return _overloadDocumentations; }
@@ -131,13 +142,13 @@ public:
 		return _overloadDocumentations[overloadIndex];
 	}
 
-	bool addOverload(const std::vector<ExpressionType>& argTypes, const std::string& documentation = "")
+	bool addOverload(const std::vector<ExpressionType>& argTypes, const std::string& documentation = "", const std::vector<std::string>& argumentsNames = {})
 	{
 		if (overloadExists(argTypes))
 			return false;
 
 		_argTypesOverloads.push_back(argTypes);
-		_addDocumentation(documentation);
+		_addDocumentation(documentation, argumentsNames);
 		return true;
 	}
 	
@@ -158,9 +169,10 @@ public:
 	}
 
 private:
-	void _addDocumentation(const std::string& documentation)
+	void _addDocumentation(const std::string& documentation, const std::vector<std::string>& argumentsNames)
 	{
 		_overloadDocumentations.push_back(documentation);
+		_overloadArgumentsNames.push_back(argumentsNames);
 	}
 
 	void _initArgs() {}
@@ -179,7 +191,8 @@ private:
 
 	ExpressionType _returnType; ///< Return type of the function
 	std::vector<std::vector<ExpressionType>> _argTypesOverloads; ///< All possible overloads of the function
-	std::vector<std::string> _overloadDocumentations;
+	std::vector<std::string> _overloadDocumentations; ///< Documentation of all known overloads
+	std::vector<std::vector<std::string>> _overloadArgumentsNames; ///< Names of arguments of all known overloads
 };
 
 /**
@@ -225,7 +238,7 @@ public:
 			if (oldFunction->getReturnType() != newFunction->getReturnType())
 				return false;
 
-			return oldFunction->addOverload(newFunction->getArgumentTypes(), newFunction->getDocumentation());
+			return oldFunction->addOverload(newFunction->getArgumentTypes(), newFunction->getDocumentation(), newFunction->getArgumentNames());
 		}
 
 		return false;

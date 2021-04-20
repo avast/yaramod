@@ -31,14 +31,9 @@ world so we improve existing or develop our own modules and then supply yaramod 
 First thing that needs to be done is to write each of the custom modules in a ``.json`` file in a similar way the upstream modules are written in (see `cuckoo module <https://github.com/avast/yaramod/blob/master/modules/module_hash.json>`_).
 Then you have two options on how to supply the modules to yaramod depending on your preference:
 
-* Supply the directory, where the custom modules are stored, to ``Yaramod`` constructor with parameter *modules directory* as described in the ``Yaramod instance`` section.
-This means yaramod will load modules from specified directory instead of the directory, where the default upstream modules are specified.
+* Supply the directory, where the custom modules are stored, to ``Yaramod`` constructor with parameter *modules directory* as described in the ``Yaramod instance`` section. This means yaramod will load modules from specified directory instead of the directory, where the default upstream modules are specified.
 
-* Supply the paths to the modules through environmental variable ``YARAMOD_MODULE_SPEC_PATH`` or ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE``:
-Setting ``YARAMOD_MODULE_SPEC_PATH="<path to first module>:<path to second module>:<path to third module>"`` means that you want to use the default YARA modules together with three aditional module specifications.
-Any number of paths separated by colon can be specified here.
-When the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environmental variable is set instead, yaramod will only consider the custom modules and no other modules will be available.
-Note, that when both variables are set yaramod throws an error.
+* Supply the paths to the modules through environmental variable ``YARAMOD_MODULE_SPEC_PATH`` or ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE``: Setting ``YARAMOD_MODULE_SPEC_PATH="<path to first module>:<path to second module>:<path to third module>"`` means that you want to use the default YARA modules together with three aditional module specifications. Any number of paths separated by colon can be specified here. When the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environmental variable is set instead, yaramod will only consider the custom modules and no other modules will be available. Note, that when both variables are set yaramod throws an error.
 
 * You can combine the two options and load modules from specified directory and additionaly some modules specified via ``YARAMOD_MODULE_SPEC_PATH``.
 

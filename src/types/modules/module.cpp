@@ -239,19 +239,25 @@ void Module::_addFunctions(StructureSymbol* base, const Json& json)
 	for (const auto& overload : overloads)
 	{
 		auto typeVector = std::vector<ExpressionType> {returnType.value()};
+		std::vector<std::string> argumentNames;
 		auto arguments = accessJsonArray(overload, "arguments");
 
 		for (const auto& item : arguments)
 		{
+			auto arg_name = item.contains("name") ? accessJsonString(item, "name") : "";
+			argumentNames.push_back(arg_name);
+
 			auto t = accessJsonString(item, "type");
-			auto type = stringToExpressionType(t);
-			if (!type)
+			auto arg_type = stringToExpressionType(t);
+			if (!arg_type)
 				throw ModuleError("Unknown function parameter type '" + t + "'");
-			typeVector.emplace_back(type.value());
+			typeVector.emplace_back(arg_type.value());
 		}
 
 		std::string documentation = overload.contains("documentation") ? accessJsonString(overload, "documentation") : "";
-		auto function = std::make_shared<FunctionSymbol>(name, documentation, typeVector);
+		std::vector<std::string> names{};
+
+		auto function = std::make_shared<FunctionSymbol>(name, documentation, argumentNames, typeVector);
 		base->addAttribute(function);
 	}
 }
