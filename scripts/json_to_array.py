@@ -50,6 +50,9 @@ def main(argv):
 */
 #pragma once
 
+#include <vector>
+
+#include "yaramod/types/modules/module_content.h"
 ''')
     module_names = []
 
@@ -95,7 +98,7 @@ def main(argv):
     with open(list_file, "a") as f:
         for n in module_names:
             f.write('#include "' + n + '_generated.h"\n')
-        f.write("\n#include <vector>\n\nnamespace yaramod {\n\nnamespace modules {\n\n"
+        f.write("\n\nnamespace yaramod {\n\nnamespace modules {\n\n"
             + "class ModuleList {\npublic:\n\tstd::vector<ModuleContent> list = {")
         ms = ""
         for n in module_names:

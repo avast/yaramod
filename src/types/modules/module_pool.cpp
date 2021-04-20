@@ -5,6 +5,7 @@
  */
 
 #include <sstream>
+#include <cstdlib>
 
 #include "yaramod/types/modules/module_pool.h"
 
@@ -90,25 +91,37 @@ void ModulePool::_processModuleContent(const ModuleContent& content)
 
 void ModulePool::_init(const std::string& directory)
 {
-	if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+	if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE"))
 	{
-		std::stringstream paths;
-		paths << envProperty;
+		if (std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+			throw ModuleError("Error: Both YARAMOD_MODULE_SPEC_PATH and YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE environment properties are set.");
+		std::stringstream paths{envProperty};
 		for (std::string path; std::getline(paths, path, ':'); )
 			_processPath(std::filesystem::path(path));
 	}
 	else
 	{
+		bool foundModules = false;
+		if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+		{
+			std::stringstream paths{envProperty};
+			for (std::string path; std::getline(paths, path, ':'); )
+			{
+				bool result = _processPath(std::filesystem::path(path));
+				foundModules = foundModules || result;
+			}
+			if (!foundModules)
+				throw ModuleError("Could not find any valid module specified in environmental variable YARAMOD_MODULE_SPEC_PATH. Unset or change the variable.");
+		}
 		if (directory != "")
 		{
-			bool foundModules = false;
 			for (const auto& entry : std::filesystem::directory_iterator(directory))
 			{
 				bool result = _processPath(entry.path());
 				foundModules = foundModules || result;
 			}
 			if (!foundModules)
-				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules only, set directory=\"\".");
+				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules, set directory=\"\".");
 		}
 		for (const auto& content : _moduleList.list)
 			_processModuleContent(content);
