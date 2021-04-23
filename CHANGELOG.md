@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.10.0 (2021-04-23)
+
+* Removed private Avast symbols - modules are dynamically loaded from JSON ([#143](https://github.com/avast/yaramod/pull/143), [#13](https://github.com/avast/yaramod/issues/13))
+
 # v3.9.1 (2021-03-29)
 
 * Exposed token from `Meta` objects ([#155](https://github.com/avast/yaramod/pull/155))
