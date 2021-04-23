@@ -181,5 +181,5 @@ setup(
         'build': BuildCommand,
         'build_ext': BuildExtCommand
     },
-    ext_modules=[Extension(name='yaramod', sources=[])]
+    ext_modules=[Extension(name='yaramod', sources=[])],
 )

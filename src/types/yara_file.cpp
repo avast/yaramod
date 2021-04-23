@@ -207,12 +207,13 @@ std::string YaraFile::getTextFormatted(bool withIncludes) const
  * to exist and be defined in @c types/modules folder.
  *
  * @param import Imported module name.
+ * @param modules A pool where to add module.
  *
  * @return @c true if module was found, @c false otherwise.
  */
-bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
+bool YaraFile::addImport(TokenIt import, ModulePool& modules)
 {
-	auto module = modules.load(import->getPureText(), _Features);
+	auto module = modules.load(import->getPureText());
 	if (!module)
 		return false;
 
@@ -222,6 +223,26 @@ bool YaraFile::addImport(TokenIt import, ModulesPool& modules)
 
 	_imports.push_back(std::move(module));
 	_importTable.emplace(_imports.back()->getName(), _imports.back().get());
+	return true;
+}
+
+/**
+ * Adds the imports of the modules to the YARA file. Modules need
+ * to exist and be defined in @c types/modules folder.
+ *
+ * @param imports Imported modules names.
+ * @param modules A pool where to add the modules.
+ *
+ * @return @c true if modules were found, @c false otherwise.
+ */
+bool YaraFile::addImports(const std::vector<TokenIt>& imports, ModulePool& modules)
+{
+	for (const TokenIt& module : imports)
+	{
+		if (!addImport(module, modules))
+			return false;
+	}
+
 	return true;
 }
 
@@ -274,25 +295,6 @@ void YaraFile::addRules(const std::vector<std::shared_ptr<Rule>>& rules, bool ex
 {
 	for (const auto& rule : rules)
 		addRule(rule, extractTokens);
-}
-
-/**
- * Adds the imports of the modules to the YARA file. Modules need
- * to exist and be defined in @c types/modules folder.
- *
- * @param imports Imported modules names.
- *
- * @return @c true if modules were found, @c false otherwise.
- */
-bool YaraFile::addImports(const std::vector<TokenIt>& imports, ModulesPool& modules)
-{
-	for (const TokenIt& module : imports)
-	{
-		if (!addImport(module, modules))
-			return false;
-	}
-
-	return true;
 }
 
 /**

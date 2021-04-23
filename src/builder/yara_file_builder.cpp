@@ -22,7 +22,7 @@ std::unique_ptr<YaraFile> YaraFileBuilder::get(bool recheck, ParserDriver* exter
 {
 	auto yaraFile = std::make_unique<YaraFile>(std::move(_tokenStream), _features);
 	for (const auto& module_token : _module_tokens)
-		yaraFile->addImport(module_token.second, _modules_pool);
+		yaraFile->addImport(module_token.second, _module_pool);
 	yaraFile->addRules(_rules);
 
 	_module_tokens.clear();

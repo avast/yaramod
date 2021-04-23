@@ -343,7 +343,8 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("symbol", &Literal::getSymbol);
 
 	py::class_<Module, std::shared_ptr<Module>>(module, "Module")
-		.def_property_readonly("name", &Module::getName);
+		.def_property_readonly("name", &Module::getName)
+		.def_property_readonly("structure", &Module::getStructure);
 
 	py::class_<String, std::shared_ptr<String>>(module, "String")
 		.def_property_readonly("text", &String::getText)
@@ -456,24 +457,34 @@ void addBasicClasses(py::module& module)
 
 	py::class_<Symbol, std::shared_ptr<Symbol>>(module, "Symbol")
 		.def_property_readonly("name", &Symbol::getName)
+		.def_property_readonly("documentation", &Symbol::getDocumentation)
 		.def_property_readonly("data_type", &Symbol::getDataType)
 		.def_property_readonly("is_value", &Symbol::isValue)
 		.def_property_readonly("is_array", &Symbol::isArray)
 		.def_property_readonly("is_dictionary", &Symbol::isDictionary)
 		.def_property_readonly("is_function", &Symbol::isFunction)
 		.def_property_readonly("is_structure", &Symbol::isStructure)
-    .def_property_readonly("is_reference", &Symbol::isReference);
+		.def_property_readonly("is_reference", &Symbol::isReference);
 
 	py::class_<ValueSymbol, Symbol, std::shared_ptr<ValueSymbol>>(module, "ValueSymbol");
-	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol");
-	py::class_<DictionarySymbol, Symbol, std::shared_ptr<DictionarySymbol>>(module, "DictionarySymbol");
-	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol");
+	py::class_<ArraySymbol, Symbol, std::shared_ptr<ArraySymbol>>(module, "ArraySymbol")
+		.def_property_readonly("element_type", &ArraySymbol::getElementType)
+		.def_property_readonly("structure", &ArraySymbol::getStructuredElementType);
+	py::class_<DictionarySymbol, Symbol, std::shared_ptr<DictionarySymbol>>(module, "DictionarySymbol")
+		.def_property_readonly("element_type", &DictionarySymbol::getElementType)
+		.def_property_readonly("structure", &DictionarySymbol::getStructuredElementType);
+	py::class_<FunctionSymbol, Symbol, std::shared_ptr<FunctionSymbol>>(module, "FunctionSymbol")
+		.def_property_readonly("return_type", &FunctionSymbol::getReturnType)
+		.def_property_readonly("overloads", &FunctionSymbol::getAllOverloads)
+		.def_property_readonly("documentations", &FunctionSymbol::getAllDocumentations)
+		.def_property_readonly("argument_names", &FunctionSymbol::getAllArgumentNames);
 	py::class_<StructureSymbol, Symbol, std::shared_ptr<StructureSymbol>>(module, "StructureSymbol")
+		.def_property_readonly("attributes", &StructureSymbol::getAttributes)
 		.def("get_attribute", [](const StructureSymbol& self, const std::string& name) {
 				return self.getAttribute(name).value_or(nullptr);
 			});
-  py::class_<ReferenceSymbol, Symbol, std::shared_ptr<ReferenceSymbol>>(module, "ReferenceSymbol")
-    .def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
+	py::class_<ReferenceSymbol, Symbol, std::shared_ptr<ReferenceSymbol>>(module, "ReferenceSymbol")
+		.def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
 }
 
 void addTokenStreamClass(py::module& module)
@@ -702,7 +713,7 @@ void addExpressionClasses(py::module& module)
 void addBuilderClasses(py::module& module)
 {
 	py::class_<YaraFileBuilder>(module, "YaraFileBuilder")
-		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
+		.def(py::init<Features, const std::string&>(), py::arg("import_features") = Features::AllCurrent, py::arg("modules_directory") = "")
 		.def("get", [](YaraFileBuilder& self, bool recheck) {
 				return self.get(recheck, nullptr);
 			}, py::arg("recheck") = false)
@@ -897,13 +908,14 @@ void addBuilderClasses(py::module& module)
 void addMainClass(py::module& module)
 {
 	py::class_<Yaramod>(module, "Yaramod")
-		.def(py::init<Features>(), py::arg("import_features") = Features::AllCurrent)
+		.def(py::init<Features, const std::string&>(), py::arg("import_features") = Features::AllCurrent, py::arg("modules_directory") = "")
 		.def("parse_file", &Yaramod::parseFile, py::arg("file_path"), py::arg("parser_mode") = ParserMode::Regular)
 		.def("parse_string", [](Yaramod& self, const std::string& str, ParserMode parserMode) {
 				std::istringstream stream(str);
 				return self.parseStream(stream, parserMode);
 			}, py::arg("str"), py::arg("parser_mode") = ParserMode::Regular)
-		.def_property_readonly("yara_file", &Yaramod::getParsedFile);
+		.def_property_readonly("yara_file", &Yaramod::getParsedFile)
+		.def_property_readonly("modules", &Yaramod::getModules);
 }
 
 PYBIND11_MODULE(yaramod, module)

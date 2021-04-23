@@ -37,4 +37,9 @@ const YaraFile& Yaramod::getParsedFile() const
 	return _driver.getParsedFile();
 }
 
+std::map<std::string, Module*> Yaramod::getModules() const
+{
+	return _driver.getModules();
+}
+
 }

@@ -1886,12 +1886,12 @@ void ParserDriver::initialize()
 /**
  * Constructor.
  *
- * @param parserMode Parsing mode.
+ * @param moduleDirectory determines a directory for additional YARA modules to be added
  * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
  */
-ParserDriver::ParserDriver(Features features)
+ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
-	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(features, moduleDirectory),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0)
@@ -1917,6 +1917,16 @@ YaraFile&& ParserDriver::getParsedFile()
 const YaraFile& ParserDriver::getParsedFile() const
 {
 	return _file;
+}
+
+/**
+ * Returns ModulePool used in the parser, which gives information on which modules are available.
+ *
+ * @return Used ModulePool
+ */
+std::map<std::string, Module*> ParserDriver::getModules() const
+{
+	return _modules.getModules();
 }
 
 bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)

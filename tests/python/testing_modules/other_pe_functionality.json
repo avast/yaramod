@@ -1,0 +1,70 @@
+{
+    "kind": "struct",
+    "name": "pe",
+    "attributes": [
+        {
+            "kind": "value",
+            "name": "MACHINE_TEST_VALUE",
+            "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "MACHINE_AM33",
+            "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "struct",
+            "name": "rich_signature",
+            "documentation": "Structure containing information about the PE's rich signature as documented in http://www.ntcore.com/files/richsign.htm.",
+            "attributes": [
+                {
+                    "kind": "value",
+                    "name": "test_value",
+                    "documentation": "Test value documentation.",
+                    "type": "i"
+                },
+                {
+                    "kind": "function",
+                    "name": "version",
+                    "documentation": "Documentation example",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "i",
+                                    "name": "version"
+                                },
+                                {
+                                    "type": "s",
+                                    "name": "test string argument"
+                                }
+                            ],
+                            "documentation": "Test documentation."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "array",
+            "name": "sections",
+            "documentation": "Individual section characteristics can be inspected using a bitwise AND operation with specific constants. Examples: ```pe.sections[0].name == \".text\"```, ```pe.sections[1].characteristics & pe.SECTION_CNT_CODE```",
+            "structure":
+            {
+                "kind": "struct",
+                "name": "sections",
+                "attributes": [
+                    {
+                        "kind": "value",
+                        "name": "test_sections_value",
+                        "documentation": "Test section documentation.",
+                        "type": "s"
+                    }
+                ]
+            }
+        }
+    ]
+}

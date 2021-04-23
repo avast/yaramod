@@ -22,18 +22,23 @@ for example need to provide correct types of parameters to module function calls
 Modules
 =======
 
-YARA is easily extensible with modules which provide you way to call C functions from your YARA ruleset. We realize that modules are important
-and yaramod therefore supports them. You might however run into functions which you do not recognize and can' find anywhere in upstream YARA.
-We at Avast use YARA daily and sometimes there are things we would like to match in our YARA rules something what is not accessible to the outside
-world so we improve existing or develop our own modules. What we can we share with the community and in the future, we would really like to see
-all the functions we have also in upstream YARA but that doesn't entirely depend on us. It's not like we are keeping it away becuase we want to keep
-it secret.
+YARA is easily extensible with modules which provide you a way to call C functions from your YARA ruleset. We realize that modules are important
+and yaramod therefore supports all modules in upstream YARA. 
 
-Our extensions of modules are integrated into yaramod but we realize that you might want to use this library even without our symbols and therefore
-there is a way you can request yaramod to not provide you anything additional.
+We at Avast use YARA daily and sometimes there are things we would like to match in our YARA rules something that is not accessible to the outside
+world so we improve existing or develop our own modules and then supply yaramod with these modules as jsons. We will now describe how to use some custom modules.
 
-We have also incorporated this amazing `androguard-yara <https://github.com/androguard/androguard>`_ module which is not merged into upstream of YARA
-but we think it is very cool.
+First thing that needs to be done is to write each of the custom modules in a ``.json`` file in a similar way the upstream modules are written in (see `cuckoo module <https://github.com/avast/yaramod/blob/master/modules/module_hash.json>`_).
+Then you have two options on how to supply the modules to yaramod depending on your preference:
+
+* Supply the directory, where the custom modules are stored, to ``Yaramod`` constructor with parameter *modules directory* as described in the ``Yaramod instance`` section. This means yaramod will load modules from specified directory instead of the directory, where the default upstream modules are specified.
+
+* Supply the paths to the modules through environmental variable ``YARAMOD_MODULE_SPEC_PATH`` or ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE``: Setting ``YARAMOD_MODULE_SPEC_PATH="<path to first module>:<path to second module>:<path to third module>"`` means that you want to use the default YARA modules together with three aditional module specifications. Any number of paths separated by colon can be specified here. When the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environmental variable is set instead, yaramod will only consider the custom modules and no other modules will be available. Note, that when both variables are set yaramod throws an error.
+
+* You can combine the two options and load modules from specified directory and additionaly some modules specified via ``YARAMOD_MODULE_SPEC_PATH``.
+
+When yaramod gets multiple different jsons describing the same module, it merges both specifications and builds module with functionality of boths specifications.
+We can merge structures, functions, add overloads of functions and more. An exception is thrown when there is type inconsistence or other conflict between the two specifications.
 
 VirusTotal symbols
 ==================
@@ -53,10 +58,12 @@ of YARA rules which were returned by ``Yaramod`` is completely unsafe and can le
 is performance heavy so you should keep the amount of instances low (ideally just one). ``Yaramod`` itself is not thread-safe, so in parallel environment we would suggest
 you to create one instance per thread or process.
 
-``Yaramod`` accepts one optional parameter when creating it and that is *import features*. This option specify in what kind of rulesets you are interested in and you can choose from:
+``Yaramod`` accepts two optional parameters when creating it and that is *import features* and *modules directory*. The first option specify in what kind of rulesets you are interested in and you can choose from:
 
 * *All current* - This is the default option which provides you with both Avast-specific and VirusTotal-specific symbols.
 * *Everything* - This also includes deprecated functions which should no longer be used.
 * *Basic* - This represents that you are not interested in any additional symbols in your rules.
 * *Avast* - You are interested in basic and Avast-specific symbols.
 * *VirusTotal* - You are interested in basic and VirusTotal-specific symbols.
+
+The second option enables you to supply custom modules other than YARA upstream modules. Simply enter the path to the directory where your modules are stored as `json` files.

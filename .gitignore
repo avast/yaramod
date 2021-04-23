@@ -5,4 +5,5 @@
 __pycache__/
 dist/
 env/
+include/yaramod/types/modules/generated/*.h
 *.egg-info/

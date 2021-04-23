@@ -78,7 +78,7 @@ class ParserDriver
 public:
 	/// @name Constructors
 	/// @{
-	ParserDriver(Features features = Features::AllCurrent);
+	ParserDriver(Features features = Features::AllCurrent, const std::string& moduleDirectory = "");
 	/// @}
 
 	/// @name Destructor
@@ -90,6 +90,7 @@ public:
 	/// @{
 	YaraFile&& getParsedFile();
 	const YaraFile& getParsedFile() const;
+	std::map<std::string, Module*> getModules() const;
 	/// @}
 
 	/// @name Parsing methods
@@ -180,9 +181,9 @@ protected:
 	/// @}
 
 	/// @name Method
-	// @{
+	/// @{
 	Rule createCommonRule(std::vector<yaramod::Value>& args);
-	// @}
+	/// @}
 
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
@@ -198,7 +199,7 @@ private:
 	ParserMode _mode; ///< Parser mode.
 
 	Features _features; ///< Used to determine whether to include Avast-specific or VirusTotal-specific symbols or to skip them
-	ModulesPool _modules; ///< Storage of all modules used by this ParserDriver
+	ModulePool _modules; ///< Storage of all modules used by this ParserDriver
 
 	std::vector<FileContext> _fileContexts;
 	std::vector<TokenIt> _comments; ///< Tokens of parsed comments

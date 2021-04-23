@@ -1,0 +1,214 @@
+{
+    "kind": "struct",
+    "name": "cuckoo",
+    "attributes": [
+        {
+            "kind": "struct",
+            "name": "network",
+            "attributes": [
+                {
+                    "kind": "function",
+                    "name": "dns_lookup",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "domain"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program sent a domain name resolution request for a domain matching the provided regular expression.\n\nExample: cuckoo.network.dns_lookup(/evil\\.com/)"
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "http_get",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "url"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program sent a HTTP GET request to a URL matching the provided regular expression."
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "http_post",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "url"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program sent a HTTP POST request to a URL matching the provided regular expression."
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "http_request",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "url"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program sent a HTTP request to a URL matching the provided regular expression."
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "host",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "IP address"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program contacted an IP address matching the provided regular expression. Example: ```cuckoo.network.host(/192\\.168\\.1\\.1/)```"
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "http_user_agent",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "agent"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program sent a HTTP request with a user agent matching the provided regular expression. Example: ```cuckoo.network.http_user_agent(/MSIE 6\\.0/)```"
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "tcp",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "IP address"
+                                },
+                                {
+                                    "type": "i",
+                                    "name": "port"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program contacted an IP address matching the provided regular expression, over TCP on the provided port number."
+                        }
+                    ]
+                },
+                {
+                    "kind": "function",
+                    "name": "udp",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "IP address"
+                                },
+                                {
+                                    "type": "i",
+                                    "name": "port"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program contacted an IP address matching the provided regular expression, over UDP on the provided port number."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "registry",
+            "attributes": [
+                {
+                    "kind": "function",
+                    "name": "key_access",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "registry entry"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program accessed a registry entry matching the provided regular expression."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "filesystem",
+            "attributes": [
+                {
+                    "kind": "function",
+                    "name": "file_access",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "file"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program accessed a file matching the provided regular expression."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "sync",
+            "attributes": [
+                {
+                    "kind": "function",
+                    "name": "mutex",
+                    "return_type": "i",
+                    "overloads": [
+                        {
+                            "arguments": [
+                                {
+                                    "type": "r",
+                                    "name": "mutex"
+                                }
+                            ],
+                            "documentation": "Function returning true if the program opens or creates a mutex matching the provided regular expression."
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -8,7 +8,8 @@
 
 #include <vector>
 
-#include "yaramod/types/modules/modules_pool.h"
+#include "yaramod/types/features.h"
+#include "yaramod/types/modules/module_pool.h"
 #include "yaramod/types/rule.h"
 
 namespace yaramod {
@@ -37,12 +38,12 @@ public:
 
 	/// @name Addition methods
 	/// @{
-	bool addImport(TokenIt import, ModulesPool& modules);
+	bool addImport(TokenIt import, ModulePool& modules);
+	bool addImports(const std::vector<TokenIt>& imports, ModulePool& modules);
 	void addRule(Rule&& rule, bool extractTokens = false);
 	void addRule(std::unique_ptr<Rule>&& rule, bool extractTokens = false);
 	void addRule(const std::shared_ptr<Rule>& rule, bool extractTokens = false);
 	void addRules(const std::vector<std::shared_ptr<Rule>>& rules, bool extractTokens = false);
-	bool addImports(const std::vector<TokenIt>& imports, ModulesPool& modules);
 	void insertRule(std::size_t position, std::unique_ptr<Rule>&& rule);
 	void insertRule(std::size_t position, const std::shared_ptr<Rule>& rule);
 	/// @}
