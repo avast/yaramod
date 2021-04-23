@@ -39,7 +39,7 @@ public:
 	/// @{
 	YaraFileBuilder(Features features = Features::AllCurrent, const std::string& modulesDirectory = "")
 		: _tokenStream(std::make_shared<TokenStream>())
-		, _module_pool(modulesDirectory)
+		, _module_pool(features, modulesDirectory)
 		, _features(features)
 	{
 	}

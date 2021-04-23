@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "yaramod/types/features.h"
 #include "yaramod/types/modules/generated/module_list.h"
 #include "yaramod/types/modules/module.h"
 
@@ -28,7 +29,7 @@ public:
 	 *
 	 * @param directory The directory to load the modules from apart from YARAMOD_MODULE_SPEC_PATH
 	 */
-	ModulePool(const std::string& directory);
+	ModulePool(Features features, const std::string& directory);
 	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *
@@ -50,6 +51,7 @@ private:
 	void _init(const std::string& directory);
 	bool _processPath(std::filesystem::path path);
 	void _processModuleContent(const ModuleContent& content);
+	Features _features;
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules
 	modules::ModuleList _moduleList; ///< list of contents of the modules to be loaded from JSON
 };

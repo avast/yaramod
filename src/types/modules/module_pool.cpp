@@ -14,7 +14,8 @@ namespace yaramod {
 
 using Json = nlohmann::json;
 
-ModulePool::ModulePool(const std::string& directory)
+ModulePool::ModulePool(Features features, const std::string& directory)
+	: _features(features)
 {
 	_init(directory);
 
@@ -58,6 +59,10 @@ bool ModulePool::_processPath(std::filesystem::path p)
 	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
 		return false;
 
+	if (! (_features & Features::Deprecated))
+		if (json.contains("deprecated") && accessJsonString(json, "deprecated") == "true")
+			return false;
+
 	auto name = accessJsonString(json, "name");
 	auto itr = _knownModules.find(name);
 	if (itr == _knownModules.end())
@@ -74,10 +79,16 @@ bool ModulePool::_processPath(std::filesystem::path p)
 void ModulePool::_processModuleContent(const ModuleContent& content)
 {
 	auto json = readJsonString(content.getContent());
-	assert(json.contains("kind") && accessJsonString(json, "kind") == "struct");
+	if (!json.contains("kind") || accessJsonString(json, "kind") != "struct")
+		throw ModuleError("Invalid json module: expected \"kind\": \"struct\"");
+
+	if (! (_features & Features::Deprecated))
+		if (json.contains("deprecated") && accessJsonString(json, "deprecated") == "true")
+			return;
 
 	auto name = accessJsonString(json, "name");
-	assert(content.getName() == name);
+	if (content.getName() != name)
+		throw ModuleError("Invalid json module: expected '" + name + "' got '" + content.getName() + "'.");
 
 	auto itr = _knownModules.find(name);
 	if (itr == _knownModules.end())

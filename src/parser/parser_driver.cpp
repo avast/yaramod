@@ -1891,7 +1891,7 @@ void ParserDriver::initialize()
  */
 ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
-	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(moduleDirectory),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(features, moduleDirectory),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0)

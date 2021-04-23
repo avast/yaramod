@@ -1,6 +1,7 @@
 {
     "kind": "struct",
     "name": "cuckoo",
+    "deprecated": "true",
     "attributes": [
         {
             "kind": "struct",
