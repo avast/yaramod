@@ -11,11 +11,15 @@ option(YARAMOD_DOCS     "Build doxygen documentation for yaramod" OFF)
 option(YARAMOD_PYTHON   "Build Python extension" OFF)
 option(YARAMOD_EXAMPLES "Build examples" OFF)
 
+# Add CMake module path.
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 # Requirements.
 include(GNUInstallDirs)
 if(YARAMOD_DOC)
 	find_package(Doxygen)
 endif()
+find_package(Filesystem)
 
 # Variables.
 set(YARAMOD_DOC_DIR     "${PROJECT_SOURCE_DIR}/doc")
