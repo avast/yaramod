@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.10.1 (2021-04-28)
+
+* Fixed issues with older compilers not providing symbols for std::filesystem function ([#156](https://github.com/avast/yaramod/pull/156))
+
 # v3.10.0 (2021-04-23)
 
 * Removed private Avast symbols - modules are dynamically loaded from JSON ([#143](https://github.com/avast/yaramod/pull/143), [#13](https://github.com/avast/yaramod/issues/13))
