@@ -59,6 +59,9 @@ if(NOT TARGET yaramod)
 	# Pog library
 	target_link_libraries(yaramod pog)
 
+	# Filesystem library.
+	target_link_libraries(yaramod Filesystem::Filesystem)
+
 	# Python module.
 	if(YARAMOD_PYTHON)
 		add_subdirectory(python)
