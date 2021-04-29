@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.10.2 (2021-04-28)
+
+* Fixed previous release by adding cmake foulder in MANIFEST.sh.
+
 # v3.10.1 (2021-04-28)
 
 * Fixed issues with older compilers not providing symbols for std::filesystem function ([#156](https://github.com/avast/yaramod/pull/156))
