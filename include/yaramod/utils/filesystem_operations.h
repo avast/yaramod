@@ -1,5 +1,5 @@
 /**
- * @file src/utils/filesystem.h
+ * @file include/yaramod/utils/filesystem_operations.h
  * @brief Declaration of filesystem functions.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */

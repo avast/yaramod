@@ -1,5 +1,5 @@
 /**
- * @file src/utils/filesystem.cpp
+ * @file src/utils/filesystem_operations.cpp
  * @brief Definition of filesystem functions.
  * @copyright (c) 2017 Avast Software, licensed under the MIT license
  */
@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #endif
 
-#include "yaramod/utils/filesystem.h"
+#include "yaramod/utils/filesystem_operations.h"
 #include "yaramod/utils/utils.h"
 
 namespace yaramod {
