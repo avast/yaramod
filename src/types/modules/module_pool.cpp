@@ -48,7 +48,7 @@ std::map<std::string, Module*> ModulePool::getModules() const
 	return m;
 }
 
-bool ModulePool::_processPath(std::filesystem::path p)
+bool ModulePool::_processPath(fs::path p)
 {
 	if (p.extension() != ".cpp" && p.extension() != ".json")
 		return false;
@@ -108,7 +108,7 @@ void ModulePool::_init(const std::string& directory)
 			throw ModuleError("Error: Both YARAMOD_MODULE_SPEC_PATH and YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE environment properties are set.");
 		std::stringstream paths{envProperty};
 		for (std::string path; std::getline(paths, path, ':'); )
-			_processPath(std::filesystem::path(path));
+			_processPath(fs::path(path));
 	}
 	else
 	{
@@ -118,7 +118,7 @@ void ModulePool::_init(const std::string& directory)
 			std::stringstream paths{envProperty};
 			for (std::string path; std::getline(paths, path, ':'); )
 			{
-				bool result = _processPath(std::filesystem::path(path));
+				bool result = _processPath(fs::path(path));
 				foundModules = foundModules || result;
 			}
 			if (!foundModules)
@@ -126,7 +126,7 @@ void ModulePool::_init(const std::string& directory)
 		}
 		if (directory != "")
 		{
-			for (const auto& entry : std::filesystem::directory_iterator(directory))
+			for (const auto& entry : fs::directory_iterator(directory))
 			{
 				bool result = _processPath(entry.path());
 				foundModules = foundModules || result;
