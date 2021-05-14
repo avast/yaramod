@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.10.3 (2021-05-14)
+
+* Feature for older compilers: Include filesystem library based on its availability. 
+
 # v3.10.2 (2021-04-28)
 
 * Fixed previous release by adding cmake foulder in MANIFEST.sh.
