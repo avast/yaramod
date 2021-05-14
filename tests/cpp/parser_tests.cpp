@@ -5205,6 +5205,53 @@ rule rule_3
 }
 
 TEST_F(ParserTests,
+IncompleteRulesReferenceUnknownSymbol) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+		unknown_rule
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IncompleteRulesIncompleteRule) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IncompleteRulesUnknownImport) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule abc
+{
+	condition:
+		true
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AutoformattingClosingBracket) {
 	prepareInput(
 R"(
