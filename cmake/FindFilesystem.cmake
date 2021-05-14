@@ -11,13 +11,13 @@ if(NOT TARGET Filesystem::Filesystem)
 	if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		# Clang older than 9.x needs -lc++fs
 		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-			target_link_libraries(Filesystem::Filesystem INTERFACE c++fs)
+			set_target_properties(Filesystem::Filesystem PROPERTIES INTERFACE_LINK_LIBRARIES c++fs)
 		endif()
 	# GCC
 	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		# GCC older than 9.x needs -lstdc++fs
 		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-			target_link_libraries(Filesystem::Filesystem INTERFACE stdc++fs)
+			set_target_properties(Filesystem::Filesystem PROPERTIES INTERFACE_LINK_LIBRARIES stdc++fs)
 		endif()
 	endif()
 endif()

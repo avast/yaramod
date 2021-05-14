@@ -10,7 +10,7 @@
 #include "yaramod/types/hex_string.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/types/token_type.h"
-#include "yaramod/utils/filesystem.h"
+#include "yaramod/utils/filesystem_operations.h"
 
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>

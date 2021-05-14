@@ -6,11 +6,11 @@
 
 #pragma once
 
+#include "yaramod/utils/filesystem.h"
 #include "yaramod/types/features.h"
 #include "yaramod/types/modules/generated/module_list.h"
 #include "yaramod/types/modules/module.h"
 
-#include <filesystem>
 #include <map>
 
 namespace yaramod {
@@ -49,7 +49,7 @@ public:
 
 private:
 	void _init(const std::string& directory);
-	bool _processPath(std::filesystem::path path);
+	bool _processPath(fs::path path);
 	void _processModuleContent(const ModuleContent& content);
 	Features _features;
 	std::unordered_map<std::string, std::shared_ptr<Module>> _knownModules = {}; ///< Table of all known modules

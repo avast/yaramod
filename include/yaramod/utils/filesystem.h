@@ -1,19 +1,23 @@
 /**
- * @file src/utils/filesystem.h
- * @brief Declaration of filesystem functions.
- * @copyright (c) 2017 Avast Software, licensed under the MIT license
+ * @file include/yaramod/utils/filesystem.h
+ * @brief Wrapper for conditional include of C++17 filesystem feature.
+ * @copyright (c) 2021 Avast Software, licensed under the MIT license
  */
 
-#pragma once
+#ifndef YARAMOD_UTILS_FILESYSTEM_H
+#define YARAMOD_UTILS_FILESYSTEM_H
 
-#include <string>
+#if __has_include(<filesystem>)
+	#include <filesystem>
+	namespace fs = std::filesystem;
 
-namespace yaramod {
+#elif __has_include(<experimental/filesystem>)
+	#include <experimental/filesystem>
+	namespace fs = std::experimental::filesystem;
 
-char pathSeparator();
-bool pathIsRelative(const std::string& path);
-std::string parentPath(const std::string& path);
-std::string joinPaths(const std::string& first, const std::string& second);
-std::string absolutePath(const std::string& path);
+#else
+	#error "Compiler does not have C++17 filesystem feature."
 
-}
+#endif
+
+#endif

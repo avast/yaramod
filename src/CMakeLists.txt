@@ -21,7 +21,7 @@ set(SOURCES
 	types/token_stream.cpp
 	types/yara_file.cpp
 	utils/json.cpp
-	utils/filesystem.cpp
+	utils/filesystem_operations.cpp
 	utils/utils.cpp
 	yaramod.cpp
 )
