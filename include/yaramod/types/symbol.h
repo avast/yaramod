@@ -38,6 +38,14 @@ public:
 		Undefined
 	};
 
+	/// @name Constructors
+	/// @{
+	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType, const std::string& documentation = "")
+		: _type(type), _name(name), _documentation(documentation), _dataType(dataType)
+	{
+	}
+	/// @}
+
 	/// @name Destructor
 	/// @{
 	virtual ~Symbol() = default;
@@ -83,13 +91,6 @@ public:
 	/// @}
 
 protected:
-	/// @name Constructors
-	/// @{
-	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType, const std::string& documentation = "")
-		: _type(type), _name(name), _documentation(documentation), _dataType(dataType)
-	{
-	}
-	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol
 	std::string _name; ///< Name
