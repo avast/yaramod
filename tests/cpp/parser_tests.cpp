@@ -5205,7 +5205,7 @@ rule rule_3
 }
 
 TEST_F(ParserTests,
-IncompleteRulesReferenceUnknownSymbol) {
+ParseIncompleteReferenceUnknownSymbol) {
 	prepareInput(
 R"(
 rule abc
@@ -5221,7 +5221,7 @@ rule abc
 }
 
 TEST_F(ParserTests,
-IncompleteRulesIncompleteRule) {
+ParseIncompleteRuleNotFinished) {
 	prepareInput(
 R"(
 rule abc
@@ -5235,7 +5235,7 @@ rule abc
 }
 
 TEST_F(ParserTests,
-IncompleteRulesUnknownImport) {
+ParseIncompleteUnknownImport) {
 	prepareInput(
 R"(
 import "dummy"

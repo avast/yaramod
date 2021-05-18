@@ -119,6 +119,11 @@ protected:
 	void reset(ParserMode parserMode);
 	/// @}
 
+	/// @name Method for obtaining info about parser
+	/// @{
+	bool incompleteMode() const { return _mode == ParserMode::Incomplete; }
+	/// @}
+
 	/// @name Methods for handling includes
 	/// @{
 	bool includeFile(const std::string& includePath, const std::shared_ptr<TokenStream>& tokenStream);

@@ -13,6 +13,7 @@ namespace yaramod {
  */
 enum class TokenType
 {
+	UNDEFINED,
 	RULE_NAME,
 	TAG,
 	HEX_ALT, // '|'

@@ -2315,8 +2315,6 @@ void ParserDriver::checkStringModifier(const std::vector<std::shared_ptr<StringM
 		{
 			error_handle(newMod->getTokenRange().first->getLocation(), "Can not specify multiple alphabets for base64 modifiers");
 		}
-
-
 	}
 }
 
