@@ -435,8 +435,7 @@ void ParserDriver::defineGrammar()
 			{
 				if (!incompleteMode())
 					error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
-				else
-					error_handle(import->getLocation(), "TODO: remove this");
+				// 	error_handle(import->getLocation(), "TODODONE: remove problem with unrecognized module");
 			}
 			return {};
 		})

@@ -5205,6 +5205,24 @@ rule rule_3
 }
 
 TEST_F(ParserTests,
+ParseIncompleteUnknownImport) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule abc
+{
+	condition:
+		true
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ParseIncompleteReferenceUnknownSymbol) {
 	prepareInput(
 R"(
@@ -5228,8 +5246,7 @@ R"(import "pe"
 rule abc
 {
 	condition:
-		unknown_array_one[0] and
-		pe.unknown_array_two[10]
+		unknown_array_one[0]
 }
 )"
 );
@@ -5246,7 +5263,6 @@ R"(import "pe"
 rule abc
 {
 	condition:
-		unknown_array_one[0] and
 		pe.unknown_array_two[10]
 }
 )"
@@ -5448,23 +5464,6 @@ rule abc
 );
 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
 	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
-}
-
-TEST_F(ParserTests,
-ParseIncompleteUnknownImport) {
-	prepareInput(
-R"(
-import "dummy"
-
-rule abc
-{
-	condition:
-		true
-)"
-);
-	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
-	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
