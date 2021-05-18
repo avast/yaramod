@@ -1706,8 +1706,9 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
 				{
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
-					//TODO: replace the undefined/unknown symbol with object
+					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO5 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
+					// TODODONE: replace the undefined/unknown symbol with object
+					expr->setType(ExpressionType::Object);
 				}
 			}
 			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
@@ -1718,12 +1719,14 @@ void ParserDriver::defineGrammar()
 
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
 			{
+				const auto& parentSymbolName = parentSymbol->getName();
 				if (!incompleteMode() || !parentSymbol->isUndefined())
-					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbolName + "' is not an array nor dictionary");
 				else
 				{
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
-					//TODO: replace the undefined/unknown symbol with object
+					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO6 remove this exception '" + parentSymbolName + "' referenced. Create new object symbol and replace the unknown symbol.");
+					parentSymbol = std::make_shared<ArraySymbol>(parentSymbolName, ExpressionType::Undefined);
+					//TODO: What if we are dealing with structured symbol?
 				}
 			}
 
@@ -1749,7 +1752,7 @@ void ParserDriver::defineGrammar()
 				else
 				{
 					//TODO
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO: replace unknown with object Identifier '" + expr->getText() + "' is not an object");
+					error_handle((--args[1].getTokenIt())->getLocation(), "TODO7: replace unknown with object Identifier '" + expr->getText() + "' is not an object");
 				}
 			}
 
@@ -1765,7 +1768,7 @@ void ParserDriver::defineGrammar()
 				else
 				{
 					// TODO:
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO: replace the unknown symbol with function symbol. You need to set it unknown return type. Make sure that anywhere we check this type we do not mind if it is unknown (only in Incomplete mode)");
+					error_handle((--args[1].getTokenIt())->getLocation(), "TODO8: replace the unknown symbol with function symbol. You need to set it unknown return type. Make sure that anywhere we check this type we do not mind if it is unknown (only in Incomplete mode)");
 				}
 			}
 
@@ -1797,7 +1800,7 @@ void ParserDriver::defineGrammar()
 				else
 				{
 					// TODO: Do sth to allow creation of the output
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO: Do sth to allow creation of the output.");
+					error_handle((--args[1].getTokenIt())->getLocation(), "TODO9: Do sth to allow creation of the output.");
 				}
 			}
 
