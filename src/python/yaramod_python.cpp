@@ -63,7 +63,8 @@ void addEnums(py::module& module)
 {
 	py::enum_<ParserMode>(module, "ParserMode")
 		.value("Regular", ParserMode::Regular)
-		.value("IncludeGuarded", ParserMode::IncludeGuarded);
+		.value("IncludeGuarded", ParserMode::IncludeGuarded)
+		.value("Incomplete", ParserMode::Incomplete);
 
 	py::enum_<Features>(module, "Features", py::arithmetic())
 		.value("Basic", Features::Basic)

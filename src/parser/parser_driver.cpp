@@ -1008,10 +1008,7 @@ void ParserDriver::defineGrammar()
 			TokenIt id = args[0].getTokenIt();
 			assert(id->isString());
 			if (!stringExists(id->getString()))
-			{
-				// TODO: Consider if we need to allow unknown strings in Incomplete mode.
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getString() + "'");
-			}
 			if (id->getString().size() > 1)
 				id->setValue(findStringDefinition(id->getString()));
 			auto output = std::make_shared<StringExpression>(std::move(id));

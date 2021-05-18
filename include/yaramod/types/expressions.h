@@ -985,7 +985,7 @@ protected:
  *
  * For example:
  * @code
- * for all k, v in dome_dict : (  k == "foo" and v == "bar" }
+ * for all k, v in dome_dict : (  k == "foo" and v == "bar" )
  * @endcode
  */
 class ForDictExpression : public ForExpression
