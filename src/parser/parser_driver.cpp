@@ -1635,8 +1635,9 @@ void ParserDriver::defineGrammar()
 					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
 				else
 				{
-					error_handle(args[0].getTokenIt()->getLocation(), "TODO remove this exception '" + args[0].getTokenIt()->getPureText() + "' referenced");
-					//TODO: add new symbol undefined/unknown
+					// TODODONE: add new symbol undefined/unknown
+					std::cout << "Creating new unknown symbol '" << symbol_token->getString() << "'" << std::endl;
+					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
 				}
 			}
 			symbol_token->setValue(symbol);
