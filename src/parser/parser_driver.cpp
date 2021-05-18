@@ -1654,25 +1654,25 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
 				{
-					error_handle(args[1].getTokenIt()->getLocation(), "TODO remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
+					error_handle(args[1].getTokenIt()->getLocation(), "TODO2 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
 					//TODO: replace the undefined/unknown symbol with object
 				}
 			}
 
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			auto parentSymbol = std::static_pointer_cast<IdExpression>(expr)->getSymbol();
 			while (parentSymbol->isReference())
-				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
+				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
 			if (!parentSymbol->isStructure())
 			{
 				if (!incompleteMode() || !expr->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
 				else
 				{
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO remove this exception '" + parentSymbol->getName()  + "' referenced. Create new structure symbol and replace the unknown symbol.");
+					error_handle((--args[1].getTokenIt())->getLocation(), "TODO3 remove this exception '" + parentSymbol->getName()  + "' referenced. Create new structure symbol and replace the unknown symbol.");
 					//TODO: replace the undefined/unknown symbol with structure
 				}
 			}
-			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
+			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
 
 			TokenIt symbol_token = args[2].getTokenIt();
 			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
@@ -1682,8 +1682,11 @@ void ParserDriver::defineGrammar()
 					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
 				else
 				{
-					error_handle(args[2].getTokenIt()->getLocation(), "TODO remove this exception '" + symbol_token->getString() + "' referenced");
-					//TODO: add new symbol with flag undefined as the attribute?
+					// error_handle(args[2].getTokenIt()->getLocation(), "TODO4 remove this exception '" + symbol_token->getString() + "' referenced");
+					//TODODONE: add new symbol with flag undefined as the attribute?
+					bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
+					attr = structParentSymbol->getAttribute(symbol_token->getString());
+					assert(inserted && attr);
 				}
 			}
 
