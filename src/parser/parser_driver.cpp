@@ -1759,12 +1759,14 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
 				{
-					//TODO
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO7: replace unknown with object Identifier '" + expr->getText() + "' is not an object");
+					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO7: replace unknown with object Identifier '" + expr->getText() + "' is not an object");
+					expr->setType(ExpressionType::Object);
 				}
 			}
-
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
+			auto parentSymbol = parentExpr->getSymbol();
+			std::vector<Expression::Type> argTypes;
+			auto arguments = std::move(args[2].getMultipleExpressions());
 
 			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
@@ -1775,16 +1777,23 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
 				else
 				{
-					// TODO:
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO8: replace the unknown symbol with function symbol. You need to set it unknown return type. Make sure that anywhere we check this type we do not mind if it is unknown (only in Incomplete mode)");
+					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO8: replace the unknown symbol with function symbol. You need to set it unknown return type. Make sure that anywhere we check this type we do not mind if it is unknown (only in Incomplete mode)");
+					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+					std::vector<ExpressionType> type{ExpressionType::Undefined};
+					std::for_each(arguments.begin(), arguments.end(),
+						[&type](const Expression::Ptr& e)
+						{
+							type.push_back(e->getType());
+						});
+					parentExpr->setSymbol(std::make_shared<FunctionSymbol>(parentTokenText, type));
+					parentExpr->getSymbolToken()->setType(TokenType::FUNCTION_SYMBOL);
+					parentSymbol = parentExpr->getSymbol();
 				}
 			}
 
 			auto funcParentSymbol = std::static_pointer_cast<const FunctionSymbol>(parentSymbol);
 
 			// Make copy of just argument types because symbols are not aware of expressions
-			std::vector<Expression::Type> argTypes;
-			auto arguments = std::move(args[2].getMultipleExpressions());
 			std::for_each(arguments.begin(), arguments.end(),
 				[&argTypes](const Expression::Ptr& e)
 				{
@@ -1804,11 +1813,6 @@ void ParserDriver::defineGrammar()
 						});
 					ss << ")" << std::endl;
 					error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters:\n" + ss.str());
-				}
-				else
-				{
-					// TODO: Do sth to allow creation of the output
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO9: Do sth to allow creation of the output.");
 				}
 			}
 
