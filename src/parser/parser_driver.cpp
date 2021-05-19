@@ -1080,12 +1080,13 @@ void ParserDriver::defineGrammar()
 				assert(parentSymbol);
 				if (!parentSymbol->isArray())
 				{
-					if (!incompleteMode())
+					if (!incompleteMode() || !parentSymbol->isUndefined())
 						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
 					else
 					{
-						// TODO: check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.
+						// TODO: check that parentSymbol is Undefined and replace it with ArraySymbol.
 						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array. TODO11: Check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.");
+						
 					}
 				}
 
@@ -1133,12 +1134,15 @@ void ParserDriver::defineGrammar()
 				assert(parentSymbol);
 				if (!parentSymbol->isDictionary())
 				{
-					if (!incompleteMode())
+					if (!incompleteMode() || !parentSymbol->isUndefined())
 						error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
 					else
 					{
-						// TODO: check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.
-						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary. TODO: Check that parentSymbol is UnknownSymbol and replace it with dictionary.");
+						// TODO: check that parentSymbol is Undefined and replace it with DictionarySymbol.
+						// error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary. TODO12: Check that parentSymbol is UnknownSymbol and replace it with dictionary.");
+						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+						parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
 					}
 				}
 
@@ -1673,6 +1677,7 @@ void ParserDriver::defineGrammar()
 				{
 					error_handle((--args[1].getTokenIt())->getLocation(), "TODO3 remove this exception '" + parentSymbol->getName()  + "' referenced. Create new structure symbol and replace the unknown symbol.");
 					//TODO: replace the undefined/unknown symbol with structure
+
 				}
 			}
 			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);

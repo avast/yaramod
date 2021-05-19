@@ -5350,7 +5350,18 @@ R"(rule abc
 );
 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	std::string expected =
+R"(rule abc
+{
+	condition:
+		for all k, v in unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -5367,7 +5378,20 @@ rule abc
 );
 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	std::string expected =
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		for all k, v in cuckoo.unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -5384,7 +5408,20 @@ rule abc
 );
 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	std::string expected =
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		for all k, v in dummy.unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
