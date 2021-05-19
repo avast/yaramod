@@ -1150,7 +1150,7 @@ void ParserDriver::defineGrammar()
 				if (!addLocalSymbol(symbol1))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 
-				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+				std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
 
 				std::shared_ptr<Symbol> symbol2;
 				if (iterParentSymbol->isStructured())
