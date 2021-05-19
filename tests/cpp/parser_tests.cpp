@@ -5239,6 +5239,38 @@ rule abc
 }
 
 TEST_F(ParserTests,
+ParseIncompleteUnknownObjectSymbol) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		unknown_object.some_element
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownObjectSymbolFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		cuckoo.unknown_object.some_element
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ParseIncompleteUnknownArraySymbol) {
 	prepareInput(
 R"(import "pe"
@@ -5281,38 +5313,6 @@ rule abc
 {
 	condition:
 		dummy.unknown_array[10]
-}
-)"
-);
-	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
-	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
-}
-
-TEST_F(ParserTests,
-ParseIncompleteUnknownObjectSymbol) {
-	prepareInput(
-R"(rule abc
-{
-	condition:
-		unknown_object.some_element
-}
-)"
-);
-	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
-	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
-}
-
-TEST_F(ParserTests,
-ParseIncompleteUnknownObjectSymbolFromKnownModule) {
-	prepareInput(
-R"(import "cuckoo"
-
-rule abc
-{
-	condition:
-		cuckoo.unknown_object.some_element
 }
 )"
 );

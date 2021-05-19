@@ -1085,7 +1085,7 @@ void ParserDriver::defineGrammar()
 					else
 					{
 						// TODO: check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.
-						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array. TODO: Check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.");
+						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array. TODO11: Check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.");
 					}
 				}
 
@@ -1654,8 +1654,11 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
 				{
-					error_handle(args[1].getTokenIt()->getLocation(), "TODO2 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
-					//TODO: replace the undefined/unknown symbol with object
+					// error_handle(args[1].getTokenIt()->getLocation(), "TODO2 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
+					//TODODONE: replace the undefined symbol with structure and the expression must be Object
+					auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
+					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+					parentExpr->setSymbol(std::make_shared<StructureSymbol>(parentTokenText));
 				}
 			}
 
@@ -1726,7 +1729,7 @@ void ParserDriver::defineGrammar()
 				{
 					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO6 remove this exception '" + parentSymbolName + "' referenced. Create new object symbol and replace the unknown symbol.");
 					parentSymbol = std::make_shared<ArraySymbol>(parentSymbolName, ExpressionType::Undefined);
-					//TODO: What if we are dealing with structured symbol?
+					//TODO10: What if we are dealing with structured symbol?
 				}
 			}
 
