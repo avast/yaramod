@@ -432,7 +432,6 @@ void ParserDriver::defineGrammar()
 			{
 				if (!incompleteMode())
 					error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
-				// 	error_handle(import->getLocation(), "TODODONE: remove problem with unrecognized module");
 			}
 			return {};
 		})
@@ -1081,9 +1080,9 @@ void ParserDriver::defineGrammar()
 						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
 					else
 					{
-						// TODO: check that parentSymbol is Undefined and replace it with ArraySymbol.
-						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array. TODO11: Check that parentSymbol is UnknownSymbol and replace it with ArraySymbol.");
-						
+						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+						parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
 					}
 				}
 

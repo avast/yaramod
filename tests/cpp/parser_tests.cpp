@@ -5425,6 +5425,53 @@ rule abc
 }
 
 TEST_F(ParserTests,
+ParseIncompleteUnknownFor) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		for all i in unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		for all i in cuckoo.unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForFromUnknownModule) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		for all i in unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ParseIncompleteUnknownFunctionCall) {
 	prepareInput(
 R"(rule abc
