@@ -1134,8 +1134,6 @@ void ParserDriver::defineGrammar()
 						error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
 					else
 					{
-						// TODO: check that parentSymbol is Undefined and replace it with DictionarySymbol.
-						// error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary. TODO12: Check that parentSymbol is UnknownSymbol and replace it with dictionary.");
 						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
 						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
 						parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
@@ -1634,10 +1632,7 @@ void ParserDriver::defineGrammar()
 				if (!incompleteMode())
 					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
 				else
-				{
-					// TODODONE: add new symbol undefined/unknown
 					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
-				}
 			}
 			symbol_token->setValue(symbol);
 			auto output = std::make_shared<IdExpression>(symbol_token);
@@ -1653,8 +1648,6 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
 				{
-					// error_handle(args[1].getTokenIt()->getLocation(), "TODO2 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
-					//TODODONE: replace the undefined symbol with structure and the expression must be Object
 					auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
 					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
 					parentExpr->setSymbol(std::make_shared<StructureSymbol>(parentTokenText));
@@ -1666,14 +1659,8 @@ void ParserDriver::defineGrammar()
 				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
 			if (!parentSymbol->isStructure())
 			{
-				if (!incompleteMode() || !expr->isUndefined())
-					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
-				else
-				{
-					error_handle((--args[1].getTokenIt())->getLocation(), "TODO3 remove this exception '" + parentSymbol->getName()  + "' referenced. Create new structure symbol and replace the unknown symbol.");
-					//TODO: replace the undefined/unknown symbol with structure
-
-				}
+				assert(!incompleteMode() || !expr->isUndefined());
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
 			}
 			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
 
@@ -1685,8 +1672,6 @@ void ParserDriver::defineGrammar()
 					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
 				else
 				{
-					// error_handle(args[2].getTokenIt()->getLocation(), "TODO4 remove this exception '" + symbol_token->getString() + "' referenced");
-					//TODODONE: add new symbol with flag undefined as the attribute?
 					bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
 					attr = structParentSymbol->getAttribute(symbol_token->getString());
 					assert(inserted && attr);
@@ -1708,11 +1693,7 @@ void ParserDriver::defineGrammar()
 				if (!incompleteMode() || !expr->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
-				{
-					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO5 remove this exception '" + args[1].getTokenIt()->getPureText() + "' referenced. Create new object symbol and replace the unknown symbol.");
-					// TODODONE: replace the undefined/unknown symbol with object
 					expr->setType(ExpressionType::Object);
-				}
 			}
 			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			assert(parentSymbol);
@@ -1726,11 +1707,7 @@ void ParserDriver::defineGrammar()
 				if (!incompleteMode() || !parentSymbol->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbolName + "' is not an array nor dictionary");
 				else
-				{
-					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO6 remove this exception '" + parentSymbolName + "' referenced. Create new object symbol and replace the unknown symbol.");
 					parentSymbol = std::make_shared<ArraySymbol>(parentSymbolName, ExpressionType::Undefined);
-					//TODO10: What if we are dealing with structured symbol?
-				}
 			}
 
 			std::shared_ptr<const IterableSymbol> iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
@@ -1753,10 +1730,7 @@ void ParserDriver::defineGrammar()
 				if (!incompleteMode() || !expr->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
 				else
-				{
-					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO7: replace unknown with object Identifier '" + expr->getText() + "' is not an object");
 					expr->setType(ExpressionType::Object);
-				}
 			}
 			auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
 			auto parentSymbol = parentExpr->getSymbol();
@@ -1772,7 +1746,6 @@ void ParserDriver::defineGrammar()
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
 				else
 				{
-					// error_handle((--args[1].getTokenIt())->getLocation(), "TODO8: replace the unknown symbol with function symbol. You need to set it unknown return type. Make sure that anywhere we check this type we do not mind if it is unknown (only in Incomplete mode)");
 					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
 					std::vector<ExpressionType> type{ExpressionType::Undefined};
 					std::for_each(arguments.begin(), arguments.end(),
@@ -1904,7 +1877,6 @@ void ParserDriver::defineGrammar()
 	_parser.rule("string_enumeration") // vector<Expression::Ptr>
 		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
-			// TODO: Consider impacts of allowing undefined strings in Incomplete mode.
 			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
 			if (id->getString().size() > 1)
