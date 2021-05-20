@@ -12,6 +12,8 @@
 #include "yaramod/types/token_type.h"
 #include "yaramod/utils/filesystem_operations.h"
 
+#include <iostream>
+
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
 
@@ -1640,7 +1642,6 @@ void ParserDriver::defineGrammar()
 				else
 				{
 					// TODODONE: add new symbol undefined/unknown
-					std::cout << "Creating new unknown symbol '" << symbol_token->getString() << "'" << std::endl;
 					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
 				}
 			}
@@ -2056,7 +2057,18 @@ bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
 
 	_fileContexts.emplace_back(&stream);
 	_file = YaraFile(currentFileContext()->getTokenStream(), _features);
-	return parseImpl();
+	try {
+		auto output = parseImpl();
+		return output;
+	} catch (const ParserError& e) {
+		if (!incompleteMode())
+			throw e;
+		else
+		{
+			std::cerr << "Warning: '" << e.getErrorMessage() << "'\nThis Warning would be an Error if not parsing in Incomplete mode." << std::endl;
+			return true;
+		}
+	}
 }
 
 bool ParserDriver::parse(const std::string& filePath, ParserMode parserMode)

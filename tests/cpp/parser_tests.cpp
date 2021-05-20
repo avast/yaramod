@@ -5501,7 +5501,8 @@ rule abc
 );
 	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
 	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
-	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	std::vector<std::string> expected{"\n", "rule", "abc", "\n", "{", "\n", "condition", ":", "\n" };
+	ASSERT_EQ(expected, driver.getParsedFile().getTokenStream()->getTokensAsText());
 }
 
 TEST_F(ParserTests,
