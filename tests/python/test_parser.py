@@ -1848,26 +1848,25 @@ rule rule1 : Tag1 {
 ''')
         rule = yara_file.rules[0]
 
-        self.assertEqual('''include "nonexistent.yar"
-
-rule rule1 : Tag1 {
-    strings:
-        $1 = "Hello World!"
-        $2 = { 01 23 45 67 89 AB CD EF }
-        $3 = /def/is
-    condition:
-        false
+        self.assertEqual('''rule rule1 : Tag1 {
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
 }''', yara_file.text)
 
         expected = r'''include "nonexistent.yar"
 
-rule rule1 : Tag1 {
-    strings:
-        $1 = "Hello World!"
-        $2 = { 01 23 45 67 89 AB CD EF }
-        $3 = /def/is
-    condition:
-        false
+rule rule1 : Tag1
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)

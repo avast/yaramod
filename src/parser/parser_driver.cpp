@@ -172,11 +172,6 @@ void ParserDriver::defineTokens()
 		{
 			if (!incompleteMode())
 				error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
-			else
-			{
-				error_handle(currentFileContext()->getLocation(), "TODO: Remove this issue Unable to include file '" + filePath + "'");
-				// TODO:
-			}
 		}
 
 		return includeToken;
