@@ -12,8 +12,6 @@
 #include "yaramod/types/token_type.h"
 #include "yaramod/utils/filesystem_operations.h"
 
-#include <iostream>
-
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
 
@@ -2030,10 +2028,7 @@ bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
 		if (!incompleteMode())
 			throw e;
 		else
-		{
-			std::cerr << "Warning: '" << e.getErrorMessage() << "'\nThis Warning would be an Error if not parsing in Incomplete mode." << std::endl;
 			return true;
-		}
 	}
 }
 
