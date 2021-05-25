@@ -1068,13 +1068,13 @@
                     "kind": "value",
                     "name": "raw_data",
                     "documentation": "Raw data as it appears in the file.",
-                    "type": "i"
+                    "type": "s"
                 },
                 {
                     "kind": "value",
                     "name": "clear_data",
                     "documentation": "Data after being decrypted by XORing it with the key.",
-                    "type": "i"
+                    "type": "s"
                 },
                 {
                     "kind": "function",
