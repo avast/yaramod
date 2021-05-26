@@ -167,7 +167,10 @@ void ParserDriver::defineTokens()
 		TokenIt includeToken = emplace_back(TokenType::INCLUDE_PATH, filePath);
 		const auto& ts = includeToken->initializeSubTokenStream();
 		if (!includeFile(filePath, ts))
-			error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
+		{
+			if (!incompleteMode())
+				error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
+		}
 
 		return includeToken;
 	});
@@ -424,7 +427,10 @@ void ParserDriver::defineGrammar()
 			TokenIt import = args[1].getTokenIt();
 			import->setType(TokenType::IMPORT_MODULE);
 			if (!_file.addImport(import, _modules))
-				error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
+			{
+				if (!incompleteMode())
+					error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
+			}
 			return {};
 		})
 		;
@@ -1067,7 +1073,16 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
 				assert(parentSymbol);
 				if (!parentSymbol->isArray())
-					error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
+				{
+					if (!incompleteMode() || !parentSymbol->isUndefined())
+						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
+					else
+					{
+						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+						parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
+					}
+				}
 
 				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
 
@@ -1112,13 +1127,22 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
 				assert(parentSymbol);
 				if (!parentSymbol->isDictionary())
-					error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
+				{
+					if (!incompleteMode() || !parentSymbol->isUndefined())
+						error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
+					else
+					{
+						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+						parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
+					}
+				}
 
 				std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), ExpressionType::String);
 				if (!addLocalSymbol(symbol1))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 
-				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+				std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
 
 				std::shared_ptr<Symbol> symbol2;
 				if (iterParentSymbol->isStructured())
@@ -1602,7 +1626,12 @@ void ParserDriver::defineGrammar()
 			TokenIt symbol_token = args[0].getTokenIt();
 			auto symbol = findSymbol(symbol_token->getString());
 			if (!symbol)
-				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
+			{
+				if (!incompleteMode())
+					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
+				else
+					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
+			}
 			symbol_token->setValue(symbol);
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
@@ -1612,19 +1641,40 @@ void ParserDriver::defineGrammar()
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if (!expr->isObject())
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+			{
+				if (!incompleteMode() || !expr->isUndefined())
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+				else
+				{
+					auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
+					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+					parentExpr->setSymbol(std::make_shared<StructureSymbol>(parentTokenText));
+				}
+			}
 
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			auto parentSymbol = std::static_pointer_cast<IdExpression>(expr)->getSymbol();
 			while (parentSymbol->isReference())
-				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
+				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
 			if (!parentSymbol->isStructure())
+			{
+				assert(!incompleteMode() || !expr->isUndefined());
 				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
-			auto structParentSymbol = std::static_pointer_cast<const StructureSymbol>(parentSymbol);
+			}
+			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
 
 			TokenIt symbol_token = args[2].getTokenIt();
 			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
 			if (!attr)
-				error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+			{
+				if (!incompleteMode())
+					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+				else
+				{
+					bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
+					attr = structParentSymbol->getAttribute(symbol_token->getString());
+					assert(inserted && attr);
+				}
+			}
 
 			auto symbol = attr.value();
 			symbol_token->setValue(symbol);
@@ -1637,7 +1687,12 @@ void ParserDriver::defineGrammar()
 		.production("identifier", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if (!expr->isObject())
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+			{
+				if (!incompleteMode() || !expr->isUndefined())
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+				else
+					expr->setType(ExpressionType::Object);
+			}
 			std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
 			assert(parentSymbol);
 
@@ -1645,7 +1700,13 @@ void ParserDriver::defineGrammar()
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 
 			if (!parentSymbol->isArray() && !parentSymbol->isDictionary())
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array nor dictionary");
+			{
+				const auto& parentSymbolName = parentSymbol->getName();
+				if (!incompleteMode() || !parentSymbol->isUndefined())
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbolName + "' is not an array nor dictionary");
+				else
+					parentSymbol = std::make_shared<ArraySymbol>(parentSymbolName, ExpressionType::Undefined);
+			}
 
 			std::shared_ptr<const IterableSymbol> iterParentSymbol = std::static_pointer_cast<const IterableSymbol>(parentSymbol);
 
@@ -1663,21 +1724,42 @@ void ParserDriver::defineGrammar()
 		.production("identifier", "LP", "arguments", "RP", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
 			if (!expr->isObject())
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
-
-			auto parentSymbol = std::static_pointer_cast<const IdExpression>(expr)->getSymbol();
+			{
+				if (!incompleteMode() || !expr->isUndefined())
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
+				else
+					expr->setType(ExpressionType::Object);
+			}
+			auto parentExpr = std::static_pointer_cast<IdExpression>(expr);
+			auto parentSymbol = parentExpr->getSymbol();
+			std::vector<Expression::Type> argTypes;
+			auto arguments = std::move(args[2].getMultipleExpressions());
 
 			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<const ReferenceSymbol>(parentSymbol)->getSymbol();
 				
 			if (!parentSymbol->isFunction())
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
+			{
+				if (!incompleteMode() || !parentSymbol->isUndefined())
+					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a function");
+				else
+				{
+					const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+					std::vector<ExpressionType> type{ExpressionType::Undefined};
+					std::for_each(arguments.begin(), arguments.end(),
+						[&type](const Expression::Ptr& e)
+						{
+							type.push_back(e->getType());
+						});
+					parentExpr->setSymbol(std::make_shared<FunctionSymbol>(parentTokenText, type));
+					parentExpr->getSymbolToken()->setType(TokenType::FUNCTION_SYMBOL);
+					parentSymbol = parentExpr->getSymbol();
+				}
+			}
 
 			auto funcParentSymbol = std::static_pointer_cast<const FunctionSymbol>(parentSymbol);
 
 			// Make copy of just argument types because symbols are not aware of expressions
-			std::vector<Expression::Type> argTypes;
-			auto arguments = std::move(args[2].getMultipleExpressions());
 			std::for_each(arguments.begin(), arguments.end(),
 				[&argTypes](const Expression::Ptr& e)
 				{
@@ -1686,15 +1768,18 @@ void ParserDriver::defineGrammar()
 
 			if (!funcParentSymbol->overloadExists(argTypes))
 			{
-				std::stringstream ss;
-				ss << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
-				std::for_each(arguments.begin(), arguments.end(),
-					[&ss](const Expression::Ptr& e)
-					{
-						ss << e->getTypeString() << " ";
-					});
-				ss << ")" << std::endl;
-				error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters:\n" + ss.str());
+				if (!incompleteMode())
+				{
+					std::stringstream ss;
+					ss << "Unexpected argument types for function " << funcParentSymbol->getName() << " ( ";
+					std::for_each(arguments.begin(), arguments.end(),
+						[&ss](const Expression::Ptr& e)
+						{
+							ss << e->getTypeString() << " ";
+						});
+					ss << ")" << std::endl;
+					error_handle((--args[1].getTokenIt())->getLocation(), "No matching overload of function '" + funcParentSymbol->getName() + "' for these types of parameters:\n" + ss.str());
+				}
 			}
 
 			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
@@ -1936,7 +2021,15 @@ bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
 
 	_fileContexts.emplace_back(&stream);
 	_file = YaraFile(currentFileContext()->getTokenStream(), _features);
-	return parseImpl();
+	try {
+		auto output = parseImpl();
+		return output;
+	} catch (const ParserError& e) {
+		if (!incompleteMode())
+			throw e;
+		else
+			return true;
+	}
 }
 
 bool ParserDriver::parse(const std::string& filePath, ParserMode parserMode)
@@ -2307,8 +2400,6 @@ void ParserDriver::checkStringModifier(const std::vector<std::shared_ptr<StringM
 		{
 			error_handle(newMod->getTokenRange().first->getLocation(), "Can not specify multiple alphabets for base64 modifiers");
 		}
-
-
 	}
 }
 

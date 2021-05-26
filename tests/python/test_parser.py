@@ -1833,3 +1833,40 @@ rule rule1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_include_undefined_file_in_incomplete_mode(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=r'''include "nonexistent.yar"
+
+rule rule1 : Tag1 {
+    strings:
+        $1 = "Hello World!"
+        $2 = { 01 23 45 67 89 AB CD EF }
+        $3 = /def/is
+    condition:
+        false
+}
+''')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''rule rule1 : Tag1 {
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
+}''', yara_file.text)
+
+        expected = r'''include "nonexistent.yar"
+
+rule rule1 : Tag1
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)

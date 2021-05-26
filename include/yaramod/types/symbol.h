@@ -34,8 +34,17 @@ public:
 		Dictionary,
 		Function,
 		Structure,
-		Reference
+		Reference,
+		Undefined
 	};
+
+	/// @name Constructors
+	/// @{
+	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType, const std::string& documentation = "")
+		: _type(type), _name(name), _documentation(documentation), _dataType(dataType)
+	{
+	}
+	/// @}
 
 	/// @name Destructor
 	/// @{
@@ -58,6 +67,7 @@ public:
 			case Type::Function : return TokenType::FUNCTION_SYMBOL;
 			case Type::Structure : return TokenType::STRUCTURE_SYMBOL;
 			case Type::Reference : return TokenType::REFERENCE_SYMBOL;
+			case Type::Undefined : return TokenType::UNDEFINED;
 			default: return TokenType::INVALID;
 		}
 	}
@@ -77,16 +87,10 @@ public:
 	bool isFunction() const { return _type == Symbol::Type::Function; }
 	bool isStructure() const { return _type == Symbol::Type::Structure; }
 	bool isReference() const { return _type == Symbol::Type::Reference; }
+	bool isUndefined() const { return _type == Symbol::Type::Undefined; }
 	/// @}
 
 protected:
-	/// @name Constructors
-	/// @{
-	Symbol(Symbol::Type type, const std::string& name, ExpressionType dataType, const std::string& documentation = "")
-		: _type(type), _name(name), _documentation(documentation), _dataType(dataType)
-	{
-	}
-	/// @}
 
 	Symbol::Type _type; ///< Type of the symbol
 	std::string _name; ///< Name

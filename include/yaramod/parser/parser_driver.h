@@ -38,7 +38,8 @@ namespace yaramod {
 enum class ParserMode
 {
 	Regular, ///< In this mode, parser behaves like regular YARA parser
-	IncludeGuarded ///< Parser provides protection against inclusion of the same file multiple times
+	IncludeGuarded, ///< Parser provides protection against inclusion of the same file multiple times
+	Incomplete ///< Parser enables to parse incomplete rules: referencing unknown symbols or rules that have been not finished properly (e.g. "rule abc {strings:")
 };
 
 /**
@@ -116,6 +117,11 @@ protected:
 	bool prepareParser(ParserMode parserMode);
 	bool parseImpl();
 	void reset(ParserMode parserMode);
+	/// @}
+
+	/// @name Method for obtaining info about parser
+	/// @{
+	bool incompleteMode() const { return _mode == ParserMode::Incomplete; }
 	/// @}
 
 	/// @name Methods for handling includes

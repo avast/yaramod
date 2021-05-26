@@ -5205,6 +5205,354 @@ rule rule_3
 }
 
 TEST_F(ParserTests,
+ParseIncompleteUnknownImport) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule abc
+{
+	condition:
+		true
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteReferenceUnknownSymbol) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+		unknown_symbol
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownObjectSymbol) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		unknown_object.some_element
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownObjectSymbolFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		cuckoo.unknown_object.some_element
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownArraySymbol) {
+	prepareInput(
+R"(import "pe"
+
+rule abc
+{
+	condition:
+		unknown_array_one[0]
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownArraySymbolFromKnownModule) {
+	prepareInput(
+R"(import "pe"
+
+rule abc
+{
+	condition:
+		pe.unknown_array_two[10]
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownArraySymbolFromUnknownModule) {
+	prepareInput(
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		dummy.unknown_array[10]
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownObjectSymbolFromUnknownModule) {
+	prepareInput(
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		dummy.unknown_object.some_element
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForDict) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		for all k, v in unknown : (  k == "foo" and v == "bar" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(rule abc
+{
+	condition:
+		for all k, v in unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForDictFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		for all k, v in cuckoo.unknown : (  k == "foo" and v == "bar" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		for all k, v in cuckoo.unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForDictFromUnknownModule) {
+	prepareInput(
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		for all k, v in dummy.unknown : (  k == "foo" and v == "bar" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		for all k, v in dummy.unknown : (
+			k == "foo" and
+			v == "bar"
+		)
+}
+)";
+	ASSERT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownFor) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		for all i in unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		for all i in cuckoo.unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownForFromUnknownModule) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		for all i in unknown : ( i == "foo" )
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownFunctionCall) {
+	prepareInput(
+R"(rule abc
+{
+	condition:
+		unknown("param")
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownFunctionCallFromKnownModule) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		cuckoo.unknown("param")
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownFunctionCallFromUnknownModule) {
+	prepareInput(
+R"(import "dummy"
+
+rule abc
+{
+	condition:
+		dummy.unknown("param")
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteUnknownFunctionOverloadOfKnownFunction) {
+	prepareInput(
+R"(import "cuckoo"
+
+rule abc
+{
+	condition:
+		cuckoo.network.http_request(42)
+}
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseIncompleteRuleNotFinished) {
+	prepareInput(
+R"(
+rule abc
+{
+	condition:
+)"
+);
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(0u, driver.getParsedFile().getRules().size());
+	std::vector<std::string> expected{"\n", "rule", "abc", "\n", "{", "\n", "condition", ":", "\n" };
+	ASSERT_EQ(expected, driver.getParsedFile().getTokenStream()->getTokensAsText());
+}
+
+TEST_F(ParserTests,
 AutoformattingClosingBracket) {
 	prepareInput(
 R"(
