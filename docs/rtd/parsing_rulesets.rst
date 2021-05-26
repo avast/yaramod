@@ -312,7 +312,7 @@ There are a lot of expression types that you can visit. Here is a list of them a
   * ``StringInRangeExpression`` - refers to ``$str in (<offset1> .. <offset2>)``
   * ``StringCountExpression`` - reference to number of matched string of certain string identifier (``#a01``, ``#str``)
   * ``StringOffsetExpression`` - reference to first match offset (or Nth match offset) of string identifier (``@a01``, ``@a01[N]``)
-  * ``StringLengthExpression`` - reference to length of first match (or Nth match) of string identifier (``!a01``, ``!a01[N]1``)
+  * ``StringLengthExpression`` - reference to length of first match (or Nth match) of string identifier (``!a01``, ``!a01[N]``)
 
 **Unary operations**
 
@@ -339,7 +339,7 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
   * ``PlusExpression`` - refers to ``+`` operator (``@str1 + 0x100``)
   * ``MinusExpression`` - refers to ``-`` operator (``@str1 - 0x100``)
   * ``MultiplyExpression`` - refers to ``*`` operator (``@str1 * 0x100``)
-  * ``DivideExpression`` - refers to ``/`` operator (``@str1 / 0x100``)
+  * ``DivideExpression`` - refers to ``\`` operator (``@str1 \ 0x100``)
   * ``ModuloExpression`` - refers to ``%`` operator (``@str1 % 0x100``)
   * ``BitwiseXorExpression`` - refers to ``^`` operator (``uint8(0x10) ^ uint8(0x20)``)
   * ``BitwiseAndExpression`` - refers to ``&`` operator (``pe.characteristics & pe.DLL``)
