@@ -20,6 +20,7 @@ matrix:
       osx_image: xcode12u
       install:
         - brew update
+        - brew upgrade
         - brew install gnu-sed
       before_script:
         - NPROC=$(sysctl -n hw.physicalcpu)
