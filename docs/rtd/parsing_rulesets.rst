@@ -339,7 +339,7 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
   * ``PlusExpression`` - refers to ``+`` operator (``@str1 + 0x100``)
   * ``MinusExpression`` - refers to ``-`` operator (``@str1 - 0x100``)
   * ``MultiplyExpression`` - refers to ``*`` operator (``@str1 * 0x100``)
-  * ``DivideExpression`` - refers to ``/`` operator (``@str1 / 0x100``)
+  * ``DivideExpression`` - refers to ``\`` operator (``@str1 \ 0x100``)
   * ``ModuloExpression`` - refers to ``%`` operator (``@str1 % 0x100``)
   * ``BitwiseXorExpression`` - refers to ``^`` operator (``uint8(0x10) ^ uint8(0x20)``)
   * ``BitwiseAndExpression`` - refers to ``&`` operator (``pe.characteristics & pe.DLL``)
