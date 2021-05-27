@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.10.4 (2021-05-27)
+
+* Travis: Add brew upgrade step.
+* Add missing REFERENCE_SYMBOL, LSQB_ENUMERATION, RSQB_ENUMERATION Pytnoh bindings.
+* Incomplete rules parsing allowing also unknown symbols and imports.
+* Fixed pe.rich_signature.raw_data and pe.rich_signature.clear_data types to string.
+
 # v3.10.3 (2021-05-14)
 
 * Feature for older compilers: Include filesystem library based on its availability. 
