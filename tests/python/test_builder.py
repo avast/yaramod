@@ -1286,3 +1286,36 @@ rule rule_with_dictionary_access_condition {
 	condition:
 		true
 }''')
+
+    def test_rule_with_custom_modules(self):
+        cond = yaramod.conjunction([
+            yaramod.id("module_test.structure_test.function_test")(yaramod.regexp("abc", "")),
+            yaramod.id("cuckoo.sync.mutex")(yaramod.regexp("abc", ""))
+        ]).get()
+        rule = yaramod.YaraRuleBuilder() \
+            .with_name('test') \
+            .with_condition(cond)\
+            .get()
+        yara_file = yaramod.YaraFileBuilder(yaramod.Features.AllCurrent, "./tests/python/testing_modules") \
+            .with_module("cuckoo") \
+            .with_module("module_test") \
+            .with_rule(rule) \
+            .get(recheck=True)
+
+        self.assertEqual(yara_file.text_formatted, '''import "cuckoo"
+import "module_test"
+
+rule test
+{
+	condition:
+		module_test.structure_test.function_test(/abc/) and
+		cuckoo.sync.mutex(/abc/)
+}
+''')
+        self.assertEqual(yara_file.text, '''import "cuckoo"
+import "module_test"
+
+rule test {
+	condition:
+		module_test.structure_test.function_test(/abc/) and cuckoo.sync.mutex(/abc/)
+}''')
