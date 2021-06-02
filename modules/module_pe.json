@@ -715,6 +715,36 @@
         },
         {
             "kind": "value",
+            "name": "number_of_version_infos",
+            "documentation": "Number of extracted version information records",
+            "type": "i"
+        },
+        {
+            "kind": "array",
+            "name": "version_info_list",
+            "documentation": "A array of version information records. Each data record contains key and value of the appropriate data record.",
+            "structure":
+            {
+                "kind": "struct",
+                "name": "version_info_list",
+                "attributes": [
+                    {
+                        "kind": "value",
+                        "name": "key",
+                        "documentation": "Key of version information record directory.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "value",
+                        "documentation": "Value of version information record directory.",
+                        "type": "s"
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "value",
             "name": "opthdr_magic",
             "documentation": "Value of IMAGE_OPTIONAL_HEADER::Magic.",
             "type": "i"
