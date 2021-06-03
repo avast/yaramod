@@ -426,7 +426,7 @@ void ParserDriver::defineGrammar()
 		.production("IMPORT_KEYWORD", "STRING_LITERAL", [&](auto&& args) -> Value {
 			TokenIt import = args[1].getTokenIt();
 			import->setType(TokenType::IMPORT_MODULE);
-			if (!_file.addImport(import, _modules))
+			if (!_file.addImport(import, *_modules))
 			{
 				if (!incompleteMode())
 					error_handle(import->getLocation(), "Unrecognized module '" + import->getString() + "' imported");
@@ -1976,7 +1976,18 @@ void ParserDriver::initialize()
  */
 ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
-	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(features, moduleDirectory),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features),
+	_modules(std::make_shared<ModulePool>(features, moduleDirectory)),
+	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
+	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
+	_lastRuleTokenStream(), _anonStringCounter(0)
+{
+	initialize();
+}
+
+ParserDriver::ParserDriver(Features features, const std::shared_ptr<ModulePool>& modulePool)
+	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(modulePool),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0)
@@ -2011,7 +2022,7 @@ const YaraFile& ParserDriver::getParsedFile() const
  */
 std::map<std::string, Module*> ParserDriver::getModules() const
 {
-	return _modules.getModules();
+	return _modules->getModules();
 }
 
 bool ParserDriver::parse(std::istream& stream, ParserMode parserMode)
