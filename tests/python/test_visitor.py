@@ -319,6 +319,52 @@ rule rule_5
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+
+    def test_meta_deleter(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rulename {
+	meta:
+		author = "Avastian"
+	/* comment */
+	strings:
+		$str1 = "a" // comment
+		$str2222 = "b"
+	condition:
+		true
+}''')
+
+        for rule in yara_file.rules:
+            rule.metas = []
+
+        self.assertEqual(r'''rule rulename {
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		true
+}''', yara_file.text)
+
+        new_yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=yara_file.text)
+
+        self.assertEqual(r'''rule rulename {
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		true
+}''', new_yara_file.text)
+
+        expected = r'''rule rulename
+{
+	strings:
+		$str1 = "a"
+		$str2222 = "b"
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, new_yara_file.text_formatted)
+
     def test_pe_iconhash_deleter(self):
         class PeIconhashDeleter(yaramod.ModifyingVisitor):
             """Temporary pe.iconhash() remover which removes pe.iconhash()
