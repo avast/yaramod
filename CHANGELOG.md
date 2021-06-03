@@ -1,10 +1,14 @@
 # Changelog
 
+# v3.10.5 (2021-06-03)
+
+* Fixed YaraFileBuilder::get with recheck to use the builder's module pool ([#166](https://github.com/avast/yaramod/pull/166))
+
 # v3.10.4 (2021-05-27)
 
-* Travis: Add brew upgrade step.
-* Add missing REFERENCE_SYMBOL, LSQB_ENUMERATION, RSQB_ENUMERATION Pytnoh bindings.
-* Incomplete rules parsing allowing also unknown symbols and imports.
+* Travis: Add brew upgrade step ([#164](https://github.com/avast/yaramod/pull/164))
+* Add missing REFERENCE_SYMBOL, LSQB_ENUMERATION, RSQB_ENUMERATION Pytnoh bindings ([#160](https://github.com/avast/yaramod/pull/160))
+* Incomplete rules parsing allowing also unknown symbols and imports ([#159](https://github.com/avast/yaramod/pull/159), [#45](https://github.com/avast/yaramod/issues/45), [#97](https://github.com/avast/yaramod/issues/97))
 * Fixed pe.rich_signature.raw_data and pe.rich_signature.clear_data types to string.
 
 # v3.10.3 (2021-05-14)
@@ -21,7 +25,7 @@
 
 # v3.10.0 (2021-04-23)
 
-* Removed private Avast symbols - modules are dynamically loaded from JSON ([#143](https://github.com/avast/yaramod/pull/143), [#13](https://github.com/avast/yaramod/issues/13))
+* Removed private Avast symbols - modules are dynamically loaded from JSON ([#143](https://github.com/avast/yaramod/pull/143), [#13](https://github.com/avast/yaramod/issues/13), [#98](https://github.com/avast/yaramod/issues/98))
 
 # v3.9.1 (2021-03-29)
 
