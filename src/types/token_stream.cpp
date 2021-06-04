@@ -766,10 +766,6 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			inside_enumeration_brackets = true;
 		else if (current == TokenType::RP_ENUMERATION)
 			inside_enumeration_brackets = false;
-		else if (current == TokenType::LSQB_ENUMERATION)
-			inside_enumeration_brackets = true;
-		else if (current == TokenType::RSQB_ENUMERATION)
-			inside_enumeration_brackets = false;
 		else if (it->isStringModifier())
 			inside_string_modifiers = true;
 

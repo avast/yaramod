@@ -53,6 +53,8 @@ branches:
     - master
     # Version tags.
     - /^v?\d+\.\d+.*$/
+    # Hotfixes.
+    - /hotfix\/.*/
 
 notifications:
   email:
