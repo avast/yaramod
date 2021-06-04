@@ -839,7 +839,7 @@ rule rule_name
 	condition:
 		(
 			true and
-			all of [var > 5.5, time.now() > 500]
+			all of [ var > 5.5, time.now() > 500 ]
 		) or
 		false
 }
