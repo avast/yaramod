@@ -1833,7 +1833,7 @@ void ParserDriver::defineGrammar()
 				TokenIt lsqb = args[0].getTokenIt();
 				lsqb->setType(TokenType::LSQB_ENUMERATION);
 				TokenIt rsqb = args[2].getTokenIt();
-				lsqb->setType(TokenType::RSQB_ENUMERATION);
+				rsqb->setType(TokenType::RSQB_ENUMERATION);
 				auto output = std::make_shared<IterableExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
 				output->setTokenStream(currentTokenStream());
 				return output;
