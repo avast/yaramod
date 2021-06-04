@@ -51,7 +51,7 @@ branches:
     # Version tags.
     - /^v?\d+\.\d+.*$/
     # Hotfixes.
-    - hotfix/.*
+    - /hotfix\/.*/
 
 notifications:
   email:
