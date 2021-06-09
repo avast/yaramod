@@ -2891,6 +2891,40 @@ rule nested_for_array_condition
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+UserDefinedArrayWorks) {
+	prepareInput(
+R"(
+import "cuckoo"
+
+rule user_defined_array
+{
+	condition:
+		1 of [cuckoo.sync.mutex(/a/),
+			cuckoo.sync.mutex(/b/)]
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	std::string expected = R"(
+import "cuckoo"
+
+rule user_defined_array
+{
+	condition:
+		1 of [
+			cuckoo.sync.mutex(/a/),
+			cuckoo.sync.mutex(/b/)
+		]
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
 
 TEST_F(ParserTests,
 ForDictConditionWorks) {
