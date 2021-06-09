@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.10.6 (2021-06-09)
+
+* Fix for multi-line arrays to be formatted with proper indentation ([#172](https://github.com/avast/yaramod/pull/172), [#171](https://github.com/avast/yaramod/issues/171))
+* Added pe.version_info_list and pe.number_of_version_infos ([#167](https://github.com/avast/yaramod/pull/167))
+
 # v3.10.5 (2021-06-03)
 
 * Fixed YaraFileBuilder::get with recheck to use the builder's module pool ([#166](https://github.com/avast/yaramod/pull/166))
@@ -26,6 +31,11 @@
 # v3.10.0 (2021-04-23)
 
 * Removed private Avast symbols - modules are dynamically loaded from JSON ([#143](https://github.com/avast/yaramod/pull/143), [#13](https://github.com/avast/yaramod/issues/13), [#98](https://github.com/avast/yaramod/issues/98))
+
+# v3.9.2 (2021-06-04)
+
+* Hotfix for user-defined arrays to be handled correctly by autoformatter ([#170](https://github.com/avast/yaramod/pull/170), [#171](https://github.com/avast/yaramod/issues/171))
+* Allow hotfix branches to be built in Travis and Appveyor ([#170](https://github.com/avast/yaramod/pull/170))
 
 # v3.9.1 (2021-03-29)
 
