@@ -34,3 +34,15 @@ jobs:
         run: |
           python setup.py build --with-unit-tests
           python setup.py install
+      - name: C++ Tests
+        run: |
+          build/tests/cpp/yaramod_tests
+      - name: Python Tests
+        run: |
+          pytest -v tests/python
+      - name: Documentation
+        if: ${{ matrix.os == "ubuntu-latest" }}
+        run: |
+          cd docs/rtd
+          pip install -r requirements.txt
+          make clean && make html SPHINXOPTS="-W --keep-going -n"
