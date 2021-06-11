@@ -13,8 +13,10 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: 3.9
+            config: Release
           - os: macos-latest
             python-version: 3.9
+            config: Release
           - os: windows-latest
             python-version: 3.7
             config: Release
@@ -33,6 +35,10 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+      - name: Setup Git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
