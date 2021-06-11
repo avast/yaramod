@@ -10,22 +10,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.9, 3.8, 3.7]
+        config: Release
         include:
-          - os: ubuntu-latest
-            python-version: 3.9
-            config: Release
-          - os: macos-latest
-            python-version: 3.9
-            config: Release
-          - os: windows-latest
-            python-version: 3.7
-            config: Release
-          - os: windows-latest
-            python-version: 3.8
-            config: Release
-          - os: windows-latest
-            python-version: 3.9
-            config: Release
           - os: windows-latest
             python-version: 3.9
             config: Debug
@@ -56,6 +44,17 @@ jobs:
         run: |
           python -m pip install pytest
           pytest -v tests/python
+      - name: Build wheel
+        if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
+        run: |
+          pip install wheel
+          python setup.py bdist_wheel
+          dir dist
+          #- name: Upload wheel
+          #  uses: actions/upload-artifact@v2
+          #  with:
+          #    name: windows-wheel-${{ matrix.python-version }}
+          #    path: dist\*.whl
       - name: Documentation
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
