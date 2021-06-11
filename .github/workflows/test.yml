@@ -53,20 +53,22 @@ jobs:
         run: |
           python -m pip install pytest
           pytest -v tests/python
-      - name: Build wheel
-        if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
-        run: |
-          pip install wheel
-          python setup.py bdist_wheel
-          dir dist
-          #- name: Upload wheel
-          #  uses: actions/upload-artifact@v2
-          #  with:
-          #    name: windows-wheel-${{ matrix.python-version }}
-          #    path: dist\*.whl
       - name: Documentation
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           cd docs/rtd
           pip install -r requirements.txt
           make clean && make html SPHINXOPTS="-W --keep-going -n"
+      - name: Build wheel
+        if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
+        run: |
+          pip install wheel
+          python setup.py bdist_wheel
+          dir dist
+      - name: Upload wheel
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-wheel-${{ matrix.python-version }}
+          path: dist\*.whl
+          if-no-files-found: error
+          retention-days: 7

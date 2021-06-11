@@ -1,0 +1,27 @@
+name: Release
+on:
+  workflow_run:
+    workflows:
+      - Test
+    branches:
+      - github-actions
+    types:
+      - completed
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Downloads wheels
+        uses: actions/download-artifact@v2
+        with:
+          path: dist
+      - name: Setup Python
+        uses: actions/setup-python@v2
+      - name: Install twine
+        python -m pip install twine
+      - name: Upload to PyPI
+        run: |
+          ls -la dist/**/*.whl
