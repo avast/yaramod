@@ -1,0 +1,75 @@
+name: Test
+on:
+  push:
+    branches:
+      - master
+      - hotfix/*
+    tags:
+      - v*
+  pull_request:
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.9, 3.8, 3.7]
+        config: [Release]
+        include:
+          - os: windows-latest
+            python-version: 3.9
+            config: Debug
+        exclude:
+          - os: ubuntu-latest
+            python-version: 3.7
+          - os: ubuntu-latest
+            python-version: 3.8
+          - os: macos-latest
+            python-version: 3.7
+          - os: macos-latest
+            python-version: 3.8
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Setup Git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Build
+        env:
+          configuration: ${{ matrix.config }}
+        run: |
+          python setup.py build --with-unit-tests
+          python setup.py install
+      - name: C++ Tests
+        run: |
+          ${{ startsWith(matrix.os, 'windows') && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
+      - name: Python Tests
+        run: |
+          python -m pip install pytest
+          pytest -v tests/python
+      - name: Documentation
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          cd docs/rtd
+          pip install -r requirements.txt
+          make clean && make html SPHINXOPTS="-W --keep-going -n"
+      - name: Build package
+        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
+        run: |
+          pip install wheel
+          python setup.py ${{ startsWith(matrix.os, 'windows') && 'bdist_wheel' || 'sdist' }}
+      - name: Upload package
+        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
+        uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
+          if-no-files-found: error
+          retention-days: 7
