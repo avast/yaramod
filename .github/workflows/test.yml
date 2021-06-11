@@ -44,6 +44,7 @@ jobs:
         env:
           configuration: ${{ matrix.config }}
         run: |
+          ls -la ./**/*.cpp
           python setup.py build --with-unit-tests
           python setup.py install
       - name: C++ Tests
