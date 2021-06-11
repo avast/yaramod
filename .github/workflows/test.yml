@@ -3,7 +3,9 @@ on:
   push:
     branches:
       - master
-      - github-actions
+      - hotfix/*
+    tags:
+      - v*
   pull_request:
 jobs:
   test:

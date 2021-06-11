@@ -3,8 +3,8 @@ on:
   workflow_run:
     workflows:
       - Test
-    branches:
-      - github-actions
+    tags:
+      - v*
     types:
       - completed
 jobs:
@@ -12,12 +12,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
       - name: Downloads wheels
         uses: actions/download-artifact@v2
-        with:
-          path: dist
       - name: Setup Python
         uses: actions/setup-python@v2
       - name: Install twine
@@ -25,5 +21,4 @@ jobs:
           python -m pip install twine
       - name: Upload to PyPI
         run: |
-          shopt -s globstar
-          ls -la dist/**/*.{whl,tar.gz}
+          twine upload --skip-existing -u yaramod -p ${{ secrets.pypi_token }} ./*.{whl,tar.gz}
