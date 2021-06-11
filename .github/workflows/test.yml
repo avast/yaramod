@@ -69,7 +69,6 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
         uses: actions/upload-artifact@v2
         with:
-          name: windows-wheel-${{ matrix.python-version }}
           path: dist\*.whl
           if-no-files-found: error
           retention-days: 7
