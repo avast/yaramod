@@ -35,6 +35,7 @@ jobs:
           python setup.py build --with-unit-tests
           python setup.py install
       - name: C++ Tests
+        shell: bash
         run: |
           build/tests/cpp/yaramod_tests${{ startsWith(matrix.os, 'windows') && '.exe' || '' }}
       - name: Python Tests
