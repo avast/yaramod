@@ -33,13 +33,13 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
       - name: Setup Git
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-      - name: Set up Python
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
