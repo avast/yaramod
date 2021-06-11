@@ -25,4 +25,5 @@ jobs:
           python -m pip install twine
       - name: Upload to PyPI
         run: |
-          ls -la dist/**/*.whl
+          shopt -s globstar
+          ls -la dist/**/*.{whl,tar.gz}

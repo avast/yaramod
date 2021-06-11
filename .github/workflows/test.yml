@@ -44,7 +44,6 @@ jobs:
         env:
           configuration: ${{ matrix.config }}
         run: |
-          shopt
           python setup.py build --with-unit-tests
           python setup.py install
       - name: C++ Tests
@@ -60,16 +59,15 @@ jobs:
           cd docs/rtd
           pip install -r requirements.txt
           make clean && make html SPHINXOPTS="-W --keep-going -n"
-      - name: Build wheel
-        if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
+      - name: Build package
+        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
         run: |
           pip install wheel
-          python setup.py bdist_wheel
-          dir dist
-      - name: Upload wheel
-        if: ${{ startsWith(matrix.os, 'windows') && matrix.config == 'Release' }}
+          python setup.py ${{ startsWith(matrix.os, 'windows') && 'bdist_wheel' || 'sdist' }}
+      - name: Upload package
+        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
         uses: actions/upload-artifact@v2
         with:
-          path: dist\*.whl
+          path: dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
           if-no-files-found: error
           retention-days: 7
