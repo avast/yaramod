@@ -39,6 +39,7 @@ jobs:
           build/tests/cpp/yaramod_tests
       - name: Python Tests
         run: |
+          python -m pip install pytest
           pytest -v tests/python
       - name: Documentation
         if: ${{ matrix.os == 'ubuntu-latest' }}
