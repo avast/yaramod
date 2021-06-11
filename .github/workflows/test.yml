@@ -30,6 +30,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Check python version
+      - name: Build
         run: |
-          python --version
+          python setup.py build --with-unit-tests
+          python setup.py install
