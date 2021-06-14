@@ -265,10 +265,13 @@ void YaraFile::addRule(Rule&& rule, bool extractTokens)
  */
 void YaraFile::addRule(std::unique_ptr<Rule>&& rule, bool extractTokens)
 {
+	// std::cout << " @ Before add yara_file= '''" << std::endl << getText() << "'''" << std::endl << std::endl << std::endl << std::endl;
 	if (extractTokens && (rule->getTokenStream() != _tokenStream.get()))
 		_tokenStream->moveAppend(rule->getTokenStream());
+	// std::cout << "Adding rule with condition '" << rule->getCondition()->getText() << std::endl;
 	_rules.emplace_back(std::move(rule));
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
+	// std::cout << "' @ After add yara_file= '''" << std::endl << getText() << "'''" << std::endl << std::endl << std::endl << std::endl;
 }
 
 /**
