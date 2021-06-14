@@ -2908,8 +2908,6 @@ rule user_defined_array
 	EXPECT_TRUE(driver.parse(input));
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
-	const auto& rule = driver.getParsedFile().getRules()[0];
-
 	std::string expected = R"(
 import "cuckoo"
 
