@@ -13,7 +13,6 @@
 #include <string>
 #include <sstream>
 #include <variant>
-#include <iostream>
 
 #include "yaramod/yaramod_error.h"
 #include "yaramod/types/symbol.h"

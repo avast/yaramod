@@ -10,6 +10,7 @@
 #include <cassert>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 #include "yaramod/types/expression_type.h"
 #include "yaramod/types/token_type.h"
@@ -76,7 +77,11 @@ public:
 	/// @name Setter methods
 	/// @{
 	template<typename T>
-	void setName(T&& name) { _name = std::forward<T>(name); }
+	void setName(T&& name) {
+		std::cout << "Symbol::setName: '" << _name << "' ->" << std::endl;
+		_name = std::forward<T>(name);
+		std::cout << "'" << _name << "'" << std::endl;
+	}
 	/// @}
 
 	/// @name Detection methods

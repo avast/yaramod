@@ -1057,7 +1057,6 @@ public:
 		, _left_bracket(left_bracket)
 		, _right_bracket(right_bracket)
 	{
-		std::cout << "ForArrayExpression with id=" << id->getString() << " created" << std::endl;
 	}
 
 	const std::string& getId() const { return _id->getString(); }

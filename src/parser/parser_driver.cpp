@@ -2091,7 +2091,6 @@ bool ParserDriver::parseImpl()
 
 void ParserDriver::reset(ParserMode parserMode)
 {
-	std::cout << "RESET" << std::endl;
 	_mode = parserMode;
 
 	_strLiteral.clear();

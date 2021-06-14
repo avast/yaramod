@@ -133,7 +133,6 @@ Literal::Literal(ReferenceType value)
  */
 void Literal::setValue(const std::string& s)
 {
-	std::cout << "Set Reference to '" << s << "'' instead of '" << getText() << "'" << std::endl;
 	if (isLiteralReference())
 		const_cast<Literal*>(getLiteralReference())->setValue(s);
 	else
@@ -142,7 +141,6 @@ void Literal::setValue(const std::string& s)
 
 void Literal::setValue(std::string&& s)
 {
-	std::cout << "Set Reference to '" << s << "'' instead of '" << getText() << "'" << std::endl;
 	if (isLiteralReference())
 		const_cast<Literal*>(getLiteralReference())->setValue(std::move(s));
 	else
@@ -192,7 +190,6 @@ void Literal::setValue(double d, const std::optional<std::string>& integral_form
 
 void Literal::setValue(const std::shared_ptr<Symbol>& s)
 {
-	// std::cout << "Set Reference to '" << s->getName() << "'' instead of '" << getText() << "'" << std::endl;
 	if (isLiteralReference())
 		const_cast<Literal*>(getLiteralReference())->setValue(s);
 	else
@@ -201,7 +198,6 @@ void Literal::setValue(const std::shared_ptr<Symbol>& s)
 
 void Literal::setValue(std::shared_ptr<Symbol>&& s)
 {
-	// std::cout << "Set Reference to '" << s->getName() << "'' instead of '" << getText() << "'" << std::endl;
 	if (isLiteralReference())
 		const_cast<Literal*>(getLiteralReference())->setValue(std::move(s));
 	else
@@ -210,7 +206,6 @@ void Literal::setValue(std::shared_ptr<Symbol>&& s)
 
 void Literal::setValue(ReferenceType l)
 {
-	// std::cout << "Set Reference to '" << l->getText() << "'' instead of '" << getText() << "'" << std::endl;
 	_value = l;
 }
 
