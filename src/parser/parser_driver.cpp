@@ -989,7 +989,6 @@ void ParserDriver::defineGrammar()
 	_parser.rule("condition") // Expression::Ptr
 		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
-			std::cout << "Parsed: '" << args[2].getExpression()->getText() << "'" << std::endl;
 			return std::move(args[2]);
 		})
 		;
@@ -1092,17 +1091,15 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> symbol;
 				if (iterParentSymbol->isStructured())
 				{
-					symbol = iterParentSymbol->getStructuredElementType();
-					std::cout << "1a: '" << _file.getText() << "'" << std::endl;
+					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+					symbol = std::make_shared<StructureSymbol>(*s);
 					symbol->setName(args[2].getTokenIt()->getString());
 				}
 				else
 				{
-					std::cout << "1b: '" << _file.getText() << "'" << std::endl;
 					symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterParentSymbol->getElementType());
 				}
 
-				std::cout << "2: '" << _file.getText() << "'" << std::endl;
 				if (!addLocalSymbol(symbol))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};
@@ -1118,7 +1115,6 @@ void ParserDriver::defineGrammar()
 				auto expr = args[8].getExpression();
 				TokenIt rp = args[9].getTokenIt();
 
-				std::cout << "id: "<< id->getString() << std::endl;
 				removeLocalSymbol(id->getString());
 				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
 				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
@@ -1154,7 +1150,8 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> symbol2;
 				if (iterParentSymbol->isStructured())
 				{
-					symbol2 = iterParentSymbol->getStructuredElementType();
+					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+					symbol2 = std::make_shared<StructureSymbol>(*s);
 					symbol2->setName(args[4].getTokenIt()->getString());
 				}
 				else
