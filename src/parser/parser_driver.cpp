@@ -12,8 +12,6 @@
 #include "yaramod/types/token_type.h"
 #include "yaramod/utils/filesystem_operations.h"
 
-#include <iostream>
-
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
 
