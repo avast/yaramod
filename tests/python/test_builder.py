@@ -1319,3 +1319,87 @@ rule test {
 	condition:
 		module_test.structure_test.function_test(/abc/) and cuckoo.sync.mutex(/abc/)
 }''')
+
+    def test_move_rule_condition_into_another_rule(self):
+        cond = yaramod.for_loop(
+                yaramod.any(),
+                'k',
+                'v',
+                yaramod.id('pe').access('version_info'),
+                yaramod.conjunction([
+                    yaramod.id('k') == yaramod.string_val('CompanyName'),
+                    yaramod.id('v').contains(yaramod.string_val('Microsoft'))
+                ])
+            )
+        rule = self.new_rule \
+            .with_name('rule_abc') \
+            .with_plain_string('$1', 'This is plain string.') \
+            .with_hex_string('$2', yaramod.YaraHexStringBuilder([0x10, 0x11]).get()) \
+            .with_regexp('$3', '[a-z0-9]{32}', 'i') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_abc
+{
+	strings:
+		$1 = "This is plain string."
+		$2 = { 10 11 }
+		$3 = /[a-z0-9]{32}/i
+	condition:
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_abc {
+	strings:
+		$1 = "This is plain string."
+		$2 = { 10 11 }
+		$3 = /[a-z0-9]{32}/i
+	condition:
+		for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )
+}''')
+        new_file_bld = yaramod.YaraFileBuilder()
+        for rule in yara_file.rules:
+            new_rule = yaramod.YaraRuleBuilder() \
+                .with_name(rule.name + "_modified") \
+                .with_comment(comment="new comment", multiline=False) \
+                .with_condition(yaramod.YaraExpressionBuilder(rule.condition).get()) \
+                .with_comment(comment="new multiline comment", multiline=True)
+            for s in rule.strings:
+                if s.is_plain:
+                    new_rule.with_plain_string(s.identifier, b"Modified: " + s.pure_text)
+                elif s.is_regexp:
+                    new_rule.with_regexp(s.identifier, s.pure_text, s.suffix_modifiers)
+                # elif s.is_hex:
+                #     new_rule.with_hex_string(s.identifier, s)
+
+            new_file_bld.with_rule(new_rule.get())
+        new_file = new_file_bld.get()
+
+        self.assertEqual(new_file.text, '''rule rule_abc_modified {
+	strings:
+		$1 = "Modified: This is plain string."
+		$3 = /[a-z0-9]{32}/i
+	condition:
+		for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )
+}''')
+        self.assertEqual(new_file.text_formatted, '''// new comment
+/* new multiline comment */
+rule rule_abc_modified
+{
+	strings:
+		$1 = "Modified: This is plain string."
+		$3 = /[a-z0-9]{32}/i
+	condition:
+		for any k, v in pe.version_info : (
+			k == "CompanyName" and
+			v contains "Microsoft"
+		)
+}
+''')
