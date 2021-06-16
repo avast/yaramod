@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.10.7 (2021-06-16)
+
+* Avoid global symbols to be renamed when renaming local variable  ([#174](https://github.com/avast/yaramod/pull/174))
+
 # v3.10.6 (2021-06-09)
 
 * Fix for multi-line arrays to be formatted with proper indentation ([#172](https://github.com/avast/yaramod/pull/172), [#171](https://github.com/avast/yaramod/issues/171))
