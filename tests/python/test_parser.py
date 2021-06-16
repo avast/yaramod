@@ -1834,6 +1834,22 @@ rule rule1
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_include_file_2(self):
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_rules/test_pedia.yar')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''import "pe"
+
+rule rule_rla {
+	condition:
+		for any resource in pe.resources : ( resource.language == 1000 )
+}
+
+rule rule_pedia {
+	condition:
+		for any rsrc in pe.resources : ( int8(rsrc.offset + 0x2) == 0x14 )
+}''', yara_file.text)
+
     def test_include_undefined_file_in_incomplete_mode(self):
         yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=r'''include "nonexistent.yar"
 

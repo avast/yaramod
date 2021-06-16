@@ -1089,7 +1089,8 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> symbol;
 				if (iterParentSymbol->isStructured())
 				{
-					symbol = iterParentSymbol->getStructuredElementType();
+					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+					symbol = std::make_shared<StructureSymbol>(*s);
 					symbol->setName(args[2].getTokenIt()->getString());
 				}
 				else
@@ -1147,7 +1148,8 @@ void ParserDriver::defineGrammar()
 				std::shared_ptr<Symbol> symbol2;
 				if (iterParentSymbol->isStructured())
 				{
-					symbol2 = iterParentSymbol->getStructuredElementType();
+					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+					symbol2 = std::make_shared<StructureSymbol>(*s);
 					symbol2->setName(args[4].getTokenIt()->getString());
 				}
 				else
