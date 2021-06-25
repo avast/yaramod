@@ -202,6 +202,12 @@
         },
         {
             "kind": "value",
+            "name": "SUBSYSTEM_EFI_ROM_IMAGE",
+            "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
             "name": "SUBSYSTEM_XBOX",
             "documentation": "",
             "type": "i"
@@ -210,6 +216,12 @@
             "kind": "value",
             "name": "SUBSYSTEM_WINDOWS_BOOT_APPLICATION",
             "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "HIGH_ENTROPY_VA",
+            "documentation": "DllCharacteristics ASLR with 64 bit address space.",
             "type": "i"
         },
         {
@@ -243,6 +255,12 @@
         {
             "kind": "value",
             "name": "NO_BIND",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "APPCONTAINER",
+            "documentation": "DllCharacteristics Image should execute in an AppContainer.",
             "type": "i"
         },
         {
@@ -397,6 +415,12 @@
         },
         {
             "kind": "value",
+            "name": "IMAGE_DIRECTORY_ENTRY_COPYRIGHT",
+            "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
             "name": "IMAGE_DIRECTORY_ENTRY_GLOBALPTR",
             "documentation": "",
             "type": "i"
@@ -437,6 +461,31 @@
             "documentation": "Data directory for .NET headers.",
             "type": "i"
         },
+
+        {
+            "kind": "value",
+            "name": "IMAGE_NT_OPTIONAL_HDR32_MAGIC",
+            "documentation": "The file is an executable image. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_NT_OPTIONAL_HDR64_MAGIC",
+            "documentation": "The file is an executable image. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_ROM_OPTIONAL_HDR_MAGIC",
+            "documentation": "The file is a ROM image. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_NO_PAD",
+            "documentation": "The section should not be padded to the next boundary. This flag is obsolete and is replaced by IMAGE_SCN_ALIGN_1BYTES. ",
+            "type": "i"
+        },
         {
             "kind": "value",
             "name": "SECTION_CNT_CODE",
@@ -457,8 +506,44 @@
         },
         {
             "kind": "value",
+            "name": "SECTION_LNK_OTHER",
+            "documentation": "Reserved",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_LNK_INFO",
+            "documentation": "The section contains comments or other information. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_LNK_REMOVE",
+            "documentation": "The section will not become part of the image. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_LNK_COMDAT",
+            "documentation": "The section contains COMDAT data. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_NO_DEFER_SPEC_EXC",
+            "documentation": "Reset speculative exceptions handling bits in the TLB entries for this section. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
             "name": "SECTION_GPREL",
             "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_MEM_PURGEABLE",
+            "documentation": "Reserved",
             "type": "i"
         },
         {
@@ -471,6 +556,102 @@
             "kind": "value",
             "name": "SECTION_LNK_NRELOC_OVFL",
             "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_MEM_LOCKED",
+            "documentation": "Reserved",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_MEM_PRELOAD",
+            "documentation": "Reserved",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_1BYTES",
+            "documentation": "Align data on a 1-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_2BYTES",
+            "documentation": "Align data on a 2-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_4BYTES",
+            "documentation": "Align data on a 4-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_8BYTES",
+            "documentation": "Align data on a 8-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_16BYTES",
+            "documentation": "Align data on a 16-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_32BYTES",
+            "documentation": "Align data on a 32-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_64BYTES",
+            "documentation": "Align data on a 64-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_128BYTES",
+            "documentation": "Align data on a 128-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_256BYTES",
+            "documentation": "Align data on a 256-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_512BYTES",
+            "documentation": "Align data on a 512-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_1024BYTES",
+            "documentation": "Align data on a 1024-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_2048BYTES",
+            "documentation": "Align data on a 2048-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_4096BYTES",
+            "documentation": "Align data on a 4096-byte boundary. This is valid only for object files. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "SECTION_ALIGN_8192BYTES",
+            "documentation": "Align data on a 8192-byte boundary. This is valid only for object files. ",
             "type": "i"
         },
         {
@@ -639,6 +820,54 @@
             "kind": "value",
             "name": "RESOURCE_TYPE_MANIFEST",
             "documentation": "",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_UNKNOWN",
+            "documentation": "Unknown value, ignored by all tools. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_COFF",
+            "documentation": "COFF debugging information (line numbers, symbol table, and string table). This type of debugging information is also pointed to by fields in the file headers. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_CODEVIEW",
+            "documentation": "CodeView debugging information. The format of the data block is described by the CodeView 4.0 specification.",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_FPO",
+            "documentation": "Frame pointer omission (FPO) information. This information tells the debugger how to interpret nonstandard stack frames, which use the EBP register for a purpose other than as a frame pointer. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_MISC",
+            "documentation": "Miscellaneous information. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_EXCEPTION",
+            "documentation": "Exception information. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_FIXUP",
+            "documentation": "Fixup information. ",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "IMAGE_DEBUG_TYPE_BORLAND",
+            "documentation": "Borland debugging information.",
             "type": "i"
         },
         {
