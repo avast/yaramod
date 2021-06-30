@@ -3265,6 +3265,46 @@ rule same_variable_in_nested_for_loops
 }
 
 TEST_F(ParserTests,
+FloatValueWorks) {
+	prepareInput(
+R"(
+rule rule_with_float_value_in_condition
+{
+	condition:
+		0.8699322552472 == 0.8699322552472
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(0.8699322552472 == 0.8699322552472)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+FloatValueWorks2) {
+	prepareInput(
+R"(
+rule rule_with_float_value_in_condition
+{
+	condition:
+		0.0000000001 == 0.0000000001
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(0.0000000001 == 0.0000000001)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 CuckooModuleWorks) {
 	prepareInput(
 R"(
