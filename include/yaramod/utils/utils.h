@@ -9,6 +9,7 @@
 #include <cctype>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 namespace yaramod {
 
@@ -45,15 +46,18 @@ bool startsWith(const std::string& str, const T& withWhat)
  * @return Number converted to string.
  */
 template <typename T>
-std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false)
+std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false, bool showpoint=false)
 {
 	std::ostringstream os;
+	os.precision(std::numeric_limits<double>::max_digits10);
 	if (toUpper)
 		os << std::uppercase;
 	if (showbase)
 		os << format << std::showbase << num;
 	else
 		os << format << num;
+	if (showpoint && (std::floor(num) == num))
+		os << ".0";
 	return os.str();
 }
 
