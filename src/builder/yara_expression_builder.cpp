@@ -716,7 +716,7 @@ YaraExpressionBuilder hexIntVal(std::uint64_t value)
 YaraExpressionBuilder doubleVal(double value)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt token = ts->emplace_back(TokenType::DOUBLE, value, numToStr(value));
+	TokenIt token = ts->emplace_back(TokenType::DOUBLE, value, numToStr(value, std::dec, false, false, true));
 	auto expression = std::make_shared<DoubleLiteralExpression>(token);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Float);
 }

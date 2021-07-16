@@ -1898,5 +1898,35 @@ ConjunctionWithSingleTerm) {
 )", yaraFile->getTextFormatted());
 }
 
+
+TEST_F(BuilderTests,
+FloatValueWorks) {
+	auto cond = doubleVal(0.0).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("float_value_works")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule float_value_works {
+	condition:
+		0.0
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule float_value_works
+{
+	condition:
+		0.0
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }
