@@ -7110,5 +7110,27 @@ rule empty_rule
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+DefinedExpresion) {
+	prepareInput(
+R"(
+rule defined_expr
+{
+	condition:
+		defined 1
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("defined 1", rule->getCondition()->getText());
+	EXPECT_EQ("\"defined\"", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ("1", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

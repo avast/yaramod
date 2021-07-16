@@ -180,6 +180,7 @@ void addEnums(py::module& module)
 		.value("ImportModule", TokenType::IMPORT_MODULE)
 		.value("ImportKeyword", TokenType::IMPORT_KEYWORD)
 		.value("Not", TokenType::NOT)
+		.value("Defined", TokenType::DEFINED)
 		.value("And", TokenType::AND)
 		.value("Or", TokenType::OR)
 		.value("All", TokenType::ALL)
@@ -582,6 +583,7 @@ void addExpressionClasses(py::module& module)
 				&UnaryOpExpression::getOperand,
 				py::overload_cast<const Expression::Ptr&>(&UnaryOpExpression::setOperand));
 	unaryOpClass<NotExpression>(module, "NotExpression");
+	unaryOpClass<DefinedExpression>(module, "DefinedExpression");
 	unaryOpClass<UnaryMinusExpression>(module, "UnaryMinusExpression");
 	unaryOpClass<BitwiseNotExpression>(module, "BitwiseNotExpression");
 
@@ -816,6 +818,7 @@ void addBuilderClasses(py::module& module)
 		.def("comment", &YaraExpressionBuilder::comment, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "")
 		.def("contains", &YaraExpressionBuilder::contains)
 		.def("matches", &YaraExpressionBuilder::matches)
+		.def("defined", &YaraExpressionBuilder::defined)
 		.def("read_int8", &YaraExpressionBuilder::readInt8)
 		.def("read_int16", &YaraExpressionBuilder::readInt16)
 		.def("read_int32", &YaraExpressionBuilder::readInt32)

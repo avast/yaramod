@@ -150,6 +150,11 @@ public:
 		return _handleUnaryOperation(expr);
 	}
 
+	virtual VisitResult visit(DefinedExpression *expr) override
+	{
+		return _handleUnaryOperation(expr);
+	}
+
 	virtual VisitResult visit(UnaryMinusExpression* expr) override
 	{
 		return _handleUnaryOperation(expr);

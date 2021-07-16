@@ -134,6 +134,13 @@ void ParserDriver::defineTokens()
 	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IMPORT_KEYWORD, std::string{str}); });
 	_parser.token("not").symbol("NOT").description("not").action([&](std::string_view str) -> Value { return emplace_back(TokenType::NOT, std::string{str}); })
 		.precedence(14, pog::Associativity::Right);
+	if (_features & Features::AvastOnly) {
+		_parser.token("defined").symbol("DEFINED").description("defined").action(
+						[&](std::string_view str) -> Value {
+							return emplace_back(TokenType::DEFINED, std::string{str});
+						})
+				.precedence(15, pog::Associativity::Right);
+	}
 	_parser.token("and").symbol("AND").description("and").action([&](std::string_view str) -> Value { return emplace_back(TokenType::AND, std::string{str}); })
 		.precedence(5, pog::Associativity::Left);
 	_parser.token("or").symbol("OR").description("or").action([&](std::string_view str) -> Value { return emplace_back(TokenType::OR, std::string{str}); })
@@ -1227,6 +1234,14 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("DEFINED", "expression", [&](auto&& args) -> Value {
+			TokenIt not_token = args[0].getTokenIt();
+			auto expr = std::move(args[1].getExpression());
+			auto output = std::make_shared<DefinedExpression>(not_token, std::move(expr));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+			})
 		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt and_token = args[1].getTokenIt();
