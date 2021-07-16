@@ -387,7 +387,7 @@ class UnaryOpExpression : public Expression
 public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		if (_op->getType() == TokenType::NOT)
+		if (_op->getType() == TokenType::NOT || _op->getType() == TokenType::DEFINED)
 			return _op->getString() + " " + _expr->getText(indent);
 		else
 			return _op->getString() + _expr->getText(indent);
@@ -434,6 +434,26 @@ public:
 	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
 
 	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing defined operation.
+ *
+ * For example:
+ * @code
+ * defined @str
+ * @endcode
+ */
+class DefinedExpression : public UnaryOpExpression
+{
+public:
+	template<typename ExpPtr>
+	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
+
+	virtual VisitResult accept(Visitor *v) override
 	{
 		return v->visit(this);
 	}

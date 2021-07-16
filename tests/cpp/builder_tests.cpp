@@ -1898,5 +1898,34 @@ ConjunctionWithSingleTerm) {
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+DefinedTerm) {
+auto cond = boolVal(false).defined().get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("defined_rule")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule defined_rule {
+	condition:
+		defined false
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule defined_rule
+{
+	condition:
+		defined false
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }

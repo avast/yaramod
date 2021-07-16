@@ -1319,3 +1319,20 @@ rule test {
 	condition:
 		module_test.structure_test.function_test(/abc/) and cuckoo.sync.mutex(/abc/)
 }''')
+
+    def test_rule_with_defined_condition(self):
+        cond = yaramod.int_val(200).defined()
+        rule = self.new_rule \
+            .with_name('rule_with_defined_condition') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get(True)
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_defined_condition
+{
+	condition:
+		defined 200
+}
+''')
