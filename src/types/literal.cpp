@@ -250,7 +250,7 @@ std::string Literal::getText(bool pure/* = false*/) const
 		if (_formatted_value.has_value())
 			return _formatted_value.value();
 		else
-			return numToStr(getFloat(), std::dec, false, false, true);
+			return numToStr(getFloat());
 	}
 	else if (isSymbol())
 	{
