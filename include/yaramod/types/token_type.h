@@ -80,6 +80,7 @@ enum class TokenType
 	IMPORT_MODULE,
 	IMPORT_KEYWORD,
 	NOT,
+	DEFINED,
 	AND,
 	OR,
 	ALL,

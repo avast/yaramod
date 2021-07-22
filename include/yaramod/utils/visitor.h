@@ -20,6 +20,7 @@ class StringCountExpression;
 class StringOffsetExpression;
 class StringLengthExpression;
 class NotExpression;
+class DefinedExpression;
 class UnaryMinusExpression;
 class BitwiseNotExpression;
 class AndExpression;
@@ -84,6 +85,7 @@ public:
 	virtual VisitResult visit(StringOffsetExpression* expr) = 0;
 	virtual VisitResult visit(StringLengthExpression* expr) = 0;
 	virtual VisitResult visit(NotExpression* expr) = 0;
+	virtual VisitResult visit(DefinedExpression* expr) = 0;
 	virtual VisitResult visit(UnaryMinusExpression* expr) = 0;
 	virtual VisitResult visit(BitwiseNotExpression* expr) = 0;
 	virtual VisitResult visit(AndExpression* expr) = 0;

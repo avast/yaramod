@@ -72,6 +72,12 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(DefinedExpression *expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(UnaryMinusExpression* expr) override
 	{
 		expr->getOperand()->accept(this);

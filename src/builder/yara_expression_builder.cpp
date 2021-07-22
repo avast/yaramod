@@ -530,6 +530,18 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
 }
 
 /**
+ * Applies operation defined on two expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::defined() {
+	auto token = _tokenStream->emplace(_tokenStream->begin(), TokenType::DEFINED, "defined");
+	_expr = std::make_shared<DefinedExpression>(token, std::move(_expr));
+	setType(Expression::Type::Int);
+	return *this;
+}
+
+/**
  * Accesses the attribute of a structure expression.
  *
  * @param attr Name of attribute.
