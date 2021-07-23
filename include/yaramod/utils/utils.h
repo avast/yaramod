@@ -49,14 +49,34 @@ template <typename T>
 std::string numToStr(const T num, std::ios_base &(*format)(std::ios_base&) = std::dec, bool showbase = false, bool toUpper = false)
 {
 	std::ostringstream os;
+	os.precision(14);
+	os << std::fixed;
 	if (toUpper)
 		os << std::uppercase;
 	if (showbase)
 		os << format << std::showbase << num;
 	else
 		os << format << num;
-	if (std::is_floating_point<T>::value && (std::floor(num) == num))
-		os << ".0";
+
+	if (std::is_floating_point<T>::value)
+	{
+		std::string value = os.str();
+		auto comma = value.find('.');
+		if (comma == std::string::npos)
+		{
+			return value.append(".0");
+		}
+		if (comma == value.length() - 1)
+		{
+			return value.append("0");
+		}
+		if (comma == value.length() - 2)
+		{
+			return value;
+		}
+		auto zero = value.find_last_not_of('0');
+		return {value.begin(), value.begin() + static_cast<long>(std::max(zero + 1, comma + 2))};
+	}
 	return os.str();
 }
 
