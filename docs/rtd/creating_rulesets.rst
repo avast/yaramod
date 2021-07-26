@@ -163,7 +163,7 @@ to make your builder code readable as much as possible.
         # $1 and ($2 or $3)
         (conjunction([
             string_ref('$1'),
-            parent(disjunction([
+            paren(disjunction([
                 string_ref('$2'),
                 string_ref('$3')
             ]))
@@ -214,13 +214,13 @@ basic expressions and find the most suitable one.
         * ``bool_val(bool)`` - represents boolean literal (``bool_val(True)``)
         * ``id(id)`` - represents single identifier with name ``id`` (``id("pe")``)
         * ``string_ref(ref)`` - represents reference to string identifier ``ref`` (``string_ref("$1")``)
-        * ``set(elements)`` - represents ``(item1, item2, ...)`` (``set({string_ref("$1"), string_ref("$2")})``)
+        * ``set(elements)`` - represents ``(item1, item2, ...)`` (``set([string_ref("$1"), string_ref("$2")])``)
         * ``range(low, high)`` - represents ``(low .. high)`` (``range(int_val(100), int_val(200))``)
         * ``match_count(ref)`` - represents match count of string identifier ``ref`` (``match_count("$1")``)
         * ``match_length(ref, [n])`` - represent ``n``th match (default: 0) length of string identifier ``ref`` (``match_length("$1", int_val(1))``)
         * ``match_offset(ref, [n])`` - represents ``n``th match (default: 0) offset of string identifier ``ref`` (``match_offset("$1", int_val(1))``)
         * ``match_at(ref, expr)`` - represents ``<ref> at <expr>`` (``match_at("$1", int_val(100))``)
-        * ``match_inRange(ref, range)`` - represents ``<ref> in <range>`` (``match_in_range("$1", range(int_val(100), int_val(200)))``)
+        * ``match_in_range(ref, range)`` - represents ``<ref> in <range>`` (``match_in_range("$1", range(int_val(100), int_val(200)))``)
         * ``regexp(regexp, mods) - represents regular expression in form ``/<regexp>/<mods>`` (``regexp("^a.*b$", "i")``)
         * ``for_loop(spec, var, set, body)`` - represents ``for`` loop over array or set of integers (``for_loop(any(), "i", range(int_val(100), int_val(200)), match_at("$1", id("i")))``)
         * ``for_loop(spec, var1, var2, set, body)`` - represents ``for`` loop over dictionary (``for_loop(any(), "k", "v", id("pe").access("version_info"), True)``)
