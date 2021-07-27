@@ -80,6 +80,10 @@ void addEnums(py::module& module)
 		.value("Kilobytes", IntMultiplier::Kilobytes)
 		.value("Megabytes", IntMultiplier::Megabytes);
 
+	py::enum_<IntFunctionEndianness>(module, "IntFunctionEndianness")
+		.value("Little", IntFunctionEndianness::Little)
+		.value("Big", IntFunctionEndianness::Big);
+
 	py::enum_<Rule::Modifier>(module, "RuleModifier")
 		.value("Empty", Rule::Modifier::None)
 		.value("Global", Rule::Modifier::Global)
