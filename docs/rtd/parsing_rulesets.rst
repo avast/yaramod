@@ -318,7 +318,7 @@ There are a lot of expression types that you can visit. Here is a list of them a
 
 All of these provide method ``getOperand()`` (``operand`` in Python) to return operand of an expression.
 
-  * ``NotExpression`` - refers to logical ``not`` operator (``!(@str > 10)``)
+  * ``NotExpression`` - refers to logical ``not`` operator (``not @str > 10``)
   * ``UnaryMinusExpression`` - refers to unary ``-`` operator (``-20``)
   * ``BitwiseNotExpression`` - refers to bitwise not (``~uint8(0x0)``)
 
@@ -334,8 +334,8 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
   * ``GeExpression`` - refers to ``>=`` operator (``@str1 >= @str2``)
   * ``EqExpression`` - refers to ``==`` operator (``!str1 == !str2``)
   * ``NeqExpression`` - refers to ``!=`` operator (``!str1 != !str2``)
-  * ``ContainsExpression`` - refers to ``contains`` operator (``pe.sections[0] contains "text"``)
-  * ``MatchesExpression`` - refers to ``matches`` operator (``pe.sections[0] matches /(text|data)/``)
+  * ``ContainsExpression`` - refers to ``contains`` operator (``pe.sections[0].name contains "text"``)
+  * ``MatchesExpression`` - refers to ``matches`` operator (``pe.sections[0].name matches /(text|data)/``)
   * ``PlusExpression`` - refers to ``+`` operator (``@str1 + 0x100``)
   * ``MinusExpression`` - refers to ``-`` operator (``@str1 - 0x100``)
   * ``MultiplyExpression`` - refers to ``*`` operator (``@str1 * 0x100``)
@@ -353,7 +353,7 @@ All of these provide method ``getVariable()`` (``variable`` in Python) to return
 ``getIterable()`` (``iterable`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
 
   * ``ForDictExpression`` - refers to ``for`` which operates on dictionary (``for all k, v in some_dict : ( ... )``)
-  * ``ForArrayExpression`` - refers to ``for`` which operates on array or set of integers (``for all section in pe.sectioins : ( ... )``)
+  * ``ForArrayExpression`` - refers to ``for`` which operates on array or set of integers (``for all section in pe.sections : ( ... )``)
   * ``ForStringExpression`` - refers to ``for`` which operates on set of string identifiers (``for all of ($str1, $str2) : ( ... )``)
   * ``OfExpression`` - refers to ``of`` (``all of ($str1, $str2)``)
 
