@@ -58,5 +58,16 @@ UnescapeStringWorks) {
 	EXPECT_EQ("\n\t\\\"\x01", unescapeString(R"(\n\t\\\"\x01)"));
 }
 
+TEST_F(UtilsTests,
+NumToStrWorks) {
+	EXPECT_EQ("10", numToStr<int>(10));
+	EXPECT_EQ("a", numToStr<int>(10, std::hex));
+	EXPECT_EQ("10.0", numToStr<double>(10.0));
+	EXPECT_EQ("10.05", numToStr<double>(10.05));
+	EXPECT_EQ("0.0000000001", numToStr<double>(0.0000000001));
+	EXPECT_EQ("0.0", numToStr<double>(0.0));
+	EXPECT_EQ("0.869932552472", numToStr<double>(0.869932552472));
+}
+
 }
 }
