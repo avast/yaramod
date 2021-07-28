@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.10.8 (2021-07-28)
+
+* Add Python binding for `yaramod::IntFunctionEndianness` ([#132](https://github.com/avast/yaramod/issues/132), [#181](https://github.com/avast/yaramod/pull/181)).
+* Add unary operator `defined` ([#178](https://github.com/avast/yaramod/pull/178)).
+* Fix generation of double values - always use decimal notation ([#179](https://github.com/avast/yaramod/pull/179)).
+* Fix typos in documentation ([#180](https://github.com/avast/yaramod/pull/180)).
+
 # v3.10.7 (2021-06-16)
 
 * Avoid global symbols to be renamed when renaming local variable  ([#174](https://github.com/avast/yaramod/pull/174))
@@ -22,7 +29,7 @@
 
 # v3.10.3 (2021-05-14)
 
-* Feature for older compilers: Include filesystem library based on its availability. 
+* Feature for older compilers: Include filesystem library based on its availability.
 
 # v3.10.2 (2021-04-28)
 
