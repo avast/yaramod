@@ -156,6 +156,7 @@ void ParserDriver::defineTokens()
 	_parser.token("filesize").symbol("FILESIZE").description("filesize").action([&](std::string_view str) -> Value { return emplace_back(TokenType::FILESIZE, std::string{str}); });
 	_parser.token("contains").symbol("CONTAINS").description("contains").action([&](std::string_view str) -> Value { return emplace_back(TokenType::CONTAINS, std::string{str}); });
 	_parser.token("matches").symbol("MATCHES").description("matches").action([&](std::string_view str) -> Value { return emplace_back(TokenType::MATCHES, std::string{str}); });
+	_parser.token("iequals").symbol("IEQUALS").description("iequals").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IEQUALS, std::string{str}); });
 
 	// $include
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
@@ -1335,6 +1336,19 @@ void ParserDriver::defineGrammar()
 				error_handle(op_token->getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
 			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		.production("primary_expression", "IEQUALS", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'iequals' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'iequals' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<IequalsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
 			return output;

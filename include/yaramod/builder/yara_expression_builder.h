@@ -185,6 +185,7 @@ public:
 
 	YaraExpressionBuilder& contains(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& matches(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& iequals(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& defined();
 
 	YaraExpressionBuilder& access(const std::string& attr);

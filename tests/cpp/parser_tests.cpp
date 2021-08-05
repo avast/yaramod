@@ -7151,7 +7151,7 @@ rule empty_rule
 }
 
 TEST_F(ParserTests,
-DefinedExpresion) {
+DefinedExpression) {
 	prepareInput(
 R"(
 rule defined_expr
@@ -7166,8 +7166,31 @@ rule defined_expr
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	EXPECT_EQ("defined 1", rule->getCondition()->getText());
-	EXPECT_EQ("\"defined\"", rule->getCondition()->getFirstTokenIt()->getText());
+	EXPECT_EQ("defined", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("1", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IequalsExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule iequals_expr
+{
+	condition:
+		pe.sections[0].name iequals ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name iequals \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

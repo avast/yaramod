@@ -530,6 +530,23 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
 }
 
 /**
+ * Applies operation iequals on two expression.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::iequals(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::IEQUALS, "iequals");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<IequalsExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
  * Applies operation defined on two expression.
  *
  * @return Builder.

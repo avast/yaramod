@@ -198,6 +198,7 @@ void addEnums(py::module& module)
 		.value("Filesize", TokenType::FILESIZE)
 		.value("Contains", TokenType::CONTAINS)
 		.value("Matches", TokenType::MATCHES)
+		.value("Iequals", TokenType::IEQUALS)
 		.value("Slash", TokenType::SLASH)
 		.value("StringLiteral", TokenType::STRING_LITERAL)
 		.value("Integer", TokenType::INTEGER)
@@ -608,6 +609,7 @@ void addExpressionClasses(py::module& module)
 	binaryOpClass<NeqExpression>(module, "NeqExpression");
 	binaryOpClass<ContainsExpression>(module, "ContainsExpression");
 	binaryOpClass<MatchesExpression>(module, "MatchesExpression");
+	binaryOpClass<IequalsExpression>(module, "IequalsExpression");
 	binaryOpClass<PlusExpression>(module, "PlusExpression");
 	binaryOpClass<MinusExpression>(module, "MinusExpression");
 	binaryOpClass<MultiplyExpression>(module, "MultiplyExpression");
@@ -822,6 +824,7 @@ void addBuilderClasses(py::module& module)
 		.def("comment", &YaraExpressionBuilder::comment, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "")
 		.def("contains", &YaraExpressionBuilder::contains)
 		.def("matches", &YaraExpressionBuilder::matches)
+		.def("iequals", &YaraExpressionBuilder::iequals)
 		.def("defined", &YaraExpressionBuilder::defined)
 		.def("read_int8", &YaraExpressionBuilder::readInt8)
 		.def("read_int16", &YaraExpressionBuilder::readInt16)

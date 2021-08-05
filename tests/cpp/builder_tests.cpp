@@ -1900,7 +1900,7 @@ ConjunctionWithSingleTerm) {
 
 TEST_F(BuilderTests,
 DefinedTerm) {
-auto cond = boolVal(false).defined().get();
+	auto cond = boolVal(false).defined().get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1953,6 +1953,40 @@ FloatValueWorks) {
 {
 	condition:
 		0.0
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+IequalsWorks) {
+	auto cond = id("pe").access("pdb_path").iequals(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("iequals_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule iequals_builder {
+	condition:
+		pe.pdb_path iequals "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule iequals_builder
+{
+	condition:
+		pe.pdb_path iequals "C:\\PATH"
 }
 )", yaraFile->getTextFormatted());
 }

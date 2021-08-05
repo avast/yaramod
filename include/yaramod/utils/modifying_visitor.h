@@ -215,6 +215,11 @@ public:
 		return _handleBinaryOperation(expr);
 	}
 
+	virtual VisitResult visit(IequalsExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
 	virtual VisitResult visit(PlusExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);

@@ -733,7 +733,7 @@ public:
  *
  * For example:
  * @code
- * pe.sections[0] matches /(text|data)/
+ * pe.sections[0].name matches /(text|data)/
  * @endcode
  */
 class MatchesExpression : public BinaryOpExpression
@@ -741,6 +741,26 @@ class MatchesExpression : public BinaryOpExpression
 public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing iequals operation for case-insensitive string compare.
+ *
+ * For example:
+ * @code
+ * pe.sections[0].name iequals ".TEXT"
+ * @endcode
+ */
+class IequalsExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	IequalsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
