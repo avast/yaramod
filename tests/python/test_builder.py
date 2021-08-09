@@ -1336,3 +1336,95 @@ rule test {
 		defined 200
 }
 ''')
+
+    def test_rule_with_pe_int_constants_condition(self):
+        constans = [
+            'MACHINE_TARGET_HOST',
+            'MACHINE_R3000',
+            'MACHINE_R10000',
+            'MACHINE_ALPHA',
+            'MACHINE_SH3E',
+            'MACHINE_AXP64',
+            'MACHINE_ALPHA64',
+            'MACHINE_TRICORE',
+            'MACHINE_CEF',
+            'MACHINE_CEE',
+            'SUBSYSTEM_EFI_ROM_IMAGE',
+            'HIGH_ENTROPY_VA',
+            'APPCONTAINER',
+            'GUARD_CF',
+            'IMAGE_DIRECTORY_ENTRY_COPYRIGHT',
+            'IMAGE_NT_OPTIONAL_HDR32_MAGIC',
+            'IMAGE_NT_OPTIONAL_HDR64_MAGIC',
+            'IMAGE_ROM_OPTIONAL_HDR_MAGIC',
+            'SECTION_NO_PAD',
+            'SECTION_LNK_OTHER',
+            'SECTION_LNK_INFO',
+            'SECTION_LNK_REMOVE',
+            'SECTION_LNK_COMDAT',
+            'SECTION_NO_DEFER_SPEC_EXC',
+            'SECTION_MEM_FARDATA',
+            'SECTION_MEM_PURGEABLE',
+            'SECTION_MEM_PURGEABLE',
+            'SECTION_MEM_LOCKED',
+            'SECTION_MEM_PRELOAD',
+            'SECTION_ALIGN_1BYTES',
+            'SECTION_ALIGN_2BYTES',
+            'SECTION_ALIGN_4BYTES',
+            'SECTION_ALIGN_8BYTES',
+            'SECTION_ALIGN_16BYTES',
+            'SECTION_ALIGN_32BYTES',
+            'SECTION_ALIGN_64BYTES',
+            'SECTION_ALIGN_128BYTES',
+            'SECTION_ALIGN_256BYTES',
+            'SECTION_ALIGN_512BYTES',
+            'SECTION_ALIGN_1024BYTES',
+            'SECTION_ALIGN_2048BYTES',
+            'SECTION_ALIGN_4096BYTES',
+            'SECTION_ALIGN_8192BYTES',
+            'SECTION_ALIGN_MASK',
+            'SECTION_SCALE_INDEX',
+            'IMAGE_DEBUG_TYPE_UNKNOWN',
+            'IMAGE_DEBUG_TYPE_COFF',
+            'IMAGE_DEBUG_TYPE_CODEVIEW',
+            'IMAGE_DEBUG_TYPE_FPO',
+            'IMAGE_DEBUG_TYPE_MISC',
+            'IMAGE_DEBUG_TYPE_EXCEPTION',
+            'IMAGE_DEBUG_TYPE_FIXUP',
+            'IMAGE_DEBUG_TYPE_OMAP_FROM_SRC',
+            'IMAGE_DEBUG_TYPE_OMAP_TO_SRC',
+            'IMAGE_DEBUG_TYPE_BORLAND',
+            'IMAGE_DEBUG_TYPE_RESERVED10',
+            'IMAGE_DEBUG_TYPE_CLSID',
+            'IMAGE_DEBUG_TYPE_VC_FEATURE',
+            'IMAGE_DEBUG_TYPE_POGO',
+            'IMAGE_DEBUG_TYPE_ILTCG',
+            'IMAGE_DEBUG_TYPE_MPX',
+            'IMAGE_DEBUG_TYPE_REPRO',
+        ]
+        cond = yaramod.id('pe').access(constans[0])
+        for constant in constans[1:]:
+            cond = cond | yaramod.id('pe').access(constant)
+        rule = (
+            self.new_rule
+                .with_name('rule_with_constant_condition')
+                .with_condition(cond.get())
+                .get()
+        )
+        yara_file = (
+            self.new_file
+                .with_module("pe")
+                .with_rule(rule)
+                .get(True)
+        )
+
+        self.assertEqual(
+            yara_file.text_formatted,
+            'import "pe"\n'
+            '\n'
+            'rule rule_with_constant_condition\n'
+            '{\n'
+            '\tcondition:\n'
+            f'\t\t{" | ".join(f"pe.{constant}"  for constant in constans)}\n'
+            '}\n'
+        )
