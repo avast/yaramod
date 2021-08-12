@@ -336,6 +336,7 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
   * ``NeqExpression`` - refers to ``!=`` operator (``!str1 != !str2``)
   * ``ContainsExpression`` - refers to ``contains`` operator (``pe.sections[0].name contains "text"``)
   * ``MatchesExpression`` - refers to ``matches`` operator (``pe.sections[0].name matches /(text|data)/``)
+  * ``IequalsExpression`` - refers to ``iequals`` operator (``pe.sections[0].name iequals "text"``)
   * ``PlusExpression`` - refers to ``+`` operator (``@str1 + 0x100``)
   * ``MinusExpression`` - refers to ``-`` operator (``@str1 - 0x100``)
   * ``MultiplyExpression`` - refers to ``*`` operator (``@str1 * 0x100``)

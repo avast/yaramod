@@ -33,6 +33,7 @@ class EqExpression;
 class NeqExpression;
 class ContainsExpression;
 class MatchesExpression;
+class IequalsExpression;
 class PlusExpression;
 class MinusExpression;
 class MultiplyExpression;
@@ -98,6 +99,7 @@ public:
 	virtual VisitResult visit(NeqExpression* expr) = 0;
 	virtual VisitResult visit(ContainsExpression* expr) = 0;
 	virtual VisitResult visit(MatchesExpression* expr) = 0;
+	virtual VisitResult visit(IequalsExpression* expr) = 0;
 	virtual VisitResult visit(PlusExpression* expr) = 0;
 	virtual VisitResult visit(MinusExpression* expr) = 0;
 	virtual VisitResult visit(MultiplyExpression* expr) = 0;

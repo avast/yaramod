@@ -160,6 +160,13 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(IequalsExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(PlusExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
