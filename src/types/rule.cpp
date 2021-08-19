@@ -326,6 +326,16 @@ void Rule::setVariables(const std::vector<Variable>& variables)
 }
 
 /**
+ * Sets the condition expression of the YARA rule.
+ *
+ * @param condition Condition expression.
+ */
+void Rule::setStringsTrie(const std::shared_ptr<StringsTrie>&& strings)
+{
+	_strings = strings;
+}
+
+/**
  * Sets the tags of the rule.
  *
  * @param tags Tags to set.

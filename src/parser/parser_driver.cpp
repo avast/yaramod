@@ -465,28 +465,66 @@ void ParserDriver::defineGrammar()
 	};
 
 	if (_features & Features::AvastOnly)
+	{
+		_parser.rule("sections_summary") // std::shared_ptr<SectionsSummary>
+				.production("sections_summary", "variables", [&](auto&& args) -> Value {
+					auto section_summary = std::move(args[0].getSectionsSummary());
+					section_summary->setVariables(args[1].getVariables());
+					return section_summary;
+				})
+				.production("sections_summary", "strings", [&](auto&& args) -> Value {
+					auto section_summary = std::move(args[0].getSectionsSummary());
+					section_summary->setStringsTrie(std::move(args[1].getStringsTrie()));
+					return section_summary;
+				})
+				.production([&](auto&&) -> Value {
+					auto variables = std::vector<Variable>();
+					auto strings = std::make_shared<Rule::StringsTrie>();
+					setCurrentStrings(strings);
+					
+					return std::make_shared<SectionsSummary>(strings, variables);
+				})
+				;
+
 		_parser.rule("rule") // {}
 			.production(
-				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "variables", "condition" , "RCB", [&](auto&& args) -> Value {
+				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "sections_summary", "condition" , "RCB", [&](auto&& args) -> Value {
 				auto rule = createCommonRule(args);
-				auto variables = std::move(args[9].getVariables());
-				rule.setVariables(std::move(variables));
-				rule.setCondition(std::move(args[10].getExpression()));
-				args[11].getTokenIt()->setType(TokenType::RULE_END);
+				auto sections_summary = std::move(args[8].getSectionsSummary());
+				auto variables = std::move(sections_summary->getVariables());
 
-				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-					removeLocalSymbol(iter->getKey());
-				}
+				rule.setVariables(std::move(variables));
+				rule.setStringsTrie(std::move(sections_summary->getStringsTrie()));
+				rule.setCondition(std::move(args[9].getExpression()));
+				args[10].getTokenIt()->setType(TokenType::RULE_END);
+
+				//for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+				//	removeLocalSymbol(iter->getKey());
+				//}
 
 				addRule(std::move(rule));
 				return {};
 			})
 			;
+	}
 	else
+	{
+		_parser.rule("strings_optional")
+			.production("strings", [&](auto&& args) -> Value {
+				return std::move(args[0].getStringsTrie());
+			})
+			.production([&](auto&&) -> Value {
+				auto strings = std::make_shared<Rule::StringsTrie>();
+				setCurrentStrings(strings);
+				return strings;
+			})
+			;
+
 		_parser.rule("rule") // {}
 			.production(
-				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings", "condition" , "RCB", [&](auto&& args) -> Value {
+				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "strings_optional", "condition" , "RCB", [&](auto&& args) -> Value {
 				auto rule = createCommonRule(args);
+				rule.setStringsTrie(std::move(args[8].getStringsTrie()));
 				rule.setCondition(std::move(args[9].getExpression()));
 				args[10].getTokenIt()->setType(TokenType::RULE_END);
 
@@ -494,6 +532,7 @@ void ParserDriver::defineGrammar()
 				return {};
 			})
 			;
+	}
 
 	_parser.rule("rule_mods") // vector<TokenIt>
 		.production("rule_mods", "PRIVATE", [](auto&& args) -> Value {
@@ -574,7 +613,6 @@ void ParserDriver::defineGrammar()
 				args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 				return std::move(args[2]);
 			})
-			.production([](auto&&) -> Value { return std::vector<Variable>(); })
 			;
 
 		_parser.rule("variables_body") // vector<Variable>
@@ -606,11 +644,6 @@ void ParserDriver::defineGrammar()
 		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value {
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 			return std::move(args[2]);
-		})
-		.production([&](auto&&) -> Value {
-			auto strings = std::make_shared<Rule::StringsTrie>();
-			setCurrentStrings(strings);
-			return strings;
 		})
 		;
 
@@ -2469,9 +2502,8 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 	const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 	args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
 	std::vector<Meta> metas = std::move(args[7].getMetas());
-	std::shared_ptr<Rule::StringsTrie> strings = std::move(args[8].getStringsTrie());
 	return Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
-				std::move(metas), std::move(strings), std::vector<Variable>(), NULL, std::move(tags));
+				std::move(metas), std::make_shared<Rule::StringsTrie>(), std::vector<Variable>(), NULL, std::move(tags));
 }
 
 } //namespace yaramod
