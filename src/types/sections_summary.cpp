@@ -37,6 +37,7 @@ const std::vector<Variable> SectionsSummary::getVariables() const
  */
 void SectionsSummary::setStringsTrie(const std::shared_ptr<Rule::StringsTrie> strings)
 {
+    _is_strings_set = true;
 	_strings = std::move(strings);
 }
 
@@ -47,6 +48,7 @@ void SectionsSummary::setStringsTrie(const std::shared_ptr<Rule::StringsTrie> st
  */
 void SectionsSummary::setVariables(const std::vector<Variable> variables)
 {
+    _is_variables_set = true;
 	_variables = variables;
 }
 

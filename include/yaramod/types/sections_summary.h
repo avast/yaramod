@@ -20,7 +20,8 @@ class SectionsSummary
 public:
 	/// @name Constructors
 	/// @{
-	SectionsSummary(std::shared_ptr<Rule::StringsTrie> default_strings, std::vector<Variable> default_variables) : _strings(default_strings), _variables(default_variables) {}
+	SectionsSummary(std::shared_ptr<Rule::StringsTrie> default_strings, std::vector<Variable> default_variables)
+        : _strings(default_strings), _variables(default_variables), _is_strings_set(false), _is_variables_set(false) {}
 	SectionsSummary(const SectionsSummary& section_summary) = default;
 	SectionsSummary(SectionsSummary&& section_summary) = default;
 	/// @}
@@ -37,6 +38,8 @@ public:
 	const std::vector<Variable> getVariables() const;
 	/// @}
 
+    bool isStringsTrieSet() { return _is_strings_set; }
+    bool isVariablesSet() { return _is_variables_set; }
 
 	/// @name Setter methods
 	/// @{
@@ -45,6 +48,8 @@ public:
 	/// @}
 
 private:
+    bool _is_strings_set;
+    bool _is_variables_set;
 	std::shared_ptr<Rule::StringsTrie> _strings; ///< Strings
 	std::vector<Variable> _variables; ///< Variables 
 };

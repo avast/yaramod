@@ -469,11 +469,19 @@ void ParserDriver::defineGrammar()
 		_parser.rule("sections_summary") // std::shared_ptr<SectionsSummary>
 				.production("sections_summary", "variables", [&](auto&& args) -> Value {
 					auto section_summary = std::move(args[0].getSectionsSummary());
+					if (section_summary->isVariablesSet())
+					{
+						error_handle(currentFileContext()->getLocation(), "Duplicate variables section.");
+					}
 					section_summary->setVariables(args[1].getVariables());
 					return section_summary;
 				})
 				.production("sections_summary", "strings", [&](auto&& args) -> Value {
 					auto section_summary = std::move(args[0].getSectionsSummary());
+					if (section_summary->isStringsTrieSet())
+					{
+						error_handle(currentFileContext()->getLocation(), "Duplicate strings section.");
+					}
 					section_summary->setStringsTrie(std::move(args[1].getStringsTrie()));
 					return section_summary;
 				})
