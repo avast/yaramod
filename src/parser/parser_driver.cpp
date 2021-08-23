@@ -499,16 +499,16 @@ void ParserDriver::defineGrammar()
 				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "sections_summary", "condition" , "RCB", [&](auto&& args) -> Value {
 				auto rule = createCommonRule(args);
 				auto sections_summary = std::move(args[8].getSectionsSummary());
-				auto variables = std::move(sections_summary->getVariables());
+				auto variables = sections_summary->getVariables();
 
-				rule.setVariables(std::move(variables));
+				rule.setVariables(variables);
 				rule.setStringsTrie(std::move(sections_summary->getStringsTrie()));
 				rule.setCondition(std::move(args[9].getExpression()));
 				args[10].getTokenIt()->setType(TokenType::RULE_END);
 
-				//for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-				//	removeLocalSymbol(iter->getKey());
-				//}
+				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+					removeLocalSymbol(iter->getKey());
+				}
 
 				addRule(std::move(rule));
 				return {};
