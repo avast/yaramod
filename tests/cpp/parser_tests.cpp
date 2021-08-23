@@ -1804,6 +1804,36 @@ std::string expected = R"(rule rule1
 }
 
 TEST_F(ParserTests,
+RuleWithUnorderedSections) {
+	prepareInput(
+R"(rule rule1
+{
+	variables:
+		var = 23
+	strings:
+		$1 = "Hello World!"
+	condition:
+		true
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+std::string expected = R"(rule rule1
+{
+	variables:
+		var = 23
+	strings:
+		$1 = "Hello World!"
+	condition:
+		true
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 GlobalRuleModifierWorks) {
 	prepareInput(
 R"(

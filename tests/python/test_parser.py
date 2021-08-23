@@ -201,6 +201,31 @@ rule rule_with_variables {
         self.assertTrue(rule.variables[4].value.symbol.is_structure)
         self.assertEqual(rule.variables[4].value.symbol.name, 'time')
 
+    def test_rule_with_unordered_sections(self):
+        yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''
+rule rule_with_unordered_sections
+{
+	variables:
+		var = 25.8
+	strings:
+		$1 = "Hello World!"
+	condition:
+		true
+}''')
+
+        expected = r'''
+rule rule_with_unordered_sections
+{
+	variables:
+		var = 25.8
+	strings:
+		$1 = "Hello World!"
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_rule_with_variable_and_string(self):
         yara_file = yaramod.Yaramod(yaramod.Features.Avast).parse_string('''
 import "time"
