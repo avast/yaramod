@@ -88,6 +88,7 @@ public:
 	void setName(const std::string& name);
 	void setMetas(const std::vector<Meta>& metas);
 	void setVariables(const std::vector<Variable>& variables);
+	void setStringsTrie(const std::shared_ptr<StringsTrie>&& strings);
 	void setTags(const std::vector<std::string>& tags);
 	void setCondition(const Expression::Ptr& condition);
 	void setLocation(const Location& location) { _location = location; }

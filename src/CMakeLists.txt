@@ -17,6 +17,7 @@ set(SOURCES
 	types/modules/module_pool.cpp
 	types/plain_string.cpp
 	types/rule.cpp
+	types/sections_summary.cpp
 	types/token.cpp
 	types/token_stream.cpp
 	types/yara_file.cpp

@@ -14,6 +14,7 @@
 #include "yaramod/types/rule.h"
 #include "yaramod/types/regexp.h"
 #include "yaramod/types/token_stream.h"
+#include "yaramod/types/sections_summary.h"
 
 #pragma once
 
@@ -52,7 +53,8 @@ public:
 		TokenIt,
 		RegexpRangePair, //20
 		RegexpClassRecord,
-		std::vector<Variable> //22
+		std::vector<Variable>, //22
+		std::shared_ptr<SectionsSummary>
 	>;
 
 	/// @name Constructors
@@ -110,6 +112,11 @@ public:
 	std::shared_ptr<Rule::StringsTrie>&& getStringsTrie()
 	{
 		return std::move(moveValue<std::shared_ptr<Rule::StringsTrie>>());
+	}
+
+	std::shared_ptr<SectionsSummary>&& getSectionsSummary()
+	{
+		return std::move(moveValue<std::shared_ptr<SectionsSummary>>());
 	}
 
 	std::shared_ptr<StringModifier>&& getStringMod()
