@@ -3332,6 +3332,30 @@ rule cuckoo_module
 }
 
 TEST_F(ParserTests,
+DotnetModuleWorks) {
+	prepareInput(
+R"(
+import "dotnet"
+
+rule dotnet_module
+{
+	condition:
+		dotnet.assembly.name == "Keylogger"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("dotnet.assembly.name == \"Keylogger\"", rule->getCondition()->getText());
+	EXPECT_EQ("dotnet", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("Keylogger", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ElfModuleWorks) {
 	prepareInput(
 R"(
