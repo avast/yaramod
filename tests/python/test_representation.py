@@ -200,6 +200,7 @@ rule dummy_rule {
         modules = ymod.modules
         self.assertTrue("cuckoo" in modules)
         self.assertTrue("dex" in modules)
+        self.assertTrue("dotnet" in modules)
         self.assertTrue("elf" in modules)
         self.assertTrue("hash" in modules)
         self.assertTrue("macho" in modules)

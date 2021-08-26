@@ -34,6 +34,7 @@ set(WRAP_MODULE_SOURCES
 	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_deprecated_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_dex_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_dotnet_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_elf_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_hash_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_macho_generated.h
