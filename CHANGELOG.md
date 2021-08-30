@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.11.0 (2021-08-30)
+
+* Added additional constants of enums to `pe` module ([#183](https://github.com/avast/yaramod/pull/183))
+* Added support for `iequals` operator ([#182](https://github.com/avast/yaramod/pull/182))
+* Make `strings` and `variables` sections interchangable ([#184](https://github.com/avast/yaramod/pull/184))
+* Added missing `dotnet` module ([#185](https://github.com/avast/yaramod/pull/185))
+
 # v3.10.8 (2021-07-28)
 
 * Add Python binding for `yaramod::IntFunctionEndianness` ([#132](https://github.com/avast/yaramod/issues/132), [#181](https://github.com/avast/yaramod/pull/181)).
