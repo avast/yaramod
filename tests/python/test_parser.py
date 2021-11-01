@@ -1911,3 +1911,73 @@ rule rule1 : Tag1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_include_undefined_file_and_import_in_incomplete_mode(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=r'''include "nonexistent.yar" import "cuckoo"
+
+rule rule1 : Tag1 {
+    strings:
+        $1 = "Hello World!"
+        $2 = { 01 23 45 67 89 AB CD EF }
+        $3 = /def/is
+    condition:
+        false
+}
+''')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''import "cuckoo"
+
+rule rule1 : Tag1 {
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
+}''', yara_file.text)
+
+        expected = r'''include "nonexistent.yar"
+
+import "cuckoo"
+
+rule rule1 : Tag1
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = { 01 23 45 67 89 AB CD EF }
+		$3 = /def/is
+	condition:
+		false
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_include_file_and_import_in_regular_mode(self):
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_rules/testing_file_with_import.yar')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''import "cuckoo"
+
+rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        expected = r'''include "testing_include.yar"
+
+import "cuckoo"
+
+rule rule1
+{
+	condition:
+		RULE and
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
