@@ -1876,8 +1876,9 @@ rule rule_pedia {
 }''', yara_file.text)
 
     def test_include_undefined_file_in_incomplete_mode(self):
-        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=r'''include "nonexistent.yar"
-
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Incomplete, str=r'''include "nonexistent1.yar"
+include "nonexistent2.yar" include "nonexistent3.yar" /* comment 1 */ include "nonexistent4.yar" // comment 2
+include "nonexistent5.yar" // comment 3
 rule rule1 : Tag1 {
     strings:
         $1 = "Hello World!"
@@ -1898,7 +1899,11 @@ rule rule1 : Tag1 {
 		false
 }''', yara_file.text)
 
-        expected = r'''include "nonexistent.yar"
+        expected = r'''include "nonexistent1.yar"
+include "nonexistent2.yar"
+include "nonexistent3.yar" /* comment 1 */
+include "nonexistent4.yar" // comment 2
+include "nonexistent5.yar" // comment 3
 
 rule rule1 : Tag1
 {
