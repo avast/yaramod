@@ -14,8 +14,8 @@
 #include <sstream>
 #include <variant>
 
-#include "yaramod/yaramod_error.h"
 #include "yaramod/types/symbol.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
