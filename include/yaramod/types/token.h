@@ -35,6 +35,8 @@ public:
 		, _location()
 		, _wanted_column(0)
 	{
+		if (_type == TokenType::ONELINE_COMMENT)
+			_value->trimWhitespaces();
 	}
 
 	Token(TokenType type, Literal&& value)
@@ -43,6 +45,8 @@ public:
 		, _location()
 		, _wanted_column(0)
 	{
+		if (_type == TokenType::ONELINE_COMMENT)
+			_value->trimWhitespaces();
 	}
 
 	Token(const Token& other) = default;
