@@ -472,7 +472,15 @@ void Rule::addMeta(const std::string& name, const Literal& value)
 	else
 	{
 		insert_before = _metas.back().getValueTokenIt();
-		++insert_before;
+		while (
+			insert_before->getType() != TokenType::NEW_LINE &&
+			insert_before->getType() != TokenType::STRINGS &&
+			insert_before->getType() != TokenType::CONDITION &&
+			insert_before->getType() != TokenType::RULE_END &&
+			insert_before != _tokenStream->end()
+		) {
+			++insert_before;
+		}
 	}
 	_tokenStream->emplace(insert_before, TokenType::NEW_LINE, _tokenStream->getNewLineStyle());
 	auto itKey = _tokenStream->emplace(insert_before, TokenType::META_KEY, name);
