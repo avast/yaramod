@@ -1,5 +1,6 @@
 # Changelog
 
+* Strip trailing whitespace off oneline comments ([#149](https://github.com/avast/yaramod/issues/149), [#189](https://github.com/avast/yaramod/pull/189))
 * Fix adding meta to add it after comment of last present meta if present ([#102](https://github.com/avast/yaramod/issues/102), [#188](https://github.com/avast/yaramod/pull/188))
 * Separate includes and imports with blank lines ([#187](https://github.com/avast/yaramod/pull/187), [#130](https://github.com/avast/yaramod/issues/130))
 
