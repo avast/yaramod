@@ -93,6 +93,7 @@ public:
 	/// @name String representation
 	/// @{
 	void markEscaped() {  _escaped = true; }
+	bool trimWhitespaces();
 	std::string getText(bool pure = false) const;
 	std::string getPureText() const;
 	/// @}

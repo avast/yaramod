@@ -214,6 +214,16 @@ std::string Literal::getFormattedValue() const
 	return _formatted_value.value_or(std::string());
 }
 
+bool Literal::trimWhitespaces()
+{
+	if (isString())
+	{
+		setValue(trim(getString(), " \n\t\v"));
+		return true;
+	}
+	return false;
+}
+
 /**
  * Returns the string representation of the literal in a specified format:
  *
