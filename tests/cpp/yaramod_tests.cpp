@@ -153,6 +153,36 @@ rule rule_with_added_metas
 }
 
 TEST_F(YaramodTests,
+AddMetaToRulesWithComments) {
+	yaramod::Yaramod ymod;
+
+	std::stringstream input;
+	input << R"(
+	rule rule_with_commented_meta {
+		meta:
+			author = "Mr. Avastien" // added by Service
+		condition:
+			true
+	})";
+	auto yarafile = ymod.parseStream(input);
+
+	ASSERT_EQ(1u, yarafile->getRules().size());
+	const auto& rule = yarafile->getRules()[0];
+
+	rule->addMeta("bool_meta", Literal(false));
+	EXPECT_EQ(R"(
+rule rule_with_commented_meta
+{
+	meta:
+		author = "Mr. Avastien" // added by Service
+		bool_meta = false
+	condition:
+		true
+}
+)", yarafile->getTextFormatted());
+}
+
+TEST_F(YaramodTests,
 SetMeta) {
 	yaramod::Yaramod ymod;
 
