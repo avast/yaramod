@@ -494,6 +494,7 @@ void TokenStream::addMissingNewLines()
 {
 	BracketStack brackets;
 	std::size_t lineCounter = 0;
+	bool comment_after_include = false;
 	for (auto it = begin(); it != end(); ++it)
 	{
 		auto current = it->getType();
@@ -511,6 +512,33 @@ void TokenStream::addMissingNewLines()
 			// ONELINE_COMMENTs are left right behind the left bracket. COMMENTs are put on separate new line.
 			if (brackets.putNewlineInCurrentSector() && next != TokenType::NEW_LINE && next != TokenType::ONELINE_COMMENT)
 			{
+				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
+				next = nextIt->getType();
+			}
+		}
+		if (current == TokenType::INCLUDE_PATH || comment_after_include)
+		{
+			comment_after_include = false;
+			auto nextNextIt = std::next(nextIt);
+			auto nextNext = nextNextIt->getType();
+			if (nextNextIt == end())
+				continue;
+			if (next == TokenType::NEW_LINE)
+			{
+				if (nextNext != TokenType::NEW_LINE && nextNext != TokenType::INCLUDE_DIRECTIVE && nextNext != TokenType::COMMENT && nextNext != TokenType::ONELINE_COMMENT)
+				{
+					nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
+					next = nextIt->getType();
+				}
+			}
+			else if (next == TokenType::COMMENT || next == TokenType::ONELINE_COMMENT)
+			{
+				comment_after_include = true;
+			}
+			else
+			{
+				if (next != TokenType::NEW_LINE && next != TokenType::INCLUDE_DIRECTIVE && next != TokenType::COMMENT && next != TokenType::ONELINE_COMMENT )
+					nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				nextIt = emplace(nextIt, TokenType::NEW_LINE, _new_line_style);
 				next = nextIt->getType();
 			}

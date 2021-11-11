@@ -1,5 +1,7 @@
 # Changelog
 
+* Separate includes and imports with blank lines ([#187](https://github.com/avast/yaramod/pull/187), [#130](https://github.com/avast/yaramod/issues/130))
+
 # v3.11.0 (2021-08-30)
 
 * Added additional constants of enums to `pe` module ([#183](https://github.com/avast/yaramod/pull/183))
