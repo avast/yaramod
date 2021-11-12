@@ -189,11 +189,10 @@ bool endsWith(const std::string& str, char withWhat)
 	return !str.empty() && str.back() == withWhat;
 }
 
-std::string trim(std::string str)
+std::string trim(std::string str, const std::string& toTrim)
 {
 	// Based on
 	// http://www.codeproject.com/Articles/10880/A-trim-implementation-for-std-string
-	const std::string toTrim = " \n\r\t\v";
 	std::string::size_type pos = str.find_last_not_of(toTrim);
 	if (pos != std::string::npos)
 	{

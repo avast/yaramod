@@ -5100,6 +5100,39 @@ rule nonutf_condition
 }
 
 TEST_F(ParserTests,
+RemoveTrailingWhitespacesFromComments) {
+	prepareInput(
+R"(
+rule trailing_whitespaces_in_comments_rule
+{
+	meta:
+		author = "Mr. Avastien" // comment with extra tab	
+	strings:
+		$s1 = "text" // comment with extra space 
+	condition:
+		$s1
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+rule trailing_whitespaces_in_comments_rule
+{
+	meta:
+		author = "Mr. Avastien" // comment with extra tab
+	strings:
+		$s1 = "text" // comment with extra space
+	condition:
+		$s1
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 AddMetaAfterParse) {
 	prepareInput(
 R"(

@@ -14,8 +14,8 @@
 #include <sstream>
 #include <variant>
 
-#include "yaramod/yaramod_error.h"
 #include "yaramod/types/symbol.h"
+#include "yaramod/yaramod_error.h"
 
 namespace yaramod {
 
@@ -93,6 +93,7 @@ public:
 	/// @name String representation
 	/// @{
 	void markEscaped() {  _escaped = true; }
+	bool trimWhitespaces();
 	std::string getText(bool pure = false) const;
 	std::string getPureText() const;
 	/// @}

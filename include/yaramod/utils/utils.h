@@ -20,7 +20,7 @@ std::string unescapeString(std::string_view str);
 bool endsWith(const std::string& str, const std::string& withWhat);
 bool endsWith(const std::string& str, char withWhat);
 
-std::string trim(std::string str);
+std::string trim(std::string str, const std::string& toTrim = " \n\r\t\v");
 
 /**
  * Checks whether string starts with another string or character.
