@@ -14,21 +14,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.9, 3.8, 3.7]
+        python-version: ["3.10", "3.9", "3.8"]
         config: [Release]
         include:
           - os: windows-latest
-            python-version: 3.9
+            python-version: "3.10"
             config: Debug
         exclude:
           - os: ubuntu-latest
-            python-version: 3.7
+            python-version: "3.8"
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: "3.9"
           - os: macos-latest
-            python-version: 3.7
+            python-version: "3.8"
           - os: macos-latest
-            python-version: 3.8
+            python-version: "3.9"
 
     runs-on: ${{ matrix.os }}
 
