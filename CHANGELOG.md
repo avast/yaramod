@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.12.0 (2021-11-26)
+
+* Dropped support for Python 3.7 and added support for Python 3.10 ([#190](https://github.com/avast/yaramod/pull/190))
+
 # v3.11.1 (2021-11-23)
 
 * Strip trailing whitespace off oneline comments ([#149](https://github.com/avast/yaramod/issues/149), [#189](https://github.com/avast/yaramod/pull/189))
