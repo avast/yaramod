@@ -375,6 +375,9 @@ void ParserDriver::defineTokens()
 
 		return std::make_pair(range, range);
 	});
+	_parser.token(R"(\\x[a-zA-Z0-9]{2})").states("$regexp").symbol("REGEXP_ESCAPE").description("regexp escaped character").action([](std::string_view str) -> Value {
+		return std::string{str};
+	});
 	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
@@ -1014,6 +1017,7 @@ void ParserDriver::defineGrammar()
 	_parser.rule("regexp_single") // shared_ptr<yaramod::RegexpUnit>
 		.production("LP", "regexp_or", "RP", [](auto&& args) -> Value { return Value(std::make_shared<RegexpGroup>(std::move(args[1].getRegexpUnit()))); })
 		.production("REGEXP_ANY_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpAnyChar>()); })
+		.production("REGEXP_ESCAPE", [](auto&& args) -> Value { return Value(std::make_shared<RegexpText>(std::move(args[0].getString()))); })
 		.production("REGEXP_CHAR", [](auto&& args) -> Value { return Value(std::make_shared<RegexpText>(std::move(args[0].getString()))); })
 		.production("REGEXP_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpWordChar>()); })
 		.production("REGEXP_NON_WORD_CHAR", [](auto&&) -> Value { return Value(std::make_shared<RegexpNonWordChar>()); })
