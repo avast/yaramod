@@ -652,13 +652,13 @@ void ParserDriver::defineGrammar()
 	}
 
 	_parser.rule("strings") // shared_ptr<StringsTrie>
-		.production("STRINGS", "COLON", "strings_body", [](auto&& args) -> Value {
+		.production("STRINGS", "COLON", "strings_body_nonempty", [](auto&& args) -> Value {
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 			return std::move(args[2]);
 		})
 		;
 
-	_parser.rule("strings_body") // shared_ptr<StringsTrie>
+	_parser.rule("strings_body_nonempty") // shared_ptr<StringsTrie>
 		.production(
 			"strings_body", "STRING_ID", "ASSIGN", [](auto&& args) -> Value {
 				args[1].getTokenIt()->setType(TokenType::STRING_ID_AFTER_NEWLINE);
@@ -676,13 +676,17 @@ void ParserDriver::defineGrammar()
 				}
 				return strings;
 			}
-		)
+		);
+
+	_parser.rule("strings_body") // shared_ptr<StringsTrie>
+		.production("strings_body_nonempty", [&](auto&& args) -> Value {
+			return std::move(args[0].getStringsTrie());
+		})
 		.production([&](auto&&) -> Value {
 			auto strings = std::make_shared<Rule::StringsTrie>();
 			setCurrentStrings(strings);
 			return strings;
-		})
-		;
+		});
 
 	_parser.rule("string")
 		.production("STRING_LITERAL", "plain_string_mods", [&](auto&& args) -> Value {

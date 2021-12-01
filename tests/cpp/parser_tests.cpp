@@ -328,6 +328,29 @@ rule variable_in_condition
 }
 
 TEST_F(ParserTests,
+RuleWithNoStringsDoesntWork) {
+	prepareInput(
+R"(
+rule rule_with_no_strings
+{
+	strings:
+	condition:
+		true
+}
+)");
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.2-10: Syntax error: Unexpected condition, expected one of string identifier", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
 RuleWithPlainTextStringsWorks) {
 	prepareInput(
 R"(
