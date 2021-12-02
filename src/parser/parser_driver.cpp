@@ -676,7 +676,8 @@ void ParserDriver::defineGrammar()
 				}
 				return strings;
 			}
-		);
+		)
+		;
 
 	_parser.rule("strings_body") // shared_ptr<StringsTrie>
 		.production("strings_body_nonempty", [&](auto&& args) -> Value {
@@ -686,7 +687,8 @@ void ParserDriver::defineGrammar()
 			auto strings = std::make_shared<Rule::StringsTrie>();
 			setCurrentStrings(strings);
 			return strings;
-		});
+		})
+		;
 
 	_parser.rule("string")
 		.production("STRING_LITERAL", "plain_string_mods", [&](auto&& args) -> Value {
@@ -724,7 +726,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production([](auto&&) -> Value {
 			return StringModifiers{};
-		});
+		})
 		;
 
 	_parser.rule("regexp_mods") // std::vector<std::shared_ptr<StringModifier>>
@@ -737,7 +739,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production([](auto&&) -> Value {
 			return StringModifiers{};
-		});
+		})
 		;
 
 	_parser.rule("hex_string_mods") // std::vector<std::shared_ptr<StringModifier>>
@@ -750,7 +752,7 @@ void ParserDriver::defineGrammar()
 		})
 		.production([](auto&&) -> Value {
 			return StringModifiers{};
-		});
+		})
 		;
 
 	_parser.rule("plain_string_mod") // std::shared_ptr<StringModifier>
