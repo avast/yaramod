@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.12.1 (2021-12-02)
+
+* Make empty strings section invalid ([#141](https://github.com/avast/yaramod/issues/141), [#192](https://github.com/avast/yaramod/pull/192))
+* Fix escaped character handling in regex ([#186](https://github.com/avast/yaramod/issues/186), [#191](https://github.com/avast/yaramod/pull/191))
+
 # v3.12.0 (2021-11-26)
 
 * Dropped support for Python 3.7 and added support for Python 3.10 ([#190](https://github.com/avast/yaramod/pull/190))
