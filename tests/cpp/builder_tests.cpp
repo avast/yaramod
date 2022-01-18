@@ -879,7 +879,7 @@ rule rule_with_range
 
 TEST_F(BuilderTests,
 RuleWithConditionWithOnelineComment) {
-	auto cond = (id("pe").comment("Number of sections needs to exceed 1", false).access("number_of_sections") > intVal(1)).get();
+	auto cond = (id("pe").access("number_of_sections") > intVal(1)).comment("Number of sections needs to exceed 1", false).get();
 	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("1", cond->getLastTokenIt()->getPureText());
 
@@ -916,7 +916,7 @@ rule rule_with_range
 
 TEST_F(BuilderTests,
 RuleWithConditionWithMultilineComment) {
-	auto cond = (id("pe").comment("Number of sections needs to exceed 1,\n\t\tbecause one is simply not enough.", true).access("number_of_sections") > intVal(1)).get();
+	auto cond = (id("pe").access("number_of_sections") > intVal(1)).comment("Number of sections needs to exceed 1,\n\t\tbecause one is simply not enough.", true).get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule

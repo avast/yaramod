@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include "yaramod/types/expression.h"
 #include "yaramod/types/token_stream.h"
@@ -166,7 +167,9 @@ public:
 	YaraExpressionBuilder& operator<<(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& operator>>(const YaraExpressionBuilder& other);
 
-	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = {});
+	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+	YaraExpressionBuilder& comment_behind(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+	YaraExpressionBuilder& comment_before_token(const std::string& message, TokenIt insert_before, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
 	YaraExpressionBuilder& call(const std::vector<YaraExpressionBuilder>& args);
 	/**
 	 * Calls function from an expression

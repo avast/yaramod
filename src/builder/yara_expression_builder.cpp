@@ -459,11 +459,60 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message, bool multiline, const std::string& indent)
+YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
+{
+	auto insert_before = _tokenStream->empty() ? _tokenStream->end() : _tokenStream->begin();
+	return comment_before_token(message, insert_before, multiline, indent, linebreak);
+}
+
+/**
+ * Puts comment behind the expression.
+ *
+ * @param message The comment message.
+ * @param multiline If set, the commet will be multiline.
+ * @param indent Additional indent added to the indentation computed by the autoformatter.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::comment_behind(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
+{
+	std::cout << "1 Tokenstream: '" << _tokenStream->getText() << "'" << std::endl;
+	for( auto i : _tokenStream->getTokensAsText())
+		std::cout << "'" << i << "', ";
+	std::cout << std::endl;
+	auto insert_before = _tokenStream->end();
+	while (insert_before != _tokenStream->begin())
+	{
+		auto predecessor = std::prev(insert_before);
+		std::cout << "predecessor='" << predecessor->getText() << "'" << std::endl;
+		if (predecessor->getType() == TokenType::NEW_LINE)
+		{
+			std::cout << "Decrementing to '" << predecessor->getText() << "'" << std::endl;
+			--insert_before;
+		}
+		else
+			break;
+	}
+	if (insert_before != _tokenStream->end())
+		std::cout << "insert_before='" << insert_before->getText() << "'" << std::endl;
+	return comment_before_token(message, insert_before, multiline, indent, linebreak);
+}
+
+/**
+ * Puts comment before the insert_before parameter token iterator.
+ *
+ * @param message The comment message.
+ * @param insert_before The token iterator before which the comment should be inserted.
+ * @param multiline If set, the commet will be multiline.
+ * @param linebreak If set, there will be a newline added even when inserting multiline comment.
+ * @param indent Additional indent added to the indentation computed by the autoformatter.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::comment_before_token(const std::string& message, TokenIt insert_before, bool multiline, const std::string& indent, bool linebreak)
 {
 	if (!message.empty())
 	{
-		TokenIt insert_before = _tokenStream->begin();
 		std::stringstream ss;
 		ss << indent;
 		if (multiline)
@@ -490,7 +539,13 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
 			ss << "// " << message;
 			_tokenStream->emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
 		}
-		_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		std::cout << "2 Tokenstream: '" << _tokenStream->getText() << "'" << std::endl;
+		if (insert_before != _tokenStream->end() && (linebreak || !multiline))
+		{
+			std::cout << "Adding newline after comment" << std::endl;
+			_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
+		}
+		// _tokenStream->emplace(insert_before, TokenType::COMMENT, "/*brokolice*/");
 	}
 	return *this;
 }

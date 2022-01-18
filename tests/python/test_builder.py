@@ -923,6 +923,29 @@ rule rule_with_variable_id_condition {
 		filesize < 200
 }''')
 
+    def test_rule_with_and_condition_with_comments_behind(self):
+        cond = yaramod.conjunction([[yaramod.filesize() > yaramod.int_val(100), 'comment1'], [yaramod.filesize() < yaramod.int_val(200), 'comment2']], False)
+        rule = self.new_rule \
+            .with_name('rule_with_and_condition_with_comments') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition_with_comments
+{
+	condition:
+		filesize > 100 and // comment1
+		filesize < 200     // comment2
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_and_condition_with_comments {
+	condition:
+		filesize > 100 and
+		filesize < 200
+}''')
+
     def test_rule_with_or_condition_with_comments(self):
         cond = yaramod.disjunction([[yaramod.filesize() > yaramod.int_val(100), 'skip small files'], [yaramod.filesize() < yaramod.int_val(200), 'also too big files']])
         rule = self.new_rule \
@@ -1071,6 +1094,34 @@ rule rule_with_function_call_condition
 	condition:
 		/* SOME COMMENT */
 		pe.is_dll()
+}
+''')
+        self.assertEqual(yara_file.text, '''import "pe"
+
+rule rule_with_function_call_condition {
+	condition:
+		pe.is_dll()
+}''')
+
+    def test_rule_with_function_call_and_oneline_comment(self):
+        cond = yaramod.id('pe').access('is_dll')().comment_behind(message="Generated", multiline=False)
+        rule = self.new_rule \
+            .with_name('rule_with_function_call_condition') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_module('pe') \
+            .with_rule(rule) \
+            .get()
+
+        print(yara_file.text_formatted)
+
+        self.assertEqual(yara_file.text_formatted, '''import "pe"
+
+rule rule_with_function_call_condition
+{
+	condition:
+		pe.is_dll() // Generated
 }
 ''')
         self.assertEqual(yara_file.text, '''import "pe"
