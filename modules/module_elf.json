@@ -790,6 +790,61 @@
             }
         },
         {
+            "kind": "value",
+            "name": "dynsym_entries",
+            "documentation": "Number of entries in the dynamic symbol table found in the ELF file.",
+            "type": "i"
+        },
+        {
+            "kind": "array",
+            "name": "dynsym",
+            "documentation": "A zero-based array of symbol objects, one for each entry in found in the ELF's DYNSYM. Individual symbol objects can be accessed by using the [] operator.",
+            "structure":
+            {
+                "kind": "struct",
+                "name": "dynsym",
+                "documentation": "",
+                "attributes": [
+                    {
+                        "kind": "value",
+                        "name": "name",
+                        "documentation": "The symbol's name.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "value",
+                        "documentation": "A value associated with the symbol. Generally a virtual address.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "size",
+                        "documentation": "The symbol's size.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "type",
+                        "documentation": "The type of symbol. Built values are: STT_NOTYPE, STT_OBJECT, STT_FUNC, STT_SECTION, STT_FILE, STT_COMMON, STT_TLS.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "bind",
+                        "documentation": "The binding of the symbol. Builtin values are: STB_LOCAL, STB_GLOBAL, STB_WEAK.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "shndx",
+                        "documentation": "The section index which the symbol is associated with.",
+                        "type": "i"
+                    }
+                ]
+            }
+        },
+        {
             "kind": "function",
             "name": "symtab_symbol",
             "return_type": "i",
