@@ -1986,3 +1986,24 @@ rule rule1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+
+    def test_parse_pe_signatures_x_algorithm_oid(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "pe"
+
+rule test_rule {
+    condition:
+        pe.signatures[0].algorithm_oid == "1.2.840.113549.1.1.11"
+}
+''')
+
+        expected = r'''import "pe"
+
+rule test_rule
+{
+	condition:
+		pe.signatures[0].algorithm_oid == "1.2.840.113549.1.1.11"
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)
