@@ -1950,7 +1950,13 @@
                     {
                         "kind": "value",
                         "name": "algorithm",
-                        "documentation": "Algorithm used for this signature. Usually \"sha1WithRSAEncryption\".",
+                        "documentation": "String representation of the algorithm used for this signature. Usually \"sha1WithRSAEncryption\". It depends on the X.509 and PKCS#7 implementationss and possibly their versions, consider using algorithm_oid instead.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "algorithm_oid",
+                        "documentation": "Object ID of the algorithm used for this signature, expressed in numeric ASN.1 dot notation. The name contained in algorithm is derived from this value. The object id is expected to be stable across X.509 and PKCS#7 implementations and their versions.",
                         "type": "s"
                     },
                     {

@@ -7336,5 +7336,23 @@ rule iequals_expr
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+ParsePeSignaturesXAlgorithmOID) {
+	prepareInput(
+R"(import "pe"
+
+rule test_rule
+{
+	condition:
+		pe.signatures[0].algorithm_oid == "1.2.840.113549.1.1.11"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
