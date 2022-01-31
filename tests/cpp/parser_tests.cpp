@@ -7354,5 +7354,34 @@ rule test_rule
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+ParseELFDynsym) {
+	prepareInput(
+		R"(import "elf"
+
+rule test_rule
+{
+	condition:
+		elf.dynsym_entries == 1 or
+		elf.dynsym[0].name == "name" or
+		elf.dynsym[0].value == "value" or
+		elf.dynsym[0].size == 2 or
+		elf.dynsym[0].type == elf.STT_NOTYPE or
+		elf.dynsym[0].type == elf.STT_OBJECT or
+		elf.dynsym[0].type == elf.STT_FUNC or
+		elf.dynsym[0].type == elf.STT_SECTION or
+		elf.dynsym[0].type == elf.STT_FILE or
+		elf.dynsym[0].type == elf.STT_COMMON or
+		elf.dynsym[0].type == elf.STT_TLS or
+		elf.dynsym[0].bind == 3 or
+		elf.dynsym[0].shndx == 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
 }
 }

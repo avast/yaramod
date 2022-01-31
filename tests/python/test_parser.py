@@ -2007,3 +2007,47 @@ rule test_rule
 '''
 
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_parse_elf_dynsym(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "elf"
+
+rule test_rule {
+    condition:
+        elf.dynsym_entries == 1 or
+        elf.dynsym[0].name == "name" or
+        elf.dynsym[0].value == "value" or
+        elf.dynsym[0].size == 2 or
+        elf.dynsym[0].type == elf.STT_NOTYPE or
+        elf.dynsym[0].type == elf.STT_OBJECT or
+        elf.dynsym[0].type == elf.STT_FUNC or
+        elf.dynsym[0].type == elf.STT_SECTION or
+        elf.dynsym[0].type == elf.STT_FILE or
+        elf.dynsym[0].type == elf.STT_COMMON or
+        elf.dynsym[0].type == elf.STT_TLS or
+        elf.dynsym[0].bind == 3 or
+        elf.dynsym[0].shndx == 3
+}
+''')
+
+        expected = r'''import "elf"
+
+rule test_rule
+{
+	condition:
+		elf.dynsym_entries == 1 or
+		elf.dynsym[0].name == "name" or
+		elf.dynsym[0].value == "value" or
+		elf.dynsym[0].size == 2 or
+		elf.dynsym[0].type == elf.STT_NOTYPE or
+		elf.dynsym[0].type == elf.STT_OBJECT or
+		elf.dynsym[0].type == elf.STT_FUNC or
+		elf.dynsym[0].type == elf.STT_SECTION or
+		elf.dynsym[0].type == elf.STT_FILE or
+		elf.dynsym[0].type == elf.STT_COMMON or
+		elf.dynsym[0].type == elf.STT_TLS or
+		elf.dynsym[0].bind == 3 or
+		elf.dynsym[0].shndx == 3
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)
