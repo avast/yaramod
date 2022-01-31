@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.12.2 (2022-01-31)
+
+* Added support for `dynsym_entries` and `dynsym` ELF module attributes ([#196](https://github.com/avast/yaramod/pull/196))
+* Added support for `algorithm_oid` from PE module ([#197](https://github.com/avast/yaramod/pull/197))
+
 # v3.12.1 (2021-12-02)
 
 * Make empty strings section invalid ([#141](https://github.com/avast/yaramod/issues/141), [#192](https://github.com/avast/yaramod/pull/192))
