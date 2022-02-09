@@ -7460,7 +7460,7 @@ ParsePercentage4) {
 		$a = "no"
 		$a2 = "time"
 	condition:
-		1050%100 of them
+		1050 % 100 of them
 }
 )");
 
@@ -7494,7 +7494,7 @@ ParsePercentage5) {
 TEST_F(ParserTests,
 ParsePercentage6) {
 	prepareInput(
-		R"(import "tests"
+		R"(import "pe"
 
 rule test_rule
 {
@@ -7502,7 +7502,7 @@ rule test_rule
 		$a = "no"
 		$a2 = "time"
 	condition:
-		(25*tests.constants.two)% of them
+		(25 * pe.sections[0].number_of_relocations)% of them
 }
 )");
 
@@ -7516,7 +7516,7 @@ rule test_rule
 TEST_F(ParserTests,
 ParsePercentage7) {
 	prepareInput(
-		R"(import "tests"
+		R"(import "pe"
 
 rule test_rule
 {
@@ -7524,7 +7524,7 @@ rule test_rule
 		$a = "no"
 		$a2 = "time"
 	condition:
-		tests.integer_array[5]% of them
+		pe.data_directories[pe.IMAGE_DIRECTORY_ENTRY_EXPORT].size% of them
 }
 )");
 
