@@ -348,6 +348,7 @@ public:
 		: _expr(std::forward<ExpPtr>(expr))
 	{
 		_id = _tokenStream->emplace_back(TokenType::STRING_LENGTH, std::forward<Str>(id));
+		_tokenStream->moveAppend(_expr->getTokenStream());
 	}
 
 	virtual VisitResult accept(Visitor* v) override

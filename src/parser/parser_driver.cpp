@@ -1278,6 +1278,17 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt percent = args[1].getTokenIt();
+			auto percentual_expr = std::make_shared<PercentualExpression>(std::move(for_expr), percent);
+			TokenIt of = args[2].getTokenIt();
+			auto set = std::move(args[3].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(percentual_expr), of, std::move(set));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("NOT", "expression", [&](auto&& args) -> Value {
 			TokenIt not_token = args[0].getTokenIt();
 			auto expr = std::move(args[1].getExpression());
