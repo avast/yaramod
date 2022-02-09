@@ -85,7 +85,7 @@ void ParserDriver::defineTokens()
 		.precedence(13, pog::Associativity::Left);
 	_parser.token(R"(\\)").symbol("DIVIDE").description("\\").action([&](std::string_view str) -> Value { return emplace_back(TokenType::DIVIDE, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
-	_parser.token(R"(\%)").symbol("MODULO").description("%").action([&](std::string_view str) -> Value { return emplace_back(TokenType::MODULO, std::string{str}); })
+	_parser.token(R"(\%)").symbol("PERCENT").description("%").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PERCENT, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
 	_parser.token(R"(\^)").symbol("BITWISE_XOR").description("^").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BITWISE_XOR, std::string{str}); })
 		.precedence(7, pog::Associativity::Left);
@@ -1603,7 +1603,7 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "PERCENT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if (!left->isInt() && !left->isFloat())

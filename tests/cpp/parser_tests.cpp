@@ -7383,5 +7383,157 @@ rule test_rule
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
+
+TEST_F(ParserTests,
+ParsePercentage1Error) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "AXS"
+	condition:
+		101% of them
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.1: Syntax error: Unexpected percent", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParsePercentage2Error) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "ERS"
+	condition:
+		0% of them
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.1: Syntax error: Unexpected percent", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParsePercentage3) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "dummy"
+	condition:
+		50% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage4) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		1050%100 of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage5) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		100% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage6) {
+	prepareInput(
+		R"(import "tests"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		(25*tests.constants.two)% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage7) {
+	prepareInput(
+		R"(import "tests"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		tests.integer_array[5]% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

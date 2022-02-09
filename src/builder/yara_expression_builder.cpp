@@ -329,7 +329,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
 {
 	bool will_be_float = _expr->isFloat() || other._expr->isFloat();
 
-	TokenIt token = _tokenStream->emplace_back(TokenType::MODULO, "%");
+	TokenIt token = _tokenStream->emplace_back(TokenType::PERCENT, "%");
 	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<ModuloExpression>(std::move(_expr), token, other.get());

@@ -388,9 +388,17 @@ public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		if (_op->getType() == TokenType::NOT || _op->getType() == TokenType::DEFINED)
+		{
+			assert(_operatorLeft);
 			return _op->getString() + " " + _expr->getText(indent);
+		}
 		else
-			return _op->getString() + _expr->getText(indent);
+		{
+			if (_operatorLeft)
+				return _op->getString() + _expr->getText(indent);
+			else
+				return _expr->getText(indent) + _op->getString();
+		}
 	}
 
 	const Expression::Ptr& getOperand() const { return _expr; }
@@ -400,23 +408,36 @@ public:
 
 protected:
 	template <typename ExpPtr>
-	UnaryOpExpression(TokenIt op, ExpPtr&& expr)
+	UnaryOpExpression(TokenIt op, ExpPtr&& expr, bool operatorLeft)
 		: _op(op)
 		, _expr(std::forward<ExpPtr>(expr))
+		, _operatorLeft(operatorLeft)
 	{
 	}
 	template <typename ExpPtr>
-	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr)
+	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr, bool operatorLeft)
 		: _expr(std::forward<ExpPtr>(expr))
+		, _operatorLeft(operatorLeft)
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
-	virtual TokenIt getFirstTokenIt() const override { return _op; }
-	virtual TokenIt getLastTokenIt() const override { return _expr->getLastTokenIt(); }
+	virtual TokenIt getFirstTokenIt() const override {
+		if (_operatorLeft)
+			return _op;
+		else
+			return _expr->getFirstTokenIt();
+	}
+	virtual TokenIt getLastTokenIt() const override {
+		if (_operatorLeft)
+			return _expr->getLastTokenIt();
+		else
+			return _op;
+	}
 
 private:
 	TokenIt _op; ///< Unary operation symbol, std::string
 	Expression::Ptr _expr; ///< Expression to apply operator on
+	bool _operatorLeft; ///< True if the operator should be printed before the ixpression
 };
 
 /**
@@ -431,7 +452,27 @@ class NotExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
+	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing percentual operation.
+ *
+ * For example:
+ * @code
+ * 25%
+ * @endcode
+ */
+class PercentualExpression : public UnaryOpExpression
+{
+public:
+	template <typename ExpPtr>
+	PercentualExpression(ExpPtr&& expr, TokenIt op) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), false) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -451,7 +492,7 @@ class DefinedExpression : public UnaryOpExpression
 {
 public:
 	template<typename ExpPtr>
-	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
+	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
 
 	virtual VisitResult accept(Visitor *v) override
 	{
@@ -472,7 +513,7 @@ class UnaryMinusExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
+	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -493,7 +534,7 @@ class BitwiseNotExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr)) {}
+	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{

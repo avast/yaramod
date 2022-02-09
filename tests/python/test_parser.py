@@ -2051,3 +2051,29 @@ rule test_rule
 '''
 
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_parse_percentage(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "elf"
+
+rule test_rule {
+    strings:
+        $s1 = "atest"
+        $s2 = "btest"
+    condition:
+        50% of them
+}
+''')
+
+        expected = r'''import "elf"
+
+rule test_rule
+{
+	strings:
+		$s1 = "atest"
+		$s2 = "btest"
+	condition:
+		50% of them
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)

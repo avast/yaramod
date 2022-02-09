@@ -153,7 +153,7 @@ void addEnums(py::module& module)
 		.value("Plus", TokenType::PLUS)
 		.value("Multiply", TokenType::MULTIPLY)
 		.value("Divide", TokenType::DIVIDE)
-		.value("Modulo", TokenType::MODULO)
+		.value("Percent", TokenType::PERCENT)
 		.value("BitwiseXor", TokenType::BITWISE_XOR)
 		.value("BitwiseAnd", TokenType::BITWISE_AND)
 		.value("BitwiseOr", TokenType::BITWISE_OR)
@@ -589,6 +589,7 @@ void addExpressionClasses(py::module& module)
 				py::overload_cast<const Expression::Ptr&>(&UnaryOpExpression::setOperand));
 	unaryOpClass<NotExpression>(module, "NotExpression");
 	unaryOpClass<DefinedExpression>(module, "DefinedExpression");
+	unaryOpClass<PercentualExpression>(module, "PercentualExpression");
 	unaryOpClass<UnaryMinusExpression>(module, "UnaryMinusExpression");
 	unaryOpClass<BitwiseNotExpression>(module, "BitwiseNotExpression");
 

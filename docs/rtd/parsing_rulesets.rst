@@ -320,6 +320,7 @@ All of these provide method ``getOperand()`` (``operand`` in Python) to return o
 
   * ``NotExpression`` - refers to logical ``not`` operator (``not @str > 10``)
   * ``UnaryMinusExpression`` - refers to unary ``-`` operator (``-20``)
+  * ``PercentualExpression`` - refers to unary ``%`` operator (``20%``)
   * ``BitwiseNotExpression`` - refers to bitwise not (``~uint8(0x0)``)
 
 **Binary operations**
