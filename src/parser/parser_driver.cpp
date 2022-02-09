@@ -1281,6 +1281,16 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt percent = args[1].getTokenIt();
+			size_t value = 0;
+			if (strToNum(for_expr->getText(), value))
+			{
+				if (value == 0 || value > 100)
+				{
+					std::stringstream ss;
+					ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
+					error_handle(percent->getLocation(), ss.str());
+				}
+			}
 			auto percentual_expr = std::make_shared<PercentualExpression>(std::move(for_expr), percent);
 			TokenIt of = args[2].getTokenIt();
 			auto set = std::move(args[3].getExpression());

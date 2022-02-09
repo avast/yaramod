@@ -7404,7 +7404,7 @@ ParsePercentage1Error) {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.1: Syntax error: Unexpected percent", err.getErrorMessage());
+		EXPECT_EQ("Error at 6.6: Percentage must be between 1 and 100 (inclusive). Got 101.", err.getErrorMessage());
 	}
 }
 
@@ -7428,7 +7428,7 @@ ParsePercentage2Error) {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.1: Syntax error: Unexpected percent", err.getErrorMessage());
+		EXPECT_EQ("Error at 6.4: Percentage must be between 1 and 100 (inclusive). Got 0.", err.getErrorMessage());
 	}
 }
 
