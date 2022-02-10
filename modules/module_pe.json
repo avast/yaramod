@@ -1745,6 +1745,116 @@
                 }
             ]
         },
+		{
+			"kind": "array",
+			"name": "import_details",
+			"documentation": "Array of structures containing information about the PE's imports libraries.",
+			"structure": {
+				"kind": "struct",
+				"name": "import_details",
+				"attributes": [
+					{
+						"kind": "value",
+						"name": "library_name",
+						"documentation": "Library name.",
+						"type": "s"
+					},
+					{
+						"kind": "value",
+						"name": "number_of_functions",
+						"documentation": "Number of imported function.",
+						"type": "i"
+					},
+					{
+						"kind": "array",
+						"name": "functions",
+						"documentation": "Array of structures containing information about the PE's imports functions.",
+						"structure": {
+							"kind": "struct",
+							"name": "functions",
+							"attributes": [
+								{
+									"kind": "value",
+									"name": "name",
+									"documentation": "Name of imported function.",
+									"type": "s"
+								},
+								{
+									"kind": "value",
+									"name": "ordinal",
+									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"kind": "value",
+			"name": "number_of_imported_functions",
+			"documentation": "Number of imported functions in the PE.",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "number_of_delayed_imported_functions",
+			"documentation": "Number of delay imported functions in the PE.",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "number_of_delayed_imports",
+			"documentation": "Number of delay imported DLLs in the PE. (Number of IMAGE_DELAYLOAD_DESCRIPTOR parsed from file).",
+			"type": "i"
+		},
+		{
+			"kind": "array",
+			"name": "delayed_import_details",
+			"documentation": "Array of structures containing information about the PE's delay imports libraries.",
+			"structure": {
+				"kind": "struct",
+				"name": "import_details",
+				"attributes": [
+					{
+						"kind": "value",
+						"name": "library_name",
+						"documentation": "Library name.",
+						"type": "s"
+					},
+					{
+						"kind": "value",
+						"name": "number_of_functions",
+						"documentation": "Number of imported function.",
+						"type": "i"
+					},
+					{
+						"kind": "array",
+						"name": "functions",
+						"documentation": "Array of structures containing information about the PE's imports functions.",
+						"structure": {
+							"kind": "struct",
+							"name": "functions",
+							"attributes": [
+								{
+									"kind": "value",
+									"name": "name",
+									"documentation": "Name of imported function.",
+									"type": "s"
+								},
+								{
+									"kind": "value",
+									"name": "ordinal",
+									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
         {
             "kind": "function",
             "name": "locale",
