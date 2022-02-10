@@ -158,7 +158,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<(const YaraExpressionBuil
 }
 
 /**
- * Applies less than or equal on two expression.
+ * Applies less than or equal on two expressions.
  *
  * @param other The other expression.
  *
@@ -175,7 +175,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<=(const YaraExpressionBui
 }
 
 /**
- * Applies greater than on two expression.
+ * Applies greater than on two expressions.
  *
  * @param other The other expression.
  *
@@ -192,7 +192,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>(const YaraExpressionBuil
 }
 
 /**
- * Applies greater than or equal on two expression.
+ * Applies greater than or equal on two expressions.
  *
  * @param other The other expression.
  *
@@ -209,7 +209,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator>=(const YaraExpressionBui
 }
 
 /**
- * Applies equals to on two expression.
+ * Applies equals to on two expressions.
  *
  * @param other The other expression.
  *
@@ -226,7 +226,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator==(const YaraExpressionBui
 }
 
 /**
- * Applies not equals to on two expression.
+ * Applies not equals to on two expressions.
  *
  * @param other The other expression.
  *
@@ -243,7 +243,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator!=(const YaraExpressionBui
 }
 
 /**
- * Applies plus on two expression.
+ * Applies plus on two expressions.
  *
  * @param other The other expression.
  *
@@ -262,7 +262,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator+(const YaraExpressionBuil
 }
 
 /**
- * Applies minus on two expression.
+ * Applies minus on two expressions.
  *
  * @param other The other expression.
  *
@@ -281,7 +281,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator-(const YaraExpressionBuil
 }
 
 /**
- * Applies multiplication on two expression.
+ * Applies multiplication on two expressions.
  *
  * @param other The other expression.
  *
@@ -300,7 +300,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator*(const YaraExpressionBuil
 }
 
 /**
- * Applies division on two expression.
+ * Applies division on two expressions.
  *
  * @param other The other expression.
  *
@@ -319,7 +319,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator/(const YaraExpressionBuil
 }
 
 /**
- * Applies modulo on two expression.
+ * Applies modulo on two expressions.
  *
  * @param other The other expression.
  *
@@ -338,7 +338,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator%(const YaraExpressionBuil
 }
 
 /**
- * Applies bitwise xor on two expression.
+ * Applies bitwise xor on two expressions.
  *
  * @param other The other expression.
  *
@@ -355,7 +355,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator^(const YaraExpressionBuil
 }
 
 /**
- * Applies bitwise and on two expression.
+ * Applies bitwise and on two expressions.
  *
  * @param other The other expression.
  *
@@ -373,7 +373,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator&(const YaraExpressionBuil
 }
 
 /**
- * Applies bitwise or on two expression.
+ * Applies bitwise or on two expressions.
  *
  * @param other The other expression.
  *
@@ -390,7 +390,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator|(const YaraExpressionBuil
 }
 
 /**
- * Applies bitwise shift left on two expression.
+ * Applies bitwise shift left on two expressions.
  *
  * @param other The other expression.
  *
@@ -407,7 +407,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator<<(const YaraExpressionBui
 }
 
 /**
- * Applies bitwise shift right on two expression.
+ * Applies bitwise shift right on two expressions.
  *
  * @param other The other expression.
  *
@@ -496,7 +496,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
 }
 
 /**
- * Applies operation contains on two expression.
+ * Applies operation contains on two expressions.
  *
  * @param other The other expression.
  *
@@ -513,7 +513,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::contains(const YaraExpressionBuild
 }
 
 /**
- * Applies operation matches on two expression.
+ * Applies operation matches on two expressions.
  *
  * @param other The other expression.
  *
@@ -530,7 +530,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
 }
 
 /**
- * Applies operation iequals on two expression.
+ * Applies operation iequals on two expressions.
  *
  * @param other The other expression.
  *
@@ -547,13 +547,25 @@ YaraExpressionBuilder& YaraExpressionBuilder::iequals(const YaraExpressionBuilde
 }
 
 /**
- * Applies operation defined on two expression.
+ * Applies operation defined on the expression.
  *
  * @return Builder.
  */
 YaraExpressionBuilder& YaraExpressionBuilder::defined() {
 	auto token = _tokenStream->emplace(_tokenStream->begin(), TokenType::DEFINED, "defined");
 	_expr = std::make_shared<DefinedExpression>(token, std::move(_expr));
+	setType(Expression::Type::Int);
+	return *this;
+}
+
+/**
+ * Applies operation percent on the expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::percent() {
+	auto token = _tokenStream->emplace_back(TokenType::PERCENT, "%");
+	_expr = std::make_shared<PercentualExpression>(std::move(_expr), token);
 	setType(Expression::Type::Int);
 	return *this;
 }
