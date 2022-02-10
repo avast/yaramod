@@ -3521,7 +3521,7 @@ import "math"
 rule math_module
 {
 	condition:
-		math.entropy("dummy") > 7
+		math.to_number(math.entropy("dummy") > 7) == 1
 }
 )");
 
@@ -3529,9 +3529,9 @@ rule math_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(math.entropy("dummy") > 7)", rule->getCondition()->getText());
+	EXPECT_EQ(R"(math.to_number(math.entropy("dummy") > 7) == 1)", rule->getCondition()->getText());
 	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("7", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("1", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

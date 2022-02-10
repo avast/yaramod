@@ -224,6 +224,22 @@
                     "documentation": "Returns the maximum of two unsigned integer values."
                 }
             ]
+        },
+        {
+            "kind": "function",
+            "name": "to_number",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "b",
+                            "name": "boolean"
+                        }
+                    ],
+                    "documentation": "Returns 0 or 1, it's useful when writing a score based rule. Example: ```math.tonumber(SubRule1) * 60 + math.tonumber(SubRule2) * 20 + math.tonumber(SubRule3) * 70 > 80*```"
+                }
+            ]
         }
     ]
 }
