@@ -3617,6 +3617,30 @@ rule pe_module
 }
 
 TEST_F(ParserTests,
+PeModuleWorks3) {
+	prepareInput(
+R"(
+import "pe"
+
+rule pe_module
+{
+	strings:
+		$a = { E8 00 00 00 00 }
+	condition:
+		$a at pe.entry_point_raw
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"($a at pe.entry_point_raw)", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 VirusTotalSymbolsWork) {
 	prepareInput(
 R"(

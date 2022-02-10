@@ -1070,7 +1070,13 @@
         {
             "kind": "value",
             "name": "entry_point",
-            "documentation": "Entry point raw offset or virtual address depending on whether YARA is scanning a file or process memory respectively. This is equivalent to the deprecated `entrypoint` keyword.",
+            "documentation": "Entry point file offset or virtual address depending on whether YARA is scanning a file or process memory respectively. This is equivalent to the deprecated `entrypoint` keyword.",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "entry_point_raw",
+            "documentation": "Entry point raw value from the optional header of the PE. This value is not converted to a file offset or an RVA.",
             "type": "i"
         },
         {
