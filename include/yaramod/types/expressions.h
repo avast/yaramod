@@ -380,6 +380,12 @@ private:
 	Expression::Ptr _expr; ///< Index expression if any
 };
 
+enum class UnaryOperatorPlacement
+{
+    Left,
+    Right
+};
+
 /**
  * Abstract class representing some unary operation.
  */
@@ -390,12 +396,12 @@ public:
 	{
 		if (_op->getType() == TokenType::NOT || _op->getType() == TokenType::DEFINED)
 		{
-			assert(_operatorLeft);
+			assert(_operatorPlacement == UnaryOperatorPlacement::Left);
 			return _op->getString() + " " + _expr->getText(indent);
 		}
 		else
 		{
-			if (_operatorLeft)
+			if (_operatorPlacement == UnaryOperatorPlacement::Left)
 				return _op->getString() + _expr->getText(indent);
 			else
 				return _expr->getText(indent) + _op->getString();
@@ -409,27 +415,27 @@ public:
 
 protected:
 	template <typename ExpPtr>
-	UnaryOpExpression(TokenIt op, ExpPtr&& expr, bool operatorLeft)
+	UnaryOpExpression(TokenIt op, ExpPtr&& expr, UnaryOperatorPlacement operatorPlacement)
 		: _op(op)
 		, _expr(std::forward<ExpPtr>(expr))
-		, _operatorLeft(operatorLeft)
+		, _operatorPlacement(operatorPlacement)
 	{
 	}
 	template <typename ExpPtr>
-	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr, bool operatorLeft)
+	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr, UnaryOperatorPlacement operatorPlacement)
 		: _expr(std::forward<ExpPtr>(expr))
-		, _operatorLeft(operatorLeft)
+		, _operatorPlacement(operatorPlacement)
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
 	virtual TokenIt getFirstTokenIt() const override {
-		if (_operatorLeft)
+		if (_operatorPlacement == UnaryOperatorPlacement::Left)
 			return _op;
 		else
 			return _expr->getFirstTokenIt();
 	}
 	virtual TokenIt getLastTokenIt() const override {
-		if (_operatorLeft)
+		if (_operatorPlacement == UnaryOperatorPlacement::Left)
 			return _expr->getLastTokenIt();
 		else
 			return _op;
@@ -438,7 +444,7 @@ protected:
 private:
 	TokenIt _op; ///< Unary operation symbol, std::string
 	Expression::Ptr _expr; ///< Expression to apply operator on
-	bool _operatorLeft; ///< True if the operator should be printed before the ixpression
+	UnaryOperatorPlacement _operatorPlacement; ///< Determines if the operator should be printed before the expression
 };
 
 /**
@@ -453,7 +459,7 @@ class NotExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
+	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -473,7 +479,7 @@ class PercentualExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	PercentualExpression(ExpPtr&& expr, TokenIt op) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), false) {}
+	PercentualExpression(ExpPtr&& expr, TokenIt op) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Right) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -493,7 +499,7 @@ class DefinedExpression : public UnaryOpExpression
 {
 public:
 	template<typename ExpPtr>
-	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
+	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
 	virtual VisitResult accept(Visitor *v) override
 	{
@@ -514,7 +520,7 @@ class UnaryMinusExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
+	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -535,7 +541,7 @@ class BitwiseNotExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), true) {}
+	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
