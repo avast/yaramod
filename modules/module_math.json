@@ -240,6 +240,22 @@
                     "documentation": "Returns 0 or 1, it's useful when writing a score based rule. Example: ```math.tonumber(SubRule1) * 60 + math.tonumber(SubRule2) * 20 + math.tonumber(SubRule3) * 70 > 80*```"
                 }
             ]
+        },
+        {
+            "kind": "function",
+            "name": "abs",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "int"
+                        }
+                    ],
+                    "documentation": "Returns the absolute value of the signed integer. ```Example: math.abs(@a - @b) == 1```"
+                }
+            ]
         }
     ]
 }
