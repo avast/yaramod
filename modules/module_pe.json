@@ -1760,7 +1760,71 @@
                         }
                     ],
                     "documentation": "Function returning the number of functions from the PE imports where a function name matches function_regexp and a DLL name matches dll_regexp. Both dll_regexp and function_regexp are case sensitive unless you use the \"/i\" modifier in the regexp."
-                }
+                },
+                {
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						},
+						{
+							"type": "s",
+							"name": "function_name"
+						}
+					],
+					"documentation": "Function returning true if the PE imports function_name from dll_name in specified import type, or false otherwise. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						},
+						{
+							"type": "i",
+							"name": "ordinal"
+						}
+					],
+					"documentation": "Function returning true if the PE imports ordinal from dll_name in specified import type, or false otherwise. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						}
+					],
+					"documentation": "Function returning the number of functions from the dll_name in specified import type, in the PE imports. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "r",
+							"name": "dll_regexp"
+						},
+						{
+							"type": "r",
+							"name": "function_regexp"
+						}
+					],
+					"documentation": "Function returning the number of functions from the PE imports where a function name matches function_regexp and a DLL name matches dll_regexp in specified import type. Both dll_regexp and function_regexp are case sensitive unless you use the \"/i\" modifier in the regexp."
+				}
             ]
         },
 		{
