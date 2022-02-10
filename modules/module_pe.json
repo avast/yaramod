@@ -1691,6 +1691,24 @@
             }
         },
         {
+			"kind": "value",
+			"name": "IMPORT_STANDARD",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "IMPORT_DELAYED",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "IMPORT_ANY",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+        {
             "kind": "function",
             "name": "imports",
             "return_type": "i",
