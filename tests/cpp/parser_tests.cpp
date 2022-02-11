@@ -4699,6 +4699,76 @@ R"(rule public_rule
 }
 
 TEST_F(ParserTests,
+AllOfThemInOperator) {
+	prepareInput(
+R"(rule public_rule_with_in_operator
+{
+	strings:
+		$s1 = "Hello World"
+		$s2 = "Bye World"
+	condition:
+		all of them in (0..filesize)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+}
+
+TEST_F(ParserTests,
+AllOfInOperatorAndAnyOfInOperator) {
+	prepareInput(
+R"(rule public_rule_with_in_operator
+{
+	strings:
+		$a1 = "Hello World"
+		$a2 = "Bye World"
+		$b1 = "Another"
+	condition:
+		all of ($a*) in (filesize-500..filesize) and
+		any of ($a*, $b*) in (1000..2000)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+}
+
+TEST_F(ParserTests,
+StringCountInRange) {
+	prepareInput(
+R"(rule public_rule_with_in_operator
+{
+	strings:
+		$a = "foo"
+	condition:
+		#a in (filesize-500..filesize) == 2
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ("#a", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("2", rule->getCondition()->getLastTokenIt()->getPureText());
+}
+
+TEST_F(ParserTests,
 CommentsInCommonLocations) {
 	prepareInput(
 R"(

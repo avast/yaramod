@@ -1279,6 +1279,17 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto set = std::move(args[2].getExpression());
+			TokenIt in = args[3].getTokenIt();
+			auto range = args[4].getExpression();
+			auto output = std::make_shared<OfInRangeExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("NOT", "expression", [&](auto&& args) -> Value {
 			TokenIt not_token = args[0].getTokenIt();
 			auto expr = std::move(args[1].getExpression());
