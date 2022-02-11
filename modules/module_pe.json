@@ -1070,7 +1070,13 @@
         {
             "kind": "value",
             "name": "entry_point",
-            "documentation": "Entry point raw offset or virtual address depending on whether YARA is scanning a file or process memory respectively. This is equivalent to the deprecated `entrypoint` keyword.",
+            "documentation": "Entry point file offset or virtual address depending on whether YARA is scanning a file or process memory respectively. This is equivalent to the deprecated `entrypoint` keyword.",
+            "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "entry_point_raw",
+            "documentation": "Entry point raw value from the optional header of the PE. This value is not converted to a file offset or an RVA.",
             "type": "i"
         },
         {
@@ -1685,6 +1691,24 @@
             }
         },
         {
+			"kind": "value",
+			"name": "IMPORT_STANDARD",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "IMPORT_DELAYED",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "IMPORT_ANY",
+			"documentation": "Flag specifying which import should function imports(int,...) search",
+			"type": "i"
+		},
+        {
             "kind": "function",
             "name": "imports",
             "return_type": "i",
@@ -1736,9 +1760,183 @@
                         }
                     ],
                     "documentation": "Function returning the number of functions from the PE imports where a function name matches function_regexp and a DLL name matches dll_regexp. Both dll_regexp and function_regexp are case sensitive unless you use the \"/i\" modifier in the regexp."
-                }
+                },
+                {
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						},
+						{
+							"type": "s",
+							"name": "function_name"
+						}
+					],
+					"documentation": "Function returning true if the PE imports function_name from dll_name in specified import type, or false otherwise. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						},
+						{
+							"type": "i",
+							"name": "ordinal"
+						}
+					],
+					"documentation": "Function returning true if the PE imports ordinal from dll_name in specified import type, or false otherwise. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "s",
+							"name": "dll_name"
+						}
+					],
+					"documentation": "Function returning the number of functions from the dll_name in specified import type, in the PE imports. dll_name is case insensitive."
+				},
+				{
+					"arguments": [
+						{
+							"type": "i",
+							"name": "import_flag"
+						},
+						{
+							"type": "r",
+							"name": "dll_regexp"
+						},
+						{
+							"type": "r",
+							"name": "function_regexp"
+						}
+					],
+					"documentation": "Function returning the number of functions from the PE imports where a function name matches function_regexp and a DLL name matches dll_regexp in specified import type. Both dll_regexp and function_regexp are case sensitive unless you use the \"/i\" modifier in the regexp."
+				}
             ]
         },
+		{
+			"kind": "array",
+			"name": "import_details",
+			"documentation": "Array of structures containing information about the PE's imports libraries.",
+			"structure": {
+				"kind": "struct",
+				"name": "import_details",
+				"attributes": [
+					{
+						"kind": "value",
+						"name": "library_name",
+						"documentation": "Library name.",
+						"type": "s"
+					},
+					{
+						"kind": "value",
+						"name": "number_of_functions",
+						"documentation": "Number of imported function.",
+						"type": "i"
+					},
+					{
+						"kind": "array",
+						"name": "functions",
+						"documentation": "Array of structures containing information about the PE's imports functions.",
+						"structure": {
+							"kind": "struct",
+							"name": "functions",
+							"attributes": [
+								{
+									"kind": "value",
+									"name": "name",
+									"documentation": "Name of imported function.",
+									"type": "s"
+								},
+								{
+									"kind": "value",
+									"name": "ordinal",
+									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"kind": "value",
+			"name": "number_of_imported_functions",
+			"documentation": "Number of imported functions in the PE.",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "number_of_delayed_imported_functions",
+			"documentation": "Number of delay imported functions in the PE.",
+			"type": "i"
+		},
+		{
+			"kind": "value",
+			"name": "number_of_delayed_imports",
+			"documentation": "Number of delay imported DLLs in the PE. (Number of IMAGE_DELAYLOAD_DESCRIPTOR parsed from file).",
+			"type": "i"
+		},
+		{
+			"kind": "array",
+			"name": "delayed_import_details",
+			"documentation": "Array of structures containing information about the PE's delay imports libraries.",
+			"structure": {
+				"kind": "struct",
+				"name": "import_details",
+				"attributes": [
+					{
+						"kind": "value",
+						"name": "library_name",
+						"documentation": "Library name.",
+						"type": "s"
+					},
+					{
+						"kind": "value",
+						"name": "number_of_functions",
+						"documentation": "Number of imported function.",
+						"type": "i"
+					},
+					{
+						"kind": "array",
+						"name": "functions",
+						"documentation": "Array of structures containing information about the PE's imports functions.",
+						"structure": {
+							"kind": "struct",
+							"name": "functions",
+							"attributes": [
+								{
+									"kind": "value",
+									"name": "name",
+									"documentation": "Name of imported function.",
+									"type": "s"
+								},
+								{
+									"kind": "value",
+									"name": "ordinal",
+									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
         {
             "kind": "function",
             "name": "locale",
