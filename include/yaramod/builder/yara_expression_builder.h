@@ -264,6 +264,7 @@ YaraExpressionBuilder filesize();
 YaraExpressionBuilder entrypoint();
 YaraExpressionBuilder all();
 YaraExpressionBuilder any();
+YaraExpressionBuilder none();
 YaraExpressionBuilder them();
 
 YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = std::string{});

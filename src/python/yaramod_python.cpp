@@ -703,6 +703,7 @@ void addExpressionClasses(py::module& module)
 	keywordClass<EntrypointExpression>(module, "EntrypointExpression");
 	keywordClass<AllExpression>(module, "AllExpression");
 	keywordClass<AnyExpression>(module, "AnyExpression");
+	keywordClass<NoneExpression>(module, "NoneExpression");
 	keywordClass<ThemExpression>(module, "ThemExpression");
 
 	exprClass<ParenthesesExpression>(module, "ParenthesesExpression")

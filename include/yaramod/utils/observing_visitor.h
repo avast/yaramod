@@ -320,6 +320,7 @@ public:
 	virtual VisitResult visit(EntrypointExpression*) override { return {}; }
 	virtual VisitResult visit(AllExpression*) override { return {}; }
 	virtual VisitResult visit(AnyExpression*) override { return {}; }
+	virtual VisitResult visit(NoneExpression*) override { return {}; }
 	virtual VisitResult visit(ThemExpression*) override { return {}; }
 
 	virtual VisitResult visit(ParenthesesExpression* expr) override

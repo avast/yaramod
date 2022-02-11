@@ -63,6 +63,7 @@ class FilesizeExpression;
 class EntrypointExpression;
 class AllExpression;
 class AnyExpression;
+class NoneExpression;
 class ThemExpression;
 class ParenthesesExpression;
 class IntFunctionExpression;
@@ -129,6 +130,7 @@ public:
 	virtual VisitResult visit(EntrypointExpression* expr) = 0;
 	virtual VisitResult visit(AllExpression* expr) = 0;
 	virtual VisitResult visit(AnyExpression* expr) = 0;
+	virtual VisitResult visit(NoneExpression* expr) = 0;
 	virtual VisitResult visit(ThemExpression* expr) = 0;
 	virtual VisitResult visit(ParenthesesExpression* expr) = 0;
 	virtual VisitResult visit(IntFunctionExpression* expr) = 0;
