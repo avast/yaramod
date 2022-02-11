@@ -907,6 +907,82 @@
                     }
                 ]
             }
+        },
+        {
+            "kind": "function",
+            "name": "has_method",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "method name"
+                        }
+                    ],
+                    "documentation": "Returns true if any method has the specified method name."
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "class name"
+                        },
+                        {
+                            "type": "s",
+                            "name": "method name"
+                        }
+                    ],
+                    "documentation": "Returns true if any class has the specified class name and at the same time there is a method with the specified metod name"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "r",
+                            "name": "method name"
+                        }
+                    ],
+                    "documentation": "Returns true if any method name matches the regex."
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "r",
+                            "name": "class name"
+                        },
+                        {
+                            "type": "r",
+                            "name": "method name"
+                        }
+                    ],
+                    "documentation": "Returns true if any class name matching the regex class name and at the same time there is a method with name matching the specified regex metod name"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "has_class",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "class name"
+                        }
+                    ],
+                    "documentation": "Returns true if any class has the specified name."
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "r",
+                            "name": "class name"
+                        }
+                    ],
+                    "documentation": "Returns true if any class name matches the regex."
+                }
+            ]
         }
     ]
 }

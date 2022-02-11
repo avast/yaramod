@@ -3440,6 +3440,68 @@ rule dotnet_module
 }
 
 TEST_F(ParserTests,
+DexModuleWorks) {
+	prepareInput(
+R"(
+import "dex"
+
+rule dex_module_has_method_1
+{
+	condition:
+		dex.has_method("<init>")
+}
+
+rule dex_module_has_method_2
+{
+	condition:
+		dex.has_method("Lcom/android/tools/ir/server/AppInfo;", "<clinit>")
+}
+
+rule dex_module_has_method_3
+{
+	condition:
+		dex.has_method(/init/)
+}
+
+rule dex_module_has_method_4
+{
+	condition:
+		dex.has_method(/AppInfo/, /init/)
+}
+
+rule dex_module_has_class_1
+{
+	condition:
+		dex.has_class("Lcom/android/tools/ir/server/AppInfo;")
+}
+
+rule dex_module_has_class_2
+{
+	condition:
+		dex.has_class(/AppInfo/)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(6u, driver.getParsedFile().getRules().size());
+
+	const auto& rule1 = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("dex.has_method(\"<init>\")", rule1->getCondition()->getText());
+	const auto& rule2 = driver.getParsedFile().getRules()[1];
+	EXPECT_EQ("dex.has_method(\"Lcom/android/tools/ir/server/AppInfo;\", \"<clinit>\")", rule2->getCondition()->getText());
+	const auto& rule3 = driver.getParsedFile().getRules()[2];
+	EXPECT_EQ("dex.has_method(/init/)", rule3->getCondition()->getText());
+	const auto& rule4 = driver.getParsedFile().getRules()[3];
+	EXPECT_EQ("dex.has_method(/AppInfo/, /init/)", rule4->getCondition()->getText());
+	const auto& rule5 = driver.getParsedFile().getRules()[4];
+	EXPECT_EQ("dex.has_class(\"Lcom/android/tools/ir/server/AppInfo;\")", rule5->getCondition()->getText());
+	const auto& rule6 = driver.getParsedFile().getRules()[5];
+	EXPECT_EQ("dex.has_class(/AppInfo/)", rule6->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ElfModuleWorks) {
 	prepareInput(
 R"(
