@@ -2008,6 +2008,51 @@ rule test_rule
 
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_pe_number_of_imported_functions(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''
+import "pe"
+
+rule pe_number_of_imported_functions {
+	condition:
+		pe.number_of_imported_functions == 1
+	}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+
+    def test_pe_delayed_imports(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''
+import "pe"
+
+rule pe_number_of_imported_functions {
+	condition:
+		pe.number_of_delayed_imports == 1 and
+		pe.number_of_delayed_imported_functions == 1 and
+		pe.delayed_import_details[0].library_name == "LIB.dll" and
+		pe.delayed_import_details[0].functions[0].name == "function" and
+		pe.delayed_import_details[0].functions[0].ordinal != 0
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+
+    def test_pe_imports(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''
+import "pe"
+
+rule pe_number_of_imported_functions {
+	condition:
+		pe.imports(pe.IMPORT_DELAYED, "lib", "fun") and
+		pe.imports(pe.IMPORT_ANY, "lib", 0) and
+		pe.imports(pe.IMPORT_STANDARD, "lib") and
+		pe.imports(pe.IMPORT_DELAYED, /lib/, /fun/)
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
     def test_parse_elf_dynsym(self):
         yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "elf"
 
