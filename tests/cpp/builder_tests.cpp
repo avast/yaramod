@@ -1693,6 +1693,43 @@ rule rule_with_double_quotes
 }
 
 TEST_F(BuilderTests,
+RuleWithNoneOfThemExpression) {
+	auto cond = of(none(), them()).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_none_of_them_expression")
+		.withPlainString("$1", "Hello").ascii()
+		.withPlainString("$2", "World").ascii().wide().private_()
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_none_of_them_expression {
+	strings:
+		$1 = "Hello"
+		$2 = "World" ascii wide private
+	condition:
+		none of them
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_none_of_them_expression
+{
+	strings:
+		$1 = "Hello"
+		$2 = "World" ascii wide private
+	condition:
+		none of them
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 RuleWithStringsWithDifferentKindsOfModifiers) {
 	auto cond = of(all(), them()).get();
 

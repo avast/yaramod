@@ -350,7 +350,7 @@ All of these provide methods ``getLeftOperand()`` and ``getRightOperand()`` (``l
 
 **For expressions**
 
-All of these provide method ``getVariable()`` (``variable`` in Python) to return variable used for iterating over the set of values (can also be ``any`` or ``all``),
+All of these provide method ``getVariable()`` (``variable`` in Python) to return variable used for iterating over the set of values (can also be ``any``, ``all`` or ``none``),
 ``getIterable()`` (``iterable`` in Python) to return an iterated set (can also be ``them``) and ``getBody()`` (``body`` in Python) to return the body of a for expression. For ``OfExpression``, ``getBody()`` always returns ``nullptr`` (``None`` in Python).
 
   * ``ForDictExpression`` - refers to ``for`` which operates on dictionary (``for all k, v in some_dict : ( ... )``)
@@ -380,6 +380,7 @@ All of these provide method ``getSymbol()`` (``symbol`` in Python) to return sym
   * ``EntrypointExpression`` - refers to keyword ``entrypoint``
   * ``AllExpression`` - refers to keyword ``all``
   * ``AnyExpression`` - refers to keyword ``any``
+  * ``NoneExpression`` - refers to keyword ``none``
   * ``ThemExpression`` - refers to keyword ``them``
 
 **Other expressions**

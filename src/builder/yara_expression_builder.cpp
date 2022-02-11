@@ -1349,6 +1349,18 @@ YaraExpressionBuilder any()
 }
 
 /**
+ * Creates the expression with keyword @c any.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder none()
+{
+	auto ts = std::make_shared<TokenStream>();
+	TokenIt token = ts->emplace_back(TokenType::NONE, "none");
+	return YaraExpressionBuilder(std::move(ts), std::make_shared<NoneExpression>(token));
+}
+
+/**
  * Creates the expression with keyword @c them.
  *
  * @return Builder.

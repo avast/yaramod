@@ -3064,6 +3064,56 @@ rule for_string_set_condition
 }
 
 TEST_F(ParserTests,
+NoneOfThemConditionWorks) {
+	prepareInput(
+R"(
+rule none_of_string_set_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		none of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("none of them", rule->getCondition()->getText());
+	EXPECT_EQ("none", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("them", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+NoneOfSetConditionWorks) {
+	prepareInput(
+R"(
+rule none_of_string_set_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = "dummy2"
+	condition:
+		none of ($a, $b)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("none of ($a, $b)", rule->getCondition()->getText());
+	EXPECT_EQ("none", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 OfConditionWorks) {
 	prepareInput(
 R"(

@@ -1952,6 +1952,34 @@ public:
 };
 
 /**
+ * Class representing 'none' expression. Can be used in conjunction with for loops indicating that for loop
+ * needs to be evaluated false for all variables in the referenced set. This expression does not have a type.
+ *
+ * For example:
+ * @code
+ * none of them
+ * ^^^^
+ * @endcode
+ */
+class NoneExpression : public KeywordExpression
+{
+public:
+	NoneExpression(TokenIt t)
+		: KeywordExpression(t)
+	{
+	}
+	NoneExpression(const std::shared_ptr<TokenStream>& ts, TokenIt t)
+		: KeywordExpression(ts, t)
+	{
+	}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
  * Class representing 'them' expression. Can be used in conjunction with string-based for loops referencing
  * all string from the strings section instead of specific set. This expression does not have a type.
  *

@@ -319,6 +319,9 @@ class Dumper(yaramod.ObservingVisitor):
     def visit_AnyExpression(self, expr):
         self.dump('Any', expr)
 
+    def visit_NoneExpression(self, expr):
+        self.dump('None', expr)
+
     def visit_ThemExpression(self, expr):
         self.dump('Them', expr)
 

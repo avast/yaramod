@@ -147,6 +147,7 @@ void ParserDriver::defineTokens()
 		.precedence(4, pog::Associativity::Left);
 	_parser.token("all").symbol("ALL").description("all").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ALL, std::string{str}); });
 	_parser.token("any").symbol("ANY").description("any").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ANY, std::string{str}); });
+	_parser.token("none").symbol("NONE").description("none").action([&](std::string_view str) -> Value { return emplace_back(TokenType::NONE, std::string{str}); });
 	_parser.token("of").symbol("OF").description("of").action([&](std::string_view str) -> Value { return emplace_back(TokenType::OF, std::string{str}); });
 	_parser.token("them").symbol("THEM").description("them").action([&](std::string_view str) -> Value { return emplace_back(TokenType::THEM, std::string{str}); });
 	_parser.token("for").symbol("FOR").description("for").action([&](std::string_view str) -> Value { return emplace_back(TokenType::FOR, std::string{str}); });
@@ -1905,6 +1906,7 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", [](auto&& args) -> Value { return std::move(args[0]); })
 		.production("ALL", [&](auto&& args) -> Value { return Value(std::make_shared<AllExpression>(currentTokenStream(), args[0].getTokenIt())); })
 		.production("ANY", [&](auto&& args) -> Value { return Value(std::make_shared<AnyExpression>(currentTokenStream(), args[0].getTokenIt())); })
+		.production("NONE", [&](auto&& args) -> Value { return Value(std::make_shared<NoneExpression>(currentTokenStream(), args[0].getTokenIt())); })
 		;
 
 	_parser.rule("integer_set") // Expression::Ptr

@@ -482,6 +482,12 @@ public:
 		return {};
 	}
 
+	virtual yaramod::VisitResult visit(yaramod::NoneExpression* expr) override
+	{
+		dump("None", expr);
+		return {};
+	}
+
 	virtual yaramod::VisitResult visit(yaramod::ThemExpression* expr) override
 	{
 		dump("Them", expr);
