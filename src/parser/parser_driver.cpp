@@ -1281,7 +1281,7 @@ void ParserDriver::defineGrammar()
 		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt percent = args[1].getTokenIt();
-			uint32_t value = 0;
+			std::uint64_t value = 0;
 			if (strToNum(for_expr->getText(), value))
 			{
 				if (value == 0 || value > 100)
