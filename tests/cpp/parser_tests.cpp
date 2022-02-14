@@ -3513,7 +3513,7 @@ rule magic_module
 }
 
 TEST_F(ParserTests,
-MathModuleWorks) {
+MathModuleWorks1) {
 	prepareInput(
 R"(
 import "math"
@@ -3521,7 +3521,8 @@ import "math"
 rule math_module
 {
 	condition:
-		math.to_number(math.entropy("dummy") > 7) == 1
+		math.to_number(math.entropy("dummy") > 7) == 1 and
+		math.mode(0, filesize) == 0xFF
 }
 )");
 
@@ -3529,9 +3530,38 @@ rule math_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(math.to_number(math.entropy("dummy") > 7) == 1)", rule->getCondition()->getText());
+	EXPECT_EQ(R"(math.to_number(math.entropy("dummy") > 7) == 1 and math.mode(0, filesize) == 0xFF)", rule->getCondition()->getText());
 	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("1", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("0xFF", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+MathModuleWorks2) {
+	prepareInput(
+R"(
+import "math"
+
+rule math_module
+{
+	strings:
+		$a = "string A"
+		$b = "string B"
+	condition:
+		math.abs(@a - @b) == 1 and
+		math.count(0x4A, filesize - 1024, filesize) >= 10 and
+		math.percentage(0xFF, filesize - 1024, filesize) >= 0.9
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(math.abs(@a - @b) == 1 and math.count(0x4A, filesize - 1024, filesize) >= 10 and math.percentage(0xFF, filesize - 1024, filesize) >= 0.9)", rule->getCondition()->getText());
+	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0.9", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
