@@ -1730,6 +1730,42 @@ RuleWithNoneOfThemExpression) {
 }
 
 TEST_F(BuilderTests,
+RuleWithNoneOfThemInRangeWorks) {
+	auto cond = matchInRange(none(), them(), range(intVal(0), filesize())).get();
+	EXPECT_EQ("none", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_range")
+		.withPlainString("$1", "Hello World!")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true, &driver);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_range {
+	strings:
+		$1 = "Hello World!"
+	condition:
+		none of them in (0 .. filesize)
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_range
+{
+	strings:
+		$1 = "Hello World!"
+	condition:
+		none of them in (0 .. filesize)
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 RuleWithStringsWithDifferentKindsOfModifiers) {
 	auto cond = of(all(), them()).get();
 

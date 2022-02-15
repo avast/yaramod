@@ -1100,6 +1100,29 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
 }
 
 /**
+ * Creates the expression with match of the specified set of strings in given range.
+ *
+ * @param quantifier All / Any / None expression.
+ * @param set Set expression.
+ * @param range Range expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder matchInRange(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range)
+{
+	auto ts = std::make_shared<TokenStream>();
+	ts->moveAppend(quantifier.getTokenStream());
+	auto ofToken = ts->emplace_back(TokenType::OF, "of");
+	ts->moveAppend(set.getTokenStream());
+	auto inToken = ts->emplace_back(TokenType::OP_IN, "in");
+	ts->moveAppend(range.getTokenStream());
+
+	auto expression = std::make_shared<OfInRangeExpression>(quantifier.get(), ofToken, set.get(), inToken, range.get());
+
+	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
  * Creates an iterable array of elements.
  *
  * @param elements Elements.

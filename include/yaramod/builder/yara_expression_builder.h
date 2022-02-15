@@ -241,6 +241,7 @@ YaraExpressionBuilder matchOffset(const std::string& id);
 YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBuilder& other);
 YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBuilder& other);
 YaraExpressionBuilder matchAt(const std::string& id, const YaraExpressionBuilder& other);
+YaraExpressionBuilder matchInRange(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range);
 YaraExpressionBuilder matchInRange(const std::string& id, const YaraExpressionBuilder& other);
 
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id1, const std::string& id2, const YaraExpressionBuilder& dict, const YaraExpressionBuilder& expr);
