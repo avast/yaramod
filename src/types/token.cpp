@@ -11,8 +11,8 @@
 #include "yaramod/types/token.h"
 #include "yaramod/types/token_stream.h"
 
-namespace yaramod {
 
+namespace yaramod {
 
 std::string Token::getText(bool pure) const
 {
