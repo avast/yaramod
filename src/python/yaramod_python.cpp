@@ -644,6 +644,7 @@ void addExpressionClasses(py::module& module)
 				py::overload_cast<const std::string&>(&ForArrayExpression::setId));
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
+	exprClass<OfInRangeExpression, ForExpression>(module, "OfInRangeExpression");
 
 	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",

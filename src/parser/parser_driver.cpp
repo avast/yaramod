@@ -12,6 +12,8 @@
 #include "yaramod/types/token_type.h"
 #include "yaramod/utils/filesystem_operations.h"
 
+#include <iostream>
+
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
 
@@ -1488,6 +1490,33 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		.production("STRING_COUNT", "IN", "range", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			std::cout << "1" << std::endl;
+			auto stringId = id->getString();
+			stringId[0] = '$';
+			std::cout << "2" << std::endl;
+
+			if (!stringExists(stringId))
+				error_handle(id->getLocation(), "Reference to undefined string '" + stringId + "'");
+			std::cout << "3" << std::endl;
+			if (id->getString().size() > 1)
+				id->setValue(findStringDefinition(id->getString()));
+			std::cout << "4" << std::endl;
+			TokenIt op = args[1].getTokenIt();
+			std::cout << "5" << std::endl;
+			Expression::Ptr range = args[2].getExpression();
+			std::cout << "6" << std::endl;
+
+			auto output = std::make_shared<StringInRangeExpression>(id, op, std::move(range));
+			std::cout << "7" << std::endl;
+			output->setType(Expression::Type::Int);
+			std::cout << "8" << std::endl;
+			output->setTokenStream(currentTokenStream());
+			std::cout << "9" << std::endl;
+			// std::cout << "created " << output->getText() << std::endl;
 			return output;
 		})
 		.production("STRING_OFFSET", [&](auto&& args) -> Value {

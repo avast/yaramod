@@ -4764,6 +4764,7 @@ R"(rule public_rule_with_in_operator
 	const auto& rule = driver.getParsedFile().getRules()[0];
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ("#a in (filesize-500 .. filesize) == 2", rule->getCondition()->getText());
 	EXPECT_EQ("#a", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("2", rule->getCondition()->getLastTokenIt()->getPureText());
 }
