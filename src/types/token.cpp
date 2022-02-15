@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <sstream>
 #include <stack>
 
 #include "yaramod/types/token.h"
