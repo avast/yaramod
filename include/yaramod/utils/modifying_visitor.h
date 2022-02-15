@@ -305,6 +305,15 @@ public:
 		return defaultHandler(context, expr, var, iterable, {});
 	}
 
+	virtual VisitResult visit(OfInRangeExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+		auto var = expr->getVariable()->accept(this);
+		auto iterable = expr->getIterable()->accept(this);
+		auto rangeExpr = expr->getRangeExpression()->accept(this);
+		return defaultHandler(context, expr, var, iterable, rangeExpr);
+	}
+
 	virtual VisitResult visit(IterableExpression* expr) override
 	{
 		TokenStreamContext context{expr};
@@ -534,6 +543,39 @@ public:
 
 		// If any subnode needs to be deleted, we delete whole expr.
 		if (!expr->getVariable() || !expr->getIterable() || (oldBody && !expr->getBody()))
+			return VisitAction::Delete;
+
+		return {};
+	}
+
+	VisitResult defaultHandler(const TokenStreamContext& context, OfInRangeExpression* expr, const VisitResult& varRet, const VisitResult& iterableRet, const VisitResult& rangeRet)
+	{
+		if (auto var = std::get_if<Expression::Ptr>(&varRet))
+		{
+			if (*var)
+				expr->setVariable(*var);
+		}
+		else
+			expr->setVariable(nullptr);
+
+		if (auto iterable = std::get_if<Expression::Ptr>(&iterableRet))
+		{
+			if (*iterable)
+				expr->setIterable(*iterable);
+		}
+		else
+			expr->setIterable(nullptr);
+
+		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeRet))
+		{
+			if (*rangeExpr)
+				expr->setRangeExpression(*rangeExpr);
+		}
+		else
+			expr->setRangeExpression(nullptr);
+
+		// If any subnode needs to be deleted, we delete whole expr.
+		if (!expr->getVariable() || !expr->getIterable() || !expr->getRangeExpression())
 			return VisitAction::Delete;
 
 		return {};

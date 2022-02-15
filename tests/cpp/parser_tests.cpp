@@ -4707,7 +4707,7 @@ R"(rule public_rule_with_in_operator
 		$s1 = "Hello World"
 		$s2 = "Bye World"
 	condition:
-		all of them in (0..filesize)
+		all of them in (0 .. filesize)
 }
 )");
 
@@ -4731,8 +4731,8 @@ R"(rule public_rule_with_in_operator
 		$a2 = "Bye World"
 		$b1 = "Another"
 	condition:
-		all of ($a*) in (filesize-500..filesize) and
-		any of ($a*, $b*) in (1000..2000)
+		all of ($a*) in (filesize - 500 .. filesize) and
+		any of ($a*, $b*) in (1000 .. 2000)
 }
 )");
 
@@ -4754,7 +4754,7 @@ R"(rule public_rule_with_in_operator
 	strings:
 		$a = "foo"
 	condition:
-		#a in (filesize-500..filesize) == 2
+		#a in (filesize-500 .. filesize) == 2
 }
 )");
 

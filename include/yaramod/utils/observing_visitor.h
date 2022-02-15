@@ -268,6 +268,14 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(OfInRangeExpression* expr) override
+	{
+		expr->getVariable()->accept(this);
+		expr->getIterable()->accept(this);
+		expr->getRangeExpression()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(IterableExpression* expr) override
 	{
 		for (auto& element : expr->getElements())

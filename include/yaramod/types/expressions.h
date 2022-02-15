@@ -1239,11 +1239,15 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent) + " " + _in_symbol + " " + _range->getText(indent);
+		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent) + " " + _in_symbol->getString() + " " + _range->getText(indent);
 	}
 
+	const Expression::Ptr& getRangeExpression() const { return _range; }
+	void setRangeExpression(const Expression::Ptr& range) { _range = range; }
+	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
+
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _iterable->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _range->getLastTokenIt(); }
 private:
 	TokenIt _in_symbol; ///< Token holding "in"
 	Expression::Ptr _range; ///< Range expression
