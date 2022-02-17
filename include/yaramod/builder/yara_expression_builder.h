@@ -248,6 +248,7 @@ YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::s
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const std::string& id, const YaraExpressionBuilder& iterable, const YaraExpressionBuilder& expr);
 YaraExpressionBuilder forLoop(const YaraExpressionBuilder& forExpr, const YaraExpressionBuilder& set, const YaraExpressionBuilder& expr);
 YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressionBuilder& set);
+YaraExpressionBuilder of(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range);
 
 YaraExpressionBuilder iterable(const std::vector<YaraExpressionBuilder>& elements);
 

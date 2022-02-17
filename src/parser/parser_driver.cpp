@@ -12,6 +12,7 @@
 #include "yaramod/types/token_type.h"
 #include "yaramod/utils/filesystem_operations.h"
 
+
 // Uncomment for advanced debugging with HtmlReport:
 // #include <pog/html_report.h>
 
@@ -1279,6 +1280,17 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto set = std::move(args[2].getExpression());
+			TokenIt in = args[3].getTokenIt();
+			auto range = args[4].getExpression();
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt percent = args[1].getTokenIt();
@@ -1315,7 +1327,7 @@ void ParserDriver::defineGrammar()
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
 			return output;
-			})
+		})
 		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt and_token = args[1].getTokenIt();
@@ -1496,6 +1508,23 @@ void ParserDriver::defineGrammar()
 			if (stringId.size() > 1)
 				id->setValue(findStringDefinition(stringId));
 			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
+			output->setType(Expression::Type::Int);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		.production("STRING_COUNT", "IN", "range", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			auto stringId = id->getString();
+			stringId[0] = '$';
+
+			if (!stringExists(stringId))
+				error_handle(id->getLocation(), "Reference to undefined string '" + stringId + "'");
+			if (id->getString().size() > 1)
+				id->setValue(findStringDefinition(stringId));
+			TokenIt op = args[1].getTokenIt();
+			Expression::Ptr range = args[2].getExpression();
+
+			auto output = std::make_shared<StringInRangeExpression>(args[0].getTokenIt(), args[1].getTokenIt(), std::move(range));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
 			return output;

@@ -336,6 +336,7 @@ basic expressions and find the most suitable one.
         * ``forLoop(spec, var1, var2, set, body)`` - represents ``for`` loop over dictionary (``for_loop(any(), "k", "v", id("pe").access("version_info"), true)``)
         * ``forLoop(spec, set, body)`` - represents ``for`` loop over set of string references (``forLoop(any(), set({stringRef("$*")}), matchAt("$", intVal(100))``)
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
+        * ``of(spec, set, range)`` - represents ``<spec> of <set> in <range>`` (``of(all(), them(), range(intVal(100), intVal(200)))``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(intVal(10))``)
         * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``)
         * ``disjunction(terms, [newline])`` - represents disjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``disjunction({id("rule1"), id("rule2")})``)

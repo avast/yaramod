@@ -271,6 +271,8 @@ public:
 	{
 		expr->getVariable()->accept(this);
 		expr->getIterable()->accept(this);
+		if (expr->getRangeExpression())
+			expr->getRangeExpression()->accept(this);
 		return {};
 	}
 

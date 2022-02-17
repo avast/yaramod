@@ -883,7 +883,8 @@ void addBuilderClasses(py::module& module)
 			const YaraExpressionBuilder&,
 			const YaraExpressionBuilder&
 		>(&forLoop));
-	module.def("of", &of);
+	module.def("of", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&of));
+	module.def("of", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&of));
 
 	module.def("iterable", &iterable);
 
