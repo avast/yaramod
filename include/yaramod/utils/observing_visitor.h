@@ -265,14 +265,8 @@ public:
 	{
 		expr->getVariable()->accept(this);
 		expr->getIterable()->accept(this);
-		return {};
-	}
-
-	virtual VisitResult visit(OfInRangeExpression* expr) override
-	{
-		expr->getVariable()->accept(this);
-		expr->getIterable()->accept(this);
-		expr->getRangeExpression()->accept(this);
+		if (expr->getRangeExpression())
+			expr->getRangeExpression()->accept(this);
 		return {};
 	}
 

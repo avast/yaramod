@@ -1192,40 +1192,15 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
+		, _in_symbol(std::nullopt)
+		, _range(nullptr)
 	{
 	}
-
-	virtual VisitResult accept(Visitor* v) override
-	{
-		return v->visit(this);
-	}
-
-	virtual std::string getText(const std::string& indent = std::string{}) const override
-	{
-		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent);
-	}
-
-	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _iterable->getLastTokenIt(); }
-};
-
-/**
- * Class representing 'of' expression. 'of' expression is shortened version of
- * for loop over string set with no loop body. It has hidden body which always contains just ( $ ).
- *
- * For example:
- * @code
- * all of ($str1, $str2) in (filesize-1000, filesize)
- * @endcode
- */
-class OfInRangeExpression : public ForExpression
-{
-public:
 	/**
 	 * Constructor
 	 */
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	OfInRangeExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt in_symbol, ExpPtr3&& range)
+	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt in_symbol, ExpPtr3&& range)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
 		, _in_symbol(in_symbol)
 		, _range(std::forward<ExpPtr3>(range))
@@ -1239,7 +1214,10 @@ public:
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
-		return _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent) + " " + _in_symbol->getString() + " " + _range->getText(indent);
+		std::string output = _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent);
+		if (_range && _in_symbol.has_value())
+			output +=  " " + _in_symbol.value()->getString() + " " + _range->getText(indent);
+		return output;
 	}
 
 	const Expression::Ptr& getRangeExpression() const { return _range; }
@@ -1247,9 +1225,10 @@ public:
 	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _range->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _range ? _range->getLastTokenIt() : _iterable->getLastTokenIt(); }
+
 private:
-	TokenIt _in_symbol; ///< Token holding "in"
+	std::optional<TokenIt> _in_symbol; ///< Token holding "in"
 	Expression::Ptr _range; ///< Range expression
 };
 

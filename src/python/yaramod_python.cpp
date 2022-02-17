@@ -644,7 +644,6 @@ void addExpressionClasses(py::module& module)
 				py::overload_cast<const std::string&>(&ForArrayExpression::setId));
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
 	exprClass<OfExpression, ForExpression>(module, "OfExpression");
-	exprClass<OfInRangeExpression, ForExpression>(module, "OfInRangeExpression");
 
 	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",
@@ -877,6 +876,7 @@ void addBuilderClasses(py::module& module)
 			const YaraExpressionBuilder&
 		>(&forLoop));
 	module.def("of", &of);
+	module.def("of_in_range", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&ofInRange));
 
 	module.def("iterable", &iterable);
 

@@ -1286,7 +1286,7 @@ void ParserDriver::defineGrammar()
 			auto set = std::move(args[2].getExpression());
 			TokenIt in = args[3].getTokenIt();
 			auto range = args[4].getExpression();
-			auto output = std::make_shared<OfInRangeExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
 			return output;

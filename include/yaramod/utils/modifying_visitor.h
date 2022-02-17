@@ -302,16 +302,13 @@ public:
 		TokenStreamContext context{expr};
 		auto var = expr->getVariable()->accept(this);
 		auto iterable = expr->getIterable()->accept(this);
-		return defaultHandler(context, expr, var, iterable, {});
-	}
-
-	virtual VisitResult visit(OfInRangeExpression* expr) override
-	{
-		TokenStreamContext context{expr};
-		auto var = expr->getVariable()->accept(this);
-		auto iterable = expr->getIterable()->accept(this);
-		auto rangeExpr = expr->getRangeExpression()->accept(this);
-		return defaultHandler(context, expr, var, iterable, rangeExpr);
+		if (expr->getRangeExpression())
+		{
+			auto rangeExpr = expr->getRangeExpression()->accept(this);
+			return defaultHandler(context, expr, var, iterable, {}, rangeExpr);
+		}
+		else
+			return defaultHandler(context, expr, var, iterable, {});
 	}
 
 	virtual VisitResult visit(IterableExpression* expr) override
@@ -548,8 +545,9 @@ public:
 		return {};
 	}
 
-	VisitResult defaultHandler(const TokenStreamContext& context, OfInRangeExpression* expr, const VisitResult& varRet, const VisitResult& iterableRet, const VisitResult& rangeRet)
+	VisitResult defaultHandler(const TokenStreamContext& context, OfExpression* expr, const VisitResult& varRet, const VisitResult& iterableRet, const VisitResult& bodyRet, const VisitResult& rangeRet)
 	{
+		(void) bodyRet;
 		if (auto var = std::get_if<Expression::Ptr>(&varRet))
 		{
 			if (*var)

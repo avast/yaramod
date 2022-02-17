@@ -1108,7 +1108,7 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
  *
  * @return Builder.
  */
-YaraExpressionBuilder matchInRange(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range)
+YaraExpressionBuilder ofInRange(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range)
 {
 	auto ts = std::make_shared<TokenStream>();
 	ts->moveAppend(quantifier.getTokenStream());
@@ -1117,7 +1117,7 @@ YaraExpressionBuilder matchInRange(const YaraExpressionBuilder& quantifier, cons
 	auto inToken = ts->emplace_back(TokenType::OP_IN, "in");
 	ts->moveAppend(range.getTokenStream());
 
-	auto expression = std::make_shared<OfInRangeExpression>(quantifier.get(), ofToken, set.get(), inToken, range.get());
+	auto expression = std::make_shared<OfExpression>(quantifier.get(), ofToken, set.get(), inToken, range.get());
 
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
 }
