@@ -1731,7 +1731,7 @@ RuleWithNoneOfThemExpression) {
 
 TEST_F(BuilderTests,
 RuleWithNoneOfThemInRangeWorks) {
-	auto cond = ofInRange(none(), them(), range(intVal(0), filesize())).get();
+	auto cond = of(none(), them(), range(intVal(0), filesize())).get();
 	EXPECT_EQ("none", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 

@@ -1108,7 +1108,7 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& ofExpr, const YaraExpressi
  *
  * @return Builder.
  */
-YaraExpressionBuilder ofInRange(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range)
+YaraExpressionBuilder of(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& range)
 {
 	auto ts = std::make_shared<TokenStream>();
 	ts->moveAppend(quantifier.getTokenStream());
