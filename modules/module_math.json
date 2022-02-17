@@ -224,6 +224,128 @@
                     "documentation": "Returns the maximum of two unsigned integer values."
                 }
             ]
+        },
+        {
+            "kind": "function",
+            "name": "to_number",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "b",
+                            "name": "boolean"
+                        }
+                    ],
+                    "documentation": "Returns 0 or 1, it's useful when writing a score based rule. Example: ```math.tonumber(SubRule1) * 60 + math.tonumber(SubRule2) * 20 + math.tonumber(SubRule3) * 70 > 80*```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "abs",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "int"
+                        }
+                    ],
+                    "documentation": "Returns the absolute value of the signed integer. ```Example: math.abs(@a - @b) == 1```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "count",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "byte"
+                        },
+                        {
+                            "type": "i",
+                            "name": "offset"
+                        },
+                        {
+                            "type": "i",
+                            "name": "size"
+                        }
+                    ],
+                    "documentation": "Returns how often a specific byte occurs, starting at *offset* and looking at the next *size* bytes. When scanning a running process the *offset* argument should be a virtual address within the process address space. *offset* and *size* are optional; if left empty, the complete file is searched. Example: ```math.count(0x4A, filesize-1024, filesize) >= 10```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "byte"
+                        }
+                    ],
+                    "documentation": "Returns how often a specific byte occurs, the complete file is searched. Example: ```math.count(0x4A) >= 10```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "percentage",
+            "return_type": "f",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "byte"
+                        },
+                        {
+                            "type": "i",
+                            "name": "offset"
+                        },
+                        {
+                            "type": "i",
+                            "name": "size"
+                        }
+                    ],
+                    "documentation": "Returns the occurrence rate of a specific byte, starting at *offset* and looking at the next *size* bytes. When scanning a running process the *offset* argument should be a virtual address within the process address space. The returned value is a float between 0 and 1. *offset* and *size* are optional; if left empty, the complete file is searched. Example: ```math.percentage(0xFF, filesize-1024, filesize) >= 0.9```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "byte"
+                        }
+                    ],
+                    "documentation": "Returns the occurrence rate of a specific byte, the complete file is searched. The returned value is a float between 0 and 1. Example: ```math.percentage(0x4A) >= 0.4```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "mode",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "offset"
+                        },
+                        {
+                            "type": "i",
+                            "name": "size"
+                        }
+                    ],
+                    "documentation": "Returns the most common byte, starting at *offset* and looking at the next *size* bytes. When scanning a running process the *offset* argument should be a virtual address within the process address space. *offset* and *size* are optional; if left empty, the complete file is searched. Example: ```math.mode(0, filesize) == 0xFF```"
+                },
+                {
+                    "arguments": [],
+                    "documentation": "Returns the most common byte, the complete file is searched. The returned value is a float. Example: ```math.mode() == 0xFF```"
+                }
+            ]
         }
     ]
 }
