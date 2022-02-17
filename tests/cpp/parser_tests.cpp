@@ -3625,7 +3625,7 @@ rule magic_module
 }
 
 TEST_F(ParserTests,
-MathModuleWorks) {
+MathModuleWorks1) {
 	prepareInput(
 R"(
 import "math"
@@ -3633,7 +3633,8 @@ import "math"
 rule math_module
 {
 	condition:
-		math.entropy("dummy") > 7
+		math.to_number(math.entropy("dummy") > 7) == 1 and
+		math.mode(0, filesize) == 0xFF
 }
 )");
 
@@ -3641,9 +3642,38 @@ rule math_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(math.entropy("dummy") > 7)", rule->getCondition()->getText());
+	EXPECT_EQ(R"(math.to_number(math.entropy("dummy") > 7) == 1 and math.mode(0, filesize) == 0xFF)", rule->getCondition()->getText());
 	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("7", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("0xFF", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+MathModuleWorks2) {
+	prepareInput(
+R"(
+import "math"
+
+rule math_module
+{
+	strings:
+		$a = "string A"
+		$b = "string B"
+	condition:
+		math.abs(@a - @b) == 1 and
+		math.count(0x4A, filesize - 1024, filesize) >= 10 and
+		math.percentage(0xFF, filesize - 1024, filesize) >= 0.9
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(math.abs(@a - @b) == 1 and math.count(0x4A, filesize - 1024, filesize) >= 10 and math.percentage(0xFF, filesize - 1024, filesize) >= 0.9)", rule->getCondition()->getText());
+	EXPECT_EQ("math", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0.9", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -7590,5 +7620,157 @@ rule test_rule
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
+
+TEST_F(ParserTests,
+ParsePercentage1Error) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "AXS"
+	condition:
+		101% of them
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 6.6: Percentage must be between 1 and 100 (inclusive). Got 101.", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParsePercentage2Error) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "ERS"
+	condition:
+		0% of them
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 6.4: Percentage must be between 1 and 100 (inclusive). Got 0.", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParsePercentage3) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "dummy"
+	condition:
+		50% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage4) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		1050 % 100 of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage5) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		100% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage6) {
+	prepareInput(
+		R"(import "pe"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		(25 * pe.sections[0].number_of_relocations)% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentage7) {
+	prepareInput(
+		R"(import "pe"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$a2 = "time"
+	condition:
+		pe.data_directories[pe.IMAGE_DIRECTORY_ENTRY_EXPORT].size% of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

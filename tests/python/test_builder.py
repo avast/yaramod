@@ -1227,6 +1227,36 @@ rule rule_with_dictionary_access_condition {
 		for any k, v in pe.version_info : ( k == "CompanyName" and v contains "Microsoft" )
 }''')
 
+    def test_rule_with_percentage_of_stringset(self):
+        cond = yaramod.of(
+                yaramod.int_val(50).percent(),
+                yaramod.them()
+            )
+        rule = self.new_rule \
+            .with_name('rule_with_percentage') \
+            .with_plain_string('$1', 'This is plain string.') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_percentage
+{
+	strings:
+		$1 = "This is plain string."
+	condition:
+		50% of them
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_percentage {
+	strings:
+		$1 = "This is plain string."
+	condition:
+		50% of them
+}''')
+
     def test_rule_with_complex_condition(self):
         cond = yaramod.for_loop(
                 yaramod.any(),

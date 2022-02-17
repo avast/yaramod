@@ -66,6 +66,12 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(PercentualExpression* expr) override
+	{
+		expr->getOperand()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(NotExpression* expr) override
 	{
 		expr->getOperand()->accept(this);

@@ -153,7 +153,7 @@ void addEnums(py::module& module)
 		.value("Plus", TokenType::PLUS)
 		.value("Multiply", TokenType::MULTIPLY)
 		.value("Divide", TokenType::DIVIDE)
-		.value("Modulo", TokenType::MODULO)
+		.value("Percent", TokenType::PERCENT)
 		.value("BitwiseXor", TokenType::BITWISE_XOR)
 		.value("BitwiseAnd", TokenType::BITWISE_AND)
 		.value("BitwiseOr", TokenType::BITWISE_OR)
@@ -540,6 +540,12 @@ void addExpressionClasses(py::module& module)
 				[](const Expression* self) {
 					return self->getText();
 				})
+		.def_property_readonly("token_first", [](const Expression& self) {
+				return *self.getFirstTokenIt();
+			})
+		.def_property_readonly("token_last", [](const Expression& self) {
+				return *self.getLastTokenIt();
+			})
 		.def_property_readonly("tokenstream", [](const Expression& self) { return self.getTokenStream();} );
 
 	exprClass<StringExpression>(module, "StringExpression")
@@ -589,6 +595,7 @@ void addExpressionClasses(py::module& module)
 				py::overload_cast<const Expression::Ptr&>(&UnaryOpExpression::setOperand));
 	unaryOpClass<NotExpression>(module, "NotExpression");
 	unaryOpClass<DefinedExpression>(module, "DefinedExpression");
+	unaryOpClass<PercentualExpression>(module, "PercentualExpression");
 	unaryOpClass<UnaryMinusExpression>(module, "UnaryMinusExpression");
 	unaryOpClass<BitwiseNotExpression>(module, "BitwiseNotExpression");
 
@@ -827,6 +834,7 @@ void addBuilderClasses(py::module& module)
 		.def("matches", &YaraExpressionBuilder::matches)
 		.def("iequals", &YaraExpressionBuilder::iequals)
 		.def("defined", &YaraExpressionBuilder::defined)
+		.def("percent", &YaraExpressionBuilder::percent)
 		.def("read_int8", &YaraExpressionBuilder::readInt8)
 		.def("read_int16", &YaraExpressionBuilder::readInt16)
 		.def("read_int32", &YaraExpressionBuilder::readInt32)

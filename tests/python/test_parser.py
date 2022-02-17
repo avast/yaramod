@@ -1063,6 +1063,23 @@ rule function_call_condition {
         self.assertTrue(isinstance(rule.condition, yaramod.FunctionCallExpression))
         self.assertEqual(rule.condition.text, 'pe.is_dll()')
 
+    def test_math_module(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "math"
+
+rule math_module_condition {
+    strings:
+        $a = "string a"
+        $b = "string b"
+    condition:
+        math.abs(@a - @b) == 1
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.condition.text, 'math.abs(@a - @b) == 1')
+
     def test_structure_access_condition(self):
         yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
@@ -2092,6 +2109,32 @@ rule test_rule
 		elf.dynsym[0].type == elf.STT_TLS or
 		elf.dynsym[0].bind == 3 or
 		elf.dynsym[0].shndx == 3
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_parse_percentage(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "elf"
+
+rule test_rule {
+    strings:
+        $s1 = "atest"
+        $s2 = "btest"
+    condition:
+        50% of them
+}
+''')
+
+        expected = r'''import "elf"
+
+rule test_rule
+{
+	strings:
+		$s1 = "atest"
+		$s2 = "btest"
+	condition:
+		50% of them
 }
 '''
 

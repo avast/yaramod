@@ -882,6 +882,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 						helper.insertIntoStream(os, ' ');
 					break;
 				default:
+					auto nextNextIt = std::next(nextIt);
 					switch(next)
 					{
 						case TokenType::RP:
@@ -899,7 +900,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 							[[fallthrough]];
 						default:
 							if (next != TokenType::LSQB || (current != TokenType::STRING_OFFSET && current != TokenType::STRING_LENGTH))
-								helper.insertIntoStream(os, ' ');
+							{
+								if (next != TokenType::PERCENT || nextNextIt == end() || nextNextIt->getType() != TokenType::OF)
+									helper.insertIntoStream(os, ' ');
+							}
 					}
 			}
 		}
