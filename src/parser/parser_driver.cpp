@@ -85,7 +85,7 @@ void ParserDriver::defineTokens()
 		.precedence(13, pog::Associativity::Left);
 	_parser.token(R"(\\)").symbol("DIVIDE").description("\\").action([&](std::string_view str) -> Value { return emplace_back(TokenType::DIVIDE, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
-	_parser.token(R"(\%)").symbol("MODULO").description("%").action([&](std::string_view str) -> Value { return emplace_back(TokenType::MODULO, std::string{str}); })
+	_parser.token(R"(\%)").symbol("PERCENT").description("%").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PERCENT, std::string{str}); })
 		.precedence(13, pog::Associativity::Left);
 	_parser.token(R"(\^)").symbol("BITWISE_XOR").description("^").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BITWISE_XOR, std::string{str}); })
 		.precedence(7, pog::Associativity::Left);
@@ -1279,6 +1279,27 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt percent = args[1].getTokenIt();
+			std::uint64_t value = 0;
+			if (strToNum(for_expr->getText(), value))
+			{
+				if (value == 0 || value > 100)
+				{
+					std::stringstream ss;
+					ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
+					error_handle(percent->getLocation(), ss.str());
+				}
+			}
+			auto percentual_expr = std::make_shared<PercentualExpression>(std::move(for_expr), percent);
+			TokenIt of = args[2].getTokenIt();
+			auto set = std::move(args[3].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(percentual_expr), of, std::move(set));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("NOT", "expression", [&](auto&& args) -> Value {
 			TokenIt not_token = args[0].getTokenIt();
 			auto expr = std::move(args[1].getExpression());
@@ -1604,7 +1625,7 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("primary_expression", "MODULO", "primary_expression", [&](auto&& args) -> Value {
+		.production("primary_expression", "PERCENT", "primary_expression", [&](auto&& args) -> Value {
 			auto left = args[0].getExpression();
 			auto right = args[2].getExpression();
 			if (!left->isInt() && !left->isFloat())

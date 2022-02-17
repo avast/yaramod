@@ -1964,6 +1964,42 @@ DefinedTerm) {
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+PercentageOfStringSet) {
+	auto cond = of(intVal(50).percent(), them()).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_percentage")
+		.withPlainString("$1", "Hello World!")
+		.withPlainString("$2", "Ahoj Svet!")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_percentage {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		50% of them
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_percentage
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		50% of them
+}
+)", yaraFile->getTextFormatted());
+}
 
 TEST_F(BuilderTests,
 FloatValueWorks) {

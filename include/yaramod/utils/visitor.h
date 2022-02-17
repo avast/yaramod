@@ -19,6 +19,7 @@ class StringInRangeExpression;
 class StringCountExpression;
 class StringOffsetExpression;
 class StringLengthExpression;
+class PercentualExpression;
 class NotExpression;
 class DefinedExpression;
 class UnaryMinusExpression;
@@ -86,6 +87,7 @@ public:
 	virtual VisitResult visit(StringCountExpression* expr) = 0;
 	virtual VisitResult visit(StringOffsetExpression* expr) = 0;
 	virtual VisitResult visit(StringLengthExpression* expr) = 0;
+	virtual VisitResult visit(PercentualExpression* expr) = 0;
 	virtual VisitResult visit(NotExpression* expr) = 0;
 	virtual VisitResult visit(DefinedExpression* expr) = 0;
 	virtual VisitResult visit(UnaryMinusExpression* expr) = 0;

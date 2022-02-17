@@ -145,6 +145,11 @@ public:
 		return defaultHandler(context, expr, {});
 	}
 
+	virtual VisitResult visit(PercentualExpression* expr) override
+	{
+		return _handleUnaryOperation(expr);
+	}
+
 	virtual VisitResult visit(NotExpression* expr) override
 	{
 		return _handleUnaryOperation(expr);
