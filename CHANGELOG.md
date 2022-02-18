@@ -1,5 +1,16 @@
 # Changelog
 
+# v3.12.3 (2022-02-18)
+
+* Add `dex.has_method` and `dex.has_class` ([#157](https://github.com/avast/yaramod/issues/157), [#201](https://github.com/avast/yaramod/pull/201))
+* Add `math.to_number`, `math.abs`, `math.count`, `math.percentage` and `math.mode` functions ([#157](https://github.com/avast/yaramod/issues/157), [#199](https://github.com/avast/yaramod/pull/199))
+* Add operator `in` ([#157](https://github.com/avast/yaramod/issues/157), [#204](https://github.com/avast/yaramod/pull/204))
+* Add `pe.import_details` and `pe.delayed_import_details` ([#157](https://github.com/avast/yaramod/issues/157), [#200](https://github.com/avast/yaramod/pull/200))
+* Add support for % numeric literal in `of` expressions ([#157](https://github.com/avast/yaramod/issues/157), [#198](https://github.com/avast/yaramod/pull/198))
+* Add support for `none` keyword ([#157](https://github.com/avast/yaramod/issues/157), [#203](https://github.com/avast/yaramod/pull/203))
+* Add `pe.entry_point_raw` ([#157](https://github.com/avast/yaramod/issues/157), [#200](https://github.com/avast/yaramod/pull/200))
+* Update YARA_SYNTAX_VERSION in docs to 4.2
+
 # v3.12.2 (2022-01-31)
 
 * Added support for `dynsym_entries` and `dynsym` ELF module attributes ([#196](https://github.com/avast/yaramod/pull/196))
