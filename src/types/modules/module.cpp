@@ -340,6 +340,42 @@ void Module::_addValue(StructureSymbol* base, const Json& json)
 }
 
 /**
+ * Creates a reference from supplied json and:
+ * adds the new reference as a attribute of structure base.
+ * When already existing attribute of base with specified name,
+ * this method checks that the references are the same.
+ *
+ * @param json reference supplied in json to be created ("kind": "reference")
+ * @param base already existing Reference which gets the new reference as its attribute. Must not be nullptr
+ */
+void Module::_addReference(StructureSymbol* base, const Json& json)
+{
+	assert(accessJsonString(json, "kind") == "reference");
+
+	auto name = accessJsonString(json, "name");
+	auto symbol = _stringToSymbol(nullptr, accessJsonString(json, "type"));
+
+	if (!symbol)
+		throw ModuleError("Unknown value type '" + accessJsonString(json, "type") + "'");
+
+	// Before creating new reference we first look for its existence within base attributes:
+	std::optional<std::shared_ptr<Symbol>> existing = base->getAttribute(name);
+	if (existing)
+	{
+		if (existing.value()->getType() != Symbol::Type::Reference)
+			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected reference." + getPathsAsString());
+		auto existingReference = std::static_pointer_cast<ReferenceSymbol>(existing.value());
+		if (existingReference->getSymbol() != symbol)
+			throw ModuleError("Colliding definitions of " + name + " attribute. The value is defined twice with different references. " + getPathsAsString());
+	}
+	else
+	{
+		auto newReference = std::make_shared<ReferenceSymbol>(name, symbol);
+		base->addAttribute(newReference);
+	}
+}
+
+/**
  * Handler method to controll unwrapping of the json based on its `kind` entry.
  *
  * @param json structure to be parsed
@@ -352,6 +388,8 @@ void Module::_addAttributeFromJson(StructureSymbol* base, const Json& json)
 		_addFunctions(base, json);
 	else if (kind == "struct")
 		_addStruct(base, json);
+	else if (kind == "reference")
+		_addReference(base, json);
 	else if (kind == "value")
 		_addValue(base, json);
 	else if (kind == "dictionary" || kind == "array")
@@ -401,6 +439,35 @@ void Module::_importJson(const Json& json)
 		for (const auto& attr : attributes)
 			_addAttributeFromJson(_structure.get(), attr);
 	}
+}
+
+/**
+ * A mapping converting a given string to corresponding Symbol.
+ */
+std::shared_ptr<Symbol> Module::_stringToSymbol (const std::shared_ptr<StructureSymbol> base, const std::string& str)
+{
+	auto delim_index = str.find('.');
+	if (delim_index != std::string::npos)
+	{
+		auto current_symbol = str.substr(0, delim_index);
+
+		if (!base)
+		{
+			if (_structure->getName() == current_symbol)
+				return _stringToSymbol(_structure, str.substr(delim_index + 1, str.length()));
+			else
+				return std::shared_ptr<Symbol>();
+		}
+		else
+		{
+			auto curr_attribute = base->getAttribute(current_symbol);
+			if(!curr_attribute)
+				return std::shared_ptr<Symbol>();
+			auto existingStructure = std::static_pointer_cast<StructureSymbol>(curr_attribute.value());
+			return _stringToSymbol(existingStructure, str.substr(delim_index + 1, str.length()));
+		}
+	}
+	return base->getAttribute(str).value();
 }
 
 }

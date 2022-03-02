@@ -72,7 +72,9 @@ protected:
 	void _addFunctions(StructureSymbol* base, const nlohmann::json& json);
 	std::shared_ptr<StructureSymbol> _addStruct(StructureSymbol* base, const nlohmann::json& json);
 	void _addValue(StructureSymbol* base, const nlohmann::json& json);
+	void _addReference(StructureSymbol* base, const nlohmann::json& json);
 	void _importJson(const nlohmann::json& json);
+	std::shared_ptr<Symbol> _stringToSymbol (const std::shared_ptr<StructureSymbol> base, const std::string& str);
 
 	std::string _name; ///< Name of the module
 	std::vector<std::pair<std::string, bool>> _filePaths; ///< The custom paths to JSON files which help to determine this module. Elements: [<path>, true iff <path> was loaded]. May be empty if no private modules.
