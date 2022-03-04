@@ -476,25 +476,15 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
  */
 YaraExpressionBuilder& YaraExpressionBuilder::comment_behind(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
 {
-	std::cout << "1 Tokenstream: '" << _tokenStream->getText() << "'" << std::endl;
-	for( auto i : _tokenStream->getTokensAsText())
-		std::cout << "'" << i << "', ";
-	std::cout << std::endl;
 	auto insert_before = _tokenStream->end();
 	while (insert_before != _tokenStream->begin())
 	{
 		auto predecessor = std::prev(insert_before);
-		std::cout << "predecessor='" << predecessor->getText() << "'" << std::endl;
 		if (predecessor->getType() == TokenType::NEW_LINE)
-		{
-			std::cout << "Decrementing to '" << predecessor->getText() << "'" << std::endl;
 			--insert_before;
-		}
 		else
 			break;
 	}
-	if (insert_before != _tokenStream->end())
-		std::cout << "insert_before='" << insert_before->getText() << "'" << std::endl;
 	return comment_before_token(message, insert_before, multiline, indent, linebreak);
 }
 
@@ -539,13 +529,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment_before_token(const std::st
 			ss << "// " << message;
 			_tokenStream->emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
 		}
-		std::cout << "2 Tokenstream: '" << _tokenStream->getText() << "'" << std::endl;
 		if (insert_before != _tokenStream->end() && (linebreak || !multiline))
-		{
-			std::cout << "Adding newline after comment" << std::endl;
 			_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
-		}
-		// _tokenStream->emplace(insert_before, TokenType::COMMENT, "/*brokolice*/");
 	}
 	return *this;
 }
