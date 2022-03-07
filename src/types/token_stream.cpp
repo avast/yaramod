@@ -490,6 +490,62 @@ void TokenStream::removeRedundantDoubleNewlines()
 	}
 }
 
+void TokenStream::comment(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
+{
+	auto insert_before = empty() ? end() : begin();
+	commentBeforeToken(message, insert_before, multiline, indent, linebreak);
+}
+
+void TokenStream::commentBehind(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
+{
+	auto insert_before = end();
+	while (insert_before != begin())
+	{
+		auto predecessor = std::prev(insert_before);
+		if (predecessor->getType() == TokenType::NEW_LINE)
+			--insert_before;
+		else
+			break;
+	}
+	commentBeforeToken(message, insert_before, multiline, indent, linebreak);
+}
+
+void TokenStream::commentBeforeToken(const std::string& message, TokenIt insert_before, bool multiline, const std::string& indent, bool linebreak)
+{
+	if (!message.empty())
+	{
+		std::stringstream ss;
+		ss << indent;
+		if (multiline)
+		{
+			ss << "/*";
+			if (message.front() != '\n')
+				ss << " ";
+			for (auto c : message)
+			{
+				ss << c;
+				if (c == '\n')
+					ss << indent;
+			}
+			if (message.back() != '\n')
+				ss << " ";
+			ss << "*/";
+			emplace(insert_before, TokenType::COMMENT, ss.str());
+		}
+		else
+		{
+			for (auto item : message)
+				if (item == '\n')
+					throw YaramodError("Error: one-line comment must not contain \\n.");
+			ss << "// " << message;
+			emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
+		}
+		// if (insert_before != end() && (linebreak || !multiline))
+		if (linebreak)
+			emplace(insert_before, TokenType::NEW_LINE, "\n");
+	}
+}
+
 void TokenStream::addMissingNewLines()
 {
 	BracketStack brackets;

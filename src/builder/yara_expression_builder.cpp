@@ -55,6 +55,31 @@ YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, c
 	return formula;
 }
 
+template <typename Op>
+YaraExpressionBuilder logicalFormula(std::vector<YaraExpressionBuilder> terms, std::vector<std::string> comments, const Op& op)
+{
+	if (terms.empty())
+		return boolVal(true);
+
+	if (terms.size() == 1)
+		return terms.front();
+
+	auto formula = op(terms[0], comments[0], terms[1]);
+	for (std::size_t i = 2; i < terms.size(); ++i)
+	{
+		if (!terms[i].canBeBool())
+		{
+			const auto& expr = terms[i].get();
+			error_handle("Expected boolean, got '" + expr->getText() + "' of type " + expr->getTypeString());
+		}
+		if (i >= 2)
+			formula = op(formula, comments[i-1], terms[i]);
+	}
+
+	formula.setType(Expression::Type::Bool);
+	return formula;
+}
+
 } //namespace
 
 /**
@@ -461,8 +486,8 @@ YaraExpressionBuilder& YaraExpressionBuilder::call(const std::vector<YaraExpress
  */
 YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
 {
-	auto insert_before = _tokenStream->empty() ? _tokenStream->end() : _tokenStream->begin();
-	return comment_before_token(message, insert_before, multiline, indent, linebreak);
+	_tokenStream->comment(message, multiline, indent, linebreak);
+	return *this;
 }
 
 /**
@@ -474,64 +499,9 @@ YaraExpressionBuilder& YaraExpressionBuilder::comment(const std::string& message
  *
  * @return Builder.
  */
-YaraExpressionBuilder& YaraExpressionBuilder::comment_behind(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
+YaraExpressionBuilder& YaraExpressionBuilder::commentBehind(const std::string& message, bool multiline, const std::string& indent, bool linebreak)
 {
-	auto insert_before = _tokenStream->end();
-	while (insert_before != _tokenStream->begin())
-	{
-		auto predecessor = std::prev(insert_before);
-		if (predecessor->getType() == TokenType::NEW_LINE)
-			--insert_before;
-		else
-			break;
-	}
-	return comment_before_token(message, insert_before, multiline, indent, linebreak);
-}
-
-/**
- * Puts comment before the insert_before parameter token iterator.
- *
- * @param message The comment message.
- * @param insert_before The token iterator before which the comment should be inserted.
- * @param multiline If set, the commet will be multiline.
- * @param linebreak If set, there will be a newline added even when inserting multiline comment.
- * @param indent Additional indent added to the indentation computed by the autoformatter.
- *
- * @return Builder.
- */
-YaraExpressionBuilder& YaraExpressionBuilder::comment_before_token(const std::string& message, TokenIt insert_before, bool multiline, const std::string& indent, bool linebreak)
-{
-	if (!message.empty())
-	{
-		std::stringstream ss;
-		ss << indent;
-		if (multiline)
-		{
-			ss << "/*";
-			if (message.front() != '\n')
-				ss << " ";
-			for (auto c : message)
-			{
-				ss << c;
-				if (c == '\n')
-					ss << indent;
-			}
-			if (message.back() != '\n')
-				ss << " ";
-			ss << "*/";
-			_tokenStream->emplace(insert_before, TokenType::COMMENT, ss.str());
-		}
-		else
-		{
-			for (auto item : message)
-				if (item == '\n')
-					throw YaraExpressionBuilderError("Error: one-line comment must not contain \\n.");
-			ss << "// " << message;
-			_tokenStream->emplace(insert_before, TokenType::ONELINE_COMMENT, ss.str());
-		}
-		if (insert_before != _tokenStream->end() && (linebreak || !multiline))
-			_tokenStream->emplace(insert_before, TokenType::NEW_LINE, "\n");
-	}
+	_tokenStream->commentBehind(message, multiline, indent, linebreak);
 	return *this;
 }
 
@@ -1246,6 +1216,58 @@ YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraEx
 }
 
 /**
+ * Creates conjunction.
+ *
+ * @param lhs Left-hand side.
+ * @param lhscomment First comment.
+ * @param rhs Right-hand side.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const std::string& lhscomment, const YaraExpressionBuilder& rhs)
+{
+	if (!lhs.canBeBool())
+		error_handle(ArgType::Left, "and", "bool", rhs.get());
+	else if (!rhs.canBeBool())
+		error_handle(ArgType::Right, "and", "bool", lhs.get());
+
+	auto ts = std::make_shared<TokenStream>();
+	ts->moveAppend(lhs.getTokenStream());
+	TokenIt andToken = ts->emplace_back(TokenType::AND, "and");
+	ts->commentBehind(lhscomment, false, "", true);
+	ts->moveAppend(rhs.getTokenStream());
+
+	auto expression = std::make_shared<AndExpression>(lhs.get(), andToken, rhs.get(), true);
+	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
+ * Creates disjunction.
+ *
+ * @param lhs Left-hand side.
+ * @param lhscomment First comment.
+ * @param rhs Right-hand side.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const std::string& lhscomment, const YaraExpressionBuilder& rhs)
+{
+	if (!lhs.canBeBool())
+		error_handle(ArgType::Left, "or", "bool", lhs.get());
+	else if (!rhs.canBeBool())
+		error_handle(ArgType::Right, "or", "bool", rhs.get());
+
+	auto ts = std::make_shared<TokenStream>();
+	ts->moveAppend(lhs.getTokenStream());
+	TokenIt orToken = ts->emplace_back(TokenType::OR, "or");
+	ts->commentBehind(lhscomment, false, "", true);
+	ts->moveAppend(rhs.getTokenStream());
+
+	auto expression = std::make_shared<OrExpression>(lhs.get(), orToken, rhs.get(), true);
+	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
  * Creates conjunction of terms.
  *
  * @param terms Terms of logical formula.
@@ -1285,17 +1307,23 @@ YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& term
  *
  * @return Builder.
  */
-YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms)
+YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& commented_terms)
 {
-	std::vector<YaraExpressionBuilder> commented_terms;
-	for (const auto& pair : terms)
+	std::vector<YaraExpressionBuilder> terms;
+	std::vector<std::string> comments;
+	for (const auto& pair : commented_terms)
 	{
 		if (!pair.first.canBeBool())
 			error_handle(ArgType::Single, "and", "bool", pair.first.get());
-		commented_terms.push_back(pair.first);
-		commented_terms.back().comment(pair.second, true);
+		terms.push_back(pair.first);
+		comments.push_back(pair.second);
 	}
-	return logicalFormula(commented_terms, [](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return conjunction(term1, term2, true); });
+	auto output = logicalFormula(terms, comments, []( YaraExpressionBuilder& term1, std::string& comment1, YaraExpressionBuilder& term2) {
+		return conjunction(term1, comment1, term2);
+	});
+
+	output.commentBehind(comments.back(), false, "", false);
+	return output;
 }
 
 /**
@@ -1306,17 +1334,23 @@ YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuil
  *
  * @return Builder.
  */
-YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms)
+YaraExpressionBuilder disjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& commented_terms)
 {
-	std::vector<YaraExpressionBuilder> commented_terms;
-	for (const auto& pair : terms)
+	std::vector<YaraExpressionBuilder> terms;
+	std::vector<std::string> comments;
+	for (const auto& pair : commented_terms)
 	{
 		if (!pair.first.canBeBool())
-			error_handle(ArgType::Single, "or", "bool", pair.first.get());
-		commented_terms.push_back(pair.first);
-		commented_terms.back().comment(pair.second, true);
+			error_handle(ArgType::Single, "and", "bool", pair.first.get());
+		terms.push_back(pair.first);
+		comments.push_back(pair.second);
 	}
-	return logicalFormula(commented_terms, [](YaraExpressionBuilder& term1, YaraExpressionBuilder& term2) { return disjunction(term1, term2, true); });
+	auto output = logicalFormula(terms, comments, []( YaraExpressionBuilder& term1, std::string& comment1, YaraExpressionBuilder& term2) {
+		return disjunction(term1, comment1, term2);
+	});
+
+	output.commentBehind(comments.back(), false, "", false);
+	return output;
 }
 
 /**

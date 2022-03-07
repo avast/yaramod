@@ -526,7 +526,8 @@ void addTokenStreamClass(py::module& module)
 		.def_property_readonly("front", &TokenStream::front)
 		.def_property_readonly("back", &TokenStream::back)
 		.def_property_readonly("tokens", &TokenStream::getTokens)
-		.def_property_readonly("tokens_as_text", &TokenStream::getTokensAsText);
+		.def_property_readonly("tokens_as_text", &TokenStream::getTokensAsText)
+		.def("comment_before_token", &TokenStream::commentBeforeToken, py::arg("message"), py::arg("insert_before"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true);
 }
 
 void addExpressionClasses(py::module& module)
@@ -822,8 +823,7 @@ void addBuilderClasses(py::module& module)
 		.def("__getitem__", &YaraExpressionBuilder::operator[])
 		.def("access", &YaraExpressionBuilder::access)
 		.def("comment", &YaraExpressionBuilder::comment, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
-		.def("comment_behind", &YaraExpressionBuilder::comment_behind, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
-		.def("comment_before_token", &YaraExpressionBuilder::comment_before_token, py::arg("message"), py::arg("insert_before"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
+		.def("comment_behind", &YaraExpressionBuilder::commentBehind, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
 		.def("contains", &YaraExpressionBuilder::contains)
 		.def("matches", &YaraExpressionBuilder::matches)
 		.def("iequals", &YaraExpressionBuilder::iequals)

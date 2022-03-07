@@ -911,10 +911,8 @@ rule rule_with_variable_id_condition {
         self.assertEqual(yara_file.text_formatted, '''rule rule_with_and_condition_with_comments
 {
 	condition:
-		/* comment1 */
-		filesize > 100 and
-		/* comment2 */
-		filesize < 200
+		filesize > 100 and // comment1
+		filesize < 200     // comment2
 }
 ''')
         self.assertEqual(yara_file.text, '''rule rule_with_and_condition_with_comments {
@@ -924,7 +922,7 @@ rule rule_with_variable_id_condition {
 }''')
 
     def test_rule_with_and_condition_with_comments_behind(self):
-        cond = yaramod.conjunction([[yaramod.filesize() > yaramod.int_val(100), 'comment1'], [yaramod.filesize() < yaramod.int_val(200), 'comment2']], False)
+        cond = yaramod.conjunction([[yaramod.filesize() > yaramod.int_val(100), 'comment1'], [yaramod.filesize() < yaramod.int_val(200), 'comment2']])
         rule = self.new_rule \
             .with_name('rule_with_and_condition_with_comments') \
             .with_condition(cond.get()) \
@@ -959,10 +957,8 @@ rule rule_with_variable_id_condition {
         self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition_with_comments
 {
 	condition:
-		/* skip small files */
-		filesize > 100 or
-		/* also too big files */
-		filesize < 200
+		filesize > 100 or // skip small files
+		filesize < 200    // also too big files
 }
 ''')
         self.assertEqual(yara_file.text, '''rule rule_with_or_condition_with_comments {
@@ -1104,7 +1100,7 @@ rule rule_with_function_call_condition {
 }''')
 
     def test_rule_with_function_call_and_oneline_comment(self):
-        cond = yaramod.id('pe').access('is_dll')().comment_behind(message="Generated", multiline=False)
+        cond = yaramod.id('pe').access('is_dll')().comment_behind(message="Generated", multiline=False, linebreak=False)
         rule = self.new_rule \
             .with_name('rule_with_function_call_condition') \
             .with_condition(cond.get()) \
