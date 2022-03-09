@@ -7,6 +7,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 #include "yaramod/types/features.h"
 #include "yaramod/types/modules/module_pool.h"
@@ -73,9 +74,17 @@ public:
 		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
 		{
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
-			auto behind = _tokenStream->erase((*rem_itr)->getFirstTokenIt(), std::next((*rem_itr)->getLastTokenIt()));
-			while (behind != _tokenStream->end() && behind->getType() == TokenType::NEW_LINE)
+			auto from = std::prev((*rem_itr)->getFirstTokenIt());
+			auto to = (*rem_itr)->getLastTokenIt();
+			if (to != _tokenStream->begin() && to->getType() == TokenType::NEW_LINE)
+				to = std::prev(to);
+			auto behind = _tokenStream->erase(from, to);
+			std::cout << "before erase newline" << std::endl;
+			std::cout << _tokenStream->getTokensAsString() << std::endl;
+			while (behind != _tokenStream->end() && behind != _tokenStream->begin() && behind->getType() == TokenType::NEW_LINE)
 				behind = _tokenStream->erase(behind);
+			std::cout << "after erase newline" << std::endl;
+			std::cout << _tokenStream->getTokensAsString() << std::endl;
 		}
 		_rules.erase(itr, _rules.end());
 	}
