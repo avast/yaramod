@@ -142,6 +142,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, TokenStream& ts) { return os << ts.getText(false); }
 	std::string getText(bool withIncludes = false, bool alignComments = true);
 	std::vector<std::string> getTokensAsText() const;
+	std::string getTokensAsString() const;
 	/// @}
 
 	/// @name New Line Characters

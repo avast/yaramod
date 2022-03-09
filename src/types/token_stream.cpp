@@ -339,6 +339,14 @@ std::vector<std::string> TokenStream::getTokensAsText() const
 	return output;
 }
 
+std::string TokenStream::getTokensAsString() const
+{
+	std::stringstream ss;
+	for (const auto& t : getTokensAsText())
+		ss << "'" << t << "', ";
+    return ss.str();
+}
+
 void TokenStream::clear()
 {
 	_tokens.clear();
