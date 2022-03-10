@@ -64,7 +64,11 @@ public:
 		auto itr = std::stable_partition(_imports.begin(), _imports.end(), [&](const auto& i) { return !fn(i); });
 		for (auto rem_itr = itr; rem_itr != _imports.end(); ++rem_itr)
 		{
-			_importTable.erase(_importTable.find((*rem_itr)->getName()));
+			auto rem_import = _importTable.find((*rem_itr)->getName());
+			auto import_token = rem_import->second.first;
+			auto bounds = _tokenStream->findBounds(import_token, TokenType::IMPORT_KEYWORD, TokenType::NEW_LINE);
+			_tokenStream->erase(bounds.first, std::next(bounds.second));
+			_importTable.erase(rem_import);
 		}
 		_imports.erase(itr, _imports.end());
 	}
