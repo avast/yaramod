@@ -105,6 +105,7 @@ public:
 	const Token& front() const { return _tokens.front(); }
 	const Token& back() const { return _tokens.back(); }
 	const std::list<Token>& getTokens() const { return _tokens; }
+	std::pair<TokenIt, TokenIt> findBounds(TokenIt embedded, TokenType leftType, TokenType rightType) const;
 	/// @}
 
 	/// @name Iterators

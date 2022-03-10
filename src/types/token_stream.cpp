@@ -16,6 +16,18 @@ namespace yaramod {
 
 constexpr unsigned tabulator_length = 8;
 
+
+std::pair<TokenIt, TokenIt> TokenStream::findBounds(TokenIt embedded, TokenType leftType, TokenType rightType) const
+{
+	auto left = embedded;
+	auto right = embedded;
+	while (left != begin() && left->getType() != leftType)
+		left = std::prev(left);
+	while (right != end() && right->getType() != rightType)
+		right = std::next(right);
+	return std::make_pair(left, right);
+}
+
 TokenIt TokenStream::emplace_back(TokenType type, char value)
 {
 	_tokens.emplace_back(type, Literal(std::string(1, value)));
