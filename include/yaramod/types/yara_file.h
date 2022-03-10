@@ -74,17 +74,13 @@ public:
 		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
 		{
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
-			auto from = std::prev((*rem_itr)->getFirstTokenIt());
-			auto to = (*rem_itr)->getLastTokenIt();
-			if (to != _tokenStream->begin() && to->getType() == TokenType::NEW_LINE)
-				to = std::prev(to);
+			auto from = (*rem_itr)->getFirstTokenIt();
+			if (from != _tokenStream->begin() && from->getType() == TokenType::NEW_LINE)
+				from = std::prev(from);
+			auto to = std::next((*rem_itr)->getLastTokenIt());
 			auto behind = _tokenStream->erase(from, to);
-			std::cout << "before erase newline" << std::endl;
-			std::cout << _tokenStream->getTokensAsString() << std::endl;
 			while (behind != _tokenStream->end() && behind != _tokenStream->begin() && behind->getType() == TokenType::NEW_LINE)
 				behind = _tokenStream->erase(behind);
-			std::cout << "after erase newline" << std::endl;
-			std::cout << _tokenStream->getTokensAsString() << std::endl;
 		}
 		_rules.erase(itr, _rules.end());
 	}

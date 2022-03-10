@@ -1335,7 +1335,8 @@ rule rule_5
 TEST_F(VisitorTests,
 RuleModifierWorksWhenDeletingRules) {
 	prepareInput(
-R"(global rule rule_4 {
+R"(
+global rule rule_4 {
 	condition:
 		false
 }
