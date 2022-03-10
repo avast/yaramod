@@ -2004,6 +2004,45 @@ rule rule1
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_remove_import(self):
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_rules/testing_file_with_import.yar')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''import "cuckoo"
+
+rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        yara_file.remove_imports(lambda i: True)
+
+        self.assertEqual('''rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        expected = r'''include "testing_include.yar"
+
+rule rule1
+{
+	condition:
+		RULE and
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
 
     def test_parse_pe_signatures_x_algorithm_oid(self):
         yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''import "pe"

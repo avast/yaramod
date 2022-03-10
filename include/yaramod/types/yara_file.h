@@ -63,7 +63,9 @@ public:
 	{
 		auto itr = std::stable_partition(_imports.begin(), _imports.end(), [&](const auto& i) { return !fn(i); });
 		for (auto rem_itr = itr; rem_itr != _imports.end(); ++rem_itr)
+		{
 			_importTable.erase(_importTable.find((*rem_itr)->getName()));
+		}
 		_imports.erase(itr, _imports.end());
 	}
 
@@ -105,7 +107,7 @@ private:
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 
-	std::unordered_map<std::string, Module*> _importTable;
+	std::unordered_map<std::string, std::pair<TokenIt, Module*>> _importTable;
 	std::unordered_map<std::string, Rule*> _ruleTable;
 
 	Features _Features; ///< Determines which symbols are needed
