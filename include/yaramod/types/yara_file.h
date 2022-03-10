@@ -7,7 +7,6 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 
 #include "yaramod/types/features.h"
 #include "yaramod/types/modules/module_pool.h"
