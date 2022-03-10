@@ -879,7 +879,7 @@ rule rule_with_range
 
 TEST_F(BuilderTests,
 RuleWithConditionWithOnelineComment) {
-	auto cond = (id("pe").comment("Number of sections needs to exceed 1", false).access("number_of_sections") > intVal(1)).get();
+	auto cond = (id("pe").access("number_of_sections") > intVal(1)).comment("Number of sections needs to exceed 1", false).get();
 	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("1", cond->getLastTokenIt()->getPureText());
 
@@ -916,7 +916,7 @@ rule rule_with_range
 
 TEST_F(BuilderTests,
 RuleWithConditionWithMultilineComment) {
-	auto cond = (id("pe").comment("Number of sections needs to exceed 1,\n\t\tbecause one is simply not enough.", true).access("number_of_sections") > intVal(1)).get();
+	auto cond = (id("pe").access("number_of_sections") > intVal(1)).comment("Number of sections needs to exceed 1,\n\t\tbecause one is simply not enough.", true).get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
@@ -1537,12 +1537,9 @@ RuleWithCommentedConjunctionInConditionWorks) {
 	strings:
 		$1 = "Hello"
 	condition:
-		/* comment1 */
-		$1 and
-		/* comment2 */
-		(@1 < 100) and
-		/* comment3 */
-		(entrypoint == 100)
+		$1 and              // comment1
+		(@1 < 100) and      // comment2
+		(entrypoint == 100) // comment3
 }
 )", yaraFile->getTextFormatted());
 }
@@ -1588,12 +1585,9 @@ RuleWithCommentedDisjunctionInConditionWorks) {
 	condition:
 		true and
 		(
-			/* Hello must be present */
-			$1 or
-			/* World must be present */
-			$2 or
-			/* entrypoint is 100 */
-			(entrypoint == 100)
+			$1 or               // Hello must be present
+			$2 or               // World must be present
+			(entrypoint == 100) // entrypoint is 100
 		)
 }
 )", yaraFile->getTextFormatted());

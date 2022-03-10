@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include "yaramod/types/expression.h"
 #include "yaramod/types/token_stream.h"
@@ -166,7 +167,8 @@ public:
 	YaraExpressionBuilder& operator<<(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& operator>>(const YaraExpressionBuilder& other);
 
-	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = {});
+	YaraExpressionBuilder& comment(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+	YaraExpressionBuilder& commentBehind(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
 	YaraExpressionBuilder& call(const std::vector<YaraExpressionBuilder>& args);
 	/**
 	 * Calls function from an expression
@@ -257,6 +259,8 @@ YaraExpressionBuilder range(const YaraExpressionBuilder& low, const YaraExpressi
 
 YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak = false);
 YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const YaraExpressionBuilder& rhs, bool linebreak = false);
+YaraExpressionBuilder conjunction(const YaraExpressionBuilder& lhs, const std::string& lhscomment, const YaraExpressionBuilder& rhs);
+YaraExpressionBuilder disjunction(const YaraExpressionBuilder& lhs, const std::string& lhscomment, const YaraExpressionBuilder& rhs);
 YaraExpressionBuilder conjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
 YaraExpressionBuilder disjunction(const std::vector<YaraExpressionBuilder>& terms, bool linebreaks = false);
 YaraExpressionBuilder conjunction(const std::vector<std::pair<YaraExpressionBuilder, std::string>>& terms);

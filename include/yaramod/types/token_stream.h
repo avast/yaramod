@@ -87,6 +87,14 @@ public:
 	TokenIt erase(TokenIt element);
 	TokenIt erase(TokenIt first, TokenIt last);
 
+
+	// Puts comment to the front.
+	void comment(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+	// Puts comment to the back.
+	void commentBehind(const std::string& message, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+	// Puts comment before the insert_before parameter token.
+	void commentBeforeToken(const std::string& message, TokenIt insert_before, bool multiline = false, const std::string& indent = {}, bool linebreak = true);
+
 	// Steals all data from donor and append it at the end.
 	void moveAppend(TokenStream* donor);
 	// Steals all data from donor and append it at position before.

@@ -338,8 +338,8 @@ basic expressions and find the most suitable one.
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
         * ``of(spec, set, range)`` - represents ``<spec> of <set> in <range>`` (``of(all(), them(), range(intVal(100), intVal(200)))``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(intVal(10))``)
-        * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``)
-        * ``disjunction(terms, [newline])`` - represents disjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``disjunction({id("rule1"), id("rule2")})``)
+        * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``). The ``terms`` parameter can be an array containing other expressions to be put together in the conjunction. But also ``terms`` can be an array of pairs, where each pair contains a term to be put in the conjunction and a comment, which will be associated with the term and printed on the same line
+        * ``disjunction(terms, [newline])`` - represents disjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``disjunction({id("rule1"), id("rule2")})``). The ``terms`` parameter can be an array containing other expressions to be put together in the disjunction. But also ``terms`` can be an array of pairs, where each pair contains a term to be put in the disjunction and a comment, which will be associated with the term and printed on the same line
 
         **Complex expression methods**
 
@@ -375,6 +375,8 @@ basic expressions and find the most suitable one.
         * ``readUInt8(be)`` - represents call to special function ``uint8(be)`` (``intVal(100).readUInt8()``)
         * ``readUInt16(be)`` - represents call to special function ``uint16(be)`` (``intVal(100).readUInt16()``)
         * ``readUInt32(be)`` - represents call to special function ``uint32(be)`` (``intVal(100).readUInt32()``)
+        * ``comment(message, [multiline], [indent], [linebreak])`` - adds a comment ``message`` to the expression which then appears in the formatted text before the expression. Only the ``message`` parameter is required, the ``multiline`` (default ``false``), ``indent`` (default "") and ``linebreak`` (default ``true``) parameters are optional
+        * ``commentBehind(message, [multiline], [indent], [linebreak])`` - adds a comment ``message`` to the expression which then appears in the formatted text after the expression. Only the ``message`` parameter is required, the ``multiline`` (default ``false``), ``indent`` (default "") and ``linebreak`` (default ``true``) parameters are optional
 
         **Hex strings**
 
