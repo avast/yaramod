@@ -276,10 +276,30 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
  */
 TokenIt Rule::getFirstTokenIt() const
 {
-	if (_mod_private.has_value())
-		return _mod_private.value();
-	if (_mod_global.has_value())
+	if (isPrivate() && isGlobal())
+	{
+		assert(_mod_private.has_value());
+		assert(_mod_global.has_value());
+		for (auto it = _mod_private.value(); it != _tokenStream->end(); ++it)
+		{
+			std::cout << it->getText() << std::endl;
+			if (it->getType() == TokenType::RULE_BEGIN)
+				return _mod_global.value();
+			if (it->getType() == TokenType::GLOBAL)
+				return _mod_private.value();
+		}
 		return _mod_global.value();
+	}
+	if (isPrivate())
+	{
+		assert(_mod_private.has_value());
+		return _mod_private.value();
+	}
+	if (isGlobal())
+	{
+		assert(_mod_global.has_value());
+		return _mod_global.value();
+	}
 	return _tokenStream->findBackwards(TokenType::RULE, _name);
 }
 
