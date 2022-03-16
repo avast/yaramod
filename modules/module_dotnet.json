@@ -265,6 +265,12 @@
             "name": "number_of_field_offsets",
             "documentation": "The number of fields in the field_offsets array.",
             "type": "i"
+        },
+        {
+            "kind": "value",
+            "name": "is_dotnet",
+            "documentation": " Boolean, true if the PE is indeed .NET.",
+            "type": "i"
         }
     ]
 }
