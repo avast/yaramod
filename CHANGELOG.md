@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.12.4 (2022-03-16)
+
+* Add comment_behind and comment_before_token to Expression builder ([#195](https://github.com/avast/yaramod/issues/195), [#194](https://github.com/avast/yaramod/pull/194))
+* Introduce on-line commenting of con/disjunctions ([#195](https://github.com/avast/yaramod/issues/195), [#194](https://github.com/avast/yaramod/pull/194))
+
 # v3.12.3 (2022-02-18)
 
 * Add `dex.has_method` and `dex.has_class` ([#157](https://github.com/avast/yaramod/issues/157), [#201](https://github.com/avast/yaramod/pull/201))
