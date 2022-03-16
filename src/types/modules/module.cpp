@@ -37,6 +37,28 @@ std::optional<ExpressionType> stringToExpressionType (const std::string& str)
 }
 
 /**
+ * Finds an attribute with specified name for a structure or iterable base.
+ */
+std::optional<std::shared_ptr<Symbol>> _getExistingAttribute(Symbol* base, std::string& name)
+{
+	if (base)
+	{
+		switch (base->getType())
+		{
+			case Symbol::Type::Structure:
+				return ((StructureSymbol*)base)->getAttribute(name);
+			case Symbol::Type::Array:
+			case Symbol::Type::Dictionary:
+			{
+				auto structElement = ((IterableSymbol*)base)->getStructuredElementType();
+				return structElement ? std::make_optional(structElement) : std::nullopt;
+			}
+		}
+	}
+	return std::nullopt;
+}
+
+/**
  * Constructor.
  *
  * @param name Name of the module
@@ -172,21 +194,36 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 		if (json.contains("structure"))
 		{
 			auto structureJson = accessJsonSubjson(json, "structure");
-			if (accessJsonString(structureJson, "kind") != "struct")
-				throw ModuleError("Colliding definitions of " + name + " attribute. Expected embedded structure to have kind 'struct'." + getPathsAsString());
+			auto kind = accessJsonString(structureJson, "kind");
+
 			if (accessJsonString(structureJson, "name") != name)
 				throw ModuleError("Colliding definitions of " + name + " attribute. '" + name + "' != '" + accessJsonString(structureJson, "name") + "'." + getPathsAsString());
-			if (structureJson.contains("attributes"))
+
+			if (kind == "reference")
 			{
-				if (!existingIterable->isStructured())
-					throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected structured iterable." + getPathsAsString());
-				if (existingIterable->getElementType() != ExpressionType::Object)
-					throw ModuleError("Not object");
-				auto attributes = accessJsonArray(structureJson, "attributes");
-				auto existingEmbeddedStructure = std::static_pointer_cast<StructureSymbol>(existingIterable->getStructuredElementType());
-				for (const auto& attr : attributes)
-					_addAttributeFromJson(existingEmbeddedStructure.get(), attr);
-			}		
+				auto type = accessJsonString(structureJson, "type");
+				if (_stringToSymbol(nullptr, type) != existingIterable->getStructuredElementType())
+					throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected referenced type." + getPathsAsString());
+
+			}
+			else if (kind == "struct")
+			{
+				if (structureJson.contains("attributes"))
+				{
+					if (!existingIterable->isStructured())
+						throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected structured iterable." + getPathsAsString());
+					if (existingIterable->getElementType() != ExpressionType::Object)
+						throw ModuleError("Not object");
+					auto attributes = accessJsonArray(structureJson, "attributes");
+					auto existingEmbeddedStructure = std::static_pointer_cast<StructureSymbol>(existingIterable->getStructuredElementType());
+					for (const auto& attr : attributes)
+						_addAttributeFromJson(existingEmbeddedStructure.get(), attr);
+				}
+			}
+			else
+			{
+				throw ModuleError("Colliding definitions of " + name + " attribute. Expected embedded structure to have kind 'struct' or 'reference'." + getPathsAsString());
+			}
 		}
 		else if (existingIterable->isStructured())
 			throw ModuleError("Colliding definitions of " + name + " attribute. Expected structured iterable." + getPathsAsString());
@@ -196,12 +233,20 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 		if (json.contains("structure"))
 		{
 			auto structureJson = accessJsonSubjson(json, "structure");
-			auto embeddedStructure = _addStruct(nullptr, structureJson);
 
+			std::shared_ptr<Symbol> templateAttribute;
 			if (isDictionary)
-				base->addAttribute(std::make_shared<DictionarySymbol>(name, embeddedStructure, documentation));
+				templateAttribute = std::make_shared<DictionarySymbol>(name, ExpressionType::Object, documentation);
 			else
-				base->addAttribute(std::make_shared<ArraySymbol>(name, embeddedStructure, documentation));
+				templateAttribute = std::make_shared<ArraySymbol>(name, ExpressionType::Object, documentation);
+
+			base->addTemplateAttribute(templateAttribute);
+
+			if (accessJsonString(structureJson, "kind") == "reference")
+				_addReference(templateAttribute.get(), structureJson);
+			else
+				_addStruct(templateAttribute.get(), structureJson, nullptr);
+
 		}
 		else
 		{
@@ -264,23 +309,24 @@ void Module::_addFunctions(StructureSymbol* base, const Json& json)
 
 /**
  * Creates a structure from supplied json
- * If base is supplied, this method returns nullptr and it either:
- *  - adds structure from json as a attribute of base or
+ * If base is supplied, this method either:
+ *  - adds structure from json as an attribute of base and saves it to ref if supllied or
  *  - it modifies already existing attribute of base with the same name.
- * If base is nullptr, this method returns new Structure constructed from supplied json
+ * If base is nullptr, this method constructs new Structure from supplied json and saves to ref if supllied
  *
+ * @param ref pointer to where the Structure gets saved. Can be nullptr.
  * @param json structure supplied in json to be created ("kind": "struct")
- * @param base already existing Structure which gets the new structure as its attribute. Can be nullptr.
+ * @param base already existing Structure or Iterable which gets the new structure as its attribute. Can be nullptr.
  */
-std::shared_ptr<StructureSymbol> Module::_addStruct(StructureSymbol* base, const Json& json)
+void Module::_addStruct(Symbol* base, const Json& json, std::shared_ptr<StructureSymbol>* ref)
 {
 	assert(accessJsonString(json, "kind") == "struct");
 
 	auto name = accessJsonString(json, "name");
 	auto attributes = accessJsonArray(json, "attributes");
 
-	// Before creating new structure we first look for its existence within base attributes:	
-	std::optional<std::shared_ptr<Symbol>> existing = base ? base->getAttribute(name) : std::nullopt;
+	// Before creating new structure we first look for its existence within base attributes:
+	std::optional<std::shared_ptr<Symbol>> existing = _getExistingAttribute(base, name);
 	if (existing)
 	{
 		if (existing.value()->getType() != Symbol::Type::Structure)
@@ -292,13 +338,57 @@ std::shared_ptr<StructureSymbol> Module::_addStruct(StructureSymbol* base, const
 	else
 	{
 		auto newStructure = std::make_shared<StructureSymbol>(name);
-		for (const auto& attr : attributes)
-			_addAttributeFromJson(newStructure.get(), attr);
-		if (!base)
-			return newStructure;
-		base->addAttribute(newStructure);
+
+		if (ref)
+		{
+			*ref = std::move(newStructure);
+			_addObjectToBase(base, *ref);
+
+			for (const auto& attr : attributes)
+				_addAttributeFromJson(ref->get(), attr);
+		}
+		else
+		{
+			_addObjectToBase(base, newStructure);
+			for (const auto& attr : attributes)
+				_addAttributeFromJson(newStructure.get(), attr);
+		}
 	}
-	return nullptr;
+}
+
+/**
+ * Creates a reference from supplied json and:
+ * adds the new reference as a attribute of structure or iterable base.
+ * When already existing attribute of base with specified name,
+ * this method checks that the references are the same.
+ *
+ * @param json reference supplied in json to be created ("kind": "reference")
+ * @param base already existing Structure or Iterable which gets the new reference as its attribute. Can't be nullptr
+ */
+void Module::_addReference(Symbol* base, const Json& json)
+{
+	assert(accessJsonString(json, "kind") == "reference");
+
+	auto name = accessJsonString(json, "name");
+	auto symbol = _stringToSymbol(nullptr, accessJsonString(json, "type"));
+
+	if (!symbol)
+		throw ModuleError("Unknown symbol '" + accessJsonString(json, "type") + "'");
+
+	// Before creating new reference we first look for its existence within base attributes:
+	std::optional<std::shared_ptr<Symbol>> existing = _getExistingAttribute(base, name);
+	if (existing)
+	{
+		if (existing.value()->getType() != Symbol::Type::Reference)
+			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected reference." + getPathsAsString());
+		auto existingReference = std::static_pointer_cast<ReferenceSymbol>(existing.value());
+		if (existingReference->getSymbol() != symbol)
+			throw ModuleError("Colliding definitions of " + name + " attribute. The value is defined twice with different references. " + getPathsAsString());
+	}
+	else
+	{
+		_addObjectToBase(base, std::make_shared<ReferenceSymbol>(name, symbol));
+	}
 }
 
 /**
@@ -340,42 +430,6 @@ void Module::_addValue(StructureSymbol* base, const Json& json)
 }
 
 /**
- * Creates a reference from supplied json and:
- * adds the new reference as a attribute of structure base.
- * When already existing attribute of base with specified name,
- * this method checks that the references are the same.
- *
- * @param json reference supplied in json to be created ("kind": "reference")
- * @param base already existing Reference which gets the new reference as its attribute. Must not be nullptr
- */
-void Module::_addReference(StructureSymbol* base, const Json& json)
-{
-	assert(accessJsonString(json, "kind") == "reference");
-
-	auto name = accessJsonString(json, "name");
-	auto symbol = _stringToSymbol(nullptr, accessJsonString(json, "type"));
-
-	if (!symbol)
-		throw ModuleError("Unknown value type '" + accessJsonString(json, "type") + "'");
-
-	// Before creating new reference we first look for its existence within base attributes:
-	std::optional<std::shared_ptr<Symbol>> existing = base->getAttribute(name);
-	if (existing)
-	{
-		if (existing.value()->getType() != Symbol::Type::Reference)
-			throw ModuleError("Colliding definitions of " + name + " attribute with different kind. Expected reference." + getPathsAsString());
-		auto existingReference = std::static_pointer_cast<ReferenceSymbol>(existing.value());
-		if (existingReference->getSymbol() != symbol)
-			throw ModuleError("Colliding definitions of " + name + " attribute. The value is defined twice with different references. " + getPathsAsString());
-	}
-	else
-	{
-		auto newReference = std::make_shared<ReferenceSymbol>(name, symbol);
-		base->addAttribute(newReference);
-	}
-}
-
-/**
  * Handler method to controll unwrapping of the json based on its `kind` entry.
  *
  * @param json structure to be parsed
@@ -387,7 +441,7 @@ void Module::_addAttributeFromJson(StructureSymbol* base, const Json& json)
 	if (kind == "function")
 		_addFunctions(base, json);
 	else if (kind == "struct")
-		_addStruct(base, json);
+		_addStruct(base, json, nullptr);
 	else if (kind == "reference")
 		_addReference(base, json);
 	else if (kind == "value")
@@ -430,7 +484,7 @@ void Module::_importJson(const Json& json)
 	if (name == std::string{})
 		throw ModuleError("Module name must be non-empty.");
 	else if (!_structure) // First iteration - need to create the structure.
-		_structure = _addStruct(nullptr, json);
+		_addStruct(nullptr, json, &_structure);
 	else if (_name != name) // Throws - name of the module must be the same accross the files.
 		throw ModuleError("Module name must be the same in all files, but " + name + " != " + _name + ".\n" + getPathsAsString());
 	else // _struct already created, need only to add new attributes
@@ -444,30 +498,78 @@ void Module::_importJson(const Json& json)
 /**
  * A mapping converting a given string to corresponding Symbol.
  */
-std::shared_ptr<Symbol> Module::_stringToSymbol (const std::shared_ptr<StructureSymbol> base, const std::string& str)
+std::shared_ptr<Symbol> Module::_stringToSymbol (const std::shared_ptr<Symbol>& base, const std::string& str)
 {
+	std::string current_attribute = str;
+	std::string next_attribute;
 	auto delim_index = str.find('.');
+
 	if (delim_index != std::string::npos)
 	{
-		auto current_symbol = str.substr(0, delim_index);
+		current_attribute = str.substr(0, delim_index);
+		next_attribute = str.substr(delim_index + 1, str.length());
+	}
 
-		if (!base)
-		{
-			if (_structure->getName() == current_symbol)
-				return _stringToSymbol(_structure, str.substr(delim_index + 1, str.length()));
-			else
-				return std::shared_ptr<Symbol>();
-		}
+	if (!base)
+	{
+		if (_structure->getName() != current_attribute)
+			throw ModuleError("Unaccessible namespace. You can reference objects only from the same module." + getPathsAsString());
+
+		if (!next_attribute.empty())
+			return _stringToSymbol(_structure, next_attribute);
 		else
+			return _structure;
+	}
+	else
+	{
+		if (base->getType() != Symbol::Type::Structure)
+			throw ModuleError("Can't access an attribute of " + base->getName() + " as it's not a structured object." + getPathsAsString());
+
+		auto baseStruct = std::static_pointer_cast<StructureSymbol>(base);
+		auto found_symbol = baseStruct->getAttribute(current_attribute);
+
+		if (!found_symbol)
+			throw ModuleError("Object " + base->getName() + " does not contain an attribute with the name of " + current_attribute + "." + getPathsAsString());
+
+		auto current_symbol = found_symbol.value();
+
+		if (current_symbol->getType() == Symbol::Type::Dictionary ||
+			current_symbol->getType() == Symbol::Type::Array)
 		{
-			auto curr_attribute = base->getAttribute(current_symbol);
-			if(!curr_attribute)
-				return std::shared_ptr<Symbol>();
-			auto existingStructure = std::static_pointer_cast<StructureSymbol>(curr_attribute.value());
-			return _stringToSymbol(existingStructure, str.substr(delim_index + 1, str.length()));
+			auto current_iterable = std::static_pointer_cast<IterableSymbol>(current_symbol);
+			current_symbol = current_iterable->getStructuredElementType();
+		}
+
+		if (!next_attribute.empty())
+		{
+			auto newBase = std::static_pointer_cast<StructureSymbol>(current_symbol);
+			return _stringToSymbol(newBase, next_attribute);
+		}
+
+		return current_symbol;
+	}
+}
+
+/**
+ * Adds an attribute to it's base that can be either a parent structure or an iterable.
+ */
+void Module::_addObjectToBase(Symbol* base, std::shared_ptr<Symbol> newAttribute)
+{
+	if (base)
+	{
+		switch (base->getType())
+		{
+			case Symbol::Type::Structure:
+				((StructureSymbol*)base)->addAttribute(newAttribute);
+				break;
+			case Symbol::Type::Array:
+			case Symbol::Type::Dictionary:
+				((IterableSymbol*)base)->setStructuredElementType(newAttribute);
+				break;
+			default:
+				throw ModuleError("Base type has to be a structure or an iterable." + getPathsAsString());
 		}
 	}
-	return base->getAttribute(str).value();
 }
 
 }
