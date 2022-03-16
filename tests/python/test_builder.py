@@ -1290,6 +1290,7 @@ rule rule_with_dictionary_access_condition {
     def test_rule_with_custom_modules(self):
         cond = yaramod.conjunction([
             yaramod.id("module_test.structure_test.function_test")(yaramod.regexp("abc", "")),
+            yaramod.id("module_test.reference_test.function_test")(yaramod.regexp("cba", "")),
             yaramod.id("cuckoo.sync.mutex")(yaramod.regexp("abc", ""))
         ]).get()
         rule = yaramod.YaraRuleBuilder() \
@@ -1309,6 +1310,7 @@ rule test
 {
 	condition:
 		module_test.structure_test.function_test(/abc/) and
+		module_test.reference_test.function_test(/cba/) and
 		cuckoo.sync.mutex(/abc/)
 }
 ''')
@@ -1317,7 +1319,7 @@ import "module_test"
 
 rule test {
 	condition:
-		module_test.structure_test.function_test(/abc/) and cuckoo.sync.mutex(/abc/)
+		module_test.structure_test.function_test(/abc/) and module_test.reference_test.function_test(/cba/) and cuckoo.sync.mutex(/abc/)
 }''')
 
     def test_rule_with_defined_condition(self):

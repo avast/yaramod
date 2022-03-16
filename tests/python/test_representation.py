@@ -295,6 +295,16 @@ rule dummy_rule {
         self.assertTrue(value_symbol.is_value)
         self.assertEqual(value_symbol.documentation, "Testing value documentation. Example: ```module_test.value_test > 10```")
 
+        self.assertTrue("reference_test" in cuckoo_attributes)
+        reference_symbol = cuckoo_attributes["reference_test"]
+        self.assertTrue(reference_symbol.is_reference)
+        self.assertEqual(reference_symbol.symbol, structure_symbol)
+
+        self.assertTrue("references_test" in cuckoo_attributes)
+        references_symbol = cuckoo_attributes["references_test"]
+        self.assertTrue(references_symbol.is_array)
+        self.assertTrue(references_symbol.structure.is_reference)
+        self.assertEqual(references_symbol.structure.symbol, structure_symbol)
 
     def test_custom_module_enhancing_known_module(self):
         modules = yaramod.Yaramod(yaramod.Features.AllCurrent, "./tests/python/testing_modules").modules

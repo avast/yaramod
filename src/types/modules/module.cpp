@@ -53,6 +53,8 @@ std::optional<std::shared_ptr<Symbol>> _getExistingAttribute(Symbol* base, std::
 				auto structElement = ((IterableSymbol*)base)->getStructuredElementType();
 				return structElement ? std::make_optional(structElement) : std::nullopt;
 			}
+			default:
+				break;
 		}
 	}
 	return std::nullopt;
@@ -204,7 +206,6 @@ void Module::_addIterable(StructureSymbol* base, const Json& json)
 				auto type = accessJsonString(structureJson, "type");
 				if (_stringToSymbol(nullptr, type) != existingIterable->getStructuredElementType())
 					throw ModuleError("Colliding definitions of " + name + " attribute. Unxpected referenced type." + getPathsAsString());
-
 			}
 			else if (kind == "struct")
 			{

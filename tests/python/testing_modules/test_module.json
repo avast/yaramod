@@ -42,6 +42,23 @@
             "name": "value_test",
             "documentation": "Testing value documentation. Example: ```module_test.value_test > 10```",
             "type": "i"
+        },
+        {
+            "kind": "reference",
+            "name": "reference_test",
+            "type": "module_test.structure_test"
+            
+        },
+        {
+            "kind": "array",
+            "name": "references_test",
+            "structure":
+            {
+                "kind": "reference",
+                "name": "references_test",
+                "type": "module_test.structure_test"
+            }
+            
         }
     ]
 }
