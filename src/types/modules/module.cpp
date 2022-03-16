@@ -53,6 +53,8 @@ std::optional<std::shared_ptr<Symbol>> _getExistingAttribute(Symbol* base, std::
 				auto structElement = ((IterableSymbol*)base)->getStructuredElementType();
 				return structElement ? std::make_optional(structElement) : std::nullopt;
 			}
+			default:
+				break;
 		}
 	}
 	return std::nullopt;
