@@ -46,13 +46,17 @@ std::optional<std::shared_ptr<Symbol>> _getExistingAttribute(Symbol* base, std::
 		switch (base->getType())
 		{
 			case Symbol::Type::Structure:
-				return ((StructureSymbol*)base)->getAttribute(name);
+				if (auto structure = dynamic_cast<StructureSymbol*>(base))
+					return structure->getAttribute(name);
+				break;
 			case Symbol::Type::Array:
 			case Symbol::Type::Dictionary:
-			{
-				auto structElement = ((IterableSymbol*)base)->getStructuredElementType();
-				return structElement ? std::make_optional(structElement) : std::nullopt;
-			}
+				if (auto iterable = dynamic_cast<IterableSymbol*>(base))
+				{
+					auto structElement = iterable->getStructuredElementType();
+					return structElement ? std::make_optional(structElement) : std::nullopt;
+				}
+				break;
 			default:
 				break;
 		}
@@ -561,11 +565,17 @@ void Module::_addObjectToBase(Symbol* base, std::shared_ptr<Symbol> newAttribute
 		switch (base->getType())
 		{
 			case Symbol::Type::Structure:
-				((StructureSymbol*)base)->addAttribute(newAttribute);
+				if (auto structure = dynamic_cast<StructureSymbol*>(base))
+					structure->addAttribute(newAttribute);
+				else
+					throw ModuleError("Base could not be casted to a structure." + getPathsAsString());
 				break;
 			case Symbol::Type::Array:
 			case Symbol::Type::Dictionary:
-				((IterableSymbol*)base)->setStructuredElementType(newAttribute);
+				if (auto iterable = dynamic_cast<IterableSymbol*>(base))
+					iterable->setStructuredElementType(newAttribute);
+				else
+					throw ModuleError("Base could not be casted to an iterable." + getPathsAsString());
 				break;
 			default:
 				throw ModuleError("Base type has to be a structure or an iterable." + getPathsAsString());
