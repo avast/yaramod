@@ -49,7 +49,7 @@ public:
 	/// @name Constructors
 	/// @{
 	Rule();
-	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global,
+	explicit Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::vector<TokenIt> modifiers,
 		std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, std::vector<Variable>&& variables, Expression::Ptr&& condition, const std::vector<TokenIt>& tags);
 
 	Rule(Rule&& rule) = default;
@@ -99,6 +99,8 @@ public:
 	/// {
 	bool isGlobal() const;
 	bool isPrivate() const;
+	std::optional<TokenIt> getGlobal() const;
+	std::optional<TokenIt> getPrivate() const;
 	/// }
 
 	/// @name Manipulation methods
@@ -115,8 +117,7 @@ private:
 
 	std::shared_ptr<TokenStream> _tokenStream; ///< tokenStream containing all the data in this Rule
 	TokenIt _name; ///< Name
-	std::optional<TokenIt> _mod_private; ///< Private modifier
-	std::optional<TokenIt> _mod_global; ///< Global modifier
+	std::vector<TokenIt> _modifiers; ///< Modifiers (private, global)
 	std::vector<Meta> _metas; ///< Meta information
 	std::shared_ptr<StringsTrie> _strings; ///< Strings
 	std::vector<Variable> _variables; ///< Variables

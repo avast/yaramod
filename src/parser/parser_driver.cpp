@@ -2572,7 +2572,7 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 	const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 	args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
 	std::vector<Meta> metas = std::move(args[7].getMetas());
-	return Rule(_lastRuleTokenStream, name, std::move(mod_private), std::move(mod_global),
+	return Rule(_lastRuleTokenStream, name, std::move(mods),
 				std::move(metas), std::make_shared<Rule::StringsTrie>(), std::vector<Variable>(), NULL, std::move(tags));
 }
 
