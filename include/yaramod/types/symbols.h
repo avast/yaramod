@@ -37,6 +37,8 @@ public:
 
 	bool isStructured() const { return _elementType == ExpressionType::Object && _structuredType; }
 
+	void setStructuredElementType(std::shared_ptr<Symbol> structure) { _structuredType = std::move(structure); }
+
 protected:
 	IterableSymbol(Symbol::Type type, const std::string& name, ExpressionType elementType, const std::string& documentation)
 		: Symbol(type, name, ExpressionType::Object, documentation), _elementType(elementType), _structuredType() {}
@@ -242,6 +244,12 @@ public:
 		}
 
 		return false;
+	}
+
+	bool addTemplateAttribute(const std::shared_ptr<Symbol>& templateAttribute)
+	{
+		auto insertionResult = _attributes.emplace(templateAttribute->getName(), templateAttribute);
+		return insertionResult.second;
 	}
 
 private:
