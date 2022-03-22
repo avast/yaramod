@@ -3439,6 +3439,31 @@ rule rule_with_float_value_in_condition
 }
 
 TEST_F(ParserTests,
+ConsoleModuleWorks) {
+	prepareInput(
+R"(
+import "console"
+
+rule console_module
+{
+	condition:
+		console.log("Hello") and
+		console.log("32bits at 0: ", uint32(0))
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(console.log("Hello") and console.log("32bits at 0: ", uint32(0)))", rule->getCondition()->getText());
+	EXPECT_EQ("console", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 CuckooModuleWorks) {
 	prepareInput(
 R"(
