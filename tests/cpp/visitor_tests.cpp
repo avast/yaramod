@@ -1333,6 +1333,74 @@ rule rule_5
 }
 
 TEST_F(VisitorTests,
+RuleModifierWorksWhenDeletingRules) {
+	prepareInput(
+R"(
+global rule rule_4 {
+	condition:
+		false
+}
+
+global rule delete_rule_3 {
+	condition:
+		false
+}
+
+private global rule delete_rule_7 {
+	condition:
+		delete_rule_3
+}
+
+private global rule rule_5 {
+	condition:
+		not delete_rule_3
+}
+
+private global rule delete_rule_6 {
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+	ASSERT_EQ(5u, yara_file.getRules().size());
+
+	RuleDeleter visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(2u, yara_file.getRules().size());
+
+	EXPECT_EQ(
+R"(global rule rule_4 {
+	condition:
+		false
+}
+
+private global rule rule_5 {
+	condition:
+		false
+})", yara_file.getText());
+
+	std::string expected = R"(
+global rule rule_4
+{
+	condition:
+		false
+}
+
+private global rule rule_5
+{
+	condition:
+		false
+}
+
+)";
+
+	EXPECT_EQ(expected, yara_file.getTextFormatted());
+}
+
+TEST_F(VisitorTests,
 DeletingVisitor2) {
 	prepareInput(
 R"(

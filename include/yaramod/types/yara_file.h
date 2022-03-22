@@ -62,7 +62,13 @@ public:
 	{
 		auto itr = std::stable_partition(_imports.begin(), _imports.end(), [&](const auto& i) { return !fn(i); });
 		for (auto rem_itr = itr; rem_itr != _imports.end(); ++rem_itr)
-			_importTable.erase(_importTable.find((*rem_itr)->getName()));
+		{
+			auto rem_import = _importTable.find((*rem_itr)->getName());
+			auto import_token = rem_import->second.first;
+			auto bounds = _tokenStream->findBounds(import_token, TokenType::IMPORT_KEYWORD, TokenType::NEW_LINE);
+			_tokenStream->erase(bounds.first, std::next(bounds.second));
+			_importTable.erase(rem_import);
+		}
 		_imports.erase(itr, _imports.end());
 	}
 
@@ -73,8 +79,12 @@ public:
 		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
 		{
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
-			auto behind = _tokenStream->erase((*rem_itr)->getFirstTokenIt(), std::next((*rem_itr)->getLastTokenIt()));
-			while (behind != _tokenStream->end() && behind->getType() == TokenType::NEW_LINE)
+			auto from = (*rem_itr)->getFirstTokenIt();
+			if (from != _tokenStream->begin() && from->getType() == TokenType::NEW_LINE)
+				from = std::prev(from);
+			auto to = std::next((*rem_itr)->getLastTokenIt());
+			auto behind = _tokenStream->erase(from, to);
+			while (behind != _tokenStream->end() && behind != _tokenStream->begin() && behind->getType() == TokenType::NEW_LINE)
 				behind = _tokenStream->erase(behind);
 		}
 		_rules.erase(itr, _rules.end());
@@ -100,7 +110,7 @@ private:
 	std::vector<std::shared_ptr<Module>> _imports; ///< Imported modules
 	std::vector<std::shared_ptr<Rule>> _rules; ///< Rules
 
-	std::unordered_map<std::string, Module*> _importTable;
+	std::unordered_map<std::string, std::pair<TokenIt, Module*>> _importTable;
 	std::unordered_map<std::string, Rule*> _ruleTable;
 
 	Features _Features; ///< Determines which symbols are needed

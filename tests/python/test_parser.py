@@ -481,6 +481,48 @@ private rule private_rule {
         self.assertFalse(rule.is_global)
         self.assertFalse(rule.is_private)
 
+    def test_global_private_rule(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+private global rule pg_rule {
+    condition:
+        true
+}
+
+global private rule gp_rule {
+    condition:
+        true
+}''')
+
+        self.assertEqual(len(yara_file.rules), 2)
+
+        expected = r'''
+private global rule pg_rule
+{
+	condition:
+		true
+}
+
+global private rule gp_rule
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+        pg_rule = yara_file.rules[0]
+        self.assertEqual(pg_rule.name, 'pg_rule')
+        self.assertEqual(pg_rule.modifier, yaramod.RuleModifier.PrivateGlobal)
+        self.assertTrue(pg_rule.is_global)
+        self.assertTrue(pg_rule.is_private)
+        self.assertEqual(pg_rule.token_first.type, yaramod.TokenType.Private)
+        gp_rule = yara_file.rules[1]
+        self.assertEqual(gp_rule.name, 'gp_rule')
+        self.assertEqual(gp_rule.modifier, yaramod.RuleModifier.PrivateGlobal)
+        self.assertTrue(gp_rule.is_global)
+        self.assertTrue(gp_rule.is_private)
+        self.assertEqual(gp_rule.token_first.type, yaramod.TokenType.Global)
+
     def test_import(self):
         yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
@@ -1994,6 +2036,45 @@ rule rule1 {
         expected = r'''include "testing_include.yar"
 
 import "cuckoo"
+
+rule rule1
+{
+	condition:
+		RULE and
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_remove_import(self):
+        yara_file = yaramod.Yaramod().parse_file('./tests/python/testing_rules/testing_file_with_import.yar')
+        rule = yara_file.rules[0]
+
+        self.assertEqual('''import "cuckoo"
+
+rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        yara_file.remove_imports(lambda i: True)
+
+        self.assertEqual('''rule RULE {
+	condition:
+		true
+}
+
+rule rule1 {
+	condition:
+		RULE and true
+}''', yara_file.text)
+
+        expected = r'''include "testing_include.yar"
 
 rule rule1
 {

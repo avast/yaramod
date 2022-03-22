@@ -26,20 +26,18 @@ Rule::Rule()
  *
  * @param tokenStream the TokenStream containing supplied tokens.
  * @param name Name of the rule as a token iterator.
- * @param mod_private Optional private modifier token iterator.
- * @param mod_global Optional global modifier token iterator.
+ * @param modifiers All rule modifiers token iterators (private and global).
  * @param metas Meta information.
  * @param strings Strings.
  * @param variables Variables.
  * @param condition Condition expression.
  * @param tags Tags as token iterators.
  */
-Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::optional<TokenIt> mod_private, std::optional<TokenIt> mod_global, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, std::vector<Variable>&& variables, 
+Rule::Rule(const std::shared_ptr<TokenStream>& tokenStream, TokenIt name, std::vector<TokenIt> modifiers, std::vector<Meta>&& metas, std::shared_ptr<StringsTrie>&& strings, std::vector<Variable>&& variables,
 		Expression::Ptr&& condition, const std::vector<TokenIt>& tags)
 	: _tokenStream(tokenStream)
 	, _name(name)
-	, _mod_private(mod_private)
-	, _mod_global(mod_global)
+	, _modifiers(modifiers)
 	, _metas(std::move(metas))
 	, _strings(std::move(strings))
 	, _variables(std::move(variables))
@@ -276,7 +274,10 @@ const Meta* Rule::getMetaWithName(const std::string& key) const
  */
 TokenIt Rule::getFirstTokenIt() const
 {
-	return _tokenStream->findBackwards(TokenType::RULE, _name);
+	if (_modifiers.empty())
+		return _tokenStream->findBackwards(TokenType::RULE, _name);
+	else
+		return _modifiers[0];
 }
 
 /**
@@ -405,28 +406,40 @@ void Rule::setModifier(const Modifier& modifier)
 	else
 		assert(false && "Invalid rule modifier");
 
-	if (deletePrivate)
+	if (deletePrivate || deleteGlobal)
 	{
-		_tokenStream->erase(_mod_private.value());
-		_mod_private.reset();
-	}
-	if (deleteGlobal)
-	{
-		_tokenStream->erase(_mod_global.value());
-		_mod_global.reset();
+		for (auto it = _modifiers.begin(); it != _modifiers.end();)
+		{
+			if (deletePrivate && (*it)->getType() == TokenType::PRIVATE)
+			{
+				_tokenStream->erase(*it);
+				it = _modifiers.erase(it);
+			}
+			else if (deleteGlobal && (*it)->getType() == TokenType::GLOBAL)
+			{
+				_tokenStream->erase(*it);
+				it = _modifiers.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
 	}
 	if (addPrivate || addGlobal)
 	{
 		TokenIt rule_token = _tokenStream->findBackwards(TokenType::RULE, _name);
 		if (addPrivate)
 		{
-			if (isGlobal())
-				_mod_private = _tokenStream->emplace(_mod_global.value(), TokenType::PRIVATE, "private");
-			else
-				_mod_private = _tokenStream->emplace(rule_token, TokenType::PRIVATE, "private");
+			auto insert_before = getGlobal().value_or(rule_token);
+			auto mod_private = _tokenStream->emplace(insert_before, TokenType::PRIVATE, "private");
+			_modifiers.emplace_back(mod_private);
 		}
 		if (addGlobal)
-			_mod_global = _tokenStream->emplace(rule_token, TokenType::GLOBAL, "global");
+		{
+			auto mod_global = _tokenStream->emplace(rule_token, TokenType::GLOBAL, "global");
+			_modifiers.emplace_back(mod_global);
+		}
 	}
 }
 
@@ -437,7 +450,7 @@ void Rule::setModifier(const Modifier& modifier)
  */
 bool Rule::isGlobal() const
 {
-	return _mod_global.has_value();
+	return getGlobal() != std::nullopt;
 }
 
 /**
@@ -447,7 +460,33 @@ bool Rule::isGlobal() const
  */
 bool Rule::isPrivate() const
 {
-	return _mod_private.has_value();
+	return getPrivate() != std::nullopt;
+}
+
+/**
+ * Returns the rule's global modifier if present.
+ *
+ * @return @c the token iterator to global token if the rule is global, otherwise @c nullopt.
+ */
+std::optional<TokenIt> Rule::getGlobal() const
+{
+	for (const auto& t : _modifiers)
+		if (t->getType() == TokenType::GLOBAL)
+			return std::make_optional<TokenIt>(t);
+	return std::nullopt;
+}
+
+/**
+ * Returns the rule's private modifier if present.
+ *
+ * @return @c the token iterator to private token if the rule is private, otherwise @c nullopt.
+ */
+std::optional<TokenIt> Rule::getPrivate() const
+{
+	for (const auto& t : _modifiers)
+		if (t->getType() == TokenType::PRIVATE)
+			return std::make_optional<TokenIt>(t);
+	return std::nullopt;
 }
 
 /**

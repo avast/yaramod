@@ -222,7 +222,7 @@ bool YaraFile::addImport(TokenIt import, ModulePool& modules)
 		return true;
 
 	_imports.push_back(std::move(module));
-	_importTable.emplace(_imports.back()->getName(), _imports.back().get());
+	_importTable.emplace(_imports.back()->getName(), std::make_pair(import, _imports.back().get()));
 	return true;
 }
 
@@ -389,7 +389,7 @@ std::shared_ptr<Symbol> YaraFile::findSymbol(const std::string& name) const
 		return itr->second->getSymbol();
 
 	if (auto itr = _importTable.find(name); itr != _importTable.end())
-		return itr->second->getStructure();
+		return itr->second.second->getStructure();
 
 	for (const auto& vtSymbol : _vtSymbols)
 	{
