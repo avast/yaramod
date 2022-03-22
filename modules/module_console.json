@@ -1,0 +1,108 @@
+{
+    "kind": "struct",
+    "name": "console",
+    "attributes": [
+        {
+            "kind": "function",
+            "name": "log",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "string"
+                        }
+                    ],
+                    "documentation": "Function which sends the string to the main callback.\n\nExample: ```console.log(pe.imphash())```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "message"
+                        },
+                        {
+                            "type": "s",
+                            "name": "string"
+                        }
+                    ],
+                    "documentation": "Function which sends the message and string to the main callback.\n\nExample: ```console.log(\"The imphash is: \", pe.imphash())```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "integer"
+                        }
+                    ],
+                    "documentation": "Function which sends the integer to the main callback.\n\nExample: ```console.log(uint32(0))```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "message"
+                        },
+                        {
+                            "type": "i",
+                            "name": "integer"
+                        }
+                    ],
+                    "documentation": "Function which sends the message and integer to the main callback.\n\nExample: ```console.log(\"32bits at 0: \", uint32(0))```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "f",
+                            "name": "float"
+                        }
+                    ],
+                    "documentation": "Function which sends the floating point value to the main callback.\n\nExample: ```console.log(math.entropy(0, filesize))```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "message"
+                        },
+                        {
+                            "type": "f",
+                            "name": "float"
+                        }
+                    ],
+                    "documentation": "Function which sends the message and the floating point value to the main callback.\n\nExample: ```console.log(\"Entropy: \", math.entropy(0, filesize))```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "hex",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "i",
+                            "name": "integer"
+                        }
+                    ],
+                    "documentation": "Function which sends the integer to the main callback, formatted as a hex string.\n\nExample: ```console.hex(uint32(0))```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "message"
+                        },
+                        {
+                            "type": "i",
+                            "name": "integer"
+                        }
+                    ],
+                    "documentation": "Function which sends the integer to the main callback, formatted as a hex string.\n\nExample: ```console.hex(\"Hex at 0: \", uint32(0))```"
+                }
+            ]
+        }
+    ]
+}
