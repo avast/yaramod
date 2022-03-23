@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.12.6 (2022-03-23)
+
+* References for existing structures ([#209](https://github.com/avast/yaramod/pull/209))
+* Store rule modifiers in container and fix their deleting ([#206](https://github.com/avast/yaramod/pull/206))
+* Add console module([#205](https://github.com/avast/yaramod/issues/205), [#210](https://github.com/avast/yaramod/pull/210))
+* Add is_dotnet to dotnet module ([#208](https://github.com/avast/yaramod/pull/208))
+
 # v3.12.5 (2022-03-16)
 
 * Add comment_behind and comment_before_token to Expression builder ([#195](https://github.com/avast/yaramod/issues/195), [#194](https://github.com/avast/yaramod/pull/194))
