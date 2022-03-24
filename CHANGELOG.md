@@ -1,5 +1,10 @@
 # Changelog
 
+
+# v3.12.7 (2022-03-24)
+
+* Fix console module generating
+
 # v3.12.6 (2022-03-23)
 
 * References for existing structures ([#209](https://github.com/avast/yaramod/pull/209))
