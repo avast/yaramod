@@ -31,7 +31,7 @@ set(YARAMOD_DEPS_DIR    "${PROJECT_SOURCE_DIR}/deps")
 set(YARAMOD_MODULES_DIR     "${PROJECT_SOURCE_DIR}/modules")
 set(YARAMOD_MODULES_GENERATED_DIR     "${YARAMOD_INCLUDE_DIR}/yaramod/types/modules/generated")
 set(WRAP_MODULE_SOURCES
-	${YARAMOD_MODULES_GENERATED_DIR}/module_console.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_console_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_deprecated_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_cuckoo_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_dex_generated.h
