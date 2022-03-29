@@ -973,6 +973,29 @@ rule rule_with_variable_id_condition {
 		filesize < 200
 }''')
 
+    def test_rule_with_or_condition_with_single_comment(self):
+        cond = yaramod.disjunction([[yaramod.filesize() > yaramod.int_val(100), 'skip small files'], [yaramod.filesize() < yaramod.int_val(200), '']])
+        rule = self.new_rule \
+            .with_name('rule_with_or_condition_with_single_comment') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_or_condition_with_single_comment
+{
+	condition:
+		filesize > 100 or // skip small files
+		filesize < 200
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_or_condition_with_single_comment {
+	condition:
+		filesize > 100 or
+		filesize < 200
+}''')
+
     def test_rule_with_or_condition_with_comments(self):
         cond = yaramod.disjunction([[yaramod.filesize() > yaramod.int_val(100), 'skip small files'], [yaramod.filesize() < yaramod.int_val(200), 'also too big files']])
         rule = self.new_rule \
