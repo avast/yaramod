@@ -1641,13 +1641,13 @@ RuleWithParenthesesWithLinebreaksInConditionWorks) {
 
 TEST_F(BuilderTests,
 RuleWithEscapedSequencesWorks) {
-	auto cond = (id("pe").access("rich_signature").access("clear_data") == stringVal("DanS\"\t\n\\\x01\xff")).get();
+	auto cond = (id("pe").access("rich_signature").access("clear_data") == stringVal("DanS\"\t\r\n\\\x01\xff")).get();
 
 	YaraRuleBuilder newRule;
 	auto rule = newRule
 		.withName("rule_with_double_quotes")
-		.withStringMeta("str_meta", "Double \"\t\n\\\x01\xff quotes")
-		.withPlainString("$str", "Double \"\t\n\\\x01\xff quotes")
+		.withStringMeta("str_meta", "Double \"\t\r\n\\\x01\xff quotes")
+		.withPlainString("$str", "Double \"\t\r\n\\\x01\xff quotes")
 		.withCondition(cond)
 		.get();
 
@@ -1663,11 +1663,11 @@ RuleWithEscapedSequencesWorks) {
 
 rule rule_with_double_quotes {
 	meta:
-		str_meta = "Double \"\t\n\\\x01\xff quotes"
+		str_meta = "Double \"\t\r\n\\\x01\xff quotes"
 	strings:
-		$str = "Double \"\t\n\\\x01\xff quotes"
+		$str = "Double \"\t\r\n\\\x01\xff quotes"
 	condition:
-		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
+		pe.rich_signature.clear_data == "DanS\"\t\r\n\\\x01\xff"
 })";
 	EXPECT_EQ(expected, yaraFile->getText());
 
@@ -1676,11 +1676,11 @@ rule rule_with_double_quotes {
 rule rule_with_double_quotes
 {
 	meta:
-		str_meta = "Double \"\t\n\\\x01\xff quotes"
+		str_meta = "Double \"\t\r\n\\\x01\xff quotes"
 	strings:
-		$str = "Double \"\t\n\\\x01\xff quotes"
+		$str = "Double \"\t\r\n\\\x01\xff quotes"
 	condition:
-		pe.rich_signature.clear_data == "DanS\"\t\n\\\x01\xff"
+		pe.rich_signature.clear_data == "DanS\"\t\r\n\\\x01\xff"
 }
 )";
 	EXPECT_EQ(expected_with_newline, yaraFile->getTextFormatted());

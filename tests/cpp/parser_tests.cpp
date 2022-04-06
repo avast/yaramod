@@ -4560,11 +4560,11 @@ import "pe"
 rule rule_with_escaped_double_quotes_works
 {
 	meta:
-		str_meta = "Here are \t\n\\\x01\xff"
+		str_meta = "Here are \t\r\n\\\x01\xff"
 	strings:
-		$str = "Another \t\n\\\x01\xff"
+		$str = "Another \t\r\n\\\x01\xff"
 	condition:
-		pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff"
+		pe.rich_signature.clear_data == "DanS\t\r\n\\\x01\xff"
 }
 )");
 	EXPECT_TRUE(driver.parse(input));
@@ -4576,8 +4576,8 @@ rule rule_with_escaped_double_quotes_works
 	ASSERT_NE(strMeta, nullptr);
 
 
-	EXPECT_EQ(R"("Here are \t\n\\\x01\xff")", strMeta->getValue().getText());
-	EXPECT_EQ("Here are \t\n\\\x01""\xff", strMeta->getValue().getPureText());
+	EXPECT_EQ(R"("Here are \t\r\n\\\x01\xff")", strMeta->getValue().getText());
+	EXPECT_EQ("Here are \t\r\n\\\x01""\xff", strMeta->getValue().getPureText());
 
 	auto strings = rule->getStrings();
 	ASSERT_EQ(1u, strings.size());
@@ -4585,13 +4585,13 @@ rule rule_with_escaped_double_quotes_works
 	auto str = strings[0];
 	ASSERT_TRUE(str->isPlain());
 
-	EXPECT_EQ(R"("Another \t\n\\\x01\xff")", str->getText());
-	EXPECT_EQ("Another \t\n\\\x01\xff", str->getPureText());
+	EXPECT_EQ(R"("Another \t\r\n\\\x01\xff")", str->getText());
+	EXPECT_EQ("Another \t\r\n\\\x01\xff", str->getPureText());
 
-	std::string expected = R"(pe.rich_signature.clear_data == "DanS\t\n\\\x01\xff")";
+	std::string expected = R"(pe.rich_signature.clear_data == "DanS\t\r\n\\\x01\xff")";
 	EXPECT_EQ(expected, rule->getCondition()->getText());
 	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("DanS\t\n\\\x01\xff", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("DanS\t\r\n\\\x01\xff", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
@@ -4601,7 +4601,7 @@ InvalidEscapedSequence1) {
 	prepareInput(
 R"(rule rule_with_invalid_escape_sequence {
 	strings:
-		$str = "\t\r"
+		$str = "\t\l"
 	condition:
 		$str
 }"
@@ -4615,7 +4615,7 @@ R"(rule rule_with_invalid_escape_sequence {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 3.13-14: Syntax error: Unknown escaped sequence '\\r'", err.getErrorMessage());
+		EXPECT_EQ("Error at 3.13-14: Syntax error: Unknown escaped sequence '\\l'", err.getErrorMessage());
 	}
 }
 
@@ -4625,7 +4625,7 @@ InvalidEscapedSequence2) {
 R"(rule rule_with_invalid_escape_sequence {
 	strings:
 		$st1 = "\n\n\n"
-		$st2 = "\t\r"
+		$st2 = "\t\l"
 	condition:
 		$st1 or $st2
 }
@@ -4639,7 +4639,7 @@ R"(rule rule_with_invalid_escape_sequence {
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 4.13-14: Syntax error: Unknown escaped sequence '\\r'", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.13-14: Syntax error: Unknown escaped sequence '\\l'", err.getErrorMessage());
 	}
 }
 

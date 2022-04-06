@@ -67,6 +67,9 @@ std::string escapeString(const std::string& str)
 			case '\n':
 				result += "\\n";
 				break;
+			case '\r':
+				result += "\\r";
+				break;
 			case '\t':
 				result += "\\t";
 				break;

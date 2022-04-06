@@ -256,8 +256,8 @@ void ParserDriver::defineTokens()
 		_escapedContent = true;
 		return {};
 	});
-	_parser.token(R"(\\[tn\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t'
-	_parser.token(R"(\\[^\"tnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentFileContext()->getLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
+	_parser.token(R"(\\[trn\"\\])").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; }); //  '\n',  '\t', '\r'
+	_parser.token(R"(\\[^\"trnx\\])").states("$str").action([&](std::string_view str) -> Value { error_handle(currentFileContext()->getLocation(), "Syntax error: Unknown escaped sequence '" + std::string{str} + "'"); return {}; });
 	_parser.token(R"(([^\\"])+)").states("$str").action([&](std::string_view str) -> Value { _strLiteral += std::string{str}; return {}; });
 	_parser.token(R"(\")").states("$str").symbol("STRING_LITERAL").description("\"").enter_state("@default").action([&](std::string_view) -> Value {
 		currentFileContext()->getLocation().setBegin(_positionBegin);

@@ -33,7 +33,7 @@ EscapeStringWorks) {
 c)"));
 	EXPECT_EQ(R"(a@c)", escapeString("a@c"));
 	EXPECT_EQ(R"(a@c)", escapeString("a\x40""c"));
-	EXPECT_EQ(R"(\n\t\\\"\x01)", escapeString("\n\t\\\"\x01"));
+	EXPECT_EQ(R"(\n\r\t\\\"\x01)", escapeString("\n\r\t\\\"\x01"));
 }
 
 TEST_F(UtilsTests,
