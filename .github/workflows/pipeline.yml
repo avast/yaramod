@@ -49,6 +49,12 @@ jobs:
         run: |
           python setup.py build --with-unit-tests
           python setup.py install
+      - name: Upload build directory
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
+          path: build/
       - name: C++ Tests
         run: |
           ${{ startsWith(matrix.os, 'windows') && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
@@ -69,8 +75,9 @@ jobs:
           python setup.py ${{ startsWith(matrix.os, 'windows') && 'bdist_wheel' || 'sdist' }}
       - name: Upload package
         if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
+          name: package
           path: dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
           if-no-files-found: error
           retention-days: 7
@@ -81,7 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Downloads wheels
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
+        with:
+          name: package
       - name: Setup Python
         uses: actions/setup-python@v2
       - name: Install twine
