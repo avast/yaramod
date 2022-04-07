@@ -98,4 +98,4 @@ jobs:
           python -m pip install twine
       - name: Upload to PyPI
         run: |
-          twine upload --skip-existing -u __token__ -p ${{ secrets.pypi_token }} ./artifact/*.{whl,tar.gz}
+          twine upload --skip-existing -u __token__ -p ${{ secrets.pypi_token }} ./package/*.{whl,tar.gz}
