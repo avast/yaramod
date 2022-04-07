@@ -1,5 +1,8 @@
 # Changelog
 
+# v3.12.8 (2022-04-07)
+
+* Fixed parsing of `\r` escape sequence in strings which was added in YARA 4.2
 
 # v3.12.7 (2022-03-24)
 
