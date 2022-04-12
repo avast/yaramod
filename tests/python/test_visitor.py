@@ -212,6 +212,52 @@ rule rule_with_regexp_in_fnc_call
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_modifying_visitor_or_deleter(self):
+        class OrDeleter(yaramod.ModifyingVisitor):
+            def process(self, yara_file: yaramod.YaraFile):
+                for rule in yara_file.rules:
+                    rule.condition = self.modify(rule.condition)
+
+            def visit_OrExpression(self, expr):
+                    output = yaramod.bool_val(True).get()
+                    context = yaramod.TokenStreamContext(expr)
+
+                    self.cleanup_tokenstreams(context, output)
+                    return output
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "cuckoo"
+
+rule test_rule {
+	condition:
+		cuckoo.sync.mutex(/(^|\\)A$/) or cuckoo.sync.mutex(/(^|\\)dummy-(A|B|C)$/) or cuckoo.sync.mutex(/(^|\\)test$/) or cuckoo.sync.mutex(/test2/)
+}''')
+
+        regexp_icase_adder = OrDeleter()
+        regexp_icase_adder.process(yara_file)
+
+        self.assertEqual(len(yara_file.rules), 1)
+        rule = yara_file.rules[0]
+        cond = rule.condition
+        self.assertTrue(isinstance(cond, yaramod.BoolLiteralExpression))
+
+        self.assertEqual(r'''import "cuckoo"
+
+rule test_rule {
+	condition:
+		true
+}''', yara_file.text)
+        expected = r'''
+import "cuckoo"
+
+rule test_rule
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_modifying_visitor_delete_rules(self):
         class RulesDeleter(yaramod.ModifyingVisitor):
             def __init__(self):
