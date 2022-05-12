@@ -27,6 +27,7 @@ YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream, Features fea
 	, _rules()
 	, _importTable()
 	, _ruleTable()
+	, _ruleTrie()
 	, _Features(features)
 {
 	if (_Features & Features::VirusTotalOnly)
@@ -39,6 +40,7 @@ YaraFile::YaraFile(YaraFile&& o) noexcept
 	, _rules(std::move(o._rules))
 	, _importTable(std::move(o._importTable))
 	, _ruleTable(std::move(o._ruleTable))
+	, _ruleTrie(std::move(o._ruleTrie))
 	, _Features(std::move(o._Features))
 	, _vtSymbols(std::move(o._vtSymbols))
 {
@@ -46,13 +48,15 @@ YaraFile::YaraFile(YaraFile&& o) noexcept
 
 YaraFile& YaraFile::operator=(YaraFile&& o) noexcept
 {
-	std::swap(_tokenStream, o._tokenStream);
-	std::swap(_imports, o._imports);
-	std::swap(_rules, o._rules);
-	std::swap(_importTable, o._importTable);
-	std::swap(_ruleTable, o._ruleTable);
-	std::swap(_Features, o._Features);
-	std::swap(_vtSymbols, o._vtSymbols);
+	using std::swap;
+	swap(_tokenStream, o._tokenStream);
+	swap(_imports, o._imports);
+	swap(_rules, o._rules);
+	swap(_importTable, o._importTable);
+	swap(_ruleTable, o._ruleTable);
+	swap(_ruleTrie, o._ruleTrie);
+	swap(_Features, o._Features);
+	swap(_vtSymbols, o._vtSymbols);
 	return *this;
 }
 
@@ -269,6 +273,7 @@ void YaraFile::addRule(std::unique_ptr<Rule>&& rule, bool extractTokens)
 		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(std::move(rule));
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
+	_ruleTrie.insert(_rules.back()->getName(), _rules.back().get());
 }
 
 /**
@@ -283,6 +288,7 @@ void YaraFile::addRule(const std::shared_ptr<Rule>& rule, bool extractTokens)
 		_tokenStream->moveAppend(rule->getTokenStream());
 	_rules.emplace_back(rule);
 	_ruleTable.emplace(_rules.back()->getName(), _rules.back().get());
+	_ruleTrie.insert(_rules.back()->getName(), _rules.back().get());
 }
 
 /**
@@ -319,6 +325,7 @@ void YaraFile::insertRule(std::size_t position, std::unique_ptr<Rule>&& rule)
 
 	_rules.insert(_rules.begin() + position, std::move(rule));
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
+	_ruleTrie.insert(_rules[position]->getName(), _rules[position].get());
 }
 
 /**
@@ -343,6 +350,7 @@ void YaraFile::insertRule(std::size_t position, const std::shared_ptr<Rule>& rul
 
 	_rules.insert(_rules.begin() + position, rule);
 	_ruleTable.emplace(_rules[position]->getName(), _rules[position].get());
+	_ruleTrie.insert(_rules[position]->getName(), _rules[position].get());
 }
 
 /**
@@ -428,6 +436,16 @@ bool YaraFile::hasRules() const
 bool YaraFile::hasRule(const std::string& name) const
 {
 	return _ruleTable.find(name) != _ruleTable.end();
+}
+
+/**
+ * Returns whether the YARA file contains specified rule prefix.
+ *
+ * @return @c true if it contains, otherwise @c false.
+ */
+bool YaraFile::hasRuleWithPrefix(const std::string& prefix) const
+{
+	return _ruleTrie.isPrefix(prefix);
 }
 
 }

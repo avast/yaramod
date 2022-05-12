@@ -386,6 +386,12 @@ public:
 		return {};
 	}
 
+	virtual yaramod::VisitResult visit(yaramod::IdWildcardExpression* expr) override
+	{
+		dump("IdWildcard", expr, " id=", expr->getId());
+		return {};
+	}
+
 	virtual yaramod::VisitResult visit(yaramod::StructAccessExpression* expr) override
 	{
 		dump("StructAccess", expr, " id=", expr->getSymbol()->getName());

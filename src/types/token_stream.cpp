@@ -986,7 +986,11 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		else if (inside_enumeration_brackets)
 		{
 			if ((current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION) && (current != TokenType::LSQB_ENUMERATION && next != TokenType::RSQB_ENUMERATION) && current != TokenType::DOT && next != TokenType::COMMA && next != TokenType::DOT && next != TokenType::NEW_LINE)
-				helper.insertIntoStream(os, ' ');
+			{
+				// we ran into <rule_id>* and we don't want space in between them
+				if (!(current == TokenType::ID_WILDCARD && next == TokenType::ID_WILDCARD))
+					helper.insertIntoStream(os, ' ');
+			}
 		}
 		else if (current == TokenType::HEX_ALT_RIGHT_BRACKET || current == TokenType::HEX_ALT_LEFT_BRACKET)
 			helper.insertIntoStream(os, ' ');

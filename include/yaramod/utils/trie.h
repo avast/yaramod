@@ -163,6 +163,12 @@ public:
 	Trie(Trie&& trie) = default;
 	/// @}
 
+	friend void swap(Trie<T>& t1, Trie<T>& t2)
+	{
+		std::swap(t1._nodes, t2._nodes);
+		std::swap(t1._values, t1._values);
+	}
+
 	/// @name Setter operations
 	/// @{
 	/**

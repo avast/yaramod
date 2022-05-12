@@ -136,6 +136,7 @@ protected:
 	/// @name Methods for handling rules
 	/// @{
 	bool ruleExists(const std::string& name) const;
+	bool ruleWithPrefixExists(const std::string& prefix) const;
 	void addRule(Rule&& rule);
 	void addRule(std::unique_ptr<Rule>&& rule);
 	/// @}
