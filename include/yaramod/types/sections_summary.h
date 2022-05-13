@@ -21,7 +21,7 @@ public:
 	/// @name Constructors
 	/// @{
 	SectionsSummary(std::shared_ptr<Rule::StringsTrie> default_strings, std::vector<Variable> default_variables)
-        : _strings(default_strings), _variables(default_variables), _is_strings_set(false), _is_variables_set(false) {}
+        : _is_strings_set(false), _is_variables_set(false), _strings(default_strings), _variables(default_variables) {}
 	SectionsSummary(const SectionsSummary& section_summary) = default;
 	SectionsSummary(SectionsSummary&& section_summary) = default;
 	/// @}

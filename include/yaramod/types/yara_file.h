@@ -78,6 +78,7 @@ public:
 		auto itr = std::stable_partition(_rules.begin(), _rules.end(), [&](const auto& i) { return !fn(i); });
 		for (auto rem_itr = itr; rem_itr != _rules.end(); ++rem_itr)
 		{
+			_ruleTrie.remove((*rem_itr)->getName());
 			_ruleTable.erase(_ruleTable.find((*rem_itr)->getName()));
 			auto from = (*rem_itr)->getFirstTokenIt();
 			if (from != _tokenStream->begin() && from->getType() == TokenType::NEW_LINE)
@@ -101,6 +102,7 @@ public:
 	bool hasImports() const;
 	bool hasRules() const;
 	bool hasRule(const std::string& name) const;
+	bool hasRuleWithPrefix(const std::string& prefix) const;
 	/// @}
 
 private:
@@ -112,6 +114,7 @@ private:
 
 	std::unordered_map<std::string, std::pair<TokenIt, Module*>> _importTable;
 	std::unordered_map<std::string, Rule*> _ruleTable;
+	Trie<Rule*> _ruleTrie; ///< Rule trie
 
 	Features _Features; ///< Determines which symbols are needed
 	std::vector<std::shared_ptr<Symbol>> _vtSymbols; ///< Virust Total symbols

@@ -1280,6 +1280,15 @@ void ParserDriver::defineGrammar()
 			output->setTokenStream(currentTokenStream());
 			return output;
 		})
+		.production("for_expression", "OF", "rule_set", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto set = std::move(args[2].getExpression());
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
 		.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
@@ -1521,7 +1530,6 @@ void ParserDriver::defineGrammar()
 				error_handle(id->getLocation(), "Reference to undefined string '" + stringId + "'");
 			if (id->getString().size() > 1)
 				id->setValue(findStringDefinition(stringId));
-			TokenIt op = args[1].getTokenIt();
 			Expression::Ptr range = args[2].getExpression();
 
 			auto output = std::make_shared<StringInRangeExpression>(args[0].getTokenIt(), args[1].getTokenIt(), std::move(range));
@@ -2007,44 +2015,96 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("string_enumeration") // vector<Expression::Ptr>
+		.production("string_enumeration_item", [&](auto&& args) -> Value {
+			return std::vector<Expression::Ptr>{std::move(args[0].getExpression())};
+		})
+		.production("string_enumeration", "COMMA", "string_enumeration_item", [&](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(args[2].getExpression()));
+			return output;
+		})
+		;
+
+	_parser.rule("string_enumeration_item") // Expression::Ptr
 		.production("STRING_ID", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
 			if (id->getString().size() > 1)
 				id->setValue(findStringDefinition(id->getString()));
-			auto output = std::vector<Expression::Ptr>{std::make_shared<StringExpression>(id)};
-			output.front()->setTokenStream(currentTokenStream());
+			auto output = std::make_shared<StringExpression>(id);
+			output->setTokenStream(currentTokenStream());
 			return output;
 		})
 		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
 			TokenIt id = args[0].getTokenIt();
 			if (!stringExists(id->getPureText()))
 				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
-			auto output = std::vector<Expression::Ptr>{std::make_shared<StringWildcardExpression>(id)};
-			output.front()->setTokenStream(currentTokenStream());
-			return output;
-		})
-		.production("string_enumeration", "COMMA", "STRING_ID", [&](auto&& args) -> Value {
-			TokenIt id = args[2].getTokenIt();
-			if (!stringExists(id->getPureText()))
-				error_handle(id->getLocation(), "Reference to undefined string '" + id->getPureText() + "'");
-			auto output = std::move(args[0].getMultipleExpressions());
-			output.push_back(std::make_shared<StringExpression>(id));
-			output.back()->setTokenStream(currentTokenStream());
-			return output;
-		})
-		.production("string_enumeration", "COMMA", "STRING_ID_WILDCARD", [&](auto&& args) -> Value {
-			TokenIt id = args[2].getTokenIt();
-			if (!stringExists(id->getPureText()))
-				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
-			auto output = std::move(args[0].getMultipleExpressions());
-			output.push_back(std::make_shared<StringWildcardExpression>(id));
-			output.back()->setTokenStream(currentTokenStream());
+			auto output = std::make_shared<StringWildcardExpression>(id);
+			output->setTokenStream(currentTokenStream());
 			return output;
 		})
 		;
-		
+
+	_parser.rule("rule_set") // Expression::Ptr
+		.production("LP", "rule_enumeration", "RP", [&](auto&& args) -> Value {
+			TokenIt lp = args[0].getTokenIt();
+			lp->setType(TokenType::LP_ENUMERATION);
+			TokenIt rp = args[2].getTokenIt();
+			rp->setType(TokenType::RP_ENUMERATION);
+			auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		;
+
+	_parser.rule("rule_enumeration") // vector<Expression::Ptr>
+		.production("rule_enumeration_item", [&](auto&& args) -> Value {
+			return std::vector<Expression::Ptr>{std::move(args[0].getExpression())};
+		})
+		.production("rule_enumeration", "COMMA", "rule_enumeration_item", [&](auto&& args) -> Value {
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(args[2].getExpression()));
+			return output;
+		})
+		;
+
+	_parser.rule("rule_enumeration_item") // Expression::Ptr
+		.production("ID", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!ruleExists(id->getPureText()))
+				error_handle(id->getLocation(), "Reference to undefined rule '" + id->getPureText() + "'");
+
+			auto symbol = findSymbol(id->getString());
+			if (!symbol)
+			{
+				if (!incompleteMode())
+					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
+				else
+					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, id->getString(), ExpressionType::Undefined);
+			}
+
+			id->setValue(symbol);
+			auto output = std::make_shared<IdExpression>(id);
+			output->setType(symbol->getDataType());
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		.production("ID", "MULTIPLY", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			TokenIt wildcard = args[1].getTokenIt();
+			id->setType(TokenType::ID_WILDCARD);
+			wildcard->setType(TokenType::ID_WILDCARD);
+
+			if (!incompleteMode() && !ruleWithPrefixExists(id->getPureText()))
+				error_handle(id->getLocation(), "No rule matched with wildcard '" + id->getPureText() + "*'");
+
+			auto output = std::make_shared<IdWildcardExpression>(id, wildcard);
+			output->setTokenStream(currentTokenStream());
+			return output;
+		})
+		;
+
 	if (_features & Features::AvastOnly)
 	{
 		_parser.rule("expression_iterable") // shared_ptr<IterableExpression>
@@ -2308,6 +2368,18 @@ bool ParserDriver::includeEnd()
 bool ParserDriver::ruleExists(const std::string& name) const
 {
 	return _file.hasRule(name);
+}
+
+/**
+ * Returns whether rule with given prefix already exists.
+ *
+ * @param prefix Prefix of the rule.
+ *
+ * @return @c true if exists, @c false otherwise.
+ */
+bool ParserDriver::ruleWithPrefixExists(const std::string& prefix) const
+{
+	return _file.hasRuleWithPrefix(prefix);
 }
 
 /**

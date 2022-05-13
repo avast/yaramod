@@ -61,6 +61,18 @@ class Dumper(yaramod.ObservingVisitor):
         expr.operand.accept(self)
         self.indent_down()
 
+    def visit_DefinedExpression(self, expr):
+        self.dump('Defined', expr)
+        self.indent_up()
+        expr.operand.accept(self)
+        self.indent_down()
+
+    def visit_PercentualExpression(self, expr):
+        self.dump('Percentual', expr)
+        self.indent_up()
+        expr.operand.accept(self)
+        self.indent_down()
+
     def visit_AndExpression(self, expr):
         self.dump('And', expr)
         self.indent_up()
@@ -210,7 +222,7 @@ class Dumper(yaramod.ObservingVisitor):
         self.indent_down()
 
     def visit_ForArrayExpression(self, expr):
-        self.dump('ForInt', expr, ' id=', expr.id)
+        self.dump('ForArray', expr, ' id=', expr.id)
         self.indent_up()
         expr.variable.accept(self)
         expr.iterable.accept(self)
@@ -230,6 +242,8 @@ class Dumper(yaramod.ObservingVisitor):
         self.indent_up()
         expr.variable.accept(self)
         expr.iterable.accept(self)
+        if expr.range:
+            expr.range.accept(self)
         self.indent_down()
 
     def visit_IteratorExpression(self, expr):
@@ -253,8 +267,18 @@ class Dumper(yaramod.ObservingVisitor):
         expr.high.accept(self)
         self.indent_down()
 
+    def visit_IterableExpression(self, expr):
+        self.dump('Iterable', expr, ' elems=', len(expr.elements))
+        self.indent_up()
+        for element in expr.elements:
+            element.accept(self)
+        self.indent_down()
+
     def visit_IdExpression(self, expr):
         self.dump('Id', expr, ' id=', expr.symbol.name)
+
+    def visit_IdWildcardExpression(self, expr):
+        self.dump('IdWildcard', expr, ' id=', expr.symbol.name)
 
     def visit_StructAccessExpression(self, expr):
         self.dump('StructAccess', expr, ' id=', expr.symbol.name)

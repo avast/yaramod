@@ -298,6 +298,7 @@ public:
 	}
 
 	virtual VisitResult visit(IdExpression*) override { return {}; }
+	virtual VisitResult visit(IdWildcardExpression*) override { return {}; }
 
 	virtual VisitResult visit(StructAccessExpression* expr) override
 	{

@@ -210,6 +210,7 @@ void addEnums(py::module& module)
 		.value("StringOffset", TokenType::STRING_OFFSET)
 		.value("StringCount", TokenType::STRING_COUNT)
 		.value("Id", TokenType::ID)
+		.value("IdWildcard", TokenType::ID_WILDCARD)
 		.value("IntegerFunction", TokenType::INTEGER_FUNCTION)
 		.value("Lsqb", TokenType::LSQB)
 		.value("Rsqb", TokenType::RSQB)
@@ -651,7 +652,10 @@ void addExpressionClasses(py::module& module)
 				&ForArrayExpression::getId,
 				py::overload_cast<const std::string&>(&ForArrayExpression::setId));
 	exprClass<ForStringExpression, ForExpression>(module, "ForStringExpression");
-	exprClass<OfExpression, ForExpression>(module, "OfExpression");
+	exprClass<OfExpression, ForExpression>(module, "OfExpression")
+		.def_property("range",
+				&OfExpression::getRangeExpression,
+				py::overload_cast<const Expression::Ptr&>(&OfExpression::setRangeExpression));
 
 	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",

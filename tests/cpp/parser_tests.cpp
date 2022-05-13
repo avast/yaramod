@@ -7797,5 +7797,146 @@ rule test_rule
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+ParseOfRule) {
+	prepareInput(
+		R"(rule rule1
+{
+	condition:
+		true
+}
+
+rule rule2
+{
+	condition:
+		true
+}
+
+rule rule3
+{
+	condition:
+		true
+}
+
+rule test_rule
+{
+	condition:
+		any of (rule1, rule2, rule3)
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseOfRuleInvalid) {
+	prepareInput(
+		R"(rule test_rule
+{
+	condition:
+		any of (test_rule)
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 4.11-19: Reference to undefined rule 'test_rule'", err.getErrorMessage());
+		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
+	}
+}
+
+TEST_F(ParserTests,
+ParseOfRuleWildcard) {
+	prepareInput(
+		R"(rule rule1
+{
+	condition:
+		true
+}
+
+rule rule2
+{
+	condition:
+		true
+}
+
+rule rule3
+{
+	condition:
+		true
+}
+
+rule test_rule
+{
+	condition:
+		any of (ru*)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParseOfRuleWildcardInvalid) {
+	prepareInput(
+		R"(rule test_rule
+{
+	condition:
+		any of (test*)
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 4.11-14: No rule matched with wildcard 'test*'", err.getErrorMessage());
+		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
+	}
+}
+
+TEST_F(ParserTests,
+ParseAmbiguousWithIdWildcard) {
+	prepareInput(
+		R"(rule x
+{
+	condition:
+		true
+}
+
+rule rule1
+{
+	condition:
+		x*1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 10.4: operator '*' expects integer or float on the left-hand side", err.getErrorMessage());
+		EXPECT_EQ("}", driver.getParsedFile().getTokenStream()->back().getPureText());
+	}
+}
+
 }
 }

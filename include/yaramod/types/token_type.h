@@ -106,6 +106,7 @@ enum class TokenType
 	STRING_OFFSET,
 	STRING_COUNT,
 	ID,
+	ID_WILDCARD,
 	INTEGER_FUNCTION,
 	LSQB, // '['
 	RSQB, // ']'

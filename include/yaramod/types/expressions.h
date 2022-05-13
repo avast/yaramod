@@ -1526,6 +1526,49 @@ protected:
 };
 
 /**
+ * Class representing identifier wildcard expression. The only place where identifier wildcards
+ * can be used are N of (<rule_set>) expressions.
+ *
+ * For example:
+ * @code
+ * 2 of (rule_prefix_*)
+ *       ^^^^^^^^^^^^^
+ * @endcode
+ */
+class IdWildcardExpression : public Expression
+{
+public:
+	/**
+	 * Constructors
+	 */
+	IdWildcardExpression(TokenIt id, TokenIt wildcard) : _id(id), _wildcard(wildcard)
+	{
+	}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
+	{
+		return getId() + _wildcard->getString();
+	}
+
+	const std::string& getId() const { return _id->getString(); }
+
+	void setId(const std::string& id) { _id->setValue(id); }
+	void setId(std::string&& id) { _id->setValue(std::move(id)); }
+
+	virtual TokenIt getFirstTokenIt() const override { return _id; }
+	virtual TokenIt getLastTokenIt() const override { return _wildcard; }
+
+protected:
+	TokenIt _id; ///< Token of the identifier wildcard
+	TokenIt _wildcard; ///< Token of the wildcard symbol
+};
+
+/**
  * Class representing access to the structure identifier. Structure identifier may only be imported module identifier,
  * or another attributes of the imported module structure.
  *

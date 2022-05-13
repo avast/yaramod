@@ -53,6 +53,7 @@ class IterableExpression;
 class SetExpression;
 class RangeExpression;
 class IdExpression;
+class IdWildcardExpression;
 class StructAccessExpression;
 class ArrayAccessExpression;
 class FunctionCallExpression;
@@ -121,6 +122,7 @@ public:
 	virtual VisitResult visit(SetExpression* expr) = 0;
 	virtual VisitResult visit(RangeExpression* expr) = 0;
 	virtual VisitResult visit(IdExpression* expr) = 0;
+	virtual VisitResult visit(IdWildcardExpression* expr) = 0;
 	virtual VisitResult visit(StructAccessExpression* expr) = 0;
 	virtual VisitResult visit(ArrayAccessExpression* expr) = 0;
 	virtual VisitResult visit(FunctionCallExpression* expr) = 0;
