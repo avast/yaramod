@@ -178,7 +178,7 @@ public:
 					// In case of equal matches, index of tokens chooses which one is it (lower index has higher priority)
 					else if (longest_match == static_cast<int>(submatch.size()))
 					{
-						if (!best_match || best_match->get_index() > pattern_index)
+						if (!best_match || static_cast<int>(best_match->get_index()) > pattern_index)
 							best_match = _current_state->tokens[pattern_index];
 					}
 				}

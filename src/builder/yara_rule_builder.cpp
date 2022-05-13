@@ -710,7 +710,7 @@ YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t key)
 	_stringModsTokens->emplace_back(TokenType::LP, "(");
 	_stringModsTokens->emplace_back(TokenType::INTEGER, key, numToStr(key));
 	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
-	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, key));
+	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, static_cast<std::uint32_t>(key)));
 	return *this;
 }
 
@@ -722,7 +722,7 @@ YaraRuleBuilder& YaraRuleBuilder::xor_(std::uint64_t low, std::uint64_t high)
 	_stringModsTokens->emplace_back(TokenType::MINUS, "-");
 	_stringModsTokens->emplace_back(TokenType::INTEGER, high, numToStr(high));
 	auto lastToken = _stringModsTokens->emplace_back(TokenType::RP, ")");
-	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, low, high));
+	_stringMods.push_back(std::make_shared<XorStringModifier>(firstToken, lastToken, static_cast<std::uint32_t>(low), static_cast<std::uint32_t>(high)));
 	return *this;
 }
 

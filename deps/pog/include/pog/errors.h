@@ -15,7 +15,7 @@ class Error : public std::exception
 {
 public:
 	Error() : _msg() {}
-	template <typename T>
+	template <typename T, typename = std::enable_if_t<std::is_constructible_v<std::string, T>>, T>
 	Error(T&& msg) noexcept : _msg(std::forward<T>(msg)) {}
 	Error(const Error& o) noexcept : _msg(o._msg) {}
 	virtual ~Error() noexcept {}

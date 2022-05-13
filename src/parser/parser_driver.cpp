@@ -763,12 +763,12 @@ void ParserDriver::defineGrammar()
 		})
 		.production("XOR", "LP", "INTEGER", "RP", [](auto&& args) -> Value {
 			auto key = args[2].getTokenIt()->getUInt();
-			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), key);
+			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[3].getTokenIt(), static_cast<std::uint32_t>(key));
 		})
 		.production("XOR", "LP", "INTEGER", "MINUS", "INTEGER", "RP", [](auto&& args) -> Value {
 			auto low = args[2].getTokenIt()->getUInt();
 			auto high = args[4].getTokenIt()->getUInt();
-			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), low, high);
+			return std::make_shared<XorStringModifier>(args[0].getTokenIt(), args[5].getTokenIt(), static_cast<std::uint32_t>(low), static_cast<std::uint32_t>(high));
 		})
 		.production("BASE64", [](auto&& args) -> Value {
 			return std::make_shared<Base64StringModifier>(args[0].getTokenIt());

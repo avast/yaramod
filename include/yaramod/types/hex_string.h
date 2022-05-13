@@ -152,7 +152,7 @@ public:
 	{
 		auto output = _value->getInt();
 		assert(output <= 0xf);
-		return output;
+		return static_cast<std::uint8_t>(output);
 	}
 	virtual std::size_t getLength() const override { return 1; }
 	virtual TokenIt getFirstTokenIt() const override { return _value; }

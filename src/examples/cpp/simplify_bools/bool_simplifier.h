@@ -23,11 +23,11 @@ public:
 		auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (leftExpr and *leftExpr)
+		if (leftExpr && *leftExpr)
 			leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (rightExpr and *rightExpr)
+		if (rightExpr && *rightExpr)
 			rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 
 		std::shared_ptr<yaramod::Expression> output = nullptr;
@@ -47,7 +47,7 @@ public:
 			// T and X = X
 			else
 			{
-				if (rightExpr and *rightExpr)
+				if (rightExpr && *rightExpr)
 					output = *rightExpr;
 				else
 					output = expr->getRightOperand();
@@ -64,7 +64,7 @@ public:
 			// X and T = X
 			else
 			{
-				if (leftExpr and *leftExpr)
+				if (leftExpr && *leftExpr)
 					output = *leftExpr;
 				else
 					output = expr->getLeftOperand();
@@ -92,11 +92,11 @@ public:
 		auto rightExpr = std::get_if<yaramod::Expression::Ptr>(&retRight);
 
 		yaramod::BoolLiteralExpression* leftBool = nullptr;
-		if (leftExpr and *leftExpr)
+		if (leftExpr && *leftExpr)
 			leftBool = (*leftExpr)->as<yaramod::BoolLiteralExpression>();
 
 		yaramod::BoolLiteralExpression* rightBool = nullptr;
-		if (rightExpr and *rightExpr)
+		if (rightExpr && *rightExpr)
 			rightBool = (*rightExpr)->as<yaramod::BoolLiteralExpression>();
 
 		std::shared_ptr<yaramod::Expression> output = nullptr;
@@ -118,7 +118,7 @@ public:
 			// F or X = X
 			else
 			{
-				if (rightExpr and *rightExpr)
+				if (rightExpr && *rightExpr)
 					output = *rightExpr;
 				else
 					output = expr->getRightOperand();
@@ -135,7 +135,7 @@ public:
 			// X or F = X
 			else
 			{
-				if (leftExpr and *leftExpr)
+				if (leftExpr && *leftExpr)
 					output = *leftExpr;
 				else
 					output = expr->getLeftOperand();
