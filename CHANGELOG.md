@@ -1,5 +1,11 @@
 # Changelog
 
+# v3.13.0 (2022-05-15)
+
+* Yaramod now fully supports YARA 4.2 syntax
+* Added support for `<N> of <rule_set>` ([#214](https://github.com/avast/yaramod/pull/214))
+* Upgraded pybind11 to v2.9.2
+
 # v3.12.8 (2022-04-07)
 
 * Fixed parsing of `\r` escape sequence in strings which was added in YARA 4.2
