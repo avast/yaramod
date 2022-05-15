@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.13.1 (2022-05-15)
+
+* Fixed Python bindings to work again in recusrive visitors
+
 # v3.13.0 (2022-05-15)
 
 * Yaramod now fully supports YARA 4.2 syntax
