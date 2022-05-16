@@ -448,4 +448,35 @@ bool YaraFile::hasRuleWithPrefix(const std::string& prefix) const
 	return _ruleTrie.isPrefix(prefix);
 }
 
+/**
+ * Expands specified rule prefix to a list of rule names that match this prefix
+ * and also preced the origin rule. No wildcard can match succeeding rules from the
+ * origin so all of those will be ignored.
+ *
+ * @param prefix Prefix of the rule.
+ * @param origin Origin rule from which to consider prefixes.
+ * @return List of rule names that match the prefix from the specified origin.
+ */
+std::vector<std::string> YaraFile::expandRulePrefixFromOrigin(const std::string& prefix, yaramod::Rule* origin) const
+{
+	std::vector<std::string> result;
+
+	// Create hash table from values that match our prefix for faster lookup
+	std::unordered_set<std::string> expandedRules;
+	for (const auto& rule : _ruleTrie.getValuesWithPrefix(prefix))
+		expandedRules.insert(rule->getName());
+
+	for (const auto& rule : _rules)
+	{
+		// Found the origin, stop here because the wildcard can't expand to any rule after the origin one
+		if (rule->getName() == origin->getName())
+			break;
+
+		if (auto itr = expandedRules.find(rule->getName()); itr != expandedRules.end())
+			result.push_back(rule->getName());
+	}
+
+	return result;
+}
+
 }
