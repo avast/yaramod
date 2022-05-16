@@ -11,6 +11,7 @@ set(SOURCES
 	trie_tests.cpp
 	utils_tests.cpp
 	visitor_tests.cpp
+	yara_file_tests.cpp
 	yaramod_tests.cpp
 )
 

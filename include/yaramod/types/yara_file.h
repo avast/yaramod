@@ -103,6 +103,7 @@ public:
 	bool hasRules() const;
 	bool hasRule(const std::string& name) const;
 	bool hasRuleWithPrefix(const std::string& prefix) const;
+	std::vector<std::string> expandRulePrefixFromOrigin(const std::string& prefix, yaramod::Rule* origin) const;
 	/// @}
 
 private:

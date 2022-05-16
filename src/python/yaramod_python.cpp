@@ -275,7 +275,8 @@ void addBasicClasses(py::module& module)
 			})
 		.def("remove_imports", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Module>&)>& pred) {
 				self.removeImports(pred);
-			});
+			})
+		.def("expand_rule_prefix_from_origin", &YaraFile::expandRulePrefixFromOrigin);
 
 	py::class_<Location>(module, "Location")
 		.def_property_readonly("file_path", &Location::getFilePath)
@@ -677,6 +678,10 @@ void addExpressionClasses(py::module& module)
 		.def_property("symbol",
 				&IdExpression::getSymbol,
 				&IdExpression::setSymbol);
+	exprClass<IdWildcardExpression>(module, "IdWildcardExpression")
+		.def_property("id",
+				&IdWildcardExpression::getId,
+				py::overload_cast<const std::string&>(&IdWildcardExpression::setId));
 	exprClass<StructAccessExpression, IdExpression>(module, "StructAccessExpression")
 		.def_property("structure",
 				&StructAccessExpression::getStructure,
