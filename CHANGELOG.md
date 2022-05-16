@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.13.2 (2022-05-16)
+
+* Added `YaraFile::expandRulePrefixFromOrigin` to expand rule prefixes from the viewpoint of a specific rule
+* Added `IdWildcardExpression` into Python bindings
+
 # v3.13.1 (2022-05-15)
 
 * Fixed Python bindings to work again in recusrive visitors
