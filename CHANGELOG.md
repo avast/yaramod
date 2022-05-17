@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.13.3 (2022-05-17)
+
+* Fixed default handler of `ModifyingVisitor` for `OfExpression` to not crash and be correctly called from Python bindings
+
 # v3.13.2 (2022-05-16)
 
 * Added `YaraFile::expandRulePrefixFromOrigin` to expand rule prefixes from the viewpoint of a specific rule
