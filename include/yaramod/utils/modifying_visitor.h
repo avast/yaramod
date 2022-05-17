@@ -570,6 +570,7 @@ public:
 		else
 			expr->setIterable(nullptr);
 
+		auto oldRangeExpr = expr->getRangeExpression();
 		if (auto rangeExpr = std::get_if<Expression::Ptr>(&rangeRet))
 		{
 			if (*rangeExpr)
@@ -579,7 +580,7 @@ public:
 			expr->setRangeExpression(nullptr);
 
 		// If any subnode needs to be deleted, we delete whole expr.
-		if (!expr->getVariable() || !expr->getIterable() || !expr->getRangeExpression())
+		if (!expr->getVariable() || !expr->getIterable() || (oldRangeExpr && !expr->getRangeExpression()))
 			return VisitAction::Delete;
 
 		return {};
