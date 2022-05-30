@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.13.4 (2022-05-30)
+
+* Fixed usage of strings in place of implicit boolean expressions in builder interface ([#216](https://github.com/avast/yaramod/pull/216))
+
 # v3.13.3 (2022-05-17)
 
 * Fixed default handler of `ModifyingVisitor` for `OfExpression` to not crash and be correctly called from Python bindings
