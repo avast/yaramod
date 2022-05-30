@@ -2140,5 +2140,35 @@ rule of_rule_builder
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+StringAsBoolInConditionWorks) {
+	auto cond = (stringVal("abc") && stringVal("def")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("rule1")
+			.withCondition(std::move(cond))
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule1 {
+	condition:
+		"abc" and "def"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule1
+{
+	condition:
+		"abc" and
+		"def"
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }

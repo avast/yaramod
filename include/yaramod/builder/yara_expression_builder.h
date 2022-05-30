@@ -131,7 +131,7 @@ public:
 
 	/// @name Detection methods
 	/// @{
-	bool canBeBool() const { return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isUndefined(); }
+	bool canBeBool() const { return _expr->isBool() || _expr->isFloat() || _expr->isInt() || _expr->isString() || _expr->isUndefined(); }
 	/// @}
 
 	/// @name Builder method
