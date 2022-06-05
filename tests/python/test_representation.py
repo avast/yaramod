@@ -51,6 +51,33 @@ rule empty_rule
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_remove_string_modifiers(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule rule_with_string_modifiers {
+	strings:
+		$00 = "value" ascii wide fullword
+	condition:
+		all of them
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+        self.assertEqual(len(yara_file.rules[0].strings[0].modifiers), 3)
+
+        rule = yara_file.rules[0]
+        rule.strings[0].remove_modifiers()
+
+        expected = '''
+rule rule_with_string_modifiers
+{
+	strings:
+		$00 = "value"
+	condition:
+		all of them
+}
+'''
+        self.assertEqual(len(rule.strings[0].modifiers), 0)
+        self.assertEqual(expected, yara_file.text_formatted)
+
     def test_get_tokenstream(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule empty_rule {

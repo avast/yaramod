@@ -359,6 +359,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("structure", &Module::getStructure);
 
 	py::class_<String, std::shared_ptr<String>>(module, "String")
+		.def("remove_modifiers", &String::removeModifiers)
 		.def_property_readonly("text", &String::getText)
 		.def_property_readonly("pure_text", [](String& self) {
 			return py::bytes(self.getPureText());
@@ -377,6 +378,7 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("is_base64", &String::isBase64)
 		.def_property_readonly("is_base64_wide", &String::isBase64Wide)
 		.def_property_readonly("location", &String::getLocation)
+		.def_property_readonly("modifiers", &String::getModifiers)
 		.def_property_readonly("modifiers_text", &String::getModifiersText)
 		.def_property_readonly("token_id", &String::getIdentifierToken)
 		.def_property_readonly("token_assign", &String::getAssignToken)

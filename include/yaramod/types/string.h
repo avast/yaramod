@@ -142,6 +142,14 @@ public:
 		return text;
 	}
 
+	const std::vector<std::shared_ptr<StringModifier>> getModifiers() const
+	{
+		std::vector<std::shared_ptr<StringModifier>> modifiers;
+		for(auto mod : _mods)
+			modifiers.push_back(mod.second);
+		return modifiers;
+	}
+
 	const std::shared_ptr<TokenStream>& getTokenStream() const { return _tokenStream; }
 
 	const Location getLocation() const {
@@ -244,6 +252,17 @@ public:
 
 		_mods[modifier->getType()] = modifier;
 		return true;
+	}
+
+	void removeModifiers()
+	{
+		for (const auto& mod : _mods)
+		{
+			auto tokens = mod.second->getTokenRange();
+			std::advance(tokens.second, 1);
+			_tokenStream->erase(tokens.first, tokens.second);
+		}
+		_mods.clear();
 	}
 	/// @}
 
