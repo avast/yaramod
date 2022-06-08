@@ -2220,3 +2220,22 @@ rule test_rule
 '''
 
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_expression_uids(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''rule ExampleRule1
+{
+	strings:
+		$my_text_string = "text here" private
+		$my_hex_string = { E2 34 A1 C8 23 FB }
+		$a = "text1"
+		$b = "text2"
+		$c = "text3"
+		$d = "text4"
+	condition:
+		($a or $b) and ($c or $d)
+		or (#a == 6 and #b > 10) and
+		any of them
+}
+''')
+
+        self.assertEqual(yara_file.rules[0].condition.get_uid(), 21)
