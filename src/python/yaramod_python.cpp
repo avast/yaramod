@@ -14,6 +14,7 @@
 #include <yaramod/builder/yara_expression_builder.h>
 #include <yaramod/builder/yara_hex_string_builder.h>
 #include <yaramod/builder/yara_rule_builder.h>
+#include <yaramod/types/expression.h>
 #include <yaramod/types/plain_string.h>
 #include <yaramod/types/token_type.h>
 #include <yaramod/yaramod.h>
@@ -537,6 +538,7 @@ void addExpressionClasses(py::module& module)
 	py::class_<Expression, std::shared_ptr<Expression>>(module, "Expression")
 		.def("accept", &Expression::accept)
 		.def("get_text", &Expression::getText, py::arg("indent") = std::string{})
+		.def("get_uid", &Expression::getUid)
 		.def("exchange_tokens", py::overload_cast<Expression*>(&Expression::exchangeTokens))
 		.def_property_readonly("text",
 				// getText() has default parameter and Python can't deal with it

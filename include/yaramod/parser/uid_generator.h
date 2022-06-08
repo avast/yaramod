@@ -22,7 +22,7 @@ namespace yaramod {
 class UidGenerator 
 {
 public:
-	uint64_t getUid() { return _counter++; }
+	uint64_t next() { return _counter++; }
 	void reset() { _counter = 0; }
 
 private:
