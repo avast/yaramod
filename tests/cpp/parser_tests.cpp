@@ -7342,15 +7342,19 @@ rule string_xor_modifier_with_arguments {
 	ASSERT_EQ(4u, strings.size());
 
 	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiers().size(), 1);
 	EXPECT_EQ(string1->getModifiersText(), " xor");
 
 	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiers().size(), 1);
 	EXPECT_EQ(string2->getModifiersText(), " xor(123)");
 
 	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiers().size(), 1);
 	EXPECT_EQ(string3->getModifiersText(), " xor(1-255)");
 
 	auto string4 = strings[3];
+	EXPECT_EQ(string4->getModifiers().size(), 1);
 	EXPECT_EQ(string4->getModifiersText(), " xor(1-255)");
 
 	EXPECT_EQ(R"(
@@ -7482,14 +7486,17 @@ rule private_string_modifier
 	ASSERT_EQ(3u, strings.size());
 
 	auto string1 = strings[0];
+	EXPECT_EQ(string1->getModifiers().size(), 1);
 	EXPECT_EQ(string1->getModifiersText(), " private");
 	EXPECT_TRUE(string1->isPrivate());
 
 	auto string2 = strings[1];
+	EXPECT_EQ(string2->getModifiers().size(), 1);
 	EXPECT_EQ(string2->getModifiersText(), " private");
 	EXPECT_TRUE(string2->isPrivate());
 
 	auto string3 = strings[2];
+	EXPECT_EQ(string3->getModifiers().size(), 1);
 	EXPECT_EQ(string3->getModifiersText(), " private");
 	EXPECT_TRUE(string3->isPrivate());
 
