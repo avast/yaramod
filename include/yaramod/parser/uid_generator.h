@@ -22,11 +22,11 @@ namespace yaramod {
 class UidGenerator 
 {
 public:
-	uint64_t next() { return _counter++; }
+	std::uint64_t next() { return _counter++; }
 	void reset() { _counter = 0; }
 
 private:
-	uint64_t _counter = 0;
+	std::uint64_t _counter = 0;
 };
 
 } // namespace yaramod

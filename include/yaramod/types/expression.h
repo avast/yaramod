@@ -57,7 +57,7 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	uint64_t getUid() const { return _uid; }
+	std::uint64_t getUid() const { return _uid; }
 	Expression::Type getType() const { return _type; }
 	std::string getTypeString() const
 	{
@@ -88,7 +88,7 @@ public:
 
 	/// @name Setter methods
 	/// @{
-	void setUid(uint64_t uid) { _uid = uid; }
+	void setUid(std::uint64_t uid) { _uid = uid; }
 	void setType(Expression::Type type) { _type = type; }
 	void setTokenStream(const std::shared_ptr<TokenStream>& ts) { _tokenStream = ts; }
 	/// @}
@@ -160,7 +160,7 @@ protected:
 
 private:
 	Type _type; ///< Type of the expression
-	uint64_t _uid;
+	std::uint64_t _uid;
 };
 
 }

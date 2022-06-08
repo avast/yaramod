@@ -2238,4 +2238,4 @@ rule test_rule
 }
 ''')
 
-        self.assertEqual(yara_file.rules[0].condition.get_uid(), 21)
+        self.assertEqual(yara_file.rules[0].condition.uid, 21)
