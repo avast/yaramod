@@ -1046,8 +1046,11 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("condition") // Expression::Ptr
-		.production("CONDITION", "COLON", "expression", [](auto&& args) -> Value {
+		.production("CONDITION", "COLON", "expression", [&](auto&& args) -> Value {
 			args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
+			// The UIDs are unique for a single rule and should
+			// not depend on its position in a sequence of rules
+			_uidGen.reset();
 			return std::move(args[2]);
 		})
 		;
@@ -1056,6 +1059,7 @@ void ParserDriver::defineGrammar()
 		.production("boolean", [&](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
 			output->setType(Expression::Type::Bool);
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_ID", [&](auto&& args) -> Value {
@@ -1068,6 +1072,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringExpression>(std::move(id));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_ID", "AT", "primary_expression", [&](auto&& args) -> Value {
@@ -1084,6 +1089,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringAtExpression>(id, op, std::move(expr));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_ID", "IN", "range", [&](auto&& args) -> Value {
@@ -1099,6 +1105,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringInRangeExpression>(id, op, std::move(range));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production(
@@ -1125,6 +1132,7 @@ void ParserDriver::defineGrammar()
 				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
+				output->setUid(_uidGen.next());
 				return output;
 			}
 		)
@@ -1180,6 +1188,7 @@ void ParserDriver::defineGrammar()
 				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
+				output->setUid(_uidGen.next());
 				return output;
 			}
 		)
@@ -1242,6 +1251,7 @@ void ParserDriver::defineGrammar()
 				auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
+				output->setUid(_uidGen.next());
 				return output;
 			}
 		)
@@ -1267,6 +1277,7 @@ void ParserDriver::defineGrammar()
 				auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
 				output->setType(Expression::Type::Bool);
 				output->setTokenStream(currentTokenStream());
+				output->setUid(_uidGen.next());
 				stringLoopLeave();
 				return output;
 			}
@@ -1278,6 +1289,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("for_expression", "OF", "rule_set", [&](auto&& args) -> Value {
@@ -1287,6 +1299,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
@@ -1298,6 +1311,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
@@ -1314,11 +1328,13 @@ void ParserDriver::defineGrammar()
 				}
 			}
 			auto percentual_expr = std::make_shared<PercentualExpression>(std::move(for_expr), percent);
+			percentual_expr->setUid(_uidGen.next());
 			TokenIt of = args[2].getTokenIt();
 			auto set = std::move(args[3].getExpression());
 			auto output = std::make_shared<OfExpression>(std::move(percentual_expr), of, std::move(set));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("NOT", "expression", [&](auto&& args) -> Value {
@@ -1327,6 +1343,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<NotExpression>(not_token, std::move(expr));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("DEFINED", "expression", [&](auto&& args) -> Value {
@@ -1335,6 +1352,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<DefinedExpression>(not_token, std::move(expr));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("expression", "AND", "expression", [&](auto&& args) -> Value {
@@ -1344,6 +1362,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<AndExpression>(std::move(left), and_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("expression", "OR", "expression", [&](auto&& args) -> Value {
@@ -1353,6 +1372,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OrExpression>(std::move(left), or_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "LT", "primary_expression", [&](auto&& args) -> Value {
@@ -1362,6 +1382,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<LtExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "GT", "primary_expression", [&](auto&& args) -> Value {
@@ -1371,6 +1392,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<GtExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "LE", "primary_expression", [&](auto&& args) -> Value {
@@ -1380,6 +1402,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<LeExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "GE", "primary_expression", [&](auto&& args) -> Value {
@@ -1389,6 +1412,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<GeExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "EQ", "primary_expression", [&](auto&& args) -> Value {
@@ -1398,6 +1422,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<EqExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "NEQ", "primary_expression", [&](auto&& args) -> Value {
@@ -1407,6 +1432,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<NeqExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "CONTAINS", "primary_expression", [&](auto&& args) -> Value {
@@ -1420,6 +1446,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ContainsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "MATCHES", "regexp", [&](auto&& args) -> Value {
@@ -1432,6 +1459,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "IEQUALS", "primary_expression", [&](auto&& args) -> Value {
@@ -1445,6 +1473,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<IequalsExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", [](auto&& args) -> Value {
@@ -1456,6 +1485,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(expr), args[2].getTokenIt());
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -1468,6 +1498,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -1478,32 +1509,38 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ParenthesesExpression>(args[0].getTokenIt(), std::move(args[1].getExpression()), args[2].getTokenIt());
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("FILESIZE", [&](auto&& args) -> Value {
 			auto output = std::make_shared<FilesizeExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("ENTRYPOINT", [&](auto&& args) -> Value {
 			auto output = std::make_shared<EntrypointExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("INTEGER", [&](auto&& args) -> Value {
 			auto output = std::make_shared<IntLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("DOUBLE", [&](auto&& args) -> Value {
 			auto output = std::make_shared<DoubleLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
 			output->setType(Expression::Type::Float);
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_LITERAL", [&](auto&& args) -> Value {
 			auto output = std::make_shared<StringLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
 			output->setType(Expression::Type::String);
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_COUNT", [&](auto&& args) -> Value {
@@ -1519,6 +1556,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringCountExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_COUNT", "IN", "range", [&](auto&& args) -> Value {
@@ -1535,6 +1573,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringInRangeExpression>(args[0].getTokenIt(), args[1].getTokenIt(), std::move(range));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_OFFSET", [&](auto&& args) -> Value {
@@ -1550,6 +1589,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_OFFSET", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
@@ -1565,6 +1605,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_LENGTH", [&](auto&& args) -> Value {
@@ -1580,6 +1621,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_LENGTH", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
@@ -1595,6 +1637,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("MINUS", "primary_expression", [&](auto&& args) -> Value {
@@ -1608,6 +1651,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<UnaryMinusExpression>(args[0].getTokenIt(), std::move(right));
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		}).precedence(3, pog::Associativity::Right)
 		.production("primary_expression", "PLUS", "primary_expression", [&](auto&& args) -> Value {
@@ -1621,6 +1665,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<PlusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "MINUS", "primary_expression", [&](auto&& args) -> Value {
@@ -1634,6 +1679,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<MinusExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "MULTIPLY", "primary_expression", [&](auto&& args) -> Value {
@@ -1647,6 +1693,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<MultiplyExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "DIVIDE", "primary_expression", [&](auto&& args) -> Value {
@@ -1660,6 +1707,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<DivideExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "PERCENT", "primary_expression", [&](auto&& args) -> Value {
@@ -1672,6 +1720,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ModuloExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "BITWISE_XOR", "primary_expression", [&](auto&& args) -> Value {
@@ -1684,6 +1733,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<BitwiseXorExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "BITWISE_AND", "primary_expression", [&](auto&& args) -> Value {
@@ -1696,6 +1746,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<BitwiseAndExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "BITWISE_OR", "primary_expression", [&](auto&& args) -> Value {
@@ -1708,6 +1759,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<BitwiseOrExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("BITWISE_NOT", "primary_expression", [&](auto&& args) -> Value {
@@ -1717,6 +1769,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<BitwiseNotExpression>(args[0].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "SHIFT_LEFT", "primary_expression", [&](auto&& args) -> Value {
@@ -1729,6 +1782,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ShiftLeftExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("primary_expression", "SHIFT_RIGHT", "primary_expression", [&](auto&& args) -> Value {
@@ -1741,6 +1795,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<ShiftRightExpression>(std::move(left), args[1].getTokenIt(), std::move(right));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("INTEGER_FUNCTION", "LP", "primary_expression", "RP", [&](auto&& args) -> Value {
@@ -1749,6 +1804,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<IntFunctionExpression>(std::move(args[0].getTokenIt()), std::move(args[1].getTokenIt()), std::move(args[2].getExpression()), std::move(args[3].getTokenIt()));
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("identifier", [](auto&& args) -> Value {
@@ -1758,6 +1814,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<RegexpExpression>(std::move(args[0].getYaramodString()));
 			output->setType(Expression::Type::Regexp);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;// end of primary_expression
@@ -1777,6 +1834,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<IdExpression>(symbol_token);
 			output->setType(symbol->getDataType());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
@@ -1823,6 +1881,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<StructAccessExpression>(std::move(expr), args[1].getTokenIt(), symbol_token);
 			output->setType(symbol->getDataType());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("identifier", "LSQB", "primary_expression", "RSQB", [&](auto&& args) -> Value {
@@ -1860,6 +1919,7 @@ void ParserDriver::defineGrammar()
 
 			output->setType(iterParentSymbol->getElementType());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("identifier", "LP", "arguments", "RP", [&](auto&& args) -> Value {
@@ -1926,6 +1986,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
 			output->setType(funcParentSymbol->getReturnType());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -1956,15 +2017,28 @@ void ParserDriver::defineGrammar()
 				error_handle(args[2].getTokenIt()->getLocation(), "operator '..' expects integer as upper bound of the interval");
 			auto output = std::make_shared<RangeExpression>(args[0].getTokenIt(), std::move(left), args[2].getTokenIt(), std::move(right), args[4].getTokenIt());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
 
 	_parser.rule("for_expression") // Expression::Ptr
 		.production("primary_expression", [](auto&& args) -> Value { return std::move(args[0]); })
-		.production("ALL", [&](auto&& args) -> Value { return Value(std::make_shared<AllExpression>(currentTokenStream(), args[0].getTokenIt())); })
-		.production("ANY", [&](auto&& args) -> Value { return Value(std::make_shared<AnyExpression>(currentTokenStream(), args[0].getTokenIt())); })
-		.production("NONE", [&](auto&& args) -> Value { return Value(std::make_shared<NoneExpression>(currentTokenStream(), args[0].getTokenIt())); })
+		.production("ALL", [&](auto&& args) -> Value {
+			auto output = std::make_shared<AllExpression>(currentTokenStream(), args[0].getTokenIt());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("ANY", [&](auto&& args) -> Value { 
+			auto output = std::make_shared<AnyExpression>(currentTokenStream(), args[0].getTokenIt()); 
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("NONE", [&](auto&& args) -> Value {
+			auto output = std::make_shared<NoneExpression>(currentTokenStream(), args[0].getTokenIt()); 
+			output->setUid(_uidGen.next());
+			return output;
+		})
 		;
 
 	_parser.rule("integer_set") // Expression::Ptr
@@ -1975,6 +2049,7 @@ void ParserDriver::defineGrammar()
 			rp->setType(TokenType::RP_ENUMERATION);
 			auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("range", [](auto&& args) -> Value {
@@ -2007,10 +2082,13 @@ void ParserDriver::defineGrammar()
 			rp->setType(TokenType::RP_ENUMERATION);
 			auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("THEM", [&](auto&& args) -> Value {
-			return std::make_shared<ThemExpression>(currentTokenStream(), args[0].getTokenIt());
+			auto output = std::make_shared<ThemExpression>(currentTokenStream(), args[0].getTokenIt());
+			output->setUid(_uidGen.next());
+			return output;
 		})
 		;
 
@@ -2034,6 +2112,7 @@ void ParserDriver::defineGrammar()
 				id->setValue(findStringDefinition(id->getString()));
 			auto output = std::make_shared<StringExpression>(id);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
@@ -2042,6 +2121,7 @@ void ParserDriver::defineGrammar()
 				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
 			auto output = std::make_shared<StringWildcardExpression>(id);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -2054,6 +2134,7 @@ void ParserDriver::defineGrammar()
 			rp->setType(TokenType::RP_ENUMERATION);
 			auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -2088,6 +2169,7 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<IdExpression>(id);
 			output->setType(symbol->getDataType());
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		.production("ID", "MULTIPLY", [&](auto&& args) -> Value {
@@ -2101,6 +2183,7 @@ void ParserDriver::defineGrammar()
 
 			auto output = std::make_shared<IdWildcardExpression>(id, wildcard);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
@@ -2115,6 +2198,7 @@ void ParserDriver::defineGrammar()
 				rsqb->setType(TokenType::RSQB_ENUMERATION);
 				auto output = std::make_shared<IterableExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
 				output->setTokenStream(currentTokenStream());
+				output->setUid(_uidGen.next());
 				return output;
 			})
 			;
@@ -2279,6 +2363,8 @@ bool ParserDriver::parseImpl()
 void ParserDriver::reset(ParserMode parserMode)
 {
 	_mode = parserMode;
+
+	_uidGen.reset();
 
 	_strLiteral.clear();
 	_indent.clear();

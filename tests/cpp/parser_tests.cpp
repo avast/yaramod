@@ -7945,5 +7945,32 @@ rule rule1
 	}
 }
 
+TEST_F(ParserTests,
+ExpressionUids) {
+	prepareInput(
+		R"(rule ExampleRule1
+{
+	strings:
+		$my_text_string = "text here" private
+		$my_hex_string = { E2 34 A1 C8 23 FB }
+		$a = "text1"
+		$b = "text2"
+		$c = "text3"
+		$d = "text4"
+	condition:
+		($a or $b) and ($c or $d)
+		or (#a == 6 and #b > 10) and
+		any of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto yaraFile = driver.getParsedFile();
+	ASSERT_TRUE(yaraFile.hasRules());
+	ASSERT_EQ(21, yaraFile.getRules()[0]->getCondition()->getUid());
+	}
 }
 }

@@ -19,6 +19,7 @@
 #include <pog/pog.h>
 
 #include "yaramod/parser/file_context.h"
+#include "yaramod/parser/uid_generator.h"
 #include "yaramod/parser/value.h"
 #include "yaramod/types/expressions.h"
 #include "yaramod/types/meta.h"
@@ -203,6 +204,8 @@ private:
 
 	bool _sectionStrings = false; ///< flag used to determine if we parse section after 'strings:'
 	bool _escapedContent = false; ///< flag used to determine if a currently parsed literal contains hexadecimal byte (such byte must be unescaped in getPureText())
+
+	UidGenerator _uidGen;
 
 	ParserMode _mode; ///< Parser mode.
 

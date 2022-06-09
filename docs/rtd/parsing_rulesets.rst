@@ -302,7 +302,8 @@ Let's say we want to print each function that is in called in the rule condition
 Expression types
 ****************
 
-There are a lot of expression types that you can visit. Here is a list of them all:
+Each expression type has its own unique id (uid). These uids are unique only within scope of a single rule,
+this allows to identify specific node in the AST for extra processing. There are a lot of expression types that you can visit. Here is a list of them all:
 
 **String expressions**
 
