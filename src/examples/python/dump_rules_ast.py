@@ -214,7 +214,7 @@ class Dumper(yaramod.ObservingVisitor):
         self.indent_down()
 
     def visit_ForDictExpression(self, expr):
-        self.dump('ForDict', expr, ' id=', expr.id)
+        self.dump('ForDict', expr, ' id1=', expr.id1, ' id2=', expr.id2)
         self.indent_up()
         expr.variable.accept(self)
         expr.iterable.accept(self)
