@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.14.0 (2022-06-09)
+
+* Added support for removal of string modifiers ([#217](https://github.com/avast/yaramod/pull/217))
+* Generated UIDs for rule condition expression nodes ([#218](https://github.com/avast/yaramod/pull/218))
+
 # v3.13.4 (2022-05-30)
 
 * Fixed usage of strings in place of implicit boolean expressions in builder interface ([#216](https://github.com/avast/yaramod/pull/216))
