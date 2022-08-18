@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.14.1 (2022-08-18)
+
+* Fixed support for octal integers
+
 # v3.14.0 (2022-06-09)
 
 * Added support for removal of string modifiers ([#217](https://github.com/avast/yaramod/pull/217))
