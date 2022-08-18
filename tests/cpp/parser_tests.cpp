@@ -7971,6 +7971,34 @@ ExpressionUids) {
 	auto yaraFile = driver.getParsedFile();
 	ASSERT_TRUE(yaraFile.hasRules());
 	ASSERT_EQ(21, yaraFile.getRules()[0]->getCondition()->getUid());
-	}
+}
+
+TEST_F(ParserTests,
+OctalIntegerWorks) {
+	prepareInput(
+		R"(rule ExampleRule1
+{
+	condition:
+		0o777 and 0o10
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto yaraFile = driver.getParsedFile();
+	ASSERT_TRUE(yaraFile.hasRules());
+
+	auto condition = yaraFile.getRules()[0]->getCondition();
+	auto expAnd = std::static_pointer_cast<const AndExpression>(condition);
+	auto left = std::static_pointer_cast<const IntLiteralExpression>(expAnd->getLeftOperand());
+	auto right = std::static_pointer_cast<const IntLiteralExpression>(expAnd->getRightOperand());
+	EXPECT_EQ(left->getText(), "0o777");
+	EXPECT_EQ(right->getText(), "0o10");
+	EXPECT_EQ(left->getValue(), 511);
+	EXPECT_EQ(right->getValue(), 8);
+}
+
 }
 }
