@@ -191,6 +191,11 @@ void ParserDriver::defineTokens()
 		strToNum(std::string{str}, n, std::hex);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
+	_parser.token(R"(0o[0-7]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		int64_t n = 0;
+		strToNum(std::string{str}.substr(2, str.size()-2), n, std::oct);
+		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
+	});
 	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
