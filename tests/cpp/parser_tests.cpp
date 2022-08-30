@@ -8001,6 +8001,34 @@ OctalIntegerWorks) {
 }
 
 TEST_F(ParserTests,
+Yara423FunctionsWorks) {
+	prepareInput(
+		R"(import "math"
+import "pe"
+
+rule yara423_functions {
+	condition:
+		pe.import_details[0].functions[0].rva == 0 and
+		pe.delayed_import_details[0].functions[0].rva == 0 and
+		math.to_int("0") == 0 and
+		math.to_int("0", 10) == 0 and
+		math.to_string(0) == "0" and
+		math.to_string(0, 10) == "0"
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto yaraFile = driver.getParsedFile();
+	ASSERT_TRUE(yaraFile.hasRules());
+
+	auto condition = yaraFile.getRules()[0]->getCondition();
+	EXPECT_EQ(condition->getText(), "pe.import_details[0].functions[0].rva == 0 and pe.delayed_import_details[0].functions[0].rva == 0 and math.to_int(\"0\") == 0 and math.to_int(\"0\", 10) == 0 and math.to_string(0) == \"0\" and math.to_string(0, 10) == \"0\"");
+}
+
+TEST_F(ParserTests,
 HexStringNotWorks) {
 	prepareInput(
 		R"(rule hex_string_not

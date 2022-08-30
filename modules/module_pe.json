@@ -1864,7 +1864,13 @@
 								{
 									"kind": "value",
 									"name": "ordinal",
-									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"documentation": "Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								},
+								{
+									"kind": "value",
+									"name": "rva",
+									"documentation": "Relative virtual address (RVA) of imported function. If rva not found then this value is YR_UNDEFINED.",
 									"type": "i"
 								}
 							]
@@ -1929,6 +1935,12 @@
 									"kind": "value",
 									"name": "ordinal",
 									"documentation": " Ordinal of imported function. If ordinal does not exist this value is YR_UNDEFINED.",
+									"type": "i"
+								},
+								{
+									"kind": "value",
+									"name": "rva",
+									"documentation": "Relative virtual address (RVA) of imported function. If rva not found then this value is YR_UNDEFINED.",
 									"type": "i"
 								}
 							]
