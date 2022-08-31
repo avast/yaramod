@@ -18,6 +18,7 @@ enum class TokenType
 	TAG,
 	HEX_ALT, // '|'
 	HEX_NIBBLE,
+	HEX_NOT, // '~'
 	HEX_WILDCARD,
 	HEX_WILDCARD_LOW,
 	HEX_WILDCARD_HIGH,

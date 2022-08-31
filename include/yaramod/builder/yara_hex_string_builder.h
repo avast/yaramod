@@ -100,6 +100,9 @@ private:
 YaraHexStringBuilder wildcard();
 YaraHexStringBuilder wildcardLow(std::uint8_t high);
 YaraHexStringBuilder wildcardHigh(std::uint8_t low);
+YaraHexStringBuilder notByte(std::uint8_t byte);
+YaraHexStringBuilder notWildcardLow(std::uint8_t high);
+YaraHexStringBuilder notWildcardHigh(std::uint8_t low);
 
 YaraHexStringBuilder jumpVarying();
 YaraHexStringBuilder jumpFixed(std::uint64_t value);

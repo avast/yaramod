@@ -948,7 +948,7 @@ rule hex_string_with_jump_at_beginning
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.10: Syntax error: Unexpected hex string [, expected one of (, hex string ?, hex string ~, hex string nibble", err.getErrorMessage());
 		EXPECT_EQ("[", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
@@ -974,7 +974,7 @@ rule hex_string_with_jump_at_end
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.25: Syntax error: Unexpected }, expected one of (, ), hex string [, hex string |, hex string ?, hex string ~, hex string nibble", err.getErrorMessage());
 		EXPECT_EQ("}", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
@@ -1114,7 +1114,7 @@ rule invalid_hex_string
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 5.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string nibble", err.getErrorMessage());
+		EXPECT_EQ("Error at 5.15: Syntax error: Unexpected hex string |, expected one of (, }, hex string [, hex string ?, hex string ~, hex string nibble", err.getErrorMessage());
 		EXPECT_EQ("|", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
@@ -7998,6 +7998,65 @@ OctalIntegerWorks) {
 	EXPECT_EQ(right->getText(), "0o10");
 	EXPECT_EQ(left->getValue(), 511);
 	EXPECT_EQ(right->getValue(), 8);
+}
+
+TEST_F(ParserTests,
+HexStringNotWorks) {
+	prepareInput(
+		R"(rule hex_string_not
+{
+	strings:
+		$h00 = { ~01 }
+		$h01 = { ~0? }
+		$h02 = { ~?0 }
+		$h03 = { ( 10 ~1? 1A | 20 ~?1 ~31 ) }
+	condition:
+		all of them
+}
+)");
+
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto yaraFile = driver.getParsedFile();
+	ASSERT_TRUE(yaraFile.hasRules());
+
+  auto rule = yaraFile.getRules()[0];
+  ASSERT_EQ(rule->getStrings().size(), 4);
+
+  auto strings = rule->getStrings();
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h00", hexString->getIdentifier());
+	EXPECT_EQ("{ ~01 }", hexString->getText());
+
+  hexString = strings[1];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h01", hexString->getIdentifier());
+	EXPECT_EQ("{ ~0? }", hexString->getText());
+
+  hexString = strings[2];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h02", hexString->getIdentifier());
+	EXPECT_EQ("{ ~?0 }", hexString->getText());
+
+  hexString = strings[3];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h03", hexString->getIdentifier());
+	EXPECT_EQ("{ ( 10 ~1? 1A | 20 ~?1 ~31 ) }", hexString->getText());
+
+  EXPECT_EQ(R"(rule hex_string_not
+{
+	strings:
+		$h00 = { ~01 }
+		$h01 = { ~0? }
+		$h02 = { ~?0 }
+		$h03 = { ( 10 ~1? 1A | 20 ~?1 ~31 ) }
+	condition:
+		all of them
+}
+)", yaraFile.getTextFormatted());
 }
 
 }

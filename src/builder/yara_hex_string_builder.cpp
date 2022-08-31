@@ -303,6 +303,79 @@ YaraHexStringBuilder wildcardHigh(std::uint8_t low)
 }
 
 /**
+ * Creates the negation of full byte
+ *
+ * For example:
+ * @code
+ * ~31
+ * @endcode
+ *
+ * @return Builder.
+ */
+YaraHexStringBuilder notByte(std::uint8_t byte)
+{
+	auto ts = std::make_shared<TokenStream>();
+	std::vector<std::shared_ptr<HexStringUnit>> units;
+	auto notToken = ts->emplace_back(TokenType::HEX_NOT, "~");
+	std::uint64_t b1 = (byte & 0xF0) >> 4;
+	TokenIt t1 = ts->emplace_back(TokenType::HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
+	std::uint64_t b2 = (byte & 0x0F);
+	TokenIt t2 = ts->emplace_back(TokenType::HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
+	auto first = std::make_shared<HexStringNibble>(t1);
+	auto second = std::make_shared<HexStringNibble>(t2);
+	units.push_back(std::make_shared<HexStringNot>(notToken, std::move(first), std::move(second)));
+	return YaraHexStringBuilder(ts, std::move(units));
+}
+
+/**
+ * Creates the negation of low wildcard.
+ *
+ * For example:
+ * @code
+ * ~3?
+ * @endcode
+ *
+ * @return Builder.
+ */
+YaraHexStringBuilder notWildcardLow(std::uint8_t high)
+{
+	auto ts = std::make_shared<TokenStream>();
+	auto notToken = ts->emplace_back(TokenType::HEX_NOT, "~");
+	std::vector<std::shared_ptr<HexStringUnit>> units;
+	std::uint64_t b1 = (high & 0x0F);
+	TokenIt token1 = ts->emplace_back(TokenType::HEX_NIBBLE, b1, numToStr(b1, std::hex, false, true));
+	auto first = std::make_shared<HexStringNibble>(token1);
+	TokenIt token2 = ts->emplace_back(TokenType::HEX_WILDCARD_LOW, "?");
+	auto second = std::make_shared<HexStringWildcard>(token2);
+	units.push_back(std::make_shared<HexStringNot>(notToken, std::move(first), std::move(second)));
+	return YaraHexStringBuilder(ts, std::move(units));
+}
+
+/**
+ * Creates the negation of high wildcard.
+ *
+ * For example:
+ * @code
+ * ~?3
+ * @endcode
+ *
+ * @return Builder.
+ */
+YaraHexStringBuilder notWildcardHigh(std::uint8_t low)
+{
+	auto ts = std::make_shared<TokenStream>();
+	auto notToken = ts->emplace_back(TokenType::HEX_NOT, "~");
+	std::vector<std::shared_ptr<HexStringUnit>> units;
+	TokenIt token1 = ts->emplace_back(TokenType::HEX_WILDCARD_HIGH, "?");
+	auto first = std::make_shared<HexStringWildcard>(token1);
+	std::uint64_t b2 = (low & 0x0F);
+	TokenIt token2 = ts->emplace_back(TokenType::HEX_NIBBLE, b2, numToStr(b2, std::hex, false, true));
+	auto second = std::make_shared<HexStringNibble>(token2);
+	units.push_back(std::make_shared<HexStringNot>(notToken, std::move(first), std::move(second)));
+	return YaraHexStringBuilder(ts, std::move(units));
+}
+
+/**
  * Creates the jump unit with no low or high bound.
  *
  * For example:

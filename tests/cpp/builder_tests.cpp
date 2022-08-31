@@ -650,7 +650,7 @@ RuleWithHexStringWorks) {
 
 	YaraHexStringBuilder newHexStr;
 	auto hexStr = newHexStr
-		.add(0x11, 0x22, wildcard(), wildcardHigh(0xA), wildcardLow(0xB))
+		.add(0x11, 0x22, wildcard(), wildcardHigh(0xA), wildcardLow(0xB), notByte(0x31), notWildcardHigh(0x3), notWildcardLow(0x4))
 		.add(jumpVarying(), jumpFixed(5), jumpVaryingRange(3), jumpRange(3, 5))
 		.add(alt(alt(alt1, alt2), alt3, alt4))
 		.add(0x99)
@@ -673,7 +673,7 @@ RuleWithHexStringWorks) {
 	ASSERT_NE(nullptr, yaraFile);
 	EXPECT_EQ(R"(rule rule_with_hex_string {
 	strings:
-		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
+		$1 = { 11 22 ?? ?A B? ~31 ~?3 ~4? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
 		$1
 })", yaraFile->getText());
@@ -681,7 +681,7 @@ RuleWithHexStringWorks) {
 	EXPECT_EQ(R"(rule rule_with_hex_string
 {
 	strings:
-		$1 = { 11 22 ?? ?A B? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
+		$1 = { 11 22 ?? ?A B? ~31 ~?3 ~4? [-] [5] [3-] [3-5] ( ( BB CC | DD EE ) | FF F1 | FE ED DC ) 99 }
 	condition:
 		$1
 }

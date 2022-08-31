@@ -31,6 +31,7 @@ public:
 	{
 		Nibble,
 		Wildcard,
+		Not,
 		Jump,
 		Or
 	};
@@ -185,6 +186,41 @@ public:
 	/// @}
 private:
 	TokenIt _value; ///< Value of the nibble
+};
+
+class HexStringNot : public HexStringUnit
+{
+public:
+	/// @name Constructors
+	/// @{
+	HexStringNot(TokenIt not_, const std::shared_ptr<HexStringUnit>& first, const std::shared_ptr<HexStringUnit>& second) : HexStringUnit(Type::Not), _not(not_), _first(first), _second(second) {}
+	HexStringNot(TokenIt not_, std::shared_ptr<HexStringUnit>&& first, std::shared_ptr<HexStringUnit>&& second) : HexStringUnit(Type::Not), _not(not_), _first(std::move(first)), _second(std::move(second)) {}
+	/// @}
+
+	/// @name Virtual methods
+	/// @{
+	virtual std::string getText() const override
+	{
+		std::ostringstream ss;
+		ss << '~'
+			<< _first->getText()
+			<< _second->getText();
+		return ss.str();
+	}
+	virtual std::size_t getLength() const override { return 0; }
+	virtual TokenIt getFirstTokenIt() const override { return _not; }
+	virtual TokenIt getLastTokenIt() const override { return _second->getLastTokenIt(); }
+	/// @}
+
+	/// @name Getters
+	/// @{
+	const std::shared_ptr<HexStringUnit>& getFirstNibble() const { return _first; }
+	const std::shared_ptr<HexStringUnit>& getSecondNibble() const { return _second; }
+	/// @}
+private:
+	TokenIt _not; ///< Not token
+	std::shared_ptr<HexStringUnit> _first; ///< First token
+	std::shared_ptr<HexStringUnit> _second; ///< Second token
 };
 
 /**

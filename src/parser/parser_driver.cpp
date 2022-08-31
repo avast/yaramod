@@ -290,6 +290,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\()").states("$hexstr").symbol("LP").description("hex string (").action([&](std::string_view str) -> Value { return emplace_back(TokenType::LP, std::string{str}); });
 	_parser.token(R"(\))").states("$hexstr").symbol("RP").description("hex string )").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RP, std::string{str}); });
 	_parser.token(R"(\?)").states("$hexstr").symbol("HEX_WILDCARD").description("hex string ?").action([&](std::string_view str) -> Value { return emplace_back(TokenType::HEX_WILDCARD, std::string{str}); });
+	_parser.token(R"(\~)").states("$hexstr").symbol("HEX_NOT").description("hex string ~").action([&](std::string_view str) -> Value { return emplace_back(TokenType::HEX_NOT, std::string{str}); });
 	_parser.token(R"(\})").states("$hexstr").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view) -> Value { return emplace_back(TokenType::RCB, "}"); });
 	_parser.token("[0-9a-fA-F]").states("$hexstr").symbol("HEX_NIBBLE").description("hex string nibble").action([&](std::string_view str) -> Value {
 		std::uint8_t digit = ('A' <= std::toupper(str[0]) && std::toupper(str[0]) <= 'F') ? std::toupper(str[0]) - 'A' + 10 : str[0] - '0';
@@ -846,6 +847,32 @@ void ParserDriver::defineGrammar()
 		;
 
 	_parser.rule("hex_byte") // vector<shared_ptr<HexStringUnit>>
+		.production("hex_negatable_byte", [](auto&& args) -> Value {
+			return std::move(args[0]);
+		})
+		.production("HEX_NOT", "hex_negatable_byte", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			auto byte = std::move(args[1].getMultipleHexUnits());
+			if (byte.size() != 2)
+				error_handle(args[1].getTokenIt()->getLocation(), "hex not requires two nibbles");
+			auto not_byte = std::make_shared<HexStringNot>(args[0].getTokenIt(), std::move(byte[0]), std::move(byte[1]));
+			output.push_back(std::move(not_byte));
+			return output;
+		})
+		.production("HEX_WILDCARD", "HEX_WILDCARD", [](auto&& args) -> Value {
+			std::vector<std::shared_ptr<HexStringUnit>> output;
+			args[0].getTokenIt()->setType(TokenType::HEX_WILDCARD_LOW);
+			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
+			args[1].getTokenIt()->setType(TokenType::HEX_WILDCARD_HIGH);
+			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
+			output.reserve(2);
+			output.push_back(std::move(first));
+			output.push_back(std::move(second));
+			return output;
+		})
+		;
+
+	_parser.rule("hex_negatable_byte") // vector<shared_ptr<HexStringUnit>>
 		.production("HEX_NIBBLE", "HEX_NIBBLE", [](auto&& args) -> Value {
 			std::vector<std::shared_ptr<HexStringUnit>> output;
 			auto first = std::make_shared<HexStringNibble>(args[0].getTokenIt());
@@ -870,17 +897,6 @@ void ParserDriver::defineGrammar()
 			args[0].getTokenIt()->setType(TokenType::HEX_WILDCARD_LOW);
 			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
 			auto second = std::make_shared<HexStringNibble>(args[1].getTokenIt());
-			output.reserve(2);
-			output.push_back(std::move(first));
-			output.push_back(std::move(second));
-			return output;
-		})
-		.production("HEX_WILDCARD", "HEX_WILDCARD", [](auto&& args) -> Value {
-			std::vector<std::shared_ptr<HexStringUnit>> output;
-			args[0].getTokenIt()->setType(TokenType::HEX_WILDCARD_LOW);
-			auto first = std::make_shared<HexStringWildcard>(args[0].getTokenIt());
-			args[1].getTokenIt()->setType(TokenType::HEX_WILDCARD_HIGH);
-			auto second = std::make_shared<HexStringWildcard>(args[1].getTokenIt());
 			output.reserve(2);
 			output.push_back(std::move(first));
 			output.push_back(std::move(second));

@@ -935,6 +935,9 @@ void addBuilderClasses(py::module& module)
 	module.def("wildcard", &wildcard);
 	module.def("wildcard_low", &wildcardLow);
 	module.def("wildcard_high", &wildcardHigh);
+	module.def("not_byte", &notByte);
+	module.def("not_wildcard_low", &notWildcardLow);
+	module.def("not_wildcard_high", &notWildcardHigh);
 
 	module.def("jump_varying", &jumpVarying);
 	module.def("jump_fixed", &jumpFixed);

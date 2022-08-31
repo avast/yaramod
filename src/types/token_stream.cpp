@@ -933,7 +933,8 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			}
 			if (!inside_hex_jump && next != TokenType::NEW_LINE)
 			{
-				if (second_nibble && next != TokenType::COMMA)
+				// Force no space before not operator in hex strings
+				if (second_nibble && next != TokenType::COMMA && current != TokenType::HEX_NOT)
 					helper.insertIntoStream(os, ' ');
 			}
 		}
