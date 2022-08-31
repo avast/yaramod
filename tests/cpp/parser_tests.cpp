@@ -3815,7 +3815,7 @@ rule virus_total_specific
 {
 	condition:
 		positives > 5 and
-		bytehero == "hero"
+		avast == "hero"
 }
 )");
 
@@ -3823,7 +3823,7 @@ rule virus_total_specific
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"(positives > 5 and bytehero == "hero")", rule->getCondition()->getText());
+	EXPECT_EQ(R"(positives > 5 and avast == "hero")", rule->getCondition()->getText());
 	EXPECT_EQ("positives", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("hero", rule->getCondition()->getLastTokenIt()->getPureText());
 
