@@ -1,5 +1,11 @@
 # Changelog
 
+# v3.15.0 (2022-08-31)
+
+* Added support for not operator in hex strings
+* Added `math.to_int`, `math.to_string` functions
+* Added `rva` attribute to `pe.import_details` and `pe.delayed_import_details`
+
 # v3.14.1 (2022-08-18)
 
 * Fixed support for octal integers

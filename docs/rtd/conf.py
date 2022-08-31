@@ -22,7 +22,7 @@ copyright = '2020, Avast'
 author = 'Avast'
 
 # The full version, including alpha/beta/rc tags
-release = 'v3.14.1'
+release = 'v3.15.0'
 
 
 # -- General configuration ---------------------------------------------------
