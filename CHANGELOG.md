@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.16.0 (2022-08-31)
+
+* Updated list of VirusTotal AVs to reflect the current state
+
 # v3.15.0 (2022-08-31)
 
 * Added support for not operator in hex strings
