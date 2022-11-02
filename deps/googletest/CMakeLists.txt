@@ -12,8 +12,8 @@ if(CMAKE_CXX_COMPILER)
 endif()
 
 ExternalProject_Add(googletest
-	URL https://github.com/google/googletest/archive/dc1ca9ae4c206434e450ed4ff535ca7c20c79e3c.zip
-	URL_HASH SHA256=d8376d6283e15ffd317646052233c88e2044cd61453619315e6fc139dc1b5d76
+	URL https://github.com/google/googletest/archive/58d77fa8070e8cec2dc1ed015d66b454c8d78850.zip
+	URL_HASH SHA256=ab78fa3f912d44d38b785ec011a25f26512aaedc5291f51f3807c592b506d33a
 	CMAKE_ARGS
 		# This does not work on MSVC, but is useful on Linux.
 		-DCMAKE_BUILD_TYPE=Release
