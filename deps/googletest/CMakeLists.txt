@@ -12,8 +12,8 @@ if(CMAKE_CXX_COMPILER)
 endif()
 
 ExternalProject_Add(googletest
-	URL https://github.com/google/googletest/archive/dc1ca9ae4c206434e450ed4ff535ca7c20c79e3c.zip
-	URL_HASH SHA256=d8376d6283e15ffd317646052233c88e2044cd61453619315e6fc139dc1b5d76
+	URL https://github.com/google/googletest/archive/58d77fa8070e8cec2dc1ed015d66b454c8d78850.zip
+	URL_HASH SHA256=ab78fa3f912d44d38b785ec011a25f26512aaedc5291f51f3807c592b506d33a
 	CMAKE_ARGS
 		# This does not work on MSVC, but is useful on Linux.
 		-DCMAKE_BUILD_TYPE=Release
@@ -50,27 +50,27 @@ if(MSVC)
 endif()
 
 add_library(gtest INTERFACE)
-target_link_libraries(gtest INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${DEBUG_LIB_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+target_link_libraries(gtest INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gtest INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_include_directories(gtest SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
 add_dependencies(gtest googletest)
 
 add_library(gtest_main INTERFACE)
-target_link_libraries(gtest_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${DEBUG_LIB_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+target_link_libraries(gtest_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gtest_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gtest_main INTERFACE gtest)
 target_include_directories(gtest_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
 add_dependencies(gtest_main googletest)
 
 add_library(gmock INTERFACE)
-target_link_libraries(gmock INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${DEBUG_LIB_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+target_link_libraries(gmock INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gmock INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gmock INTERFACE gtest)
 target_include_directories(gmock SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
 add_dependencies(gmock googletest)
 
 add_library(gmock_main INTERFACE)
-target_link_libraries(gmock_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${DEBUG_LIB_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+target_link_libraries(gmock_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gmock_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
 target_link_libraries(gmock_main INTERFACE gmock)
 target_include_directories(gmock_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
