@@ -3,9 +3,9 @@ import re
 import subprocess
 import sys
 
-from distutils.command.build import build
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from distutils.command.build import build
 
 
 script_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
