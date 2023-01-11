@@ -1,5 +1,7 @@
 # yaramod
 
+Dummy change to just trigger tests
+
 [![Travis CI build status](https://travis-ci.org/avast/yaramod.svg?branch=master)](https://travis-ci.org/avast/yaramod)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/avast/yaramod?branch=master&svg=true)](https://ci.appveyor.com/project/avast/yaramod?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/yaramod/badge/?version=latest)](https://yaramod.readthedocs.io/en/latest/?badge=latest)
