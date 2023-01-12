@@ -23,16 +23,22 @@ jobs:
         exclude:
           - os: ubuntu-latest
             python-version: "3.8"
+            config: Release
           - os: ubuntu-latest
             python-version: "3.9"
+            config: Release
           - os: ubuntu-latest
             python-version: "3.10"
+            config: Release
           - os: macos-latest
             python-version: "3.8"
+            config: Release
           - os: macos-latest
             python-version: "3.9"
+            config: Release
           - os: macos-latest
             python-version: "3.10"
+            config: Release
 
     runs-on: ${{ matrix.os }}
 
