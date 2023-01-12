@@ -45,10 +45,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Build
         env:
-          configuration: ${{ matrix.config }}
+          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config }}
+          YARAMOD_BUILD_WITH_UNIT_TESTS: 1
         run: |
-          python setup.py build --with-unit-tests
-          python setup.py install
+          python -m pip install .
       - name: Upload build directory
         if: failure()
         uses: actions/upload-artifact@v3
