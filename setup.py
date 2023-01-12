@@ -21,6 +21,9 @@ BOOL_OPTIONS = [
     'debug'
 ]
 
+ENV_YARAMOD_BUILD_CONFIGURATION = 'YARAMOD_BUILD_CONFIGURATION'
+ENV_YARAMOD_BUILD_WITH_UNIT_TESTS = 'YARAMOD_BUILD_WITH_UNIT_TESTS'
+
 
 class WorkingDirectory:
     def __init__(self, dirpath):
@@ -69,10 +72,11 @@ class BuildExtCommand(build_ext):
         root_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
         build_dir = os.path.join(root_dir, 'build')
         module_output_dir = os.path.dirname(os.path.realpath(self.get_ext_fullpath(self.extensions[0].name)))
-        if 'configuration' in os.environ:
-            config_name = os.environ['configuration']
+        config_name = os.getenv(ENV_YARAMOD_BUILD_CONFIGURATION, 'Debug' if self.debug else 'Release')
+        if ENV_YARAMOD_BUILD_WITH_UNIT_TESTS in os.environ:
+            with_unit_tests = os.getenv(ENV_YARAMOD_BUILD_WITH_UNIT_TESTS, 'false').lower() in ('true', '1', 't')
         else:
-            config_name = 'Debug' if self.debug else 'Release'
+            with_unit_tests = self.with_unit_tests
 
         os.makedirs(build_dir, exist_ok=True)
 
@@ -95,7 +99,7 @@ class BuildExtCommand(build_ext):
                     '-DCMAKE_BUILD_TYPE={}'.format(config_name),
                     '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}'.format(module_output_dir)
                 ])
-            if self.with_unit_tests:
+            if with_unit_tests:
                 configure_cmd.append('-DYARAMOD_TESTS=ON')
             configure_cmd.append(root_dir)
 
