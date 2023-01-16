@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.16.1 (2023-01-16)
+
+* Enabled support for python 3.11 ([#231](https://github.com/avast/yaramod/pull/231))
+
 # v3.16.0 (2022-08-31)
 
 * Updated list of VirusTotal AVs to reflect the current state
