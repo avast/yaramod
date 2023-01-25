@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.17.0 (2023-01-25)
+
+* Add Python type stubs ([#235](https://github.com/avast/yaramod/pull/235))
+* Add `TokenStream` manipulation methods to Python bindings ([#234](https://github.com/avast/yaramod/pull/234))
+
 # v3.16.1 (2023-01-16)
 
 * Enabled support for python 3.11 ([#231](https://github.com/avast/yaramod/pull/231))
