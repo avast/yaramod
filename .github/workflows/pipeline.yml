@@ -64,7 +64,7 @@ jobs:
           ${{ startsWith(matrix.os, 'windows') && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
       - name: Python Tests
         run: |
-          python -m pip install pytest
+          python -m pip install pytest mypy==0.991
           pytest -v tests/python
       - name: Documentation
         if: ${{ startsWith(matrix.os, 'ubuntu') }}

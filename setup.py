@@ -186,4 +186,7 @@ setup(
         'build_ext': BuildExtCommand
     },
     ext_modules=[Extension(name='yaramod', sources=[])],
+    packages=["yaramod"],
+    package_dir = {'yaramod': 'src/python/typings'},
+    package_data={ "yaramod": ["*.pyi", "py.typed"] },
 )
