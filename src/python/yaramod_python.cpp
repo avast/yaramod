@@ -10,6 +10,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
+#include <pybind11/operators.h>
 
 #include <yaramod/builder/yara_expression_builder.h>
 #include <yaramod/builder/yara_hex_string_builder.h>
@@ -17,6 +18,7 @@
 #include <yaramod/types/expression.h>
 #include <yaramod/types/plain_string.h>
 #include <yaramod/types/token_type.h>
+#include <yaramod/types/token.h>
 #include <yaramod/yaramod.h>
 
 #include "yaramod_python.h"
@@ -502,8 +504,12 @@ void addBasicClasses(py::module& module)
 		.def_property_readonly("symbol", &ReferenceSymbol::getSymbol);
 }
 
+PYBIND11_MAKE_OPAQUE(TokenIt);
+
 void addTokenStreamClass(py::module& module)
 {
+
+
 	py::class_<Token>(module, "Token")
 		.def(py::init<yaramod::TokenType, const Literal&>())
 		.def_property_readonly("text", [](Token& self) { return self.getText(); })
@@ -524,6 +530,24 @@ void addTokenStreamClass(py::module& module)
 		.def_property_readonly("symbol", &Token::getSymbol)
 		.def_property_readonly("literal_reference", &Token::getLiteralReference);
 
+	py::class_<TokenIt>(module, "TokenIt")
+		.def(py::init<>())
+		.def(pybind11::self == pybind11::self)
+		.def(pybind11::self != pybind11::self)
+		.def_property_readonly("value", [](const TokenIt& self) -> Token {
+			return *self;
+		})
+		.def("increment", [](TokenIt& self) { ++self; })
+		.def("decrement", [](TokenIt& self) { --self; })
+		.def("next", [](TokenIt& self) -> TokenIt {
+			TokenIt res = self;
+			return ++res;
+		})
+		.def("previous", [](TokenIt& self) -> TokenIt {
+			TokenIt res = self;
+			return --res;
+		});
+
 	py::class_<TokenStream, std::shared_ptr<TokenStream>>(module, "TokenStream")
 		.def(py::init<>())
 		.def_property_readonly("empty", &TokenStream::empty)
@@ -532,7 +556,18 @@ void addTokenStreamClass(py::module& module)
 		.def_property_readonly("back", &TokenStream::back)
 		.def_property_readonly("tokens", &TokenStream::getTokens)
 		.def_property_readonly("tokens_as_text", &TokenStream::getTokensAsText)
-		.def("comment_before_token", &TokenStream::commentBeforeToken, py::arg("message"), py::arg("insert_before"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true);
+		.def("comment_before_token", &TokenStream::commentBeforeToken, py::arg("message"), py::arg("insert_before"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
+		.def_property_readonly("begin", [](TokenStream& self) -> TokenIt { return self.begin(); })
+		.def_property_readonly("end", [](TokenStream& self)  -> TokenIt { return self.end(); })
+		.def("find", [](TokenStream& self, yaramod::TokenType type) -> TokenIt { return self.find(type); }, py::arg("type"))
+		.def("find_range", [](TokenStream& self, yaramod::TokenType type, TokenIt from, TokenIt to) -> TokenIt { return self.find(type, from, to); },
+			py::arg("type"), py::arg("from"), py::arg("to"))
+		.def("erase", [](TokenStream& self, TokenIt itr) -> TokenIt { return self.erase(itr); }, py::arg("itr"))
+		.def("erase_range", [](TokenStream& self, TokenIt first, TokenIt last) -> TokenIt { return self.erase(first, last); },
+			py::arg("first"), py::arg("last"))
+		.def("insert", [](TokenStream& self, TokenIt before, yaramod::TokenType type, const Literal& literal) -> TokenIt {
+			return self.insert(before, type, literal);
+		}, py::arg("before"), py::arg("type"), py::arg("literal"));
 }
 
 void addExpressionClasses(py::module& module)
