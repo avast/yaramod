@@ -77,12 +77,20 @@ jobs:
         run: |
           pip install wheel
           python setup.py ${{ startsWith(matrix.os, 'windows') && 'bdist_wheel' || 'sdist' }}
+      - name: Build manylinux binary wheel
+        if: ${{ matrix.config == 'Release' && startsWith(matrix.os, 'ubuntu') }}
+        uses: RalfG/python-wheels-manylinux-build@v0.7.1
+        with:
+          pre-build-command: "rm -rf build"
+          python-versions: "cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311"
       - name: Upload package
         if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
         uses: actions/upload-artifact@v3
         with:
           name: package
-          path: dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
+          path: |
+            dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
+            dist/*-manylinux*.whl
           if-no-files-found: error
           retention-days: 7
 
