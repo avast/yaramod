@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.18.0 (2023-02-06)
+
+* Add support for Linux binary wheels ([#236](https://github.com/avast/yaramod/pull/236))
+
 # v3.17.0 (2023-01-25)
 
 * Add Python type stubs ([#235](https://github.com/avast/yaramod/pull/235))
