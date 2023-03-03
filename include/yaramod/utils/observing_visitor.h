@@ -138,6 +138,13 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(EndsWithExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(EqExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
@@ -166,7 +173,28 @@ public:
 		return {};
 	}
 
+	virtual VisitResult visit(IcontainsExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
+	virtual VisitResult visit(IendsWithExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
 	virtual VisitResult visit(IequalsExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
+	virtual VisitResult visit(IstartsWithExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);
@@ -223,6 +251,13 @@ public:
 	}
 
 	virtual VisitResult visit(BitwiseOrExpression* expr) override
+	{
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		return {};
+	}
+
+	virtual VisitResult visit(StartsWithExpression* expr) override
 	{
 		expr->getLeftOperand()->accept(this);
 		expr->getRightOperand()->accept(this);

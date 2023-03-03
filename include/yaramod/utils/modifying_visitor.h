@@ -220,7 +220,32 @@ public:
 		return _handleBinaryOperation(expr);
 	}
 
+	virtual VisitResult visit(IcontainsExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
+	virtual VisitResult visit(IendsWithExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
 	virtual VisitResult visit(IequalsExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
+	virtual VisitResult visit(IstartsWithExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
+	virtual VisitResult visit(EndsWithExpression* expr) override
+	{
+		return _handleBinaryOperation(expr);
+	}
+
+	virtual VisitResult visit(StartsWithExpression* expr) override
 	{
 		return _handleBinaryOperation(expr);
 	}

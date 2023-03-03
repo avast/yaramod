@@ -197,6 +197,66 @@ public:
 		return {};
 	}
 
+	virtual yaramod::VisitResult visit(yaramod::IcontainsExpression* expr) override
+	{
+		dump("Icontains", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::IendsWithExpression* expr) override
+	{
+		dump("IendsWith", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::IequalsExpression* expr) override
+	{
+		dump("Iequals", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::IstartsWithExpression* expr) override
+	{
+		dump("IstartsWith", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::StartsWithExpression* expr) override
+	{
+		dump("StartsWith", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::EndsWithExpression* expr) override
+	{
+		dump("EndsWith", expr);
+		indentUp();
+		expr->getLeftOperand()->accept(this);
+		expr->getRightOperand()->accept(this);
+		indentDown();
+		return {};
+	}
+
 	virtual yaramod::VisitResult visit(yaramod::MatchesExpression* expr) override
 	{
 		dump("Matches", expr);

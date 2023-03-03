@@ -540,6 +540,40 @@ YaraExpressionBuilder& YaraExpressionBuilder::matches(const YaraExpressionBuilde
 }
 
 /**
+ * Applies operation icontains on two expressions.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::icontains(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::ICONTAINS, "icontains");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<IcontainsExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
+ * Applies operation iendswith on two expressions.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::iendswith(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::IENDSWITH, "iendswith");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<IendsWithExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
  * Applies operation iequals on two expressions.
  *
  * @param other The other expression.
@@ -552,6 +586,57 @@ YaraExpressionBuilder& YaraExpressionBuilder::iequals(const YaraExpressionBuilde
 	_tokenStream->moveAppend(other.getTokenStream());
 
 	_expr = std::make_shared<IequalsExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
+ * Applies operation istartswith on two expressions.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::istartswith(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::ISTARTSWITH, "istartswith");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<IstartsWithExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
+ * Applies operation startswith on two expressions.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::startswith(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::STARTSWITH, "startswith");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<StartsWithExpression>(std::move(_expr), token, other.get());
+	setType(Expression::Type::Bool);
+	return *this;
+}
+
+/**
+ * Applies operation endswith on two expressions.
+ *
+ * @param other The other expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder& YaraExpressionBuilder::endswith(const YaraExpressionBuilder& other)
+{
+	TokenIt token = _tokenStream->emplace_back(TokenType::ENDSWITH, "endswith");
+	_tokenStream->moveAppend(other.getTokenStream());
+
+	_expr = std::make_shared<EndsWithExpression>(std::move(_expr), token, other.get());
 	setType(Expression::Type::Bool);
 	return *this;
 }

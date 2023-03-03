@@ -2170,5 +2170,175 @@ StringAsBoolInConditionWorks) {
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+IcontainsWorks) {
+	auto cond = id("pe").access("pdb_path").icontains(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("icontains_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule icontains_builder {
+	condition:
+		pe.pdb_path icontains "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule icontains_builder
+{
+	condition:
+		pe.pdb_path icontains "C:\\PATH"
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+IendsWithWorks) {
+	auto cond = id("pe").access("pdb_path").iendswith(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("iendswith_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule iendswith_builder {
+	condition:
+		pe.pdb_path iendswith "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule iendswith_builder
+{
+	condition:
+		pe.pdb_path iendswith "C:\\PATH"
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+IstartsWithWorks) {
+	auto cond = id("pe").access("pdb_path").istartswith(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("istartswith_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule istartswith_builder {
+	condition:
+		pe.pdb_path istartswith "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule istartswith_builder
+{
+	condition:
+		pe.pdb_path istartswith "C:\\PATH"
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+StartsWithWorks) {
+	auto cond = id("pe").access("pdb_path").startswith(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("startswith_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule startswith_builder {
+	condition:
+		pe.pdb_path startswith "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule startswith_builder
+{
+	condition:
+		pe.pdb_path startswith "C:\\PATH"
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
+EndsWithWorks) {
+	auto cond = id("pe").access("pdb_path").endswith(stringVal("C:\\PATH")).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("endswith_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withModule("pe")
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(import "pe"
+
+rule endswith_builder {
+	condition:
+		pe.pdb_path endswith "C:\\PATH"
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(import "pe"
+
+rule endswith_builder
+{
+	condition:
+		pe.pdb_path endswith "C:\\PATH"
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }

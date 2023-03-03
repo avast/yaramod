@@ -157,7 +157,12 @@ void ParserDriver::defineTokens()
 	_parser.token("in").symbol("IN").description("in").action([&](std::string_view str) -> Value { return emplace_back(TokenType::OP_IN, std::string{str}); });
 	_parser.token("filesize").symbol("FILESIZE").description("filesize").action([&](std::string_view str) -> Value { return emplace_back(TokenType::FILESIZE, std::string{str}); });
 	_parser.token("contains").symbol("CONTAINS").description("contains").action([&](std::string_view str) -> Value { return emplace_back(TokenType::CONTAINS, std::string{str}); });
+	_parser.token("icontains").symbol("ICONTAINS").description("icontains").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ICONTAINS, std::string{str}); });
 	_parser.token("matches").symbol("MATCHES").description("matches").action([&](std::string_view str) -> Value { return emplace_back(TokenType::MATCHES, std::string{str}); });
+	_parser.token("startswith").symbol("STARTSWITH").description("startswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STARTSWITH, std::string{str}); });
+	_parser.token("istartswith").symbol("ISTARTSWITH").description("istartswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ISTARTSWITH, std::string{str}); });
+	_parser.token("endswith").symbol("ENDSWITH").description("endswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ENDSWITH, std::string{str}); });
+	_parser.token("iendswith").symbol("IENDSWITH").description("iendswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IENDSWITH, std::string{str}); });
 	_parser.token("iequals").symbol("IEQUALS").description("iequals").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IEQUALS, std::string{str}); });
 
 	// $include
@@ -1470,6 +1475,20 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
+		.production("primary_expression", "ICONTAINS", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'icontains' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'icontains' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<IcontainsExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
 		.production("primary_expression", "MATCHES", "regexp", [&](auto&& args) -> Value {
 			auto left = std::move(args[0].getExpression());
 			TokenIt op_token = args[1].getTokenIt();
@@ -1478,6 +1497,62 @@ void ParserDriver::defineGrammar()
 				error_handle(op_token->getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
 			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("primary_expression", "STARTSWITH", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'startswith' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'startswith' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<StartsWithExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("primary_expression", "ISTARTSWITH", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'istartswith' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'istartswith' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<IstartsWithExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("primary_expression", "ENDSWITH", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'endswith' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'endswith' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<EndsWithExpression>(std::move(left), op_token, std::move(right));
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		.production("primary_expression", "IENDSWITH", "primary_expression", [&](auto&& args) -> Value {
+			auto left = std::move(args[0].getExpression());
+			TokenIt op_token = args[1].getTokenIt();
+			auto right = std::move(args[2].getExpression());
+			if (!left->isString())
+				error_handle(op_token->getLocation(), "operator 'iendswith' expects string on the left-hand side of the expression");
+			if (!right->isString())
+				error_handle(op_token->getLocation(), "operator 'iendswith' expects string on the right-hand side of the expression");
+			auto output = std::make_shared<IendsWithExpression>(std::move(left), op_token, std::move(right));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());

@@ -136,6 +136,48 @@ class Dumper(yaramod.ObservingVisitor):
         expr.right_operand.accept(self)
         self.indent_down()
 
+    def visit_IcontainsExpression(self, expr):
+        self.dump('Icontains', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
+    def visit_IendsWithExpression(self, expr):
+        self.dump('IendsWith', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
+    def visit_IequalsExpression(self, expr):
+        self.dump('Iequals', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
+    def visit_IstartsWithExpression(self, expr):
+        self.dump('IstartsWith', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
+    def visit_StartsWithExpression(self, expr):
+        self.dump('StartsWith', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
+    def visit_EndsWithExpression(self, expr):
+        self.dump('EndsWith', expr)
+        self.indent_up()
+        expr.left_operand.accept(self)
+        expr.right_operand.accept(self)
+        self.indent_down()
+
     def visit_MatchesExpression(self, expr):
         self.dump('Matches', expr)
         self.indent_up()
