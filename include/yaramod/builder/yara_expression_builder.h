@@ -187,7 +187,12 @@ public:
 
 	YaraExpressionBuilder& contains(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& matches(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& icontains(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& iendswith(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& iequals(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& istartswith(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& startswith(const YaraExpressionBuilder& other);
+	YaraExpressionBuilder& endswith(const YaraExpressionBuilder& other);
 	YaraExpressionBuilder& defined();
 	YaraExpressionBuilder& percent();
 

@@ -82,6 +82,9 @@ class DivideExpression(BinaryOpExpression):
 class DoubleLiteralExpression(_DoubleLiteralExpression):
     def __init__(self, *args, **kwargs) -> None: ...
 
+class EndsWithExpression(BinaryOpExpression):
+    def __init__(self, *args, **kwargs) -> None: ...
+
 class EntrypointExpression(KeywordExpression):
     def __init__(self, *args, **kwargs) -> None: ...
 
@@ -218,7 +221,16 @@ class IdWildcardExpression(Expression):
     id: str
     def __init__(self, *args, **kwargs) -> None: ...
 
+class IcontainsExpression(BinaryOpExpression):
+    def __init__(self, *args, **kwargs) -> None: ...
+
+class IendsWithExpression(BinaryOpExpression):
+    def __init__(self, *args, **kwargs) -> None: ...
+
 class IequalsExpression(BinaryOpExpression):
+    def __init__(self, *args, **kwargs) -> None: ...
+
+class IstartsWithExpression(BinaryOpExpression):
     def __init__(self, *args, **kwargs) -> None: ...
 
 class IntFunctionEndianness:
@@ -849,6 +861,9 @@ class ShiftLeftExpression(BinaryOpExpression):
     def __init__(self, *args, **kwargs) -> None: ...
 
 class ShiftRightExpression(BinaryOpExpression):
+    def __init__(self, *args, **kwargs) -> None: ...
+
+class StartsWithExpression(BinaryOpExpression):
     def __init__(self, *args, **kwargs) -> None: ...
 
 class String:

@@ -8087,5 +8087,120 @@ HexStringNotWorks) {
 )", yaraFile.getTextFormatted());
 }
 
+TEST_F(ParserTests,
+IcontainsExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule icontains_expr
+{
+	condition:
+		pe.sections[0].name icontains ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name icontains \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IendsWithExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule iendswith_expr
+{
+	condition:
+		pe.sections[0].name iendswith ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name iendswith \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+IstartsWithExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule istartswith_expr
+{
+	condition:
+		pe.sections[0].name istartswith ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name istartswith \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+StartsWithExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule startswith_expr
+{
+	condition:
+		pe.sections[0].name startswith ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name startswith \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+EndsWithExpression) {
+	prepareInput(
+R"(import "pe"
+
+rule endswith_expr
+{
+	condition:
+		pe.sections[0].name endswith ".TEXT"
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	EXPECT_EQ("pe.sections[0].name endswith \".TEXT\"", rule->getCondition()->getText());
+	EXPECT_EQ("pe", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("\".TEXT\"", rule->getCondition()->getLastTokenIt()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

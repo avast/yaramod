@@ -777,6 +777,26 @@ public:
 };
 
 /**
+ * Class representing icontains case-insensitive operation on two strings.
+ *
+ * For example:
+ * @code
+ * pe.sections[0] icontains "text"
+ * @endcode
+ */
+class IcontainsExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	IcontainsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
  * Class representing contains operation on string and regular expression.
  *
  * For example:
@@ -789,6 +809,86 @@ class MatchesExpression : public BinaryOpExpression
 public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing startswith operation for string starting with relation.
+ *
+ * For example:
+ * @code
+ * pe.sections[0].name startswith ".t"
+ * @endcode
+ */
+class StartsWithExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	StartsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing istartswith operation for case-insensitive string starting with relation.
+ *
+ * For example:
+ * @code
+ * pe.sections[0].name istartswith ".t"
+ * @endcode
+ */
+class IstartsWithExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	IstartsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing endswith operation for string ending with relation.
+ *
+ * For example:
+ * @code
+ * pe.sections[0].name endswith "xt"
+ * @endcode
+ */
+class EndsWithExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	EndsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+};
+
+/**
+ * Class representing iendswith operation for case-insensitive string ending with relation.
+ *
+ * For example:
+ * @code
+ * pe.sections[0].name iendswith ".t"
+ * @endcode
+ */
+class IendsWithExpression : public BinaryOpExpression
+{
+public:
+	template <typename ExpPtr1, typename ExpPtr2>
+	IendsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{

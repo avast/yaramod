@@ -201,7 +201,12 @@ void addEnums(py::module& module)
 		.value("Filesize", TokenType::FILESIZE)
 		.value("Contains", TokenType::CONTAINS)
 		.value("Matches", TokenType::MATCHES)
+		.value("Icontains", TokenType::ICONTAINS)
+		.value("IendsWith", TokenType::IENDSWITH)
 		.value("Iequals", TokenType::IEQUALS)
+		.value("IstartsWith", TokenType::ISTARTSWITH)
+		.value("StartsWith", TokenType::STARTSWITH)
+		.value("EndsWith", TokenType::ENDSWITH)
 		.value("Slash", TokenType::SLASH)
 		.value("StringLiteral", TokenType::STRING_LITERAL)
 		.value("Integer", TokenType::INTEGER)
@@ -658,7 +663,12 @@ void addExpressionClasses(py::module& module)
 	binaryOpClass<NeqExpression>(module, "NeqExpression");
 	binaryOpClass<ContainsExpression>(module, "ContainsExpression");
 	binaryOpClass<MatchesExpression>(module, "MatchesExpression");
+	binaryOpClass<IcontainsExpression>(module, "IcontainsExpression");
+	binaryOpClass<IendsWithExpression>(module, "IendsWithExpression");
 	binaryOpClass<IequalsExpression>(module, "IequalsExpression");
+	binaryOpClass<IstartsWithExpression>(module, "IstartsWithExpression");
+	binaryOpClass<StartsWithExpression>(module, "StartsWithExpression");
+	binaryOpClass<EndsWithExpression>(module, "EndsWithExpression");
 	binaryOpClass<PlusExpression>(module, "PlusExpression");
 	binaryOpClass<MinusExpression>(module, "MinusExpression");
 	binaryOpClass<MultiplyExpression>(module, "MultiplyExpression");
@@ -882,7 +892,12 @@ void addBuilderClasses(py::module& module)
 		.def("comment_behind", &YaraExpressionBuilder::commentBehind, py::arg("message"), py::arg("multiline") = false, py::arg("indent") = "", py::arg("linebreak") = true)
 		.def("contains", &YaraExpressionBuilder::contains)
 		.def("matches", &YaraExpressionBuilder::matches)
+		.def("icontains", &YaraExpressionBuilder::icontains)
+		.def("iendswith", &YaraExpressionBuilder::iendswith)
 		.def("iequals", &YaraExpressionBuilder::iequals)
+		.def("istartswith", &YaraExpressionBuilder::istartswith)
+		.def("startswith", &YaraExpressionBuilder::startswith)
+		.def("endswith", &YaraExpressionBuilder::endswith)
 		.def("defined", &YaraExpressionBuilder::defined)
 		.def("percent", &YaraExpressionBuilder::percent)
 		.def("read_int8", &YaraExpressionBuilder::readInt8)
