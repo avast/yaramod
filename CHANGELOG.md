@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.19.0 (2023-03-03)
+
+* Added missing string operators (icontains, endswith, iendswith, startswith, istartswith) ([#239](https://github.com/avast/yaramod/pull/239))
+
 # v3.18.0 (2023-02-06)
 
 * Add support for Linux binary wheels ([#236](https://github.com/avast/yaramod/pull/236))
