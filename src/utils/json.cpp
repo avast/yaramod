@@ -15,7 +15,7 @@ namespace yaramod {
 
 nlohmann::json readJsonFile(const std::string& filePath)
 {
-	std::ifstream input{filePath, std::ios::out};
+	std::ifstream input{filePath};
 	if (!input.is_open())
 		throw YaramodError("Could not open '" + filePath);
 	std::stringstream buffer;
