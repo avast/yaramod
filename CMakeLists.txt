@@ -38,11 +38,12 @@ set(WRAP_MODULE_SOURCES
 	${YARAMOD_MODULES_GENERATED_DIR}/module_dotnet_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_elf_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_hash_generated.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_list.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_macho_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_magic_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_math_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_pe_generated.h
-	${YARAMOD_MODULES_GENERATED_DIR}/module_list.h
+	${YARAMOD_MODULES_GENERATED_DIR}/module_string_generated.h
 	${YARAMOD_MODULES_GENERATED_DIR}/module_time_generated.h
 )
 

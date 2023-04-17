@@ -8202,5 +8202,34 @@ rule endswith_expr
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+StringModuleWorks) {
+	prepareInput(
+R"(
+import "string"
+
+rule string_module
+{
+	condition:
+		string.to_int("1234") == 1234 and
+		string.to_int("-10") == -10 and
+		string.to_int("-010") == -8 and
+		string.to_int("011", 8) == 9 and
+		string.to_int("-011", 0) == -9 and
+		string.length("AXSx00ERS") == 7
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(string.to_int("1234") == 1234 and string.to_int("-10") == -10 and string.to_int("-010") == -8 and string.to_int("011", 8) == 9 and string.to_int("-011", 0) == -9 and string.length("AXSx00ERS") == 7)", rule->getCondition()->getText());
+	EXPECT_EQ("string", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("7", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
