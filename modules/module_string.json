@@ -1,0 +1,51 @@
+{
+    "kind": "struct",
+    "name": "string",
+    "attributes": [
+        {
+            "kind": "function",
+            "name": "to_int",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "string"
+                        }
+                    ],
+                    "documentation": "Convert the given string to a signed integer. If the string starts with \"0x\" it is treated as base 16. If the string starts with \"0\" it is treated base 8. Leading '+' or '-' is also supported. Example: ```\nstring.to_int(\"1234\") == 1234\nstring.to_int(\"-10\") == -10\nstring.to_int(\"-010\") == -8\n```"
+                },
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "string"
+                        },
+                        {
+                            "type": "i",
+                            "name": "base"
+                        }
+                    ],
+                    "documentation": "Convert the given string, interpreted with the given base, to a signed integer. Base must be 0 or between 2 and 36 inclusive. If it is zero then the string will be intrepreted as base 16 if it starts with \"0x\" or as base 8 if it starts with \"0\". Leading '+' or '-' is also supported. Example: ```\nstring.to_int(\"011\", 8) == 9\nstring.to_int(\"-011\", 0) == -9\n```"
+                }
+            ]
+        },
+        {
+            "kind": "function",
+            "name": "length",
+            "return_type": "i",
+            "overloads": [
+                {
+                    "arguments": [
+                        {
+                            "type": "s",
+                            "name": "string"
+                        }
+                    ],
+                    "documentation": "Return the length of the string, which can be any sequence of bytes. NULL bytes included. Example: ```\nstring.length(\"AXSx00ERS\") == 7\n```"
+                }
+            ]
+        }
+    ]
+}
