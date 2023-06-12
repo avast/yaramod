@@ -1441,6 +1441,40 @@ rule regexp_with_unescaped_square_brackets_inside_class
 }
 
 TEST_F(ParserTests,
+RegexpWithEmptyAlternationGroupWorks) {
+	prepareInput(
+R"(
+rule regexp_with_empty_alternation_group
+{
+	strings:
+		$1 = /(a|b|)/
+	condition:
+		all of them
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_with_empty_alternation_group", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto regexp1 = strings[0];
+	EXPECT_TRUE(regexp1->isRegexp());
+	EXPECT_EQ("$1", regexp1->getIdentifier());
+	EXPECT_EQ(R"(/(a|b|)/)", regexp1->getText());
+
+	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("them", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 InvalidCuckooRuleAccessTokenStream) {
 	prepareInput(
 R"(

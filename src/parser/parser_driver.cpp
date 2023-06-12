@@ -993,6 +993,12 @@ void ParserDriver::defineGrammar()
 			std::shared_ptr<RegexpUnit> concat = std::make_shared<RegexpConcat>(args[2].getMultipleRegexpUnits());
 			return std::make_shared<RegexpOr>(std::move(arg), std::move(concat));
 		})
+		.production("regexp_or", "REGEXP_OR", [](auto&& args) -> Value {
+			// Special case in which we end alternation with empty string (like /(a|b|)/) which needs to be handled this way
+			// otherwise the grammar produces shift-reduce conflicts
+			std::shared_ptr<RegexpUnit> arg = std::move(args[0].getRegexpUnit());
+			return std::make_shared<RegexpOr>(std::move(arg), std::make_shared<RegexpText>(""));
+		})
 		;
 
 	_parser.rule("regexp_concat") // vector<shared_ptr<RegexpUnit>>
