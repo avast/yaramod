@@ -1,5 +1,13 @@
 # Changelog
 
+# v3.20.0 (2023-06-13)
+
+* Add support for string module  ([#244](https://github.com/avast/yaramod/pull/244))
+* Fixed parsing of empty alternation groups ([#247](https://github.com/avast/yaramod/pull/247))
+* include <cstdint> every time std::<int_type> is used ([#246](https://github.com/avast/yaramod/pull/246))
+* Use the right python to create `WRAP_MODULE_SOURCES` ([#225](https://github.com/avast/yaramod/pull/225))
+* Improve release docs ([#243](https://github.com/avast/yaramod/pull/243))
+
 # v3.19.1 (2023-03-27)
 
 * Open json modules in read only mode ([#242](https://github.com/avast/yaramod/pull/242))
