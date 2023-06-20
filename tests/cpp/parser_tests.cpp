@@ -3533,7 +3533,8 @@ import "dotnet"
 rule dotnet_module
 {
 	condition:
-		dotnet.assembly.name == "Keylogger"
+		dotnet.assembly.name == "Keylogger" and
+		dotnet.guids[0] == "99c08ffd-f378-a891-10ab-c02fe11be6ef"
 }
 )");
 
@@ -3541,9 +3542,9 @@ rule dotnet_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("dotnet.assembly.name == \"Keylogger\"", rule->getCondition()->getText());
+	EXPECT_EQ("dotnet.assembly.name == \"Keylogger\" and dotnet.guids[0] == \"99c08ffd-f378-a891-10ab-c02fe11be6ef\"", rule->getCondition()->getText());
 	EXPECT_EQ("dotnet", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("Keylogger", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("99c08ffd-f378-a891-10ab-c02fe11be6ef", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
