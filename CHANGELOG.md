@@ -1,8 +1,12 @@
 # Changelog
 
+# v3.20.1 (2023-06-20)
+
+* fix: Correct the type of `dotnet.guids` to array ([#248](https://github.com/avast/yaramod/pull/248))
+
 # v3.20.0 (2023-06-13)
 
-* Add support for string module  ([#244](https://github.com/avast/yaramod/pull/244))
+* Add support for string module ([#244](https://github.com/avast/yaramod/pull/244))
 * Fixed parsing of empty alternation groups ([#247](https://github.com/avast/yaramod/pull/247))
 * include <cstdint> every time std::<int_type> is used ([#246](https://github.com/avast/yaramod/pull/246))
 * Use the right python to create `WRAP_MODULE_SOURCES` ([#225](https://github.com/avast/yaramod/pull/225))
