@@ -3533,8 +3533,63 @@ import "dotnet"
 rule dotnet_module
 {
 	condition:
+		dotnet.is_dotnet and
+		dotnet.version == "v2.0.50727" and
+		dotnet.module_name == "axs" and
+		dotnet.number_of_streams == 123 and
+		dotnet.streams[0].name == "#~" and
+		dotnet.streams[0].offset == 123 and
+		dotnet.streams[0].size == 123 and
+		dotnet.number_of_guids == 123 and
+		dotnet.guids[0] == "99c08ffd-f378-a891-10ab-c02fe11be6ef" and
+		dotnet.number_of_classes == 123 and
+		dotnet.classes[0].fullname == "Launcher.Program" and
+		dotnet.classes[0].name == "Launcher.Program" and
+		dotnet.classes[0].namespace == "test" and
+		dotnet.classes[0].visibility == "private" and
+		dotnet.classes[0].type == "class" and
+		dotnet.classes[0].abstract and
+		dotnet.classes[0].sealed and
+		dotnet.classes[0].number_of_generic_parameters == 123 and
+		dotnet.classes[0].generic_parameters[0] == "test" and
+		dotnet.classes[0].number_of_base_types == 123 and
+		dotnet.classes[0].base_types[0] == "test" and
+		dotnet.classes[0].number_of_methods == 123 and
+		dotnet.classes[0].methods[0].name == "test" and
+		dotnet.classes[0].methods[0].visibility == "public" and
+		dotnet.classes[0].methods[0].static and
+		dotnet.classes[0].methods[0].virtual and
+		dotnet.classes[0].methods[0].final and
+		dotnet.classes[0].methods[0].abstract and
+		dotnet.classes[0].methods[0].return_type == "test" and
+		dotnet.classes[0].methods[0].number_of_parameters == 123 and
+		dotnet.classes[0].methods[0].parameters[0].name == "test" and
+		dotnet.classes[0].methods[0].parameters[0].type == "test" and
+		dotnet.classes[0].methods[0].number_of_generic_parameters == 123 and
+		dotnet.classes[0].methods[0].generic_parameters[0] == "test" and
+		dotnet.number_of_resources == 123 and
+		dotnet.resources[0].offset == 0x4d5a and
+		dotnet.resources[0].length == 0x4d5a and
+		dotnet.resources[0].name == "test" and
+		dotnet.assembly.version.major == 7 and
+		dotnet.assembly.version.minor == 0 and
+		dotnet.assembly.version.build_number == 0 and
+		dotnet.assembly.version.revision_number == 0 and
 		dotnet.assembly.name == "Keylogger" and
-		dotnet.guids[0] == "99c08ffd-f378-a891-10ab-c02fe11be6ef"
+		dotnet.assembly.culture == "test" and
+		dotnet.number_of_modulerefs == 123 and
+		dotnet.modulerefs[0] == "kernel32" and
+		dotnet.typelib == "kernel32" and
+		dotnet.assembly_refs[0].version.major == 7 and
+		dotnet.assembly_refs[0].version.minor == 0 and
+		dotnet.assembly_refs[0].version.build_number == 0 and
+		dotnet.assembly_refs[0].version.revision_number == 0 and
+		dotnet.assembly_refs[0].name == "test" and
+		dotnet.assembly_refs[0].public_key_or_token == "test" and
+		dotnet.number_of_user_strings == 123 and
+		dotnet.user_strings[0] == "test" and
+		dotnet.number_of_field_offsets == 123 and
+		dotnet.field_offsets[0] == 8675309
 }
 )");
 
@@ -3542,9 +3597,9 @@ rule dotnet_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("dotnet.assembly.name == \"Keylogger\" and dotnet.guids[0] == \"99c08ffd-f378-a891-10ab-c02fe11be6ef\"", rule->getCondition()->getText());
+    EXPECT_EQ("dotnet.is_dotnet and dotnet.version == \"v2.0.50727\" and dotnet.module_name == \"axs\" and dotnet.number_of_streams == 123 and dotnet.streams[0].name == \"#~\" and dotnet.streams[0].offset == 123 and dotnet.streams[0].size == 123 and dotnet.number_of_guids == 123 and dotnet.guids[0] == \"99c08ffd-f378-a891-10ab-c02fe11be6ef\" and dotnet.number_of_classes == 123 and dotnet.classes[0].fullname == \"Launcher.Program\" and dotnet.classes[0].name == \"Launcher.Program\" and dotnet.classes[0].namespace == \"test\" and dotnet.classes[0].visibility == \"private\" and dotnet.classes[0].type == \"class\" and dotnet.classes[0].abstract and dotnet.classes[0].sealed and dotnet.classes[0].number_of_generic_parameters == 123 and dotnet.classes[0].generic_parameters[0] == \"test\" and dotnet.classes[0].number_of_base_types == 123 and dotnet.classes[0].base_types[0] == \"test\" and dotnet.classes[0].number_of_methods == 123 and dotnet.classes[0].methods[0].name == \"test\" and dotnet.classes[0].methods[0].visibility == \"public\" and dotnet.classes[0].methods[0].static and dotnet.classes[0].methods[0].virtual and dotnet.classes[0].methods[0].final and dotnet.classes[0].methods[0].abstract and dotnet.classes[0].methods[0].return_type == \"test\" and dotnet.classes[0].methods[0].number_of_parameters == 123 and dotnet.classes[0].methods[0].parameters[0].name == \"test\" and dotnet.classes[0].methods[0].parameters[0].type == \"test\" and dotnet.classes[0].methods[0].number_of_generic_parameters == 123 and dotnet.classes[0].methods[0].generic_parameters[0] == \"test\" and dotnet.number_of_resources == 123 and dotnet.resources[0].offset == 0x4d5a and dotnet.resources[0].length == 0x4d5a and dotnet.resources[0].name == \"test\" and dotnet.assembly.version.major == 7 and dotnet.assembly.version.minor == 0 and dotnet.assembly.version.build_number == 0 and dotnet.assembly.version.revision_number == 0 and dotnet.assembly.name == \"Keylogger\" and dotnet.assembly.culture == \"test\" and dotnet.number_of_modulerefs == 123 and dotnet.modulerefs[0] == \"kernel32\" and dotnet.typelib == \"kernel32\" and dotnet.assembly_refs[0].version.major == 7 and dotnet.assembly_refs[0].version.minor == 0 and dotnet.assembly_refs[0].version.build_number == 0 and dotnet.assembly_refs[0].version.revision_number == 0 and dotnet.assembly_refs[0].name == \"test\" and dotnet.assembly_refs[0].public_key_or_token == \"test\" and dotnet.number_of_user_strings == 123 and dotnet.user_strings[0] == \"test\" and dotnet.number_of_field_offsets == 123 and dotnet.field_offsets[0] == 8675309", rule->getCondition()->getText());
 	EXPECT_EQ("dotnet", rule->getCondition()->getFirstTokenIt()->getPureText());
-	EXPECT_EQ("99c08ffd-f378-a891-10ab-c02fe11be6ef", rule->getCondition()->getLastTokenIt()->getPureText());
+	EXPECT_EQ("8675309", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
