@@ -64,6 +64,195 @@
             "type": "i"
         },
         {
+            "kind": "value",
+            "name": "number_of_classes",
+            "documentation": "The number of classes in the file.",
+            "type": "i"
+        },
+        {
+            "kind": "array",
+            "name": "classes",
+            "documentation": "A zero-based array of .NET classes stored in the metadata. Individual classes can be accessed using the [] operator.",
+            "structure":
+            {
+                "kind": "struct",
+                "name": "classes",
+                "documentation": "",
+                "attributes": [
+                    {
+                        "kind": "value",
+                        "name": "fullname",
+                        "documentation": "Class full name.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "name",
+                        "documentation": "Class name.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "namespace",
+                        "documentation": "Class namespace.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "visibility",
+                        "documentation": "Class visibility specifier, options are: private, public, protected, internal, private protected and protected internal",
+                        "type" : "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "type",
+                        "documentation": "Type of the object, options are: class and interface",
+                        "type" : "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "abstract",
+                        "documentation": "Boolean representing if class is abstract.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "sealed",
+                        "documentation": "Boolean representing if class is sealed.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "number_of_generic_parameters",
+                        "documentation": "Number of generic parameters.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "array",
+                        "name": "generic_parameters",
+                        "documentation": "A zero-based array of generic parameters name. Individual parameters can be accessed using the [] operator.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "number_of_base_types",
+                        "documentation": "Number of the base types.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "array",
+                        "name": "base_types",
+                        "documentation": "A zero-based array of base types name. Individual base types can be accessed using the [] operator.",
+                        "type": "s"
+                    },
+                    {
+                        "kind": "value",
+                        "name": "number_of_methods",
+                        "documentation": "Number of the methods.",
+                        "type": "i"
+                    },
+                    {
+                        "kind": "array",
+                        "name": "methods",
+                        "documentation": "A zero-based array of method objects. Individual methods can be accessed by using the [] operator.",
+                        "structure":
+                        {
+                            "kind": "struct",
+                            "name": "methods",
+                            "documentation": "",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "name",
+                                    "documentation": "Method name.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "visibility",
+                                    "documentation": "Method visibility specifier, options are: private, public, protected, internal, private protected and protected internal",
+                                    "type" : "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "static",
+                                    "documentation": "Boolean representing if method is static.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "virtual",
+                                    "documentation": "Boolean representing if method is virtual.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "final",
+                                    "documentation": "Boolean representing if method is final.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "abstract",
+                                    "documentation": "Boolean representing if method is abstract.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "return_type",
+                                    "documentation": "Method return type name.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "number_of_parameters",
+                                    "documentation": "Number of the method parameters.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "parameters",
+                                    "documentation": "A zero-based array of method parameters. Individual parameters can be accessed by using the [] operator.",
+                                    "structure":
+                                    {
+                                        "kind": "struct",
+                                        "name": "parameters",
+                                        "documentation": "",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "name",
+                                                "documentation": "Parameter name.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "type",
+                                                "documentation": "Parameter type.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "number_of_generic_parameters",
+                                    "documentation": "Number of the method generic parameters.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "generic_parameters",
+                                    "documentation": "A zero-based array of method generic parameters. Individual parameters can be accessed by using the [] operator.",
+                                    "type": "s"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "kind": "array",
             "name": "resources",
             "documentation": "A zero-based array of resource objects, one for each resource the .NET file has. Individual resources can be accessed by using the [] operator. Example: ```uint16be(dotnet.resources[0].offset) == 0x4d5a```",
