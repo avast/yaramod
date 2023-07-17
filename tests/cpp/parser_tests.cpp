@@ -3182,7 +3182,7 @@ rule of_condition
 		$a = "dummy1"
 		$b = /dummy\d/
 	condition:
-		all of them at 0
+		any of them at 0
 }
 )");
 
