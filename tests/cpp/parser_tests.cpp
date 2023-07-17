@@ -3173,6 +3173,56 @@ rule of_condition
 }
 
 TEST_F(ParserTests,
+OfAtConditionWorks) {
+	prepareInput(
+R"(
+rule of_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = /dummy\d/
+	condition:
+		all of them at 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("all of them at 0", rule->getCondition()->getText());
+	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("0", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+OfAtWithStringSetConditionWorks) {
+	prepareInput(
+R"(
+rule of_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = /dummy\d/
+	condition:
+		1 of ($a, $b) at 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("1 of ($a, $b) at 3", rule->getCondition()->getText());
+	EXPECT_EQ("1", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("3", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 EmptyStringMetaValue) {
 	prepareInput(
 R"(
