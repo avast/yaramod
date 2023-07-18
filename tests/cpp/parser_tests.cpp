@@ -3190,8 +3190,8 @@ rule of_condition
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ("all of them at 0", rule->getCondition()->getText());
-	EXPECT_EQ("all", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("any of them at 0", rule->getCondition()->getText());
+	EXPECT_EQ("any", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ("0", rule->getCondition()->getLastTokenIt()->getPureText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
