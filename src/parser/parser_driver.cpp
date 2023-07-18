@@ -1346,6 +1346,25 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
+		.production("for_expression", "OF", "string_set", "AT", "primary_expression", [&](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto set = std::move(args[2].getExpression());
+			TokenIt at = args[3].getTokenIt();
+			Expression::Ptr offset = args[4].getExpression();
+
+			if (!offset->isInt()) {
+				std::stringstream ss;
+				ss << "Operator 'at' expects integer on the right-hand side of the expression. Got " << offset->getText() << ".";
+				error_handle(args[4].getTokenIt()->getLocation(), ss.str());
+			}
+
+			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), at, offset);
+			output->setType(Expression::Type::Bool);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
 		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt percent = args[1].getTokenIt();

@@ -1330,6 +1330,14 @@ private:
  * @code
  * all of ($str1, $str2)
  * @endcode
+ * 
+ * @code
+ * all of ($str1, $str2) in (0..10)
+ * @endcode
+ * 
+ * @code
+ * all of ($str1, $str2) at 100
+ * @endcode
  */
 class OfExpression : public ForExpression
 {
@@ -1340,18 +1348,18 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
-		, _in_symbol(std::nullopt)
-		, _range(nullptr)
+		, _location_symbol(std::nullopt)
+		, _location(nullptr)
 	{
 	}
 	/**
 	 * Constructor
 	 */
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt in_symbol, ExpPtr3&& range)
+	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt location_symbol, ExpPtr3&& location)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
-		, _in_symbol(in_symbol)
-		, _range(std::forward<ExpPtr3>(range))
+		, _location_symbol(location_symbol)
+		, _location(std::forward<ExpPtr3>(location))
 	{
 	}
 
@@ -1363,21 +1371,25 @@ public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		std::string output = _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent);
-		if (_range && _in_symbol.has_value())
-			output +=  " " + _in_symbol.value()->getString() + " " + _range->getText(indent);
+		if (_location && _location_symbol.has_value())
+			output +=  " " + _location_symbol.value()->getString() + " " + _location->getText(indent);
 		return output;
 	}
 
-	const Expression::Ptr& getRangeExpression() const { return _range; }
-	void setRangeExpression(const Expression::Ptr& range) { _range = range; }
-	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
+	const Expression::Ptr& getRangeExpression() const { return _location; }
+	void setRangeExpression(const Expression::Ptr& location) { _location = location; }
+	void setRangeExpression(Expression::Ptr&& location) { _location = std::move(location); }
+
+	const Expression::Ptr& getOffsetExpression() const { return _location; }
+	void setOffsetExpression(const Expression::Ptr& location) { _location = location; }
+	void setOffsetExpression(Expression::Ptr&& location) { _location = std::move(location); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _range ? _range->getLastTokenIt() : _iterable->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _location ? _location->getLastTokenIt() : _iterable->getLastTokenIt(); }
 
 private:
-	std::optional<TokenIt> _in_symbol; ///< Token holding "in"
-	Expression::Ptr _range; ///< Range expression
+	std::optional<TokenIt> _location_symbol; ///< Token holding "in" or "at"
+	Expression::Ptr _location; ///< Range expression (with "in") or integer expression (in combination with "at")
 };
 
 /**
