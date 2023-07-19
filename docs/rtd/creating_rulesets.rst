@@ -226,6 +226,8 @@ basic expressions and find the most suitable one.
         * ``for_loop(spec, var1, var2, set, body)`` - represents ``for`` loop over dictionary (``for_loop(any(), "k", "v", id("pe").access("version_info"), True)``)
         * ``for_loop(spec, set, body)`` - represents ``for`` loop over set of string references (``for_loop(any(), set({string_ref("$*")}), match_at("$", int_val(100))``)
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
+        * ``of(spec, set, range)`` - represents ``<spec> of <set> in <range>`` (``of(all(), them(), range(int_val(100), int_val(200)))``)
+        * ``of_at(spec, set, offset)`` - represents ``<spec> of <set> at <offset>`` (``of(all(), them(), int_val(200))``)
         * ``of(spec, iterable)`` - represents ``<spec> of <iterable>`` (``of(any(), iterable([bool_val(False), bool_val(True)]))``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(int_val(10))``)
         * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``)
@@ -342,6 +344,7 @@ basic expressions and find the most suitable one.
         * ``forLoop(spec, set, body)`` - represents ``for`` loop over set of string references (``forLoop(any(), set({stringRef("$*")}), matchAt("$", intVal(100))``)
         * ``of(spec, set)`` - represents ``<spec> of <set>`` (``of(all(), them())``)
         * ``of(spec, set, range)`` - represents ``<spec> of <set> in <range>`` (``of(all(), them(), range(intVal(100), intVal(200)))``)
+        * ``ofAt(spec, set, offset)`` - represents ``<spec> of <set> at <offset>`` (``of(all(), them(), intVal(200))``)
         * ``paren(expr, [newline])`` - represents parentheses around expressions and ``newline`` indicator for putting enclosed expression on its own line (``paren(intVal(10))``)
         * ``conjunction(terms, [newline])`` - represents conjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``conjunction({id("rule1"), id("rule2")})``). The ``terms`` parameter can be an array containing other expressions to be put together in the conjunction. But also ``terms`` can be an array of pairs, where each pair contains a term to be put in the conjunction and a comment, which will be associated with the term and printed on the same line
         * ``disjunction(terms, [newline])`` - represents disjunction of ``terms`` and optionally puts them on each separate line if ``newline`` is set (``disjunction({id("rule1"), id("rule2")})``). The ``terms`` parameter can be an array containing other expressions to be put together in the disjunction. But also ``terms`` can be an array of pairs, where each pair contains a term to be put in the disjunction and a comment, which will be associated with the term and printed on the same line

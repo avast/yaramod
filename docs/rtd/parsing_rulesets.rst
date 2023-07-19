@@ -363,7 +363,7 @@ All of these provide method ``getVariable()`` (``variable`` in Python) to return
   * ``ForDictExpression`` - refers to ``for`` which operates on dictionary (``for all k, v in some_dict : ( ... )``)
   * ``ForArrayExpression`` - refers to ``for`` which operates on array or set of integers (``for all section in pe.sections : ( ... )``)
   * ``ForStringExpression`` - refers to ``for`` which operates on set of string identifiers (``for all of ($str1, $str2) : ( ... )``)
-  * ``OfExpression`` - refers to ``of`` (``all of ($str1, $str2)`` or ``all of ($str1, $str2) in (filesize-500..filesize)``)
+  * ``OfExpression`` - refers to ``of`` (``all of ($str1, $str2)`` or ``all of ($str1, $str2) in (filesize-500..filesize)`` or ``any of ($str1, $str2) at 0``)
 
 **Identificator expressions**
 
