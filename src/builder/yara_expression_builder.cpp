@@ -1239,6 +1239,29 @@ YaraExpressionBuilder of(const YaraExpressionBuilder& quantifier, const YaraExpr
 }
 
 /**
+ * Creates the expression with match of the specified set of strings at given offset.
+ *
+ * @param quantifier All / Any / None expression.
+ * @param set Set expression.
+ * @param offset Offset expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder ofAt(const YaraExpressionBuilder& quantifier, const YaraExpressionBuilder& set, const YaraExpressionBuilder& offset)
+{
+	auto ts = std::make_shared<TokenStream>();
+	ts->moveAppend(quantifier.getTokenStream());
+	auto ofToken = ts->emplace_back(TokenType::OF, "of");
+	ts->moveAppend(set.getTokenStream());
+	auto atToken = ts->emplace_back(TokenType::OP_AT, "at");
+	ts->moveAppend(offset.getTokenStream());
+
+	auto expression = std::make_shared<OfExpression>(quantifier.get(), ofToken, set.get(), atToken, offset.get());
+
+	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Bool);
+}
+
+/**
  * Creates an iterable array of elements.
  *
  * @param elements Elements.
