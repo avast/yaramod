@@ -588,6 +588,35 @@ rule rule_with_variable_id_condition {
 	condition:
 		all of them in (filesize - 1024 .. filesize)
 }''')
+                         
+    def test_rule_with_of_at_offset_condition(self):
+        cond = yaramod.of_at(yaramod.any(), yaramod.them(), yaramod.int_val(10))
+        rule = self.new_rule \
+            .with_name('rule_with_of_in_range_condition') \
+            .with_plain_string('$a1', 'This is plain string 1.') \
+            .with_plain_string('$a2', 'This is plain string 2.') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_of_in_range_condition
+{
+	strings:
+		$a1 = "This is plain string 1."
+		$a2 = "This is plain string 2."
+	condition:
+		any of them at 10
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_of_in_range_condition {
+	strings:
+		$a1 = "This is plain string 1."
+		$a2 = "This is plain string 2."
+	condition:
+		any of them at 10
+}''')
 
     def test_rule_with_lt_condition(self):
         cond = yaramod.filesize() < yaramod.int_val(100)
