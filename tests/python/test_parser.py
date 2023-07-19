@@ -1297,8 +1297,9 @@ rule of_condition {
         self.assertTrue(isinstance(rule.condition.variable, yaramod.IntLiteralExpression))
         self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
         self.assertTrue(isinstance(rule.condition.offset, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.offset.value, 0)
         self.assertEqual(rule.condition.body, None)
-        self.assertEqual(rule.condition.text, '1 of ($a,$b) at 0')
+        self.assertEqual(rule.condition.text, '1 of ($a, $b) at 0')
 
     def test_string_with_invalid_utf8_sequences(self):
         yara_file = yaramod.Yaramod().parse_string(r'''

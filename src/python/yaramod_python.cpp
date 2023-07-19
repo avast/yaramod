@@ -705,7 +705,10 @@ void addExpressionClasses(py::module& module)
 	exprClass<OfExpression, ForExpression>(module, "OfExpression")
 		.def_property("range",
 				&OfExpression::getRangeExpression,
-				py::overload_cast<const Expression::Ptr&>(&OfExpression::setRangeExpression));
+				py::overload_cast<const Expression::Ptr&>(&OfExpression::setRangeExpression))
+		.def_property("offset",
+				&OfExpression::getOffsetExpression,
+				py::overload_cast<const Expression::Ptr&>(&OfExpression::setOffsetExpression));
 
 	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",
