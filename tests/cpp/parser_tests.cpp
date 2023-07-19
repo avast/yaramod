@@ -3098,6 +3098,54 @@ rule for_string_set_condition
 }
 
 TEST_F(ParserTests,
+ForStringLiteralSetConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", "hash2", "hash3") : ( pe.imphash() == s )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any s in (\"hash1\", \"hash2\", \"hash3\") : ( pe.imphash() == s )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForStringLiteralSetWithOneStringConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1") : ( pe.imphash() == s )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any s in (\"hash1\") : ( pe.imphash() == s )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 NoneOfThemConditionWorks) {
 	prepareInput(
 R"(
