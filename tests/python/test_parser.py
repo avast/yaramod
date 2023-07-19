@@ -1274,7 +1274,7 @@ rule of_condition {
         self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
         self.assertTrue(isinstance(rule.condition.iterable, yaramod.ThemExpression))
-        self.assertTrue(isinstance(rule.condition.offset, yaramod.IntLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.location, yaramod.IntLiteralExpression))
         self.assertEqual(rule.condition.body, None)
         self.assertEqual(rule.condition.text, 'any of them at 0')
 
@@ -1296,8 +1296,8 @@ rule of_condition {
         self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
         self.assertTrue(isinstance(rule.condition.variable, yaramod.IntLiteralExpression))
         self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
-        self.assertTrue(isinstance(rule.condition.offset, yaramod.IntLiteralExpression))
-        self.assertEqual(rule.condition.offset.value, 0)
+        self.assertTrue(isinstance(rule.condition.location, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.location.value, 0)
         self.assertEqual(rule.condition.body, None)
         self.assertEqual(rule.condition.text, '1 of ($a, $b) at 0')
 

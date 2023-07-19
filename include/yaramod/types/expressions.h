@@ -1377,22 +1377,22 @@ public:
 			output +=  " " + _location_symbol.value()->getString() + " " + _location->getText(indent);
 		return output;
 	}
-	
-	/**
-	 * Getter for location expression
-	 * @return Return location expression, it may be simple offset or range
-	 * @note It is named as getRangeExpression to be backward compatible
-	 */
-	const Expression::Ptr& getRangeExpression() const { return _location; }
-	void setRangeExpression(const Expression::Ptr& range) { _location = range; }
-	void setRangeExpression(Expression::Ptr&& range) { _location = std::move(range); }
 
 	/**
-	 * Getter for location expression, same as OfExpression::getRangeExpression
+	 * Getter for location expression
+	 * @return Return location expression
 	 */
-	const Expression::Ptr& getOffsetExpression() const { return _location; }
-	void setOffsetExpression(const Expression::Ptr& offset) { _location = offset; }
-	void setOffsetExpression(Expression::Ptr&& offset) { offset = std::move(offset); }
+	const Expression::Ptr& getLocationExpression() const { return _location; }
+	void setLocationExpression(const Expression::Ptr& location) { _location = location; }
+	void setLocationExpression(Expression::Ptr&& location) { _location = std::move(location); }
+	
+	/**
+	 * Same as OfExpression::getLocationExpression
+	 * @note It is named as getRangeExpression to preserve backward compatibility
+	 */
+	const Expression::Ptr& getRangeExpression() const { return getLocationExpression(); }
+	void setRangeExpression(const Expression::Ptr& range) { setLocationExpression(range); }
+	void setRangeExpression(Expression::Ptr&& range) { setLocationExpression(std::move(range)); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _location ? _location->getLastTokenIt() : _iterable->getLastTokenIt(); }
