@@ -1331,12 +1331,14 @@ private:
  * all of ($str1, $str2)
  * @endcode
  * 
+ * There can be also "in" with range:
  * @code
- * all of ($str1, $str2) in (0..10)
+ * any of ($str1, $str2) in (0..10)
  * @endcode
  * 
+ * Or "at" with offset (new in YARA 4.3):
  * @code
- * all of ($str1, $str2) at 100
+ * any of ($str1, $str2) at 100
  * @endcode
  */
 class OfExpression : public ForExpression
@@ -1375,21 +1377,30 @@ public:
 			output +=  " " + _location_symbol.value()->getString() + " " + _location->getText(indent);
 		return output;
 	}
-
+	
+	/**
+	 * Getter for location expression
+	 * @return Return location expression, it may be simple offset or range
+	 * @note It is named as getRangeExpression to be backward compatible
+	 */
 	const Expression::Ptr& getRangeExpression() const { return _location; }
-	void setRangeExpression(const Expression::Ptr& location) { _location = location; }
-	void setRangeExpression(Expression::Ptr&& location) { _location = std::move(location); }
+	void setRangeExpression(const Expression::Ptr& range) { _location = range; }
+	void setRangeExpression(Expression::Ptr&& range) { _location = std::move(range); }
 
+	/**
+	 * Getter for location expression, same as OfExpression::getRangeExpression
+	 */
 	const Expression::Ptr& getOffsetExpression() const { return _location; }
-	void setOffsetExpression(const Expression::Ptr& location) { _location = location; }
-	void setOffsetExpression(Expression::Ptr&& location) { _location = std::move(location); }
+	void setOffsetExpression(const Expression::Ptr& offset) { _location = offset; }
+	void setOffsetExpression(Expression::Ptr&& offset) { offset = std::move(offset); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _location ? _location->getLastTokenIt() : _iterable->getLastTokenIt(); }
 
 private:
+	// Range and offset expression is stored in the same member _location, there cannot be offset and range at the same time
 	std::optional<TokenIt> _location_symbol; ///< Token holding "in" or "at"
-	Expression::Ptr _location; ///< Range expression (with "in") or integer expression (in combination with "at")
+	Expression::Ptr _location; ///< Range expression ("in" <range>) or offset expression ("at" <offset>)
 };
 
 /**

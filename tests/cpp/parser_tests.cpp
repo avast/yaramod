@@ -3223,6 +3223,31 @@ rule of_condition
 }
 
 TEST_F(ParserTests,
+OfWithStringSetAndAtWithExpressionConditionWorks) {
+	prepareInput(
+R"(
+rule of_condition
+{
+	strings:
+		$a = "dummy1"
+		$b = /dummy\d/
+	condition:
+		any of ($a, $b) at filesize - 10
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("any of ($a, $b) at filesize - 10", rule->getCondition()->getText());
+	EXPECT_EQ("any", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("10", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 EmptyStringMetaValue) {
 	prepareInput(
 R"(
