@@ -3191,7 +3191,7 @@ rule for_string_literal_set_condition
 	catch (const ParserError& err)
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
-		EXPECT_EQ("Error at 7.27: all items in enumerations must be same type", err.getErrorMessage());
+		EXPECT_EQ("Error at 7.27: all items in enumeration must be same type", err.getErrorMessage());
 	}
 }
 

@@ -1141,7 +1141,7 @@ void ParserDriver::defineGrammar()
 			return output;
 		})
 		.production(
-			"FOR", "for_expression", "ID", "IN", "integer_set", [&](auto&& args) -> Value {
+			"FOR", "for_expression", "ID", "IN", "for_expression_set", [&](auto&& args) -> Value {
 				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
 				if (!addLocalSymbol(symbol))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
@@ -2143,8 +2143,8 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("integer_set") // Expression::Ptr
-		.production("LP", "integer_enumeration", "RP", [&](auto&& args) -> Value {
+	_parser.rule("for_expression_set") // Expression::Ptr
+		.production("LP", "for_expression_enumeration", "RP", [&](auto&& args) -> Value {
 			auto lp = args[0].getTokenIt();
 			auto rp = args[2].getTokenIt();
 			lp->setType(TokenType::LP_ENUMERATION);
@@ -2159,18 +2159,20 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("integer_enumeration") // vector<Expression::Ptr>
+	_parser.rule("for_expression_enumeration") // vector<Expression::Ptr>
 		.production("primary_expression", [&](auto&& args) -> Value {
 			auto expr = args[0].getExpression();
-			if (!expr->isInt())
-				error_handle(currentFileContext()->getLocation(), "integer set expects integer type");
+			if (!expr->isInt() && !expr->isString())
+				error_handle(currentFileContext()->getLocation(), "for expression set expects string or integer type");
 			return std::vector<Expression::Ptr>{std::move(expr)};
 		})
-		.production("integer_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
-			auto expr = args[2].getExpression();
-			if (!expr->isInt())
-				error_handle(currentFileContext()->getLocation(), "integer set expects integer type");
+		.production("for_expression_enumeration", "COMMA", "primary_expression", [&](auto&& args) -> Value {
 			auto output = std::move(args[0].getMultipleExpressions());
+			auto expr = args[2].getExpression();
+			if (!expr->isInt() && !expr->isString())
+				error_handle(currentFileContext()->getLocation(), "for expression set expects string or integer type");
+			if(output[0]->getType() != expr->getType())
+				error_handle(currentFileContext()->getLocation(), "all items in enumeration must be same type");
 			output.push_back(std::move(expr));
 			return output;
 		})
