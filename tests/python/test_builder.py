@@ -561,7 +561,7 @@ rule rule_with_variable_id_condition {
 }''')
 
     def test_rule_with_of_in_range_condition(self):
-        cond = yaramod.of(yaramod.all(), yaramod.them(), yaramod.range(yaramod.filesize() - yaramod.int_val(1024), yaramod.filesize()))
+        cond = yaramod.of_in_range(yaramod.all(), yaramod.them(), yaramod.range(yaramod.filesize() - yaramod.int_val(1024), yaramod.filesize()))
         rule = self.new_rule \
             .with_name('rule_with_of_in_range_condition') \
             .with_plain_string('$a1', 'This is plain string 1.') \
