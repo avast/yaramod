@@ -1367,6 +1367,37 @@ rule rule_with_dictionary_access_condition {
 	condition:
 		for any i in (1, 2, 3) : ( $1 at (entrypoint + i) )
 }''')
+                         
+    def test_rule_with_string_literal_set(self):
+        cond = yaramod.for_loop(
+                yaramod.any(),
+                's',
+                yaramod.set([
+                    yaramod.string_val('hash1'),
+                    yaramod.string_val('hash2'),
+                    yaramod.string_val('hash3')
+                ]),
+                yaramod.id('s') == yaramod.string_val('abc123')
+            )
+        rule = self.new_rule \
+            .with_name('rule_with_string_literal_set') \
+            .with_condition(cond.get()) \
+            .get()
+        yara_file = self.new_file \
+            .with_rule(rule) \
+            .get()
+
+
+        self.assertEqual(yara_file.text_formatted, '''rule rule_with_string_literal_set
+{
+	condition:
+		for any s in ("hash1", "hash2", "hash3") : ( s == "abc123" )
+}
+''')
+        self.assertEqual(yara_file.text, '''rule rule_with_string_literal_set {
+	condition:
+		for any s in ("hash1", "hash2", "hash3") : ( s == "abc123" )
+}''')
 
     def test_rule_with_string_modifiers(self):
         rule = self.new_rule \

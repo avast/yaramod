@@ -3098,6 +3098,104 @@ rule for_string_set_condition
 }
 
 TEST_F(ParserTests,
+ForStringLiteralSetConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", "hash2", "hash3") : ( pe.imphash() == s )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any s in (\"hash1\", \"hash2\", \"hash3\") : ( pe.imphash() == s )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForStringLiteralSetWithOneStringConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1") : ( pe.imphash() == s )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any s in (\"hash1\") : ( pe.imphash() == s )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForStringLiteralSetWithStringSymbolsConditionWorks) {
+	prepareInput(
+R"(
+import "pe"
+import "elf"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", elf.dynsym [ 0 ].name, pe.imphash ( )) : ( "abc123" == s )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("for any s in (\"hash1\", elf.dynsym[0].name, pe.imphash()) : ( \"abc123\" == s )", rule->getCondition()->getText());
+	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
+	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForExpressionSetWithItemsVariousTypesForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", 1, "hash3") : ( pe.imphash() == s )
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 7.27: all items in enumeration must be same type", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
 NoneOfThemConditionWorks) {
 	prepareInput(
 R"(

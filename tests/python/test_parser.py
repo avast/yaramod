@@ -1173,6 +1173,24 @@ rule for_integer_set_condition {
         self.assertTrue(isinstance(rule.condition.body, yaramod.IdExpression))
         self.assertEqual(rule.condition.text, 'for all i in (1, 2, 3) : ( i )')
 
+    def test_for_string_literal_set_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "pe"
+
+rule for_integer_set_condition {
+    condition:
+        for all i in ("hash1","hash2","hash3") : ( i == pe.imphash() )
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.ForArrayExpression))
+        self.assertTrue(isinstance(rule.condition.variable, yaramod.AllExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.body, yaramod.EqExpression))
+        self.assertEqual(rule.condition.text, 'for all i in ("hash1", "hash2", "hash3") : ( i == pe.imphash() )')
+
     def test_for_array_condition(self):
         yara_file = yaramod.Yaramod().parse_string('''
 import "pe"
