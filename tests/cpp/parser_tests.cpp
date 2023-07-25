@@ -3829,7 +3829,8 @@ rule pe_module
 	strings:
 		$a = { E8 00 00 00 00 }
 	condition:
-		$a at pe.entry_point_raw
+		$a at pe.entry_point_raw and
+		pe.rich_signature.version_data == "SomeVersionData"
 }
 )");
 
@@ -3837,7 +3838,7 @@ rule pe_module
 	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 
 	const auto& rule = driver.getParsedFile().getRules()[0];
-	EXPECT_EQ(R"($a at pe.entry_point_raw)", rule->getCondition()->getText());
+	EXPECT_EQ(R"($a at pe.entry_point_raw and pe.rich_signature.version_data == "SomeVersionData")", rule->getCondition()->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

@@ -1491,6 +1491,12 @@
                     "type": "s"
                 },
                 {
+                    "kind": "value",
+                    "name": "version_data",
+                    "documentation": "Version fields after being decrypted by XORing it with the key.",
+                    "type": "s"
+                },
+                {
                     "kind": "function",
                     "name": "version",
                     "documentation": "Function returning a sum of count values of all matching version records. Provide the optional toolid argument to only match when both match for one entry. More information can be found here: http://www.ntcore.com/files/richsign.htm Note: Prior to version 3.11.0, this function returns only a boolean value (0 or 1) if the given version and optional toolid is present in an entry. ```Example: pe.rich_signature.version(24215, 261) == 61```",
