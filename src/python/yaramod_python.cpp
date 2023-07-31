@@ -705,7 +705,10 @@ void addExpressionClasses(py::module& module)
 	exprClass<OfExpression, ForExpression>(module, "OfExpression")
 		.def_property("range",
 				&OfExpression::getRangeExpression,
-				py::overload_cast<const Expression::Ptr&>(&OfExpression::setRangeExpression));
+				py::overload_cast<const Expression::Ptr&>(&OfExpression::setRangeExpression))
+		.def_property("location",
+				&OfExpression::getLocationExpression,
+				py::overload_cast<const Expression::Ptr&>(&OfExpression::setLocationExpression));
 
 	exprClass<IterableExpression>(module, "IterableExpression")
 		.def_property("elements",
@@ -949,7 +952,8 @@ void addBuilderClasses(py::module& module)
 			const YaraExpressionBuilder&
 		>(&forLoop));
 	module.def("of", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&of));
-	module.def("of", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&of));
+	module.def("of_in_range", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&ofInRange));
+	module.def("of_at", py::overload_cast<const YaraExpressionBuilder&, const YaraExpressionBuilder&, const YaraExpressionBuilder&>(&ofAt));
 
 	module.def("iterable", &iterable);
 

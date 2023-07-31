@@ -842,6 +842,45 @@ RuleWithRangeWorks) {
 }
 
 TEST_F(BuilderTests,
+RuleWithOfAtWorks) {
+	auto cond = ofAt(any(), them(), intVal(10)).get();
+	EXPECT_EQ("any", cond->getFirstTokenIt()->getPureText());
+	EXPECT_EQ("10", cond->getLastTokenIt()->getPureText());
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_of_at")
+		.withPlainString("$1", "Hello World!")
+		.withPlainString("$2", "Ahoj Svet!")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_of_at {
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		any of them at 10
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_of_at
+{
+	strings:
+		$1 = "Hello World!"
+		$2 = "Ahoj Svet!"
+	condition:
+		any of them at 10
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 RuleWithStructureWorks) {
 	auto cond = (id("pe").access("number_of_sections") > intVal(1)).get();
 	EXPECT_EQ("pe", cond->getFirstTokenIt()->getPureText());
@@ -1725,7 +1764,7 @@ RuleWithNoneOfThemExpression) {
 
 TEST_F(BuilderTests,
 RuleWithNoneOfThemInRangeWorks) {
-	auto cond = of(none(), them(), range(intVal(0), filesize())).get();
+	auto cond = ofInRange(none(), them(), range(intVal(0), filesize())).get();
 	EXPECT_EQ("none", cond->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", cond->getLastTokenIt()->getPureText());
 

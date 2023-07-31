@@ -1330,6 +1330,16 @@ private:
  * @code
  * all of ($str1, $str2)
  * @endcode
+ * 
+ * There can be also "in" with range:
+ * @code
+ * any of ($str1, $str2) in (0..10)
+ * @endcode
+ * 
+ * Or "at" with offset (new in YARA 4.3):
+ * @code
+ * any of ($str1, $str2) at 100
+ * @endcode
  */
 class OfExpression : public ForExpression
 {
@@ -1340,18 +1350,18 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
-		, _in_symbol(std::nullopt)
-		, _range(nullptr)
+		, _location_symbol(std::nullopt)
+		, _location(nullptr)
 	{
 	}
 	/**
 	 * Constructor
 	 */
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
-	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt in_symbol, ExpPtr3&& range)
+	OfExpression(ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt location_symbol, ExpPtr3&& location)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
-		, _in_symbol(in_symbol)
-		, _range(std::forward<ExpPtr3>(range))
+		, _location_symbol(location_symbol)
+		, _location(std::forward<ExpPtr3>(location))
 	{
 	}
 
@@ -1363,21 +1373,34 @@ public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		std::string output = _forExpr->getText(indent) + " " + _of_in->getString() + " " + _iterable->getText(indent);
-		if (_range && _in_symbol.has_value())
-			output +=  " " + _in_symbol.value()->getString() + " " + _range->getText(indent);
+		if (_location && _location_symbol.has_value())
+			output +=  " " + _location_symbol.value()->getString() + " " + _location->getText(indent);
 		return output;
 	}
 
-	const Expression::Ptr& getRangeExpression() const { return _range; }
-	void setRangeExpression(const Expression::Ptr& range) { _range = range; }
-	void setRangeExpression(Expression::Ptr&& range) { _range = std::move(range); }
+	/**
+	 * Getter for location expression
+	 * @return Return location expression
+	 */
+	const Expression::Ptr& getLocationExpression() const { return _location; }
+	void setLocationExpression(const Expression::Ptr& location) { _location = location; }
+	void setLocationExpression(Expression::Ptr&& location) { _location = std::move(location); }
+	
+	/**
+	 * Same as OfExpression::getLocationExpression
+	 * @note It is named as getRangeExpression to preserve backward compatibility
+	 */
+	const Expression::Ptr& getRangeExpression() const { return getLocationExpression(); }
+	void setRangeExpression(const Expression::Ptr& range) { setLocationExpression(range); }
+	void setRangeExpression(Expression::Ptr&& range) { setLocationExpression(std::move(range)); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
-	virtual TokenIt getLastTokenIt() const override { return _range ? _range->getLastTokenIt() : _iterable->getLastTokenIt(); }
+	virtual TokenIt getLastTokenIt() const override { return _location ? _location->getLastTokenIt() : _iterable->getLastTokenIt(); }
 
 private:
-	std::optional<TokenIt> _in_symbol; ///< Token holding "in"
-	Expression::Ptr _range; ///< Range expression
+	// Range and offset expression is stored in the same member _location, there cannot be offset and range at the same time
+	std::optional<TokenIt> _location_symbol; ///< Token holding "in" or "at"
+	Expression::Ptr _location; ///< Range expression ("in" <range>) or offset expression ("at" <offset>)
 };
 
 /**

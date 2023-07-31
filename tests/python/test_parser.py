@@ -1274,6 +1274,51 @@ rule of_condition {
         self.assertEqual(rule.condition.body, None)
         self.assertEqual(rule.condition.text, '1 of ($a, $b)')
 
+    def test_of_at_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "pe"
+
+rule of_condition {
+    strings:
+        $a = "dummy1"
+        $b = "dummy2"
+    condition:
+        any of them at 0
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
+        self.assertTrue(isinstance(rule.condition.variable, yaramod.AnyExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.ThemExpression))
+        self.assertTrue(isinstance(rule.condition.location, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.body, None)
+        self.assertEqual(rule.condition.text, 'any of them at 0')
+
+    def test_of_at_with_string_set_condition(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+import "pe"
+
+rule of_condition {
+    strings:
+        $a = "dummy1"
+        $b = "dummy2"
+    condition:
+        1 of ($a,$b) at 0
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertTrue(isinstance(rule.condition, yaramod.OfExpression))
+        self.assertTrue(isinstance(rule.condition.variable, yaramod.IntLiteralExpression))
+        self.assertTrue(isinstance(rule.condition.iterable, yaramod.SetExpression))
+        self.assertTrue(isinstance(rule.condition.location, yaramod.IntLiteralExpression))
+        self.assertEqual(rule.condition.location.value, 0)
+        self.assertEqual(rule.condition.body, None)
+        self.assertEqual(rule.condition.text, '1 of ($a, $b) at 0')
+
     def test_string_with_invalid_utf8_sequences(self):
         yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_invalid_utf8_sequence {
