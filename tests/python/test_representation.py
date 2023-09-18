@@ -426,3 +426,67 @@ rule dummy_rule {
         self.assertEqual(version_overloads_names[0], ["version"])
         self.assertEqual(version_overloads_names[1], ["version", "toolid"])
         self.assertEqual(version_overloads_names[2], ["version", "test string argument"])
+
+    def test_set_tags_to_empty_list_on_a_rule_without_tags(self):
+        yara_file = yaramod.Yaramod().parse_string('''rule empty_rule
+{
+	condition:
+		true
+}''')
+        yara_file.rules[0].tags = []
+
+        expected = '''rule empty_rule
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_set_tags_to_empty_list(self):
+        yara_file = yaramod.Yaramod().parse_string('''rule empty_rule : test 
+{
+	condition:
+		true
+}''')
+        yara_file.rules[0].tags = []
+
+        expected = '''rule empty_rule
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_set_tags_on_a_rule_without_tags(self):
+        yara_file = yaramod.Yaramod().parse_string('''rule empty_rule
+{
+	condition:
+		true
+}''')
+        yara_file.rules[0].tags = ['foo', 'bar']
+
+        expected = '''rule empty_rule : foo bar
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_set_tags_on_a_rule_with_tags(self):
+        yara_file = yaramod.Yaramod().parse_string('''rule empty_rule : baz
+{
+	condition:
+		true
+}''')
+        yara_file.rules[0].tags = ['foo', 'bar']
+
+        expected = '''rule empty_rule : foo bar
+{
+	condition:
+		true
+}
+'''
+        self.assertEqual(expected, yara_file.text_formatted)

@@ -343,27 +343,42 @@ void Rule::setStringsTrie(const std::shared_ptr<StringsTrie>&& strings)
  */
 void Rule::setTags(const std::vector<std::string>& tags)
 {
-	TokenIt insert_before;
-	if (_tags.empty())
+	// If the rule contains tags, we remove them, so that we are in a clean
+	// state before setting new tags
+	if (!_tags.empty())
 	{
-		insert_before = std::find_if(_name, _tokenStream->end(),
-			[](const Token& t){ return t.getType() == TokenType::NEW_LINE || t.getType() == TokenType::RULE_BEGIN; }
-			);
-		assert(insert_before != _tokenStream->end() && "Called setTags on rule that does not contain '{'");
-		_tokenStream->emplace(insert_before, TokenType::COLON, ":");
-	}
-	else
-	{
-		//delete all tags from tokenStream
+		TokenIt colon = std::find_if(_name, _tokenStream->end(),
+			[](const Token& t){ return t.getType() == TokenType::COLON; }
+		);
+		assert(colon != _tokenStream->end() && "Called setTags on rule that does not contain ':' but has tags");
+		_tokenStream->erase(colon);
+
+		// Delete all current tags from TokenStream
 		for (const TokenIt& it : _tags)
-			insert_before = _tokenStream->erase(it);
+		_tokenStream->erase(it);
+
+		// Discard the current tags
+		_tags = std::vector<TokenIt>();
 	}
-	_tags = std::vector<TokenIt>();
-	// Insert new tags into TokenStream
-	for (const auto& tag : tags)
+
+	// If we want to set new tags, generate tokens for them
+	if (!tags.empty())
 	{
-		TokenIt tagIt = _tokenStream->insert(insert_before, TokenType::TAG, Literal(tag));
-		_tags.push_back(tagIt);
+		// Try to find where to place the tags
+		TokenIt insert_before = std::find_if(_name, _tokenStream->end(),
+			[](const Token& t){ return t.getType() == TokenType::NEW_LINE || t.getType() == TokenType::RULE_BEGIN; }
+		);
+		assert(insert_before != _tokenStream->end() && "Called setTags on rule that does not contain '{'");
+
+		// Generate `:` to separate rule name and tags
+		_tokenStream->emplace(insert_before, TokenType::COLON, ":");
+
+		// Insert the new tags into TokenStream
+		for (const auto& tag : tags)
+		{
+			TokenIt tagIt = _tokenStream->insert(insert_before, TokenType::TAG, Literal(tag));
+			_tags.push_back(tagIt);
+		}
 	}
 }
 
