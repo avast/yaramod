@@ -1,5 +1,10 @@
 # Changelog
 
+# v3.20.2 (2023-09-18)
+
+* fix: Deletion of tags no longer leaves trailing `:` ([#254](https://github.com/avast/yaramod/pull/254))
+* fix: Fixed missing attributes in `dotnet` module
+
 # v3.20.1 (2023-06-20)
 
 * fix: Correct the type of `dotnet.guids` to array ([#248](https://github.com/avast/yaramod/pull/248))
