@@ -3,7 +3,7 @@ import re
 import subprocess
 import sys
 
-from distutils.command.build import build
+from setuptools.command.build import build
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
