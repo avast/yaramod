@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.21.0 (2024-01-04)
+
+* Python 3.12 compatibility - the package no longer relies on `distutils` but requires newer versions of `setuptools`
+
 # v3.20.2 (2023-09-18)
 
 * fix: Deletion of tags no longer leaves trailing `:` ([#254](https://github.com/avast/yaramod/pull/254))
