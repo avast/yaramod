@@ -4,6 +4,1212 @@
     "attributes": [
         {
             "kind": "struct",
+            "name": "FileType",
+            "attributes": [
+                {
+                    "name": "ACE",
+                    "kind": "value",
+                    "documentation": "compressed ace",
+                    "type": "i"
+                },
+                {
+                    "name": "ANDROID",
+                    "kind": "value",
+                    "documentation": "executable mobile android apk",
+                    "type": "i"
+                },
+                {
+                    "name": "APPLE",
+                    "kind": "value",
+                    "documentation": "apple apple-gen",
+                    "type": "i"
+                },
+                {
+                    "name": "APPLE_PLIST",
+                    "kind": "value",
+                    "documentation": "apple appleplist",
+                    "type": "i"
+                },
+                {
+                    "name": "APPLEDOUBLE",
+                    "kind": "value",
+                    "documentation": "apple appledouble",
+                    "type": "i"
+                },
+                {
+                    "name": "APPLESINGLE",
+                    "kind": "value",
+                    "documentation": "apple applesingle",
+                    "type": "i"
+                },
+                {
+                    "name": "ARC",
+                    "kind": "value",
+                    "documentation": "compressed arc",
+                    "type": "i"
+                },
+                {
+                    "name": "ARJ",
+                    "kind": "value",
+                    "documentation": "compressed arj",
+                    "type": "i"
+                },
+                {
+                    "name": "ASD",
+                    "kind": "value",
+                    "documentation": "compressed asd",
+                    "type": "i"
+                },
+                {
+                    "name": "ASF",
+                    "kind": "value",
+                    "documentation": "multimedia video asf",
+                    "type": "i"
+                },
+                {
+                    "name": "AVI",
+                    "kind": "value",
+                    "documentation": "multimedia video avi",
+                    "type": "i"
+                },
+                {
+                    "name": "AWK",
+                    "kind": "value",
+                    "documentation": "source awk",
+                    "type": "i"
+                },
+                {
+                    "name": "BMP",
+                    "kind": "value",
+                    "documentation": "multimedia image bmp",
+                    "type": "i"
+                },
+                {
+                    "name": "BZIP",
+                    "kind": "value",
+                    "documentation": "compressed bzip",
+                    "type": "i"
+                },
+                {
+                    "name": "C",
+                    "kind": "value",
+                    "documentation": "source c",
+                    "type": "i"
+                },
+                {
+                    "name": "CAB",
+                    "kind": "value",
+                    "documentation": "compressed cab",
+                    "type": "i"
+                },
+                {
+                    "name": "CAP",
+                    "kind": "value",
+                    "documentation": "internet cap pcap",
+                    "type": "i"
+                },
+                {
+                    "name": "CHM",
+                    "kind": "value",
+                    "documentation": "help chm",
+                    "type": "i"
+                },
+                {
+                    "name": "COFF",
+                    "kind": "value",
+                    "documentation": "executable coff",
+                    "type": "i"
+                },
+                {
+                    "name": "COOKIE",
+                    "kind": "value",
+                    "documentation": "internet iecookie",
+                    "type": "i"
+                },
+                {
+                    "name": "CPP",
+                    "kind": "value",
+                    "documentation": "source cpp",
+                    "type": "i"
+                },
+                {
+                    "name": "CRX",
+                    "kind": "value",
+                    "documentation": "crx chrome extension browser",
+                    "type": "i"
+                },
+                {
+                    "name": "DEB",
+                    "kind": "value",
+                    "documentation": "executable linux deb",
+                    "type": "i"
+                },
+                {
+                    "name": "DIB",
+                    "kind": "value",
+                    "documentation": "multimedia image dib",
+                    "type": "i"
+                },
+                {
+                    "name": "DIVX",
+                    "kind": "value",
+                    "documentation": "multimedia video divx",
+                    "type": "i"
+                },
+                {
+                    "name": "DMG",
+                    "kind": "value",
+                    "documentation": "executable mac dmg",
+                    "type": "i"
+                },
+                {
+                    "name": "DOC",
+                    "kind": "value",
+                    "documentation": "document msoffice text word doc",
+                    "type": "i"
+                },
+                {
+                    "name": "DOCX",
+                    "kind": "value",
+                    "documentation": "document msoffice text word docx",
+                    "type": "i"
+                },
+                {
+                    "name": "DOS_COM",
+                    "kind": "value",
+                    "documentation": "executable dos com",
+                    "type": "i"
+                },
+                {
+                    "name": "DOS_EXE",
+                    "kind": "value",
+                    "documentation": "executable dos mz",
+                    "type": "i"
+                },
+                {
+                    "name": "DYALOG",
+                    "kind": "value",
+                    "documentation": "source dyalog",
+                    "type": "i"
+                },
+                {
+                    "name": "DZIP",
+                    "kind": "value",
+                    "documentation": "compressed dzip",
+                    "type": "i"
+                },
+                {
+                    "name": "EBOOK",
+                    "kind": "value",
+                    "documentation": "document ebook epub",
+                    "type": "i"
+                },
+                {
+                    "name": "ELF",
+                    "kind": "value",
+                    "documentation": "executable linux elf",
+                    "type": "i"
+                },
+                {
+                    "name": "EMAIL",
+                    "kind": "value",
+                    "documentation": "internet email",
+                    "type": "i"
+                },
+                {
+                    "name": "EMF",
+                    "kind": "value",
+                    "documentation": "multimedia image emf",
+                    "type": "i"
+                },
+                {
+                    "name": "EOT",
+                    "kind": "value",
+                    "documentation": "font opentype eof",
+                    "type": "i"
+                },
+                {
+                    "name": "FLAC",
+                    "kind": "value",
+                    "documentation": "multimedia audio flac",
+                    "type": "i"
+                },
+                {
+                    "name": "FLC",
+                    "kind": "value",
+                    "documentation": "multimedia animation flc",
+                    "type": "i"
+                },
+                {
+                    "name": "FLI",
+                    "kind": "value",
+                    "documentation": "multimedia animation fli",
+                    "type": "i"
+                },
+                {
+                    "name": "FLV",
+                    "kind": "value",
+                    "documentation": "multimedia video flv ",
+                    "type": "i"
+                },
+                {
+                    "name": "FORTRAN",
+                    "kind": "value",
+                    "documentation": "source fortran",
+                    "type": "i"
+                },
+                {
+                    "name": "FPX",
+                    "kind": "value",
+                    "documentation": "multimedia image fpx",
+                    "type": "i"
+                },
+                {
+                    "name": "GIF",
+                    "kind": "value",
+                    "documentation": "multimedia image gif",
+                    "type": "i"
+                },
+                {
+                    "name": "GIMP",
+                    "kind": "value",
+                    "documentation": "multimedia image gimp",
+                    "type": "i"
+                },
+                {
+                    "name": "GUL",
+                    "kind": "value",
+                    "documentation": "document samsungdoc text gul",
+                    "type": "i"
+                },
+                {
+                    "name": "GZIP",
+                    "kind": "value",
+                    "documentation": "compressed gzip",
+                    "type": "i"
+                },
+                {
+                    "name": "HTML",
+                    "kind": "value",
+                    "documentation": "internet html",
+                    "type": "i"
+                },
+                {
+                    "name": "HWP",
+                    "kind": "value",
+                    "documentation": "document hangul text hwp",
+                    "type": "i"
+                },
+                {
+                    "name": "ICO",
+                    "kind": "value",
+                    "documentation": "multimedia image ico",
+                    "type": "i"
+                },
+                {
+                    "name": "IN_DESIGN",
+                    "kind": "value",
+                    "documentation": "multimedia image indesign",
+                    "type": "i"
+                },
+                {
+                    "name": "IPHONE",
+                    "kind": "value",
+                    "documentation": "executable mobile iphone ios",
+                    "type": "i"
+                },
+                {
+                    "name": "ISOIMAGE",
+                    "kind": "value",
+                    "documentation": "compressed isoimage",
+                    "type": "i"
+                },
+                {
+                    "name": "JAR",
+                    "kind": "value",
+                    "documentation": "compressed jar",
+                    "type": "i"
+                },
+                {
+                    "name": "JAVA",
+                    "kind": "value",
+                    "documentation": "source java",
+                    "type": "i"
+                },
+                {
+                    "name": "JAVA_BYTECODE",
+                    "kind": "value",
+                    "documentation": "executable java-bytecode class",
+                    "type": "i"
+                },
+                {
+                    "name": "JAVASCRIPT",
+                    "kind": "value",
+                    "documentation": "source javascript",
+                    "type": "i"
+                },
+                {
+                    "name": "JNG",
+                    "kind": "value",
+                    "documentation": "multimedia image jng",
+                    "type": "i"
+                },
+                {
+                    "name": "JPEG",
+                    "kind": "value",
+                    "documentation": "multimedia image jpeg jpg",
+                    "type": "i"
+                },
+                {
+                    "name": "KGB",
+                    "kind": "value",
+                    "documentation": "compressed kgb",
+                    "type": "i"
+                },
+                {
+                    "name": "LATEX",
+                    "kind": "value",
+                    "documentation": "document latex",
+                    "type": "i"
+                },
+                {
+                    "name": "LINUX",
+                    "kind": "value",
+                    "documentation": "linux ",
+                    "type": "i"
+                },
+                {
+                    "name": "LINUX_KERNEL",
+                    "kind": "value",
+                    "documentation": "linux",
+                    "type": "i"
+                },
+                {
+                    "name": "LNK",
+                    "kind": "value",
+                    "documentation": "windows lnk",
+                    "type": "i"
+                },
+                {
+                    "name": "MACH_O",
+                    "kind": "value",
+                    "documentation": "executable mac macho",
+                    "type": "i"
+                },
+                {
+                    "name": "MACINTOSH",
+                    "kind": "value",
+                    "documentation": "apple macintosh mac macintosh-gen",
+                    "type": "i"
+                },
+                {
+                    "name": "MACINTOSH_HFS",
+                    "kind": "value",
+                    "documentation": "apple macintosh mac machfs",
+                    "type": "i"
+                },
+                {
+                    "name": "MACINTOSH_LIB",
+                    "kind": "value",
+                    "documentation": "apple mac maclib",
+                    "type": "i"
+                },
+                {
+                    "name": "MIDI",
+                    "kind": "value",
+                    "documentation": "multimedia audio midi",
+                    "type": "i"
+                },
+                {
+                    "name": "MOV",
+                    "kind": "value",
+                    "documentation": "multimedia video mov",
+                    "type": "i"
+                },
+                {
+                    "name": "MP3",
+                    "kind": "value",
+                    "documentation": "multimedia audio mp3",
+                    "type": "i"
+                },
+                {
+                    "name": "MP4",
+                    "kind": "value",
+                    "documentation": "multimedia audio mp4",
+                    "type": "i"
+                },
+                {
+                    "name": "MPEG",
+                    "kind": "value",
+                    "documentation": "multimedia video mpeg",
+                    "type": "i"
+                },
+                {
+                    "name": "MSCOMPRESS",
+                    "kind": "value",
+                    "documentation": "compressed mscompress",
+                    "type": "i"
+                },
+                {
+                    "name": "MSI",
+                    "kind": "value",
+                    "documentation": "installer windows msi",
+                    "type": "i"
+                },
+                {
+                    "name": "NE_DLL",
+                    "kind": "value",
+                    "documentation": "executable windows win16 ne nedll",
+                    "type": "i"
+                },
+                {
+                    "name": "NE_EXE",
+                    "kind": "value",
+                    "documentation": "executable windows win16 ne neexe",
+                    "type": "i"
+                },
+                {
+                    "name": "ODF",
+                    "kind": "value",
+                    "documentation": "document openoffice math odf",
+                    "type": "i"
+                },
+                {
+                    "name": "ODG",
+                    "kind": "value",
+                    "documentation": "document openoffice draw odg",
+                    "type": "i"
+                },
+                {
+                    "name": "ODP",
+                    "kind": "value",
+                    "documentation": "document openoffice presentation odp",
+                    "type": "i"
+                },
+                {
+                    "name": "ODS",
+                    "kind": "value",
+                    "documentation": "document openoffice spreadsheet ods",
+                    "type": "i"
+                },
+                {
+                    "name": "ODT",
+                    "kind": "value",
+                    "documentation": "document openoffice text odt",
+                    "type": "i"
+                },
+                {
+                    "name": "OGG",
+                    "kind": "value",
+                    "documentation": "multimedia video ogg",
+                    "type": "i"
+                },
+                {
+                    "name": "OUTLOOK",
+                    "kind": "value",
+                    "documentation": "internet email outlook",
+                    "type": "i"
+                },
+                {
+                    "name": "PALMOS",
+                    "kind": "value",
+                    "documentation": "executable mobile palmos",
+                    "type": "i"
+                },
+                {
+                    "name": "PASCAL",
+                    "kind": "value",
+                    "documentation": "source pascal",
+                    "type": "i"
+                },
+                {
+                    "name": "PDF",
+                    "kind": "value",
+                    "documentation": "document pdf",
+                    "type": "i"
+                },
+                {
+                    "name": "PE_DLL",
+                    "kind": "value",
+                    "documentation": "executable windows win32 pe pedll",
+                    "type": "i"
+                },
+                {
+                    "name": "PE_EXE",
+                    "kind": "value",
+                    "documentation": "executable windows win32 pe peexe",
+                    "type": "i"
+                },
+                {
+                    "name": "PERL",
+                    "kind": "value",
+                    "documentation": "source perl ",
+                    "type": "i"
+                },
+                {
+                    "name": "PHP",
+                    "kind": "value",
+                    "documentation": "source php",
+                    "type": "i"
+                },
+                {
+                    "name": "PKG",
+                    "kind": "value",
+                    "documentation": "executable mac pkg",
+                    "type": "i"
+                },
+                {
+                    "name": "PNG",
+                    "kind": "value",
+                    "documentation": "multimedia image png",
+                    "type": "i"
+                },
+                {
+                    "name": "PPSX",
+                    "kind": "value",
+                    "documentation": "document msoffice presentation powerpoint slideshow ppsx",
+                    "type": "i"
+                },
+                {
+                    "name": "PPT",
+                    "kind": "value",
+                    "documentation": "document msoffice presentation powerpoint ppt",
+                    "type": "i"
+                },
+                {
+                    "name": "PPTX",
+                    "kind": "value",
+                    "documentation": "document msoffice presentation powerpoint pptx",
+                    "type": "i"
+                },
+                {
+                    "name": "PS",
+                    "kind": "value",
+                    "documentation": "document ps postscript",
+                    "type": "i"
+                },
+                {
+                    "name": "PSD",
+                    "kind": "value",
+                    "documentation": "multimedia image photoshop psd",
+                    "type": "i"
+                },
+                {
+                    "name": "PYTHON",
+                    "kind": "value",
+                    "documentation": "source python",
+                    "type": "i"
+                },
+                {
+                    "name": "QUICKTIME",
+                    "kind": "value",
+                    "documentation": "multimedia video quicktime qt",
+                    "type": "i"
+                },
+                {
+                    "name": "RAR",
+                    "kind": "value",
+                    "documentation": "compressed rar",
+                    "type": "i"
+                },
+                {
+                    "name": "RM",
+                    "kind": "value",
+                    "documentation": "multimedia video realmedia rm",
+                    "type": "i"
+                },
+                {
+                    "name": "ROM",
+                    "kind": "value",
+                    "documentation": "rom bios firmware",
+                    "type": "i"
+                },
+                {
+                    "name": "RPM",
+                    "kind": "value",
+                    "documentation": "linux rpm",
+                    "type": "i"
+                },
+                {
+                    "name": "RTF",
+                    "kind": "value",
+                    "documentation": "document msoffice text word rtf",
+                    "type": "i"
+                },
+                {
+                    "name": "RUBY",
+                    "kind": "value",
+                    "documentation": "source ruby",
+                    "type": "i"
+                },
+                {
+                    "name": "RZIP",
+                    "kind": "value",
+                    "documentation": "compressed rzip",
+                    "type": "i"
+                },
+                {
+                    "name": "SCRIPT",
+                    "kind": "value",
+                    "documentation": "script",
+                    "type": "i"
+                },
+                {
+                    "name": "SEVENZIP",
+                    "kind": "value",
+                    "documentation": "compressed 7zip",
+                    "type": "i"
+                },
+                {
+                    "name": "SHELLSCRIPT",
+                    "kind": "value",
+                    "documentation": "script shell",
+                    "type": "i"
+                },
+                {
+                    "name": "SVG",
+                    "kind": "value",
+                    "documentation": "multimedia image svg",
+                    "type": "i"
+                },
+                {
+                    "name": "SWF",
+                    "kind": "value",
+                    "documentation": "internet flash swf",
+                    "type": "i"
+                },
+                {
+                    "name": "SYMBIAN",
+                    "kind": "value",
+                    "documentation": "executable mobile symbian",
+                    "type": "i"
+                },
+                {
+                    "name": "T3GP",
+                    "kind": "value",
+                    "documentation": "multimedia video 3gp",
+                    "type": "i"
+                },
+                {
+                    "name": "TAR",
+                    "kind": "value",
+                    "documentation": "compressed tar",
+                    "type": "i"
+                },
+                {
+                    "name": "TARGA",
+                    "kind": "value",
+                    "documentation": "multimedia image targa",
+                    "type": "i"
+                },
+                {
+                    "name": "TEXT",
+                    "kind": "value",
+                    "documentation": "text",
+                    "type": "i"
+                },
+                {
+                    "name": "TIFF",
+                    "kind": "value",
+                    "documentation": "multimedia image tiff",
+                    "type": "i"
+                },
+                {
+                    "name": "TORRENT",
+                    "kind": "value",
+                    "documentation": "link internet bittorrent",
+                    "type": "i"
+                },
+                {
+                    "name": "TTF",
+                    "kind": "value",
+                    "documentation": "font truetype ttf",
+                    "type": "i"
+                },
+                {
+                    "name": "WAV",
+                    "kind": "value",
+                    "documentation": "multimedia audio wav",
+                    "type": "i"
+                },
+                {
+                    "name": "WINCE",
+                    "kind": "value",
+                    "documentation": "executable mobile wince",
+                    "type": "i"
+                },
+                {
+                    "name": "WMA",
+                    "kind": "value",
+                    "documentation": "multimedia audio wma",
+                    "type": "i"
+                },
+                {
+                    "name": "WMV",
+                    "kind": "value",
+                    "documentation": "multimedia video wmv",
+                    "type": "i"
+                },
+                {
+                    "name": "WOFF",
+                    "kind": "value",
+                    "documentation": "font openfont woff",
+                    "type": "i"
+                },
+                {
+                    "name": "XLS",
+                    "kind": "value",
+                    "documentation": "document msoffice spreadsheet excel xls",
+                    "type": "i"
+                },
+                {
+                    "name": "XLSX",
+                    "kind": "value",
+                    "documentation": "document msoffice spreadsheet excel xlsx",
+                    "type": "i"
+                },
+                {
+                    "name": "XML",
+                    "kind": "value",
+                    "documentation": "internet xml",
+                    "type": "i"
+                },
+                {
+                    "name": "XPI",
+                    "kind": "value",
+                    "documentation": "browser extension firefox xpi",
+                    "type": "i"
+                },
+                {
+                    "name": "XWD",
+                    "kind": "value",
+                    "documentation": "multimedia image xwd",
+                    "type": "i"
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "BehaviourTrait",
+            "attributes": [
+                {
+                    "kind": "value",
+                    "name": "BIG_UPSTREAM",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_BIOS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_CPU_NAME",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_DISK_SPACE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_GPS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_HOSTNAME",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_MEMORY_AVAILABLE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_NETWORK_ADAPTERS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_PCI_BUS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CHECKS_USB_BUS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CLIPBOARD",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CRYPTO",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "DECRYPTS_EXE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "DETECT_DEBUG_ENVIRONMENT",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "DIRECT_CPU_CLOCK_ACCESS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "EXECUTES_DROPPED_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "FTP_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "HOSTS_MODIFIER",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "INSTALLS_BROWSER_EXTENSION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "IRC_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "LONG_SLEEPS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_ANTI_ANALYSIS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_COPY_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_CREATE_DIR",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_CREATE_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_CREATE_OLE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_DOWNLOAD_URL",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_ENUM_WINDOWS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_ENVIRON",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_HANDLE_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_HIDE_APP",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_OPEN_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_POWERSHELL",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_REGISTRY",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_RUN_DLL",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_RUN_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_SAVE_WORKBOOK",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_SEND_KEYS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MACRO_WRITE_FILE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MYSQL_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "OBFUSCATED",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "PASSWORD_DIALOG",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "PERSISTENCE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "REFLECTION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "RUNTIME_MODULES",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SELF_DELETE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SENDS_SMS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SMTP_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SSH_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SUDO",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SUSPICIOUS_DNS",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SUSPICIOUS_UDP",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "TELEPHONY",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "TELNET_COMMUNICATION",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "TUNNELING",
+                    "documentation": "",
+                    "type": "i"
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "BehaviourVerdict",
+            "attributes": [
+                {
+                    "kind": "value",
+                    "name": "ADWARE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "BANKER",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "CLEAN",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "EVADER",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "EXPLOIT",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "GREYWARE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "MALWARE",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "PHISHING",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "RANSOM",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "RAT",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "SPREADER",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "TROJAN",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "UNKNOWN_VERDICT",
+                    "documentation": "",
+                    "type": "i"
+                }
+            ]
+        },
+        {
+            "kind": "struct",
             "name": "metadata",
             "attributes": [
                 {
@@ -47,6 +1253,306 @@
                     "name": "first_submission_date",
                     "documentation": "Date on which the file was submitted to VirusTotal for the first time, as a UNIX timestamp.",
                     "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "file_name",
+                    "documentation": "File's name as it was last submitted to VirusTotal.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "file_size",
+                    "documentation": "File size in bytes.",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "file_type",
+                    "documentation": "One of the types listed in the file types table (vt.FileType).",
+                    "type": "i"
+                },
+                {
+                    "kind": "array",
+                    "name": "file_type_tags",
+                    "documentation": "Tags associated to the file's type, as listed in the file types table.",
+                    "type": "s"
+                },
+                {
+                    "kind": "struct",
+                    "name": "goresym",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "version",
+                            "documentation": "Version of the Golang compiler used.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "arch",
+                            "documentation": "Target architecture for a Golang binary.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "os",
+                            "documentation": "Target OS for a Golang binary.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "build_id",
+                            "documentation": "Build ID of Golang binary.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "build_info",
+                            "attributes": [
+                                {
+                                    "kind": "array",
+                                    "name": "deps",
+                                    "documentation": "Golang binary's dependencies. TODO: This type is wrong.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "path",
+                                    "documentation": "Golang package path.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "settings",
+                                    "documentation": "Dictionary where keys are setting names and values are the setting value.",
+                                    "type": "s"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "summary",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "num_dependencies",
+                                    "documentation": "Total number of dependencies for a Golang binary.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "num_interfaces",
+                                    "documentation": "Total number of interfaces in a Golang binary.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "num_types",
+                                    "documentation": "Total number of types in a Golang binary.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "num_std_functions",
+                                    "documentation": "Number of functions from standard library used by a Golang binary.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "num_user_functions",
+                                    "documentation": "Number of user-defined functions in a Golang binary.",
+                                    "type": "i"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "kind": "value",
+                    "name": "imphash",
+                    "documentation": "File's import hash.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "new_file",
+                    "documentation": "(Boolean) True if the file is being submitted to VirusTotal for the first time.",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "magic",
+                    "documentation": "File's type as returned by Linux's file command.",
+                    "type": "s"
+                },
+                {
+                    "kind": "struct",
+                    "name": "main_icon",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "dhash",
+                            "documentation": "Hash that clusters together files with similar icons or thumbnails.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "raw_md5",
+                            "documentation": "MD5 of the icon associated to the file.",
+                            "type": "s"
+                        }
+                    ]
+                },
+                {
+                    "kind": "array",
+                    "name": "malware_families",
+                    "documentation": "List of family names produced from a malware config extraction process. Samples with malware configs can be obtained searching have:malware_config, family names will be displayed in the detections tab under \"Malware config detection\" or in the details tab under \"Malware configuration file\" where there is the full report.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "md5",
+                    "documentation": "File's MD5.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "sha1",
+                    "documentation": "File's SHA1.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "sha256",
+                    "documentation": "File's SHA256.",
+                    "type": "s"
+                },
+                {
+                    "kind": "dictionary",
+                    "name": "signatures",
+                    "documentation": "Dictionary where keys are antivirus names and values are malware signatures. The casing for both antivirus names and signatures is exactly as they appear in the web reports or API responses.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "ssdeep",
+                    "documentation": "File's ssdeep hash.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "subfile",
+                    "documentation": "(Boolean) True if the file being scanned is not the one submitted to VirusTotal but one derived from it. For example, when a PE file packed with UPX is submitted to VirusTotal, both the original file and the unpacked file are scanned. This is true for the unpacked file and false for the original packed one.",
+                    "type": "i"
+                },
+                {
+                    "kind": "struct",
+                    "name": "submitter",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "city",
+                            "documentation": "City from where the file was submitted, referred to the last submission. All lowercases.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "country",
+                            "documentation": "Country from where the file was submitted, referred to the last submission. This is a two-letter ISO 3166 country code, in uppercase.",
+                            "type": "s"
+                        }
+                    ]
+                },
+                {
+                    "kind": "array",
+                    "name": "tags",
+                    "documentation": "File's tags.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "telfhash",
+                    "documentation": "File's telfhash.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "tlsh",
+                    "documentation": "File's tlsh hash.",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "times_submitted",
+                    "documentation": "Number of times the file has been submitted to VirusTotal. This is 1 for the first submission.",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "unique_sources",
+                    "documentation": "Number of unique sources that have submitted this file.",
+                    "type": "i"
+                },
+                {
+                    "kind": "value",
+                    "name": "vhash",
+                    "documentation": "File's vhash.",
+                    "type": "s"
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "behaviour",
+            "attributes": [
+                {
+                    "kind": "array",
+                    "name": "calls_highlighted",
+                    "documentation": "API calls that are worth remarking because they are suspicious (e.g. \"android.media.AudioRecord.startRecording\", \"GetTickCount\").",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "text_highlighted",
+                    "documentation": "Text that can provide further context about the file, this might be windows titles, dialogs, outputs streams, etc.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "text_decoded",
+                    "documentation": "Strings that are either encoded or decoded during the observed time frame, we just record the decoded strings in plain form.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "traits",
+                    "documentation": "List that contains a subset of the values listed in the behaviour traits table.",
+                    "type": "i"
+                },
+                {
+                    "kind": "array",
+                    "name": "invokes",
+                    "documentation": "",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "verdicts",
+                    "documentation": "Some sandboxes produce a verdict based on the file behaviour. This list contains one or more of the values listed in the behaviour verdicts table.",
+                    "type": "i"
+                },
+                {
+                    "kind": "array",
+                    "name": "verdicts_labels",
+                    "documentation": "List that contains the verdicts labels based on the file behaviour sandboxes.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "mitre_attack_techniques",
+                    "documentation": "String containing the mitre attack techniques.",
+                    "type": "s"
                 }
             ]
         }
