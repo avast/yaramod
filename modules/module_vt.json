@@ -1909,6 +1909,437 @@
                     "type": "s"
                 }
             ]
+        },
+        {
+            "kind": "struct",
+            "name": "net",
+            "attributes": [
+                {
+                    "kind": "struct",
+                    "name": "url",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "raw",
+                            "documentation": "The URL in canonical form.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "path",
+                            "documentation": "Path part of the current URL.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "query",
+                            "documentation": "Raw URL query string.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "hostname",
+                            "documentation": "Hostname part of the current URL.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "new_url",
+                            "documentation": "(Boolean) Wether the URL is observed for the first time or not.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "first_submission_date",
+                            "documentation": "UNIX UTC timestamp for the URL's first submission date.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "params",
+                            "documentation": "Parsed URL GET params.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "port",
+                            "documentation": "The port in which the URL is accessed.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "trackers",
+                            "documentation": "All trackers found in the URL. TODO: array of structs",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "response_headers",
+                            "documentation": "Headers returned when making a request to the URL.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "number_of_response_headers",
+                            "documentation": "Amount of response headers.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "response_code",
+                            "documentation": "HTTP status code seen when making a request to the URL.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "cookies",
+                            "documentation": "Request cookies.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "favicon",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "raw_md5",
+                                    "documentation": "MD5 hash of the URL's favicon. To find a property raw md5 search VT for its URL and check details. Retrieving raw_md5.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "dhash",
+                                    "documentation": "The URL's favicon dhash. To find a property dhash search VT for its URL and check details. Retrieving dhash.",
+                                    "type": "s"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "array",
+                            "name": "outgoing_links",
+                            "documentation": "Links included in the URL’s response pointing to URLs from other domains.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "redirects",
+                            "documentation": "List of redirecting URLs visited until reaching the final one.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "html_title",
+                            "documentation": "Text found under the URL’s returned HTML <title> tag.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "html_meta_tags",
+                            "documentation": "Values found under the meta tags in the returned HTML.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "tags",
+                            "documentation": "Tags defining interesting features of the URL.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "analysis_stats",
+                            "documentation": "Analysis Stats Struct info.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "malicious",
+                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "suspicious",
+                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "undetected",
+                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "harmless",
+                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "timeout",
+                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "confirmed_timeout",
+                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "failure",
+                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "type_unsupported",
+                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                    "type": "i"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "categories",
+                            "documentation": "Content categories of its domain by engine.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "signatures",
+                            "documentation": "Signature returned by the engine.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "downloaded_file",
+                            "documentation": "Metadata from the latest file downloaded from the URL.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_vt",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_url",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_domain",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_ip",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "sha256",
+                                    "documentation": "Latest downloaded file SHA256.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "file_type",
+                                    "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "signatures",
+                                    "documentation": "Signature returned by the engine.",
+                                    "type": "s"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "communicating_file",
+                            "documentation": "Signature returned by the engine.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_vt",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_url",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_domain",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_ip",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "sha256",
+                                    "documentation": "Latest downloaded file SHA256.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "file_type",
+                                    "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "array",
+                            "name": "embedded_resources",
+                            "documentation": "TODO: array of structs.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "submitter",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "city",
+                                    "documentation": "City from where the file was submitted, referred to the last submission. All lowercases.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "country",
+                                    "documentation": "Country from where the file was submitted, referred to the last submission. This is a two-letter ISO 3166 country code, in uppercase.",
+                                    "type": "s"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
