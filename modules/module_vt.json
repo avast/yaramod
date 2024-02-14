@@ -1210,6 +1210,132 @@
         },
         {
             "kind": "struct",
+            "name": "Http",
+            "attributes": [
+                {
+                    "kind": "struct",
+                    "name": "Method",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "GET",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "HEAD",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "PATCH",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "POST",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "PUT",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "DELETE",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "TRACE",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "OPTIONS",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "CONNECT",
+                            "documentation": "",
+                            "type": "i"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "struct",
+            "name": "Net",
+            "attributes": [
+                {
+                    "kind": "struct",
+                    "name": "Protocol",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.ICMP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.IGMP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.TCP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.UDP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.ESP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.AH",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protocol.L2TP",
+                            "documentation": "",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "vt.Net.Protoco.SCTP",
+                            "documentation": "",
+                            "type": "i"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "struct",
             "name": "metadata",
             "attributes": [
                 {
@@ -1552,6 +1678,234 @@
                     "kind": "array",
                     "name": "mitre_attack_techniques",
                     "documentation": "String containing the mitre attack techniques.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_attribute_changed",
+                    "documentation": "Paths of the files whose attributes have changed.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_copied",
+                    "documentation": "Structures with information about files that have been copied. TODO: This in array of structs.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_deleted",
+                    "documentation": "Paths of the files that have been deleted.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_dropped",
+                    "documentation": "Structures with information about files that have been dropped. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_opened",
+                    "documentation": "Paths of the files that have been opened.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "files_written",
+                    "documentation": "Paths of the files that have been written.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "dns_lookups",
+                    "documentation": "List of DNS resolutions performed. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "value",
+                    "name": "hosts_file",
+                    "documentation": "Content of the \"hosts\" file.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "ip_traffic",
+                    "documentation": "List of established IP connections.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "http_conversations",
+                    "documentation": "List of HTTP requests performed. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "smtp_conversations",
+                    "documentation": "List of SMTP requests performed. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "tls",
+                    "documentation": "TLS attributes.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "permissions_checked",
+                    "documentation": "Permissions checked by the application. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "permissions_requested",
+                    "documentation": "Permissions requested by the application.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "command_executions",
+                    "documentation": "Commands executed, including their command-line arguments.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "modules_loaded",
+                    "documentation": "Modules or libraries dynamically loaded (e.g. DLLs loaded with LoadLibrary in Windows, DEX and .class files dynamically loaded in Android).",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "mutexes_created",
+                    "documentation": "Mutexes created.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "mutexes_opened",
+                    "documentation": "Mutexes opened.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "processes_created",
+                    "documentation": "Processes created.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "processes_injected",
+                    "documentation": "Processes in which some kind of code was injected. For instance, in Window this is commonly done using CreateRemoteThread.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "processes_killed",
+                    "documentation": "Processes that were explicitly killed.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "processes_terminated",
+                    "documentation": "Processes that terminated during the observed time, not necessarily killed.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "signals_hooked",
+                    "documentation": "Signals hooked. In Windows this includes the windows messages hooked with SetWindowsHook and the string contains both the hook type and the function used (i.e \"WH_KEYBOARD - SetWindowsHook\").",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "signals_observed",
+                    "documentation": "From the signals hooked which were actually observed.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "services_bound",
+                    "documentation": "Service binding applies only to Android. A bind operation takes a component, an action, and potentially multiple extras.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "services_created",
+                    "documentation": "Services created. In some OSes services are simply any program that runs in the background without user interaction.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "services_opened",
+                    "documentation": "Services opened.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "services_started",
+                    "documentation": "Services started.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "services_stopped",
+                    "documentation": "Services stopped.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "registry_keys_deleted",
+                    "documentation": "Deleted registry keys.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "registry_keys_opened",
+                    "documentation": "Opened registry keys.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "registry_keys_set",
+                    "documentation": "Modified registry keys and their new values. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "shared_preferences_lookups",
+                    "documentation": "Shared preferences that have been read.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "shared_preferences_sets",
+                    "documentation": "Shared preferences that have been modified. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "system_property_lookups",
+                    "documentation": "System properties that have been read.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "system_property_sets",
+                    "documentation": "System properties that have been modified. TODO: array of structs",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "windows_hidden",
+                    "documentation": "Information about windows that have been hidden. The string contains the caption of the hidden Window and the name of the process owning the window.",
+                    "type": "s"
+                },
+                {
+                    "kind": "array",
+                    "name": "windows_searched",
+                    "documentation": "Windows that have been searched for (e.g. using FindWindow). The strings can contain the window's name, the window's class name, or both.",
                     "type": "s"
                 }
             ]
