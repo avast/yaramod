@@ -1773,7 +1773,7 @@
                                 {
                                     "kind": "array",
                                     "name": "outgoing_links",
-                                    "documentation": "Links included in the URL’s response pointing to URLs from other domains.",
+                                    "documentation": "Links included in the URL's response pointing to URLs from other domains.",
                                     "type": "s"
                                 },
                                 {
@@ -1785,7 +1785,7 @@
                                 {
                                     "kind": "value",
                                     "name": "html_title",
-                                    "documentation": "Text found under the URL’s returned HTML <title> tag.",
+                                    "documentation": "Text found under the URL's returned HTML <title> tag.",
                                     "type": "s"
                                 },
                                 {
@@ -1887,7 +1887,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -1991,7 +1991,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -2420,7 +2420,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -2524,7 +2524,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -3085,7 +3085,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -3189,7 +3189,7 @@
                                         {
                                             "kind": "value",
                                             "name": "new_for_domain",
-                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                             "type": "i"
                                         },
                                         {
@@ -3975,7 +3975,7 @@
                         {
                             "kind": "array",
                             "name": "outgoing_links",
-                            "documentation": "Links included in the URL’s response pointing to URLs from other domains.",
+                            "documentation": "Links included in the URL's response pointing to URLs from other domains.",
                             "type": "s"
                         },
                         {
@@ -3987,7 +3987,7 @@
                         {
                             "kind": "value",
                             "name": "html_title",
-                            "documentation": "Text found under the URL’s returned HTML <title> tag.",
+                            "documentation": "Text found under the URL's returned HTML <title> tag.",
                             "type": "s"
                         },
                         {
@@ -4089,7 +4089,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
@@ -4193,7 +4193,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
@@ -4622,7 +4622,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
@@ -4726,7 +4726,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
@@ -5287,7 +5287,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
@@ -5391,7 +5391,7 @@
                                 {
                                     "kind": "value",
                                     "name": "new_for_domain",
-                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL's domain.",
                                     "type": "i"
                                 },
                                 {
