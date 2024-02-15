@@ -1642,6 +1642,1634 @@
                     "name": "vhash",
                     "documentation": "File's vhash.",
                     "type": "s"
+                },
+                {
+                    "kind": "struct",
+                    "name": "itw",
+                    "attributes": [
+                        {
+                            "kind": "struct",
+                            "name": "url",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "raw",
+                                    "documentation": "The URL in canonical form.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "path",
+                                    "documentation": "Path part of the current URL.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "query",
+                                    "documentation": "Raw URL query string.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "hostname",
+                                    "documentation": "Hostname part of the current URL.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_url",
+                                    "documentation": "(Boolean) Wether the URL is observed for the first time or not.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "first_submission_date",
+                                    "documentation": "UNIX UTC timestamp for the URL's first submission date.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "params",
+                                    "documentation": "Parsed URL GET params.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "port",
+                                    "documentation": "The port in which the URL is accessed.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "trackers",
+                                    "documentation": "All trackers found in the URL.",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "trackers",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "name",
+                                                "documentation": "Tracker name.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "id",
+                                                "documentation": "Tracker assigned unique ID.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "url",
+                                                "documentation": "URL the tracker is loaded from.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "response_headers",
+                                    "documentation": "Headers returned when making a request to the URL.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "number_of_response_headers",
+                                    "documentation": "Amount of response headers.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "response_code",
+                                    "documentation": "HTTP status code seen when making a request to the URL.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "cookies",
+                                    "documentation": "Request cookies.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "favicon",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "raw_md5",
+                                            "documentation": "MD5 hash of the URL's favicon. To find a property raw md5 search VT for its URL and check details. Retrieving raw_md5.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "dhash",
+                                            "documentation": "The URL's favicon dhash. To find a property dhash search VT for its URL and check details. Retrieving dhash.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "outgoing_links",
+                                    "documentation": "Links included in the URL’s response pointing to URLs from other domains.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "redirects",
+                                    "documentation": "List of redirecting URLs visited until reaching the final one.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "html_title",
+                                    "documentation": "Text found under the URL’s returned HTML <title> tag.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "html_meta_tags",
+                                    "documentation": "Values found under the meta tags in the returned HTML.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "tags",
+                                    "documentation": "Tags defining interesting features of the URL.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "categories",
+                                    "documentation": "Content categories of its domain by engine.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "signatures",
+                                    "documentation": "Signature returned by the engine.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "downloaded_file",
+                                    "documentation": "Metadata from the latest file downloaded from the URL.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "dictionary",
+                                            "name": "signatures",
+                                            "documentation": "Signature returned by the engine.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "communicating_file",
+                                    "documentation": "Signature returned by the engine.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "embedded_resources",
+                                    "documentation": "Embedded resources.",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "embedded_resources",
+                                        "attributes": [
+                                            {
+                                                "kind": "struct",
+                                                "name": "analysis_stats",
+                                                "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                                "attributes": [
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "malicious",
+                                                        "documentation": "Amount of engine returning malicious in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "suspicious",
+                                                        "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "undetected",
+                                                        "documentation": "Amount of engine returning undetected in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "harmless",
+                                                        "documentation": "Amount of engine returning harmless in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "timeout",
+                                                        "documentation": "Amount of engine returning timeout in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "confirmed_timeout",
+                                                        "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "failure",
+                                                        "documentation": "Amount of engine that failed during the analysis process.",
+                                                        "type": "i"
+                                                    },
+                                                    {
+                                                        "kind": "value",
+                                                        "name": "type_unsupported",
+                                                        "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                        "type": "i"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "file_type",
+                                                "documentation": "Resource file type (one of the types listed in the file types table).",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "dictionary",
+                                                "name": "signatures",
+                                                "documentation": "Signature returned by the engine.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "submitter",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "city",
+                                            "documentation": "City from where the file was submitted, referred to the last submission. All lowercases.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "country",
+                                            "documentation": "Country from where the file was submitted, referred to the last submission. This is a two-letter ISO 3166 country code, in uppercase.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "ip",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "raw",
+                                    "documentation": "The raw IP as string.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "whois",
+                                    "documentation": "Whois record in key, value format.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "whois_raw",
+                                    "documentation": "Whole IP whois as a string for pattern matching.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_whois",
+                                    "documentation": "(Boolean) IP has an updated whois.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "reverse_lookup",
+                                    "documentation": "Domain observed resolving to this IP address for first time. Creating a feed of domain IP resolutions.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "jarm",
+                                    "documentation": "TLS fingerprint.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "https_certificate",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "thumbprint",
+                                            "documentation": "Certificate thumbprint.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "subject",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "common_name",
+                                                    "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "country",
+                                                    "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organization",
+                                                    "documentation": "The organization to which the certificate has been issued.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organizational_unit",
+                                                    "documentation": "Additional information about the certified organization.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "locality",
+                                                    "documentation": "The city where the certified organization is located.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "state",
+                                                    "documentation": "The state where the certified organization is located.",
+                                                    "type": "s"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "validity",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "not_after",
+                                                    "documentation": "Timestamp after which the certificate is no longer valid, in seconds since the Unix epoch.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "not_before",
+                                                    "documentation": "Timestamp at which the certificate becomes valid, in seconds since the Unix epoch.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "subject_alternative_name",
+                                            "documentation": "Subject alternative name.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "signature",
+                                            "documentation": "Certificate singature.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "serial_number",
+                                            "documentation": "Certificate serial number.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "issuer",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "common_name",
+                                                    "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "country",
+                                                    "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organization",
+                                                    "documentation": "The organization to which the certificate has been issued.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organizational_unit",
+                                                    "documentation": "Additional information about the certified organization.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "locality",
+                                                    "documentation": "The city where the certified organization is located.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "state",
+                                                    "documentation": "The state where the certified organization is located.",
+                                                    "type": "s"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "signatures",
+                                    "documentation": "Signature returned by the engine.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "downloaded_file",
+                                    "documentation": "Metadata from the latest file downloaded from the URL.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "dictionary",
+                                            "name": "signatures",
+                                            "documentation": "Signature returned by the engine.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "communicating_file",
+                                    "documentation": "Signature returned by the engine.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "ip_as_owner",
+                                    "documentation": "IP AS (Autonomous System) owner.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "ip_asn",
+                                    "documentation": "Autonomous System Number.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "ip_country",
+                                    "documentation": "IP Country.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "ip_as_int",
+                                    "documentation": "IP dotless decimal number notation.",
+                                    "type": "i"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "domain",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "raw",
+                                    "documentation": "Domain as a string.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "root",
+                                    "documentation": "Root part of the domain, ie: sub2.sub.root.tld -> root.tld.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_domain",
+                                    "documentation": "(Boolean) Domain is first seen in VT, not necessarily still exists.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "first_resolution",
+                                    "documentation": "(Boolean) Domain resolves to an IP for first time.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_resolution",
+                                    "documentation": "(Boolean) Domain resolves to a different IP.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "whois",
+                                    "documentation": "Whois record in key, value format.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "whois_raw",
+                                    "documentation": "Whois record in key, value format.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "first_whois",
+                                    "documentation": "(Boolean) Domain has whois for first time.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_whois",
+                                    "documentation": "(Boolean) Domain has whois for first time.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "https_certificate",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "thumbprint",
+                                            "documentation": "Certificate thumbprint.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "subject",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "common_name",
+                                                    "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "country",
+                                                    "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organization",
+                                                    "documentation": "The organization to which the certificate has been issued.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organizational_unit",
+                                                    "documentation": "Additional information about the certified organization.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "locality",
+                                                    "documentation": "The city where the certified organization is located.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "state",
+                                                    "documentation": "The state where the certified organization is located.",
+                                                    "type": "s"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "validity",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "not_after",
+                                                    "documentation": "Timestamp after which the certificate is no longer valid, in seconds since the Unix epoch.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "not_before",
+                                                    "documentation": "Timestamp at which the certificate becomes valid, in seconds since the Unix epoch.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "subject_alternative_name",
+                                            "documentation": "Subject alternative name.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "signature",
+                                            "documentation": "Certificate singature.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "serial_number",
+                                            "documentation": "Certificate serial number.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "issuer",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "common_name",
+                                                    "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "country",
+                                                    "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organization",
+                                                    "documentation": "The organization to which the certificate has been issued.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "organizational_unit",
+                                                    "documentation": "Additional information about the certified organization.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "locality",
+                                                    "documentation": "The city where the certified organization is located.",
+                                                    "type": "s"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "state",
+                                                    "documentation": "The state where the certified organization is located.",
+                                                    "type": "s"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "jarm",
+                                    "documentation": "TLS fingerprint",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "dns_records",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "dns_records",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "value",
+                                                "documentation": "DNS record resolution.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "type",
+                                                "documentation": "Record type.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "dns_class",
+                                                "documentation": "Class (IN, CH or HS).",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "ttl",
+                                                "documentation": "TTL (in seconds).",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "mname",
+                                                "documentation": "Primary name server.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "rname",
+                                                "documentation": "E-mail address of the administrator.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "priority",
+                                                "documentation": "Priority",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "serial",
+                                                "documentation": "Serial number.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "retry",
+                                                "documentation": "Number of seconds after which secondary name servers should retry to request the serial number from the master if the master does not respond.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "refresh",
+                                                "documentation": "Seconds after which secondary name servers should query the master for the SOA record, to detect zone changes.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "expire",
+                                                "documentation": "Seconds after which secondary name servers should stop answering request for this zone if the master does not respond.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "minimum",
+                                                "documentation": "In seconds. Used in calculating the TTL for purposes of negative caching.",
+                                                "type": "i"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "favicon",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "raw_md5",
+                                            "documentation": "MD5 hash of the URL's favicon. To find a property raw md5 search VT for its URL and check details. Retrieving raw_md5.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "dhash",
+                                            "documentation": "The URL's favicon dhash. To find a property dhash search VT for its URL and check details. Retrieving dhash.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "tags",
+                                    "documentation": "Tags related to the domain object.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "categories",
+                                    "documentation": "Content categories by engine.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "popularity_ranks",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "popularity_ranks",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "position",
+                                                "documentation": "Position of the domain in a specific popularity rank. Low numbers (closer to 1) indicate that the domain is more popular.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "ingestion_time",
+                                                "documentation": "UNIX UTC timestamp at which the position in the rank was ingested.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "rank",
+                                                "documentation": "Name of the popularity rank.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "number_of_popularity_ranks",
+                                    "documentation": "Number of popularity ranks entries for the domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "array",
+                                    "name": "root_popularity_ranks",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "popularity_ranks",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "position",
+                                                "documentation": "Position of the root domain in a specific popularity rank. Low numbers (closer to 1) indicate that the domain is more popular.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "ingestion_time",
+                                                "documentation": "UNIX UTC timestamp at which the position in the rank was ingested.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "rank",
+                                                "documentation": "Name of the popularity rank.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "number_of_root_popularity_ranks",
+                                    "documentation": "Number of popularity ranks entries for the root domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "signatures",
+                                    "documentation": "Dictionary where keys are antivirus names and values are malware signatures (in lowercase).",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "downloaded_file",
+                                    "documentation": "Metadata from the latest file downloaded from the URL.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "kind": "dictionary",
+                                            "name": "signatures",
+                                            "documentation": "Signature returned by the engine.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "communicating_file",
+                                    "documentation": "Signature returned by the engine.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_vt",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_url",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_domain",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "new_for_ip",
+                                            "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "sha256",
+                                            "documentation": "Latest downloaded file SHA256.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "file_type",
+                                            "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "struct",
+                                            "name": "analysis_stats",
+                                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                            "attributes": [
+                                                {
+                                                    "kind": "value",
+                                                    "name": "malicious",
+                                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "suspicious",
+                                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "undetected",
+                                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "harmless",
+                                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "timeout",
+                                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "confirmed_timeout",
+                                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "failure",
+                                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                                    "type": "i"
+                                                },
+                                                {
+                                                    "kind": "value",
+                                                    "name": "type_unsupported",
+                                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                    "type": "i"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -3077,7 +4705,7 @@
                                     "type": "s"
                                 }
                             ]
-                        },                        
+                        },
                         {
                             "kind": "struct",
                             "name": "communicating_file",
@@ -3199,6 +4827,647 @@
                             "name": "ip_as_int",
                             "documentation": "IP dotless decimal number notation.",
                             "type": "i"
+                        }
+                    ]
+                },
+                {
+                    "kind": "struct",
+                    "name": "domain",
+                    "attributes": [
+                        {
+                            "kind": "value",
+                            "name": "raw",
+                            "documentation": "Domain as a string.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "root",
+                            "documentation": "Root part of the domain, ie: sub2.sub.root.tld -> root.tld.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "new_domain",
+                            "documentation": "(Boolean) Domain is first seen in VT, not necessarily still exists.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "first_resolution",
+                            "documentation": "(Boolean) Domain resolves to an IP for first time.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "new_resolution",
+                            "documentation": "(Boolean) Domain resolves to a different IP.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "whois",
+                            "documentation": "Whois record in key, value format.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "whois_raw",
+                            "documentation": "Whois record in key, value format.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "first_whois",
+                            "documentation": "(Boolean) Domain has whois for first time.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "value",
+                            "name": "new_whois",
+                            "documentation": "(Boolean) Domain has whois for first time.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "https_certificate",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "thumbprint",
+                                    "documentation": "Certificate thumbprint.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "subject",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "common_name",
+                                            "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "country",
+                                            "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "organization",
+                                            "documentation": "The organization to which the certificate has been issued.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "organizational_unit",
+                                            "documentation": "Additional information about the certified organization.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "locality",
+                                            "documentation": "The city where the certified organization is located.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "state",
+                                            "documentation": "The state where the certified organization is located.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "validity",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "not_after",
+                                            "documentation": "Timestamp after which the certificate is no longer valid, in seconds since the Unix epoch.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "not_before",
+                                            "documentation": "Timestamp at which the certificate becomes valid, in seconds since the Unix epoch.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "subject_alternative_name",
+                                    "documentation": "Subject alternative name.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "signature",
+                                    "documentation": "Certificate singature.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "serial_number",
+                                    "documentation": "Certificate serial number.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "issuer",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "common_name",
+                                            "documentation": "Common name, also known as the Fully Qualified Domain Name (FQDN), of the subject that is certified.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "country",
+                                            "documentation": "Two-letter country code that identifies the country of the subject that is certified.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "organization",
+                                            "documentation": "The organization to which the certificate has been issued.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "organizational_unit",
+                                            "documentation": "Additional information about the certified organization.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "locality",
+                                            "documentation": "The city where the certified organization is located.",
+                                            "type": "s"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "state",
+                                            "documentation": "The state where the certified organization is located.",
+                                            "type": "s"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "value",
+                            "name": "jarm",
+                            "documentation": "TLS fingerprint",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "dns_records",
+                            "structure": {
+                                "kind": "struct",
+                                "name": "dns_records",
+                                "attributes": [
+                                    {
+                                        "kind": "value",
+                                        "name": "value",
+                                        "documentation": "DNS record resolution.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "type",
+                                        "documentation": "Record type.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "dns_class",
+                                        "documentation": "Class (IN, CH or HS).",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "ttl",
+                                        "documentation": "TTL (in seconds).",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "mname",
+                                        "documentation": "Primary name server.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "rname",
+                                        "documentation": "E-mail address of the administrator.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "priority",
+                                        "documentation": "Priority",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "serial",
+                                        "documentation": "Serial number.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "retry",
+                                        "documentation": "Number of seconds after which secondary name servers should retry to request the serial number from the master if the master does not respond.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "refresh",
+                                        "documentation": "Seconds after which secondary name servers should query the master for the SOA record, to detect zone changes.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "expire",
+                                        "documentation": "Seconds after which secondary name servers should stop answering request for this zone if the master does not respond.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "minimum",
+                                        "documentation": "In seconds. Used in calculating the TTL for purposes of negative caching.",
+                                        "type": "i"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "favicon",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "raw_md5",
+                                    "documentation": "MD5 hash of the URL's favicon. To find a property raw md5 search VT for its URL and check details. Retrieving raw_md5.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "dhash",
+                                    "documentation": "The URL's favicon dhash. To find a property dhash search VT for its URL and check details. Retrieving dhash.",
+                                    "type": "s"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "array",
+                            "name": "tags",
+                            "documentation": "Tags related to the domain object.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "analysis_stats",
+                            "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "malicious",
+                                    "documentation": "Amount of engine returning malicious in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "suspicious",
+                                    "documentation": "Amount of engine returning suspicious in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "undetected",
+                                    "documentation": "Amount of engine returning undetected in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "harmless",
+                                    "documentation": "Amount of engine returning harmless in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "timeout",
+                                    "documentation": "Amount of engine returning timeout in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "confirmed_timeout",
+                                    "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "failure",
+                                    "documentation": "Amount of engine that failed during the analysis process.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "type_unsupported",
+                                    "documentation": "Amount of engine that do not support the file/IoC type.",
+                                    "type": "i"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "categories",
+                            "documentation": "Content categories by engine.",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "popularity_ranks",
+                            "structure": {
+                                "kind": "struct",
+                                "name": "popularity_ranks",
+                                "attributes": [
+                                    {
+                                        "kind": "value",
+                                        "name": "position",
+                                        "documentation": "Position of the domain in a specific popularity rank. Low numbers (closer to 1) indicate that the domain is more popular.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "ingestion_time",
+                                        "documentation": "UNIX UTC timestamp at which the position in the rank was ingested.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "rank",
+                                        "documentation": "Name of the popularity rank.",
+                                        "type": "s"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "kind": "value",
+                            "name": "number_of_popularity_ranks",
+                            "documentation": "Number of popularity ranks entries for the domain.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "array",
+                            "name": "root_popularity_ranks",
+                            "structure": {
+                                "kind": "struct",
+                                "name": "popularity_ranks",
+                                "attributes": [
+                                    {
+                                        "kind": "value",
+                                        "name": "position",
+                                        "documentation": "Position of the root domain in a specific popularity rank. Low numbers (closer to 1) indicate that the domain is more popular.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "ingestion_time",
+                                        "documentation": "UNIX UTC timestamp at which the position in the rank was ingested.",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "rank",
+                                        "documentation": "Name of the popularity rank.",
+                                        "type": "s"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "kind": "value",
+                            "name": "number_of_root_popularity_ranks",
+                            "documentation": "Number of popularity ranks entries for the root domain.",
+                            "type": "i"
+                        },
+                        {
+                            "kind": "dictionary",
+                            "name": "signatures",
+                            "documentation": "Dictionary where keys are antivirus names and values are malware signatures (in lowercase).",
+                            "type": "s"
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "downloaded_file",
+                            "documentation": "Metadata from the latest file downloaded from the URL.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_vt",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_url",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_domain",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_ip",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "sha256",
+                                    "documentation": "Latest downloaded file SHA256.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "file_type",
+                                    "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "dictionary",
+                                    "name": "signatures",
+                                    "documentation": "Signature returned by the engine.",
+                                    "type": "s"
+                                }
+                            ]
+                        },
+                        {
+                            "kind": "struct",
+                            "name": "communicating_file",
+                            "documentation": "Signature returned by the engine.",
+                            "attributes": [
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_vt",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen in VT.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_url",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from that particular URL.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_domain",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the URL’s domain.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "new_for_ip",
+                                    "documentation": "(Boolean) Indicates that the file has not been previously seen being downloaded from the IP the URL resolves to.",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "sha256",
+                                    "documentation": "Latest downloaded file SHA256.",
+                                    "type": "s"
+                                },
+                                {
+                                    "kind": "value",
+                                    "name": "file_type",
+                                    "documentation": "Latest downloaded file's type (one of the types listed in the file types table).",
+                                    "type": "i"
+                                },
+                                {
+                                    "kind": "struct",
+                                    "name": "analysis_stats",
+                                    "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                    "attributes": [
+                                        {
+                                            "kind": "value",
+                                            "name": "malicious",
+                                            "documentation": "Amount of engine returning malicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "suspicious",
+                                            "documentation": "Amount of engine returning suspicious in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "undetected",
+                                            "documentation": "Amount of engine returning undetected in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "harmless",
+                                            "documentation": "Amount of engine returning harmless in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "timeout",
+                                            "documentation": "Amount of engine returning timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "confirmed_timeout",
+                                            "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "failure",
+                                            "documentation": "Amount of engine that failed during the analysis process.",
+                                            "type": "i"
+                                        },
+                                        {
+                                            "kind": "value",
+                                            "name": "type_unsupported",
+                                            "documentation": "Amount of engine that do not support the file/IoC type.",
+                                            "type": "i"
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 }
