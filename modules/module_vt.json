@@ -1284,49 +1284,49 @@
                     "attributes": [
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.ICMP",
+                            "name": "ICMP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.IGMP",
+                            "name": "IGMP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.TCP",
+                            "name": "TCP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.UDP",
+                            "name": "UDP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.ESP",
+                            "name": "ESP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.AH",
+                            "name": "AH",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protocol.L2TP",
+                            "name": "L2TP",
                             "documentation": "",
                             "type": "i"
                         },
                         {
                             "kind": "value",
-                            "name": "vt.Net.Protoco.SCTP",
+                            "name": "SCTP",
                             "documentation": "",
                             "type": "i"
                         }
@@ -1439,8 +1439,25 @@
                                 {
                                     "kind": "array",
                                     "name": "deps",
-                                    "documentation": "Golang binary's dependencies. TODO: This type is wrong.",
-                                    "type": "s"
+                                    "documentation": "Golang binary's dependencies.",
+                                    "structure": {
+                                        "kind": "struct",
+                                        "name": "deps",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "path",
+                                                "documentation": "Golang package path.",
+                                                "type": "s"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "version",
+                                                "documentation": "Version of the dependency package used.",
+                                                "type": "s"
+                                            }
+                                        ]
+                                    }
                                 },
                                 {
                                     "kind": "value",
@@ -1689,8 +1706,25 @@
                 {
                     "kind": "array",
                     "name": "files_copied",
-                    "documentation": "Structures with information about files that have been copied. TODO: This in array of structs.",
-                    "type": "s"
+                    "documentation": "Structures with information about files that have been copied.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "files_copied",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "source",
+                                "documentation": "Path where the file was copied from.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination",
+                                "documentation": "Path where the file was copied to.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1701,8 +1735,31 @@
                 {
                     "kind": "array",
                     "name": "files_dropped",
-                    "documentation": "Structures with information about files that have been dropped. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "Structures with information about files that have been dropped.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "files_dropped",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "path",
+                                "documentation": "Path of the dropped file.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "sha256",
+                                "documentation": "SHA-256 of the dropped file.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "type",
+                                "documentation": "Type of the dropped file.",
+                                "type": "i"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1719,8 +1776,25 @@
                 {
                     "kind": "array",
                     "name": "dns_lookups",
-                    "documentation": "List of DNS resolutions performed. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "List of DNS resolutions performed.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "dns_lookups",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "hostname",
+                                "documentation": "Hostname in the DNS lookup request.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "List of IP address returned for the requested hostname.",
+                                "documentation": "List of IP address returned for the requested hostname.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "value",
@@ -1732,19 +1806,184 @@
                     "kind": "array",
                     "name": "ip_traffic",
                     "documentation": "List of established IP connections.",
-                    "type": "s"
+                    "structure": {
+                        "kind": "struct",
+                        "name": "ip_traffic",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "destination_ip",
+                                "documentation": "Destination IP address.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination_ip_as_int",
+                                "documentation": "Destination IP address dotless decimal number notation.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination_ip_asn",
+                                "documentation": "Destination IP Autonomous System Number.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination_port",
+                                "documentation": "Destination port.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "transport_layer_protocol",
+                                "documentation": "One of the constants listed in network protocols (vt.Net.Protocol).",
+                                "type": "i"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
                     "name": "http_conversations",
-                    "documentation": "List of HTTP requests performed. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "List of HTTP requests performed.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "http_conversations",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "url",
+                                "documentation": "Requested URL.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "request_method",
+                                "documentation": "One of the constants listed in vt.Http.Method.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "dictionary",
+                                "name": "request_headers",
+                                "documentation": "HTTP request headers. Notice that dictionary keys are case-sensitive and therefore request_headers[\"user-agent\"] is not the same than request_headers[\"User-Agent\"]. The header name appears as reported by the sandbox.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "dictionary",
+                                "name": "response_headers",
+                                "documentation": "HTTP response headers. Notice that dictionary keys are case-sensitive and therefore request_headers[\"user-agent\"] is not the same than request_headers[\"User-Agent\"]. The header name appears as reported by the sandbox.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "response_status_code",
+                                "documentation": "HTTP status code returned by the server.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "response_body_filetype",
+                                "documentation": "HTTP status code returned by the server.",
+                                "type": "i"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
                     "name": "smtp_conversations",
-                    "documentation": "List of SMTP requests performed. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "List of SMTP requests performed.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "smtp_conversations",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "hostname",
+                                "documentation": "Host name of the SMTP server.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination_ip",
+                                "documentation": "IP address of the SMTP server.",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "destination_port",
+                                "documentation": "Port number of the SMTP server (usually 25).",
+                                "type": "i"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "smtp_from",
+                                "documentation": "MAIL FROM: field in the SMTP protocol.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "smtp_to",
+                                "documentation": "MAIL TO: field in the SMTP protocol.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "message_from",
+                                "documentation": "\"from\" field in message header.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "message_to",
+                                "documentation": "\"to\" field in message header.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "message_cc",
+                                "documentation": "\"cc\" field in message header.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "array",
+                                "name": "message_bcc",
+                                "documentation": "\"bcc\" field in message header.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "timestamp",
+                                "documentation": "Message timestamp. Example: \"Thu, 16 Jul 2020 6:1:58 GMT\".",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "subject",
+                                "documentation": "Message subject.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "html_body",
+                                "documentation": "Message body in HTML form.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "txt_body",
+                                "documentation": "Message body in text form.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "x_mailer",
+                                "documentation": "Program used for sending the email. Same than \"X-Mailer\" header.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1755,8 +1994,25 @@
                 {
                     "kind": "array",
                     "name": "permissions_checked",
-                    "documentation": "Permissions checked by the application. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "Permissions checked by the application.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "permissions_checked",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "permission",
+                                "documentation": "Permission checked, example: \"android.permission.INTERNET\".",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "owner",
+                                "documentation": "",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1869,8 +2125,25 @@
                 {
                     "kind": "array",
                     "name": "registry_keys_set",
-                    "documentation": "Modified registry keys and their new values. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "Modified registry keys and their new values.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "registry_keys_set",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "key",
+                                "documentation": "Registry key.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "value",
+                                "documentation": "New value for registry key.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1881,8 +2154,25 @@
                 {
                     "kind": "array",
                     "name": "shared_preferences_sets",
-                    "documentation": "Shared preferences that have been modified. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "Shared preferences that have been modified.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "shared_preferences_sets",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "key",
+                                "documentation": "Shared preference key.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "value",
+                                "documentation": "New value for preference.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1893,8 +2183,25 @@
                 {
                     "kind": "array",
                     "name": "system_property_sets",
-                    "documentation": "System properties that have been modified. TODO: array of structs",
-                    "type": "s"
+                    "documentation": "System properties that have been modified.",
+                    "structure": {
+                        "kind": "struct",
+                        "name": "system_property_sets",
+                        "attributes": [
+                            {
+                                "kind": "value",
+                                "name": "key",
+                                "documentation": "Property key.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "value",
+                                "documentation": "New value for property.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
@@ -1969,8 +2276,31 @@
                         {
                             "kind": "array",
                             "name": "trackers",
-                            "documentation": "All trackers found in the URL. TODO: array of structs",
-                            "type": "i"
+                            "documentation": "All trackers found in the URL.",
+                            "structure": {
+                                "kind": "struct",
+                                "name": "trackers",
+                                "attributes": [
+                                    {
+                                        "kind": "value",
+                                        "name": "name",
+                                        "documentation": "Tracker name.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "id",
+                                        "documentation": "Tracker assigned unique ID.",
+                                        "type": "s"
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "url",
+                                        "documentation": "URL the tracker is loaded from.",
+                                        "type": "s"
+                                    }
+                                ]
+                            }
                         },
                         {
                             "kind": "dictionary",
@@ -2316,8 +2646,80 @@
                         {
                             "kind": "array",
                             "name": "embedded_resources",
-                            "documentation": "TODO: array of structs.",
-                            "type": "s"
+                            "documentation": "Embedded resources.",
+                            "structure": {
+                                "kind": "struct",
+                                "name": "embedded_resources",
+                                "attributes": [
+                                    {
+                                        "kind": "struct",
+                                        "name": "analysis_stats",
+                                        "documentation": "Latest downloaded file analysis stats. Analysis Stats Struct info.",
+                                        "attributes": [
+                                            {
+                                                "kind": "value",
+                                                "name": "malicious",
+                                                "documentation": "Amount of engine returning malicious in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "suspicious",
+                                                "documentation": "Amount of engine returning suspicious in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "undetected",
+                                                "documentation": "Amount of engine returning undetected in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "harmless",
+                                                "documentation": "Amount of engine returning harmless in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "timeout",
+                                                "documentation": "Amount of engine returning timeout in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "confirmed_timeout",
+                                                "documentation": "Amount of engine returning confirmed timeout in the analysis.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "failure",
+                                                "documentation": "Amount of engine that failed during the analysis process.",
+                                                "type": "i"
+                                            },
+                                            {
+                                                "kind": "value",
+                                                "name": "type_unsupported",
+                                                "documentation": "Amount of engine that do not support the file/IoC type.",
+                                                "type": "i"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "kind": "value",
+                                        "name": "file_type",
+                                        "documentation": "Resource file type (one of the types listed in the file types table).",
+                                        "type": "i"
+                                    },
+                                    {
+                                        "kind": "dictionary",
+                                        "name": "signatures",
+                                        "documentation": "Signature returned by the engine.",
+                                        "type": "s"
+                                    }
+                                ]
+                            }
                         },
                         {
                             "kind": "struct",
