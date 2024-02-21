@@ -3617,7 +3617,60 @@
                     "kind": "array",
                     "name": "tls",
                     "documentation": "TLS attributes.",
-                    "type": "s"
+                    "structure": {
+                        "kind": "struct",
+                        "name": "tls",
+                        "attributes": [
+                            {
+                                "kind": "dictionary",
+                                "name": "issuer",
+                                "documentation": "Issuer of the certificate used.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "ja3",
+                                "documentation": "ja3 hash of the connection.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "ja3s",
+                                "documentation": "ja3s hash of the connection.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "serial_number",
+                                "documentation": "Serial number of the certificate used.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "sni",
+                                "documentation": "Server Name Indication of the connection.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "dictionary",
+                                "name": "subject",
+                                "documentation": "Issuer of the certificate used.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "thumbprint",
+                                "documentation": "Thumbprint of the certificate used.",
+                                "type": "s"
+                            },
+                            {
+                                "kind": "value",
+                                "name": "version",
+                                "documentation": "TLS version used.",
+                                "type": "s"
+                            }
+                        ]
+                    }
                 },
                 {
                     "kind": "array",
