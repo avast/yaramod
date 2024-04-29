@@ -797,6 +797,264 @@
                     "kind": "value",
                     "documentation": "compressed zlib",
                     "type": "i"
+                },
+                {
+                    "name": "APPLESCRIPT",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "APPLESCRIPT_COMPILED",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "BAT",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "BLACKHOLE",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "CRT",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "CSV",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "DWG",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "DXF",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "EPS",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "FLA",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "GOLANG",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "INI",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "IPS",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "JMOD",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "JSON",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "LZFSE",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "M3U",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "M4",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "MAKEFILE",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "MKV",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "OBJETIVEC",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "ONE_NOTE",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "PEM",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "PGP",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "POWERSHELL",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "PYC",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "PYTHON_PKG",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "PYTHON_WHL",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "SGML",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "SQL",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "SQUASHFS",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNKNOWN",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_CLJ",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_NEKO",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_OOXML",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_PDB",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_THREEDS",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "UNUSED_WER",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "VBA",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "VHD",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "WEBM",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "WEBP",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
+                },
+                {
+                    "name": "ZST",
+                    "kind": "value",
+                    "documentation": "",
+                    "type": "i"
                 }
             ]
         },
