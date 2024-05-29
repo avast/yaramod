@@ -29,6 +29,8 @@ YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream, Features fea
 	, _ruleTable()
 	, _ruleTrie()
 	, _Features(features)
+	, _vtSymbols()
+	, _deferredIncludes()
 {
 	if (_Features & Features::VirusTotalOnly)
 		initializeVTSymbols();
@@ -43,6 +45,7 @@ YaraFile::YaraFile(YaraFile&& o) noexcept
 	, _ruleTrie(std::move(o._ruleTrie))
 	, _Features(std::move(o._Features))
 	, _vtSymbols(std::move(o._vtSymbols))
+	, _deferredIncludes(std::move(o._deferredIncludes))
 {
 }
 
@@ -478,6 +481,16 @@ std::vector<std::string> YaraFile::expandRulePrefixFromOrigin(const std::string&
 	}
 
 	return result;
+}
+
+const std::vector<std::string>& YaraFile::getDeferredIncludes() const
+{
+	return _deferredIncludes;
+}
+
+void YaraFile::addDeferredInclude(std::string&& filePath)
+{
+	_deferredIncludes.push_back(std::move(filePath));
 }
 
 }
