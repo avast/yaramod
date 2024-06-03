@@ -785,6 +785,18 @@
                     "kind": "value",
                     "documentation": "multimedia image xwd",
                     "type": "i"
+                },
+                {
+                    "name": "ZIP",
+                    "kind": "value",
+                    "documentation": "compressed zip",
+                    "type": "i"
+                },
+                {
+                    "name": "ZLIB",
+                    "kind": "value",
+                    "documentation": "compressed zlib",
+                    "type": "i"
                 }
             ]
         },
