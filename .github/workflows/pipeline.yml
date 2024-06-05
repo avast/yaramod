@@ -115,6 +115,7 @@ jobs:
           cmake --build . -- -j
       # Disable ASLR for this, see https://stackoverflow.com/questions/77894856/possible-bug-in-gcc-sanitizers
       - name: Tests
+        run: |
           echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
           ./build/tests/cpp/yaramod_tests
 
