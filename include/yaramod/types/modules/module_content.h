@@ -21,13 +21,14 @@ class ModuleContent
 public:
 	/// @name Constructors
 	/// @{
-	ModuleContent(const std::string& name, std::initializer_list<char> fileContent)
-		: _name(name)
+	explicit ModuleContent(const std::string& name)
+		: _name(name), _content()
 	{
-		std::stringstream ss;
-		for (const auto& c : fileContent)
-			ss << c;
-		_content = ss.str();
+	}
+
+	ModuleContent(const std::string& name, std::string&& content)
+		: _name(name), _content(std::move(content))
+	{
 	}
 	/// @}
 
@@ -35,6 +36,11 @@ public:
 	/// @{
 	const std::string& getName() const { return _name; }
 	const std::string& getContent() const { return _content; }
+	/// @}
+
+	/// @name Setter methods
+	/// @{
+	void setContent(std::string&& content) { _content += std::move(content); }
 	/// @}
 
 private:
