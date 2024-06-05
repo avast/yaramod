@@ -675,7 +675,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::percent() {
 YaraExpressionBuilder& YaraExpressionBuilder::access(const std::string& attr) // pe.attr
 {
 	TokenIt dotIt = _tokenStream->emplace_back(TokenType::DOT, ".");
-	const std::shared_ptr<Symbol>& symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
+	auto symbol = std::make_shared<ValueSymbol>(attr, Expression::Type::Object);
 	Expression::Type type = symbol->getDataType();
 	TokenIt symbolIt = _tokenStream->emplace_back(TokenType::ID, std::move(symbol));
 
@@ -777,7 +777,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::readUInt32(IntFunctionEndianness e
 YaraExpressionBuilder& YaraExpressionBuilder::readIntegerFunction(const std::string& function_name)
 {
 	TokenIt lb = _tokenStream->emplace(_tokenStream->begin(), TokenType::LP, "(");
-	TokenIt func = _tokenStream->emplace(_tokenStream->begin(), TokenType::INTEGER_FUNCTION, std::move(function_name));
+	TokenIt func = _tokenStream->emplace(_tokenStream->begin(), TokenType::INTEGER_FUNCTION, function_name);
 	TokenIt rb = _tokenStream->emplace_back(TokenType::RP, ")");
 
 	_expr = std::make_shared<IntFunctionExpression>(func, lb, std::move(_expr), rb);
@@ -906,7 +906,7 @@ YaraExpressionBuilder id(const std::string& id)
 	}
 	else
 	{
-		const std::shared_ptr<Symbol>& symbol = std::make_shared<ValueSymbol>(id, Expression::Type::Object);
+		auto symbol = std::make_shared<ValueSymbol>(id, Expression::Type::Object);
 		TokenIt token = ts->emplace_back(TokenType::ID, std::move(symbol));
 		auto expression = std::make_shared<IdExpression>(token);
 		return YaraExpressionBuilder(std::move(ts), std::move(expression));

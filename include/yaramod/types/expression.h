@@ -160,7 +160,7 @@ protected:
 
 private:
 	Type _type; ///< Type of the expression
-	std::uint64_t _uid;
+	std::uint64_t _uid = 0;
 };
 
 }

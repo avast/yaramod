@@ -46,7 +46,7 @@ TokenIt Variable::getKeyTokenIt() const
  */
 const Expression::Ptr& Variable::getValue() const
 {
-	return std::move(_value);
+	return _value;
 }
 
 /**
@@ -66,7 +66,7 @@ void Variable::setKey(const std::string& key)
  */
 void Variable::setValue(const Expression::Ptr& value)
 {
-	_value = std::move(value);
+	_value = value;
 }
 
 }

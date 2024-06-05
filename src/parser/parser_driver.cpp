@@ -496,7 +496,7 @@ void ParserDriver::defineGrammar()
 					{
 						error_handle(currentFileContext()->getLocation(), "Duplicate variables section.");
 					}
-					section_summary->setVariables(args[1].getVariables());
+					section_summary->setVariables(std::move(args[1].getVariables()));
 					return section_summary;
 				})
 				.production("sections_summary", "strings", [&](auto&& args) -> Value {
@@ -521,15 +521,14 @@ void ParserDriver::defineGrammar()
 			.production(
 				"rule_mods", "RULE", common_last_rule, "ID", common_rule_init, "tags", "LCB", "metas", "sections_summary", "condition" , "RCB", [&](auto&& args) -> Value {
 				auto rule = createCommonRule(args);
-				auto sections_summary = std::move(args[8].getSectionsSummary());
-				auto variables = sections_summary->getVariables();
+				std::shared_ptr<SectionsSummary> sections_summary = std::move(args[8].getSectionsSummary());
 
-				rule.setVariables(variables);
+				rule.setVariables(std::move(sections_summary->getVariables()));
 				rule.setStringsTrie(std::move(sections_summary->getStringsTrie()));
 				rule.setCondition(std::move(args[9].getExpression()));
 				args[10].getTokenIt()->setType(TokenType::RULE_END);
 
-				for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+				for(auto iter = rule.getVariables().begin(); iter != rule.getVariables().end(); iter++) {
 					removeLocalSymbol(iter->getKey());
 				}
 
@@ -2846,7 +2845,7 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 {
 	std::optional<TokenIt> mod_private = {};
 	std::optional<TokenIt> mod_global = {};
-	const std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
+	std::vector<TokenIt> mods = std::move(args[0].getMultipleTokenIt());
 	for (const auto &token: mods)
 	{
 		if (token->getType() == TokenType::GLOBAL)
@@ -2863,7 +2862,7 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 		}
 	}
 	TokenIt name = args[3].getTokenIt();
-	const std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
+	std::vector<TokenIt> tags = std::move(args[5].getMultipleTokenIt());
 	args[6].getTokenIt()->setType(TokenType::RULE_BEGIN);
 	std::vector<Meta> metas = std::move(args[7].getMetas());
 	return Rule(_lastRuleTokenStream, name, std::move(mods),

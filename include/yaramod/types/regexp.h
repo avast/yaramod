@@ -52,7 +52,7 @@ public:
 	{
 		_leftRectBracket = _tokenStream->emplace_back(TokenType::LSQB, "[");
 		_negative = _tokenStream->emplace_back(TokenType::REGEXP_CLASS_NEGATIVE, negative, negative? "^" : std::string{});
-		addCharacters(std::move(characters));
+		addCharacters(characters);
 		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
 

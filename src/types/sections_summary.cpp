@@ -15,7 +15,7 @@ namespace yaramod {
  *
  * @return StringsTrie.
  */
-const std::shared_ptr<Rule::StringsTrie> SectionsSummary::getStringsTrie() const
+std::shared_ptr<Rule::StringsTrie>&& SectionsSummary::getStringsTrie()
 {
 	return std::move(_strings);
 }
@@ -25,9 +25,9 @@ const std::shared_ptr<Rule::StringsTrie> SectionsSummary::getStringsTrie() const
  *
  * @return Vector of variables.
  */
-const std::vector<Variable> SectionsSummary::getVariables() const
+std::vector<Variable>&& SectionsSummary::getVariables()
 {
-	return _variables;
+	return std::move(_variables);
 }
 
 /**
@@ -35,7 +35,7 @@ const std::vector<Variable> SectionsSummary::getVariables() const
  *
  * @param key Key.
  */
-void SectionsSummary::setStringsTrie(const std::shared_ptr<Rule::StringsTrie> strings)
+void SectionsSummary::setStringsTrie(std::shared_ptr<Rule::StringsTrie>&& strings)
 {
     _is_strings_set = true;
 	_strings = std::move(strings);
@@ -46,10 +46,10 @@ void SectionsSummary::setStringsTrie(const std::shared_ptr<Rule::StringsTrie> st
  *
  * @param value Value.
  */
-void SectionsSummary::setVariables(const std::vector<Variable> variables)
+void SectionsSummary::setVariables(std::vector<Variable>&& variables)
 {
     _is_variables_set = true;
-	_variables = variables;
+	_variables = std::move(variables);
 }
 
 }

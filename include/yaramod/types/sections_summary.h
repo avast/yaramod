@@ -34,17 +34,17 @@ public:
 
 	/// @name Getter methods
 	/// @{
-	const std::shared_ptr<Rule::StringsTrie> getStringsTrie() const;
-	const std::vector<Variable> getVariables() const;
+	std::shared_ptr<Rule::StringsTrie>&& getStringsTrie();
+	std::vector<Variable>&& getVariables();
 	/// @}
 
-    bool isStringsTrieSet() { return _is_strings_set; }
-    bool isVariablesSet() { return _is_variables_set; }
+	bool isStringsTrieSet() const { return _is_strings_set; }
+	bool isVariablesSet() const { return _is_variables_set; }
 
 	/// @name Setter methods
 	/// @{
-	void setStringsTrie(const std::shared_ptr<Rule::StringsTrie> strings);
-	void setVariables(const std::vector<Variable> variables);
+	void setStringsTrie(std::shared_ptr<Rule::StringsTrie>&& strings);
+	void setVariables(std::vector<Variable>&& variables);
 	/// @}
 
 private:

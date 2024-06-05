@@ -22,7 +22,7 @@ YaraFile::YaraFile(Features features)
 }
 
 YaraFile::YaraFile(const std::shared_ptr<TokenStream>& tokenStream, Features features)
-	: _tokenStream(std::move(tokenStream))
+	: _tokenStream(tokenStream)
 	, _imports()
 	, _rules()
 	, _importTable()

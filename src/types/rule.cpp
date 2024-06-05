@@ -331,9 +331,9 @@ void Rule::setVariables(const std::vector<Variable>& variables)
  *
  * @param condition Condition expression.
  */
-void Rule::setStringsTrie(const std::shared_ptr<StringsTrie>&& strings)
+void Rule::setStringsTrie(std::shared_ptr<StringsTrie>&& strings)
 {
-	_strings = strings;
+	_strings = std::move(strings);
 }
 
 /**
