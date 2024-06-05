@@ -63,6 +63,12 @@ if(NOT TARGET yaramod)
 	# Filesystem library.
 	target_link_libraries(yaramod Filesystem::Filesystem)
 
+	# Address sanitizer.
+	if(YARAMOD_ASAN)
+		target_compile_options(yaramod PRIVATE "-fsanitize=address" "-fno-omit-frame-pointer")
+		target_link_options(yaramod PRIVATE "-fsanitize=address")
+	endif()
+
 	# Python module.
 	if(YARAMOD_PYTHON)
 		add_subdirectory(python)

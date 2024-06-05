@@ -16,3 +16,8 @@ endif()
 
 set_target_properties(yaramod-python PROPERTIES OUTPUT_NAME "yaramod")
 target_link_libraries(yaramod-python PUBLIC yaramod)
+
+if(YARAMOD_ASAN)
+	target_compile_options(yaramod-python PRIVATE "-fsanitize=address" "-fno-omit-frame-pointer")
+	target_link_options(yaramod-python PRIVATE "-fsanitize=address")
+endif()

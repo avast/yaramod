@@ -24,4 +24,9 @@ if(NOT TARGET yaramod_tests)
 
 	# Includes.
 	target_include_directories(yaramod_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+
+	if(YARAMOD_ASAN)
+		target_compile_options(yaramod_tests PRIVATE "-fsanitize=address" "-fno-omit-frame-pointer")
+		target_link_options(yaramod_tests PRIVATE "-fsanitize=address")
+	endif()
 endif()
