@@ -11,7 +11,7 @@ pybind11_add_module(yaramod-python
 # It seems like -O2 and -O3 produce some kind of different template instantiation which is not compatible
 # with other compiler options use when compiling python extension.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG")
+	#	set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG")
 endif()
 
 set_target_properties(yaramod-python PROPERTIES OUTPUT_NAME "yaramod")

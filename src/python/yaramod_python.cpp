@@ -67,7 +67,8 @@ void addEnums(py::module& module)
 	py::enum_<ParserMode>(module, "ParserMode")
 		.value("Regular", ParserMode::Regular)
 		.value("IncludeGuarded", ParserMode::IncludeGuarded)
-		.value("Incomplete", ParserMode::Incomplete);
+		.value("Incomplete", ParserMode::Incomplete)
+		.value("DeferredInclude", ParserMode::DeferredInclude);
 
 	py::enum_<Features>(module, "Features", py::arithmetic())
 		.value("Basic", Features::Basic)
@@ -284,7 +285,8 @@ void addBasicClasses(py::module& module)
 		.def("remove_imports", [](YaraFile& self, const std::function<bool(const std::shared_ptr<Module>&)>& pred) {
 				self.removeImports(pred);
 			})
-		.def("expand_rule_prefix_from_origin", &YaraFile::expandRulePrefixFromOrigin);
+		.def("expand_rule_prefix_from_origin", &YaraFile::expandRulePrefixFromOrigin)
+		.def("deferred_includes", &YaraFile::getDeferredIncludes);
 
 	py::class_<Location>(module, "Location")
 		.def_property_readonly("file_path", &Location::getFilePath)

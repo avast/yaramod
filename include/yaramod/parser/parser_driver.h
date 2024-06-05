@@ -40,7 +40,8 @@ enum class ParserMode
 {
 	Regular, ///< In this mode, parser behaves like regular YARA parser
 	IncludeGuarded, ///< Parser provides protection against inclusion of the same file multiple times
-	Incomplete ///< Parser enables to parse incomplete rules: referencing unknown symbols or rules that have been not finished properly (e.g. "rule abc {strings:")
+	Incomplete, ///< Parser enables to parse incomplete rules: referencing unknown symbols or rules that have been not finished properly (e.g. "rule abc {strings:")
+	DeferredInclude, ///< Extension of Incomplete mode which additionally does not resolve includes and just stores file paths for user to resolve them manually if needed
 };
 
 /**
@@ -123,7 +124,8 @@ protected:
 
 	/// @name Method for obtaining info about parser
 	/// @{
-	bool incompleteMode() const { return _mode == ParserMode::Incomplete; }
+	bool deferredIncludeMode() const { return _mode == ParserMode::DeferredInclude; }
+	bool incompleteMode() const { return _mode == ParserMode::Incomplete || _mode == ParserMode::DeferredInclude; }
 	/// @}
 
 	/// @name Methods for handling includes
@@ -194,6 +196,11 @@ protected:
 	Rule createCommonRule(std::vector<yaramod::Value>& args);
 	/// @}
 
+	/// @name Deferred includes
+	/// @{
+	void addDeferredInclude(std::string&& filePath);
+	/// @}
+
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
 	Location::Position _positionBegin; ///< Variable storing the position the currently processed token begins at.
@@ -229,6 +236,7 @@ private:
 	std::shared_ptr<TokenStream> _lastRuleTokenStream; ///< Holds token stream at the point of where last parsed rule starts
 	std::uint64_t _anonStringCounter; ///< Internal counter for generating pseudo identifiers of anonymous strings
 	Location _errorLocation; ///< Last known location before error in parsing happened.
+	std::vector<std::string> _deferredIncludes;
 };
 
 } // namespace yaramod

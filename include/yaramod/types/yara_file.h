@@ -106,6 +106,12 @@ public:
 	std::vector<std::string> expandRulePrefixFromOrigin(const std::string& prefix, yaramod::Rule* origin) const;
 	/// @}
 
+	/// @name Deferred includes
+	/// @{
+	const std::vector<std::string>& getDeferredIncludes() const;
+	void addDeferredInclude(std::string&& filePath);
+	/// @}
+
 private:
 	void initializeVTSymbols();
 
@@ -119,6 +125,7 @@ private:
 
 	Features _Features; ///< Determines which symbols are needed
 	std::vector<std::shared_ptr<Symbol>> _vtSymbols; ///< Virust Total symbols
+	std::vector<std::string> _deferredIncludes;
 };
 
 }

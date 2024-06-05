@@ -180,11 +180,18 @@ void ParserDriver::defineTokens()
 	_parser.token(R"([^"]+\")").symbol("INCLUDE_FILE").description("include path").states("$include_file").enter_state("@default").action([&](std::string_view str) -> Value {
 		auto filePath = std::string{str}.substr(0, str.size()-1);
 		TokenIt includeToken = emplace_back(TokenType::INCLUDE_PATH, filePath);
-		const auto& ts = includeToken->initializeSubTokenStream();
-		if (!includeFile(filePath, ts))
+		if (!deferredIncludeMode())
 		{
-			if (!incompleteMode())
-				error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
+			const auto& ts = includeToken->initializeSubTokenStream();
+			if (!includeFile(filePath, ts))
+			{
+				if (!incompleteMode())
+					error_handle(currentFileContext()->getLocation(), "Unable to include file '" + filePath + "'");
+			}
+		}
+		else
+		{
+			addDeferredInclude(std::move(filePath));
 		}
 
 		return includeToken;
@@ -1949,7 +1956,13 @@ void ParserDriver::defineGrammar()
 				if (!incompleteMode())
 					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
 				else
-					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
+				{
+					// Force add the symbol if it's module in incomplete mode so that we can successfully parse the rule
+					if (_file.addImport(args[0].getTokenIt(), *_modules))
+						symbol = findSymbol(symbol_token->getString());
+					else
+						symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined);
+				}
 			}
 			symbol_token->setValue(symbol);
 			auto output = std::make_shared<IdExpression>(symbol_token);
@@ -2855,6 +2868,11 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 	std::vector<Meta> metas = std::move(args[7].getMetas());
 	return Rule(_lastRuleTokenStream, name, std::move(mods),
 				std::move(metas), std::make_shared<Rule::StringsTrie>(), std::vector<Variable>(), NULL, std::move(tags));
+}
+
+void ParserDriver::addDeferredInclude(std::string&& filePath)
+{
+	_file.addDeferredInclude(std::move(filePath));
 }
 
 } //namespace yaramod

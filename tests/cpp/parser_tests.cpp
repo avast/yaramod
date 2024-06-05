@@ -8495,5 +8495,27 @@ rule string_module
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+IncompleteModeWithModulesWorks) {
+	prepareInput(
+R"(
+rule module_rule
+{
+	condition:
+		pe.import_details[0].rva == 0x1234 and
+		string.to_int("1234") == 1234
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(pe.import_details[0].rva == 0x1234 and string.to_int("1234") == 1234)", rule->getCondition()->getText());
+	EXPECT_EQ(2u, driver.getParsedFile().getImports().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
