@@ -500,7 +500,7 @@ class PCRE {
   bool                report_errors_;  // Silences error logging if false
   int                 match_limit_;    // Limit on execution resources
   int                 stack_limit_;    // Limit on stack resources (bytes)
-  mutable int32_t     hit_limit_;      // Hit limit during execution (bool)
+  mutable int         hit_limit_;      // Hit limit during execution (bool)
 
   PCRE(const PCRE&) = delete;
   PCRE& operator=(const PCRE&) = delete;
@@ -555,7 +555,7 @@ class PCRE_Options {
 // Hex/Octal/Binary?
 
 // Special class for parsing into objects that define a ParseFrom() method
-template <class T>
+template <typename T>
 class _PCRE_MatchObject {
  public:
   static inline bool Parse(const char* str, size_t n, void* dest) {
@@ -600,9 +600,9 @@ class PCRE::Arg {
 #undef MAKE_PARSER
 
   // Generic constructor
-  template <class T> Arg(T*, Parser parser);
+  template <typename T> Arg(T*, Parser parser);
   // Generic constructor template
-  template <class T> Arg(T* p)
+  template <typename T> Arg(T* p)
     : arg_(p), parser_(_PCRE_MatchObject<T>::Parse) {
   }
 

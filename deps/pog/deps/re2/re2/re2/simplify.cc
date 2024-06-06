@@ -28,8 +28,6 @@ bool Regexp::SimplifyRegexp(const StringPiece& src, ParseFlags flags,
   Regexp* sre = re->Simplify();
   re->Decref();
   if (sre == NULL) {
-    // Should not happen, since Simplify never fails.
-    LOG(ERROR) << "Simplify failed on " << src;
     if (status) {
       status->set_code(kRegexpInternalError);
       status->set_error_arg(src);
@@ -180,10 +178,20 @@ Regexp* Regexp::Simplify() {
   CoalesceWalker cw;
   Regexp* cre = cw.Walk(this, NULL);
   if (cre == NULL)
-    return cre;
+    return NULL;
+  if (cw.stopped_early()) {
+    cre->Decref();
+    return NULL;
+  }
   SimplifyWalker sw;
   Regexp* sre = sw.Walk(cre, NULL);
   cre->Decref();
+  if (sre == NULL)
+    return NULL;
+  if (sw.stopped_early()) {
+    sre->Decref();
+    return NULL;
+  }
   return sre;
 }
 
@@ -212,9 +220,10 @@ Regexp* CoalesceWalker::Copy(Regexp* re) {
 }
 
 Regexp* CoalesceWalker::ShortVisit(Regexp* re, Regexp* parent_arg) {
-  // This should never be called, since we use Walk and not
-  // WalkExponential.
+  // Should never be called: we use Walk(), not WalkExponential().
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   LOG(DFATAL) << "CoalesceWalker::ShortVisit called";
+#endif
   return re->Incref();
 }
 
@@ -362,8 +371,8 @@ void CoalesceWalker::DoCoalesce(Regexp** r1ptr, Regexp** r2ptr) {
       break;
 
     default:
-      LOG(DFATAL) << "DoCoalesce failed: r1->op() is " << r1->op();
       nre->Decref();
+      LOG(DFATAL) << "DoCoalesce failed: r1->op() is " << r1->op();
       return;
   }
 
@@ -423,8 +432,8 @@ void CoalesceWalker::DoCoalesce(Regexp** r1ptr, Regexp** r2ptr) {
     }
 
     default:
-      LOG(DFATAL) << "DoCoalesce failed: r2->op() is " << r2->op();
       nre->Decref();
+      LOG(DFATAL) << "DoCoalesce failed: r2->op() is " << r2->op();
       return;
   }
 
@@ -437,9 +446,10 @@ Regexp* SimplifyWalker::Copy(Regexp* re) {
 }
 
 Regexp* SimplifyWalker::ShortVisit(Regexp* re, Regexp* parent_arg) {
-  // This should never be called, since we use Walk and not
-  // WalkExponential.
+  // Should never be called: we use Walk(), not WalkExponential().
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   LOG(DFATAL) << "SimplifyWalker::ShortVisit called";
+#endif
   return re->Incref();
 }
 

@@ -44,12 +44,12 @@
 
 namespace re2 {
 
-// Reduce the maximum repeat count by an order of magnitude when fuzzing.
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-static const int kMaxRepeat = 100;
-#else
-static const int kMaxRepeat = 1000;
-#endif
+// Controls the maximum repeat count permitted by the parser.
+static int maximum_repeat_count = 1000;
+
+void Regexp::FUZZING_ONLY_set_maximum_repeat_count(int i) {
+  maximum_repeat_count = i;
+}
 
 // Regular expression parse state.
 // The list of parsed regexps so far is maintained as a vector of
@@ -93,7 +93,7 @@ class Regexp::ParseState {
   bool PushSimpleOp(RegexpOp op);
 
   // Pushes a ^ onto the stack.
-  bool PushCarat();
+  bool PushCaret();
 
   // Pushes a \b (word == true) or \B (word == false) onto the stack.
   bool PushWordBoundary(bool word);
@@ -423,7 +423,7 @@ bool Regexp::ParseState::PushLiteral(Rune r) {
 }
 
 // Pushes a ^ onto the stack.
-bool Regexp::ParseState::PushCarat() {
+bool Regexp::ParseState::PushCaret() {
   if (flags_ & OneLine) {
     return PushSimpleOp(kRegexpBeginText);
   }
@@ -556,9 +556,10 @@ int RepetitionWalker::PostVisit(Regexp* re, int parent_arg, int pre_arg,
 }
 
 int RepetitionWalker::ShortVisit(Regexp* re, int parent_arg) {
-  // This should never be called, since we use Walk and not
-  // WalkExponential.
+  // Should never be called: we use Walk(), not WalkExponential().
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
   LOG(DFATAL) << "RepetitionWalker::ShortVisit called";
+#endif
   return 0;
 }
 
@@ -567,7 +568,9 @@ int RepetitionWalker::ShortVisit(Regexp* re, int parent_arg) {
 bool Regexp::ParseState::PushRepetition(int min, int max,
                                         const StringPiece& s,
                                         bool nongreedy) {
-  if ((max != -1 && max < min) || min > kMaxRepeat || max > kMaxRepeat) {
+  if ((max != -1 && max < min) ||
+      min > maximum_repeat_count ||
+      max > maximum_repeat_count) {
     status_->set_code(kRegexpRepeatSize);
     status_->set_error_arg(s);
     return false;
@@ -590,7 +593,7 @@ bool Regexp::ParseState::PushRepetition(int min, int max,
   stacktop_ = re;
   if (min >= 2 || max >= 2) {
     RepetitionWalker w;
-    if (w.Walk(stacktop_, kMaxRepeat) == 0) {
+    if (w.Walk(stacktop_, maximum_repeat_count) == 0) {
       status_->set_code(kRegexpRepeatSize);
       status_->set_error_arg(s);
       return false;
@@ -684,7 +687,7 @@ bool Regexp::ParseState::DoRightParen() {
   if ((r1 = stacktop_) == NULL ||
       (r2 = r1->down_) == NULL ||
       r2->op() != kLeftParen) {
-    status_->set_code(kRegexpMissingParen);
+    status_->set_code(kRegexpUnexpectedParen);
     status_->set_error_arg(whole_regexp_);
     return false;
   }
@@ -1323,14 +1326,14 @@ bool Regexp::ParseState::MaybeConcatString(int r, ParseFlags flags) {
 // Parses a decimal integer, storing it in *np.
 // Sets *s to span the remainder of the string.
 static bool ParseInteger(StringPiece* s, int* np) {
-  if (s->size() == 0 || !isdigit((*s)[0] & 0xFF))
+  if (s->empty() || !isdigit((*s)[0] & 0xFF))
     return false;
   // Disallow leading zeros.
   if (s->size() >= 2 && (*s)[0] == '0' && isdigit((*s)[1] & 0xFF))
     return false;
   int n = 0;
   int c;
-  while (s->size() > 0 && isdigit(c = (*s)[0] & 0xFF)) {
+  while (!s->empty() && isdigit(c = (*s)[0] & 0xFF)) {
     // Avoid overflow.
     if (n >= 100000000)
       return false;
@@ -1352,16 +1355,16 @@ static bool ParseInteger(StringPiece* s, int* np) {
 // s must NOT be edited unless MaybeParseRepetition returns true.
 static bool MaybeParseRepetition(StringPiece* sp, int* lo, int* hi) {
   StringPiece s = *sp;
-  if (s.size() == 0 || s[0] != '{')
+  if (s.empty() || s[0] != '{')
     return false;
   s.remove_prefix(1);  // '{'
   if (!ParseInteger(&s, lo))
     return false;
-  if (s.size() == 0)
+  if (s.empty())
     return false;
   if (s[0] == ',') {
     s.remove_prefix(1);  // ','
-    if (s.size() == 0)
+    if (s.empty())
       return false;
     if (s[0] == '}') {
       // {2,} means at least 2
@@ -1375,7 +1378,7 @@ static bool MaybeParseRepetition(StringPiece* sp, int* lo, int* hi) {
     // {2} means exactly two
     *hi = *lo;
   }
-  if (s.size() == 0 || s[0] != '}')
+  if (s.empty() || s[0] != '}')
     return false;
   s.remove_prefix(1);  // '}'
   *sp = s;
@@ -1406,17 +1409,19 @@ static int StringPieceToRune(Rune *r, StringPiece *sp, RegexpStatus* status) {
     }
   }
 
-  status->set_code(kRegexpBadUTF8);
-  status->set_error_arg(StringPiece());
+  if (status != NULL) {
+    status->set_code(kRegexpBadUTF8);
+    status->set_error_arg(StringPiece());
+  }
   return -1;
 }
 
-// Return whether name is valid UTF-8.
-// If not, set status to kRegexpBadUTF8.
+// Returns whether name is valid UTF-8.
+// If not, sets status to kRegexpBadUTF8.
 static bool IsValidUTF8(const StringPiece& s, RegexpStatus* status) {
   StringPiece t = s;
   Rune r;
-  while (t.size() > 0) {
+  while (!t.empty()) {
     if (StringPieceToRune(&r, &t, status) < 0)
       return false;
   }
@@ -1448,13 +1453,13 @@ static int UnHex(int c) {
 static bool ParseEscape(StringPiece* s, Rune* rp,
                         RegexpStatus* status, int rune_max) {
   const char* begin = s->data();
-  if (s->size() < 1 || (*s)[0] != '\\') {
+  if (s->empty() || (*s)[0] != '\\') {
     // Should not happen - caller always checks.
     status->set_code(kRegexpInternalError);
     status->set_error_arg(StringPiece());
     return false;
   }
-  if (s->size() < 2) {
+  if (s->size() == 1) {
     status->set_code(kRegexpTrailingBackslash);
     status->set_error_arg(StringPiece());
     return false;
@@ -1485,16 +1490,16 @@ static bool ParseEscape(StringPiece* s, Rune* rp,
     case '6':
     case '7':
       // Single non-zero octal digit is a backreference; not supported.
-      if (s->size() == 0 || (*s)[0] < '0' || (*s)[0] > '7')
+      if (s->empty() || (*s)[0] < '0' || (*s)[0] > '7')
         goto BadEscape;
       FALLTHROUGH_INTENDED;
     case '0':
       // consume up to three octal digits; already have one.
       code = c - '0';
-      if (s->size() > 0 && '0' <= (c = (*s)[0]) && c <= '7') {
+      if (!s->empty() && '0' <= (c = (*s)[0]) && c <= '7') {
         code = code * 8 + c - '0';
         s->remove_prefix(1);  // digit
-        if (s->size() > 0) {
+        if (!s->empty()) {
           c = (*s)[0];
           if ('0' <= c && c <= '7') {
             code = code * 8 + c - '0';
@@ -1509,7 +1514,7 @@ static bool ParseEscape(StringPiece* s, Rune* rp,
 
     // Hexadecimal escapes
     case 'x':
-      if (s->size() == 0)
+      if (s->empty())
         goto BadEscape;
       if (StringPieceToRune(&c, s, status) < 0)
         return false;
@@ -1529,7 +1534,7 @@ static bool ParseEscape(StringPiece* s, Rune* rp,
           code = code * 16 + UnHex(c);
           if (code > rune_max)
             goto BadEscape;
-          if (s->size() == 0)
+          if (s->empty())
             goto BadEscape;
           if (StringPieceToRune(&c, s, status) < 0)
             return false;
@@ -1540,7 +1545,7 @@ static bool ParseEscape(StringPiece* s, Rune* rp,
         return true;
       }
       // Easy case: two hex digits.
-      if (s->size() == 0)
+      if (s->empty())
         goto BadEscape;
       if (StringPieceToRune(&c1, s, status) < 0)
         return false;
@@ -1583,8 +1588,6 @@ static bool ParseEscape(StringPiece* s, Rune* rp,
     //   *rp = '\b';
     //   return true;
   }
-
-  LOG(DFATAL) << "Not reached in ParseEscape.";
 
 BadEscape:
   // Unrecognized escape sequence.
@@ -1771,7 +1774,7 @@ ParseStatus ParseUnicodeGroup(StringPiece* s, Regexp::ParseFlags parse_flags,
   // Chop seq where s now begins.
   seq = StringPiece(seq.data(), static_cast<size_t>(s->data() - seq.data()));
 
-  if (name.size() > 0 && name[0] == '^') {
+  if (!name.empty() && name[0] == '^') {
     sign = -sign;
     name.remove_prefix(1);  // '^'
   }
@@ -1801,14 +1804,13 @@ ParseStatus ParseUnicodeGroup(StringPiece* s, Regexp::ParseFlags parse_flags,
 
   // Convert the UnicodeSet to a URange32 and UGroup that we can add.
   int nr = uset.getRangeCount();
-  URange32* r = new URange32[nr];
+  PODArray<URange32> r(nr);
   for (int i = 0; i < nr; i++) {
     r[i].lo = uset.getRangeStart(i);
     r[i].hi = uset.getRangeEnd(i);
   }
-  UGroup g = {"", +1, 0, 0, r, nr};
+  UGroup g = {"", +1, 0, 0, r.data(), nr};
   AddUGroup(cc, &g, sign, parse_flags);
-  delete[] r;
 #endif
 
   return kParseOk;
@@ -1858,7 +1860,7 @@ static ParseStatus ParseCCName(StringPiece* s, Regexp::ParseFlags parse_flags,
 bool Regexp::ParseState::ParseCCCharacter(StringPiece* s, Rune *rp,
                                           const StringPiece& whole_class,
                                           RegexpStatus* status) {
-  if (s->size() == 0) {
+  if (s->empty()) {
     status->set_code(kRegexpMissingBracket);
     status->set_error_arg(whole_class);
     return false;
@@ -1866,7 +1868,7 @@ bool Regexp::ParseState::ParseCCCharacter(StringPiece* s, Rune *rp,
 
   // Allow regular escape sequences even though
   // many need not be escaped in this context.
-  if (s->size() >= 1 && (*s)[0] == '\\')
+  if ((*s)[0] == '\\')
     return ParseEscape(s, rp, status, rune_max_);
 
   // Otherwise take the next rune.
@@ -1908,7 +1910,7 @@ bool Regexp::ParseState::ParseCharClass(StringPiece* s,
                                         Regexp** out_re,
                                         RegexpStatus* status) {
   StringPiece whole_class = *s;
-  if (s->size() == 0 || (*s)[0] != '[') {
+  if (s->empty() || (*s)[0] != '[') {
     // Caller checked this.
     status->set_code(kRegexpInternalError);
     status->set_error_arg(StringPiece());
@@ -1918,7 +1920,7 @@ bool Regexp::ParseState::ParseCharClass(StringPiece* s,
   Regexp* re = new Regexp(kRegexpCharClass, flags_ & ~FoldCase);
   re->ccb_ = new CharClassBuilder;
   s->remove_prefix(1);  // '['
-  if (s->size() > 0 && (*s)[0] == '^') {
+  if (!s->empty() && (*s)[0] == '^') {
     s->remove_prefix(1);  // '^'
     negated = true;
     if (!(flags_ & ClassNL) || (flags_ & NeverNL)) {
@@ -1928,7 +1930,7 @@ bool Regexp::ParseState::ParseCharClass(StringPiece* s,
     }
   }
   bool first = true;  // ] is okay as first char in class
-  while (s->size() > 0 && ((*s)[0] != ']' || first)) {
+  while (!s->empty() && ((*s)[0] != ']' || first)) {
     // - is only okay unescaped as first or last in class.
     // Except that Perl allows - anywhere.
     if ((*s)[0] == '-' && !first && !(flags_&PerlX) &&
@@ -1996,7 +1998,7 @@ bool Regexp::ParseState::ParseCharClass(StringPiece* s,
     // in the flags.
     re->ccb_->AddRangeFlags(rr.lo, rr.hi, flags_ | Regexp::ClassNL);
   }
-  if (s->size() == 0) {
+  if (s->empty()) {
     status->set_code(kRegexpMissingBracket);
     status->set_error_arg(whole_class);
     re->Decref();
@@ -2011,19 +2013,34 @@ bool Regexp::ParseState::ParseCharClass(StringPiece* s,
   return true;
 }
 
-// Is this a valid capture name?  [A-Za-z0-9_]+
-// PCRE limits names to 32 bytes.
-// Python rejects names starting with digits.
-// We don't enforce either of those.
+// Returns whether name is a valid capture name.
 static bool IsValidCaptureName(const StringPiece& name) {
-  if (name.size() == 0)
+  if (name.empty())
     return false;
-  for (size_t i = 0; i < name.size(); i++) {
-    int c = name[i];
-    if (('0' <= c && c <= '9') ||
-        ('a' <= c && c <= 'z') ||
-        ('A' <= c && c <= 'Z') ||
-        c == '_')
+
+  // Historically, we effectively used [0-9A-Za-z_]+ to validate; that
+  // followed Python 2 except for not restricting the first character.
+  // As of Python 3, Unicode characters beyond ASCII are also allowed;
+  // accordingly, we permit the Lu, Ll, Lt, Lm, Lo, Nl, Mn, Mc, Nd and
+  // Pc categories, but again without restricting the first character.
+  // Also, Unicode normalization (e.g. NFKC) isn't performed: Python 3
+  // performs it for identifiers, but seemingly not for capture names;
+  // if they start doing that for capture names, we won't follow suit.
+  static const CharClass* const cc = []() {
+    CharClassBuilder ccb;
+    for (StringPiece group :
+         {"Lu", "Ll", "Lt", "Lm", "Lo", "Nl", "Mn", "Mc", "Nd", "Pc"})
+      AddUGroup(&ccb, LookupGroup(group, unicode_groups, num_unicode_groups),
+                +1, Regexp::NoParseFlags);
+    return ccb.GetCharClass();
+  }();
+
+  StringPiece t = name;
+  Rune r;
+  while (!t.empty()) {
+    if (StringPieceToRune(&r, &t, NULL) < 0)
+      return false;
+    if (cc->Contains(r))
       continue;
     return false;
   }
@@ -2040,8 +2057,8 @@ bool Regexp::ParseState::ParsePerlFlags(StringPiece* s) {
 
   // Caller is supposed to check this.
   if (!(flags_ & PerlX) || t.size() < 2 || t[0] != '(' || t[1] != '?') {
-    LOG(DFATAL) << "Bad call to ParseState::ParsePerlFlags";
     status_->set_code(kRegexpInternalError);
+    LOG(DFATAL) << "Bad call to ParseState::ParsePerlFlags";
     return false;
   }
 
@@ -2099,7 +2116,7 @@ bool Regexp::ParseState::ParsePerlFlags(StringPiece* s) {
   int nflags = flags_;
   Rune c;
   for (bool done = false; !done; ) {
-    if (t.size() == 0)
+    if (t.empty())
       goto BadPerlOp;
     if (StringPieceToRune(&c, &t, status_) < 0)
       return false;
@@ -2217,7 +2234,7 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
 
   if (global_flags & Literal) {
     // Special parse loop for literal string.
-    while (t.size() > 0) {
+    while (!t.empty()) {
       Rune r;
       if (StringPieceToRune(&r, &t, status) < 0)
         return NULL;
@@ -2228,7 +2245,7 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
   }
 
   StringPiece lastunary = StringPiece();
-  while (t.size() > 0) {
+  while (!t.empty()) {
     StringPiece isunary = StringPiece();
     switch (t[0]) {
       default: {
@@ -2271,7 +2288,7 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
         break;
 
       case '^':  // Beginning of line.
-        if (!ps.PushCarat())
+        if (!ps.PushCaret())
           return NULL;
         t.remove_prefix(1);  // '^'
         break;
@@ -2312,11 +2329,11 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
         bool nongreedy = false;
         t.remove_prefix(1);  // '*' or '+' or '?'
         if (ps.flags() & PerlX) {
-          if (t.size() > 0 && t[0] == '?') {
+          if (!t.empty() && t[0] == '?') {
             nongreedy = true;
             t.remove_prefix(1);  // '?'
           }
-          if (lastunary.size() > 0) {
+          if (!lastunary.empty()) {
             // In Perl it is not allowed to stack repetition operators:
             //   a** is a syntax error, not a double-star.
             // (and a++ means something else entirely, which we don't support!)
@@ -2347,11 +2364,11 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
         }
         bool nongreedy = false;
         if (ps.flags() & PerlX) {
-          if (t.size() > 0 && t[0] == '?') {
+          if (!t.empty() && t[0] == '?') {
             nongreedy = true;
             t.remove_prefix(1);  // '?'
           }
-          if (lastunary.size() > 0) {
+          if (!lastunary.empty()) {
             // Not allowed to stack repetition operators.
             status->set_code(kRegexpRepeatOp);
             status->set_error_arg(StringPiece(
@@ -2405,7 +2422,7 @@ Regexp* Regexp::Parse(const StringPiece& s, ParseFlags global_flags,
 
           if (t[1] == 'Q') {  // \Q ... \E: the ... is always literals
             t.remove_prefix(2);  // '\\', 'Q'
-            while (t.size() > 0) {
+            while (!t.empty()) {
               if (t.size() >= 2 && t[0] == '\\' && t[1] == 'E') {
                 t.remove_prefix(2);  // '\\', 'E'
                 break;

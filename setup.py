@@ -103,11 +103,10 @@ class BuildExtCommand(build_ext):
                 configure_cmd.append('-DYARAMOD_TESTS=ON')
             configure_cmd.append(root_dir)
 
-            build_cmd = ['cmake', '--build', '.', '--']
+            build_cmd = ['cmake', '--build', '.']
             if 'win' in self.plat_name:
-                build_cmd.extend(['/m:{}'.format(os.cpu_count()), '/p:Configuration={}'.format(config_name)])
-            else:
-                build_cmd.append('-j{}'.format(os.cpu_count()))
+                build_cmd.extend(['--config {}'.format(config_name)])
+            build_cmd.append('-j{}'.format(os.cpu_count()))
 
             subprocess.check_call(configure_cmd)
             subprocess.check_call(build_cmd)
