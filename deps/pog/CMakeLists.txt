@@ -49,7 +49,7 @@ if(NOT POG_BUNDLED_RE2)
 		message(STATUS "RE2 library: ${RE2_LIBRARY}")
 	endif()
 	## Install our custom finder in case user system does not contain one.
-	list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findre2.cmake")
+	#list(APPEND POG_CMAKE_INSTALL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Findre2.cmake")
 endif()
 
 ## If bundled fmt is not being used, try to find it using find_package().
@@ -78,7 +78,7 @@ target_include_directories(pog INTERFACE
 	"$<BUILD_INTERFACE:${POG_INCLUDE_DIR}>"
 	"$<INSTALL_INTERFACE:${POG_INSTALL_INCLUDE_DIR}>"
 )
-target_link_libraries(pog INTERFACE pog::re2 fmt::fmt)
+target_link_libraries(pog INTERFACE re2::re2 fmt::fmt)
 if(POG_COVERAGE)
 	target_compile_options(pog INTERFACE --coverage)
 	target_link_libraries(pog INTERFACE --coverage)

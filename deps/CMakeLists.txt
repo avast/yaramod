@@ -6,7 +6,7 @@ if(YARAMOD_PYTHON)
 endif()
 
 set(POG_BUNDLED_FMT ON CACHE BOOL "Use bundled fmt" FORCE)
-set(POG_BUNDLED_RE2 ON CACHE BOOL "Use bundled re2" FORCE)
+set(POG_BUNDLED_RE2 OFF CACHE BOOL "Use bundled re2" FORCE)
 set(POG_PIC         ON CACHE BOOL "Build PIC"       FORCE)
 
 add_subdirectory(json)
