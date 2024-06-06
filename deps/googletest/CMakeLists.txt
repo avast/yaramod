@@ -34,6 +34,12 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(GTEST_HAS_ABSL ON)
 FetchContent_MakeAvailable(googletest)
+if(MSVC)
+	target_compile_options(gtest PUBLIC "/W3" "/WX-")
+	target_compile_options(gmock PUBLIC "/W3" "/WX-")
+	target_compile_options(gtest_main PUBLIC "/W3" "/WX-")
+	target_compile_options(gmock_main PUBLIC "/W3" "/WX-")
+endif()
 
 #if(CMAKE_C_COMPILER)
 #	set(CMAKE_C_COMPILER_OPTION "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
