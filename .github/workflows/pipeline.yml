@@ -54,11 +54,15 @@ jobs:
       - name: Build (windows)
         if: runner.os == 'Windows'
         run: |
+          mkdir build
+          cd build
           cmake -DYARAMOD_TESTS=ON ..
           cmake -A x64 --config ${{ matrix.config }} --build . -- /m
       - name: Build (linux & macos)
         if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
+          mkdir build
+          cd build
           cmake -DYARAMOD_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }} ..
           cmake --build . -- -j
       - name: Upload build directory
