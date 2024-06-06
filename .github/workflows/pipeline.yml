@@ -57,7 +57,7 @@ jobs:
           mkdir build
           cd build
           cmake -DYARAMOD_TESTS=ON ..
-          cmake -A x64 --config ${{ matrix.config }} --build . -j4
+          cmake -A x64 --config ${{ matrix.config }} --build .
       - name: Build (linux & macos)
         if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
