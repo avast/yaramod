@@ -51,20 +51,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Build (Linux & macOS)
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+      - name: Build
+        env:
+          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config }}
+          YARAMOD_BUILD_WITH_UNIT_TESTS: 1
         run: |
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DYARAMOD_TESTS=ON ..
-          cmake --build . -j
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          mkdir build
-          cd build
-          cmake -DYARAMOD_TESTS=ON ..
-          cmake --build . --config ${{ matrix.config }} -j
+          python -m pip install .
       - name: Upload build directory
         if: failure()
         uses: actions/upload-artifact@v3
@@ -74,13 +66,6 @@ jobs:
       - name: C++ Tests
         run: |
           ${{ startsWith(matrix.os, 'windows') && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
-      - name: Cleanup
-        uses: actions/checkout@v4
-      - name: Python Build
-        env:
-          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config }}
-        run: |
-          python -m pip install .
       - name: Python Tests
         run: |
           python -m pip install pytest mypy==0.991
