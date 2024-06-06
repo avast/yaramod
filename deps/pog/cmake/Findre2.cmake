@@ -28,9 +28,9 @@ mark_as_advanced(RE2_INCLUDE_DIR RE2_LIBRARY)
 if(RE2_INCLUDE_DIR AND RE2_LIBRARY)
 	set(RE2_FOUND 1)
 
-	if(NOT TARGET re2::re2)
-		add_library(re2::re2 UNKNOWN IMPORTED)
-		set_target_properties(re2::re2 PROPERTIES
+	if(NOT TARGET pog::re2)
+		add_library(pog::re2 UNKNOWN IMPORTED)
+		set_target_properties(pog::re2 PROPERTIES
 			INTERFACE_INCLUDE_DIRECTORIES "${RE2_INCLUDE_DIR}"
 			IMPORTED_LOCATION "${RE2_LIBRARY}"
 		)

@@ -78,7 +78,7 @@ target_include_directories(pog INTERFACE
 	"$<BUILD_INTERFACE:${POG_INCLUDE_DIR}>"
 	"$<INSTALL_INTERFACE:${POG_INSTALL_INCLUDE_DIR}>"
 )
-target_link_libraries(pog INTERFACE re2::re2 fmt::fmt)
+target_link_libraries(pog INTERFACE pog::re2 fmt::fmt)
 if(POG_COVERAGE)
 	target_compile_options(pog INTERFACE --coverage)
 	target_link_libraries(pog INTERFACE --coverage)

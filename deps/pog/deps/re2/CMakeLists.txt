@@ -46,13 +46,13 @@ ExternalProject_Add_Step(
 	COMMAND ${CMAKE_COMMAND} -E rename ${RE2_INSTALLED_LIBRARY} ${RE2_LIBRARY}
 )
 
-add_library(re2::re2 STATIC IMPORTED GLOBAL)
-set_target_properties(re2::re2 PROPERTIES
+add_library(pog::re2 STATIC IMPORTED GLOBAL)
+set_target_properties(pog::re2 PROPERTIES
 	INTERFACE_INCLUDE_DIRECTORIES "${RE2_INCLUDE_DIR}"
 	IMPORTED_LOCATION "${RE2_LIBRARY}"
 )
-target_link_libraries(re2::re2 INTERFACE Threads::Threads)
-add_dependencies(re2::re2 re2-dep)
+target_link_libraries(pog::re2 INTERFACE Threads::Threads)
+add_dependencies(pog::re2 re2-dep)
 
 install(
 	FILES ${RE2_LIBRARY}

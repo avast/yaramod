@@ -1,77 +1,108 @@
-cmake_minimum_required(VERSION 3.6)
+# cmake_minimum_required(VERSION 3.6)
+# 
+# find_package(Threads REQUIRED)
 
-find_package(Threads REQUIRED)
+#include(ExternalProject)
+include(FetchContent)
 
-include(ExternalProject)
-
-if(CMAKE_C_COMPILER)
-	set(CMAKE_C_COMPILER_OPTION "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
-endif()
-if(CMAKE_CXX_COMPILER)
-	set(CMAKE_CXX_COMPILER_OPTION "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
-endif()
-
-ExternalProject_Add(googletest
-	URL https://github.com/google/googletest/archive/a7f443b80b105f940225332ed3c31f2790092f47.zip
-	URL_HASH SHA256=ecb351335da20ab23ea5f14c107a10c475dfdd27d8a50d968757942280dffbe3
-	CMAKE_ARGS
-		# This does not work on MSVC, but is useful on Linux.
-		-DCMAKE_BUILD_TYPE=Release
-		# Without this, googletest's CMakeLists.txt replaces "/MD" (dynamic run-time) with "-MT" (static runtime).
-		# Default config for most applications is "/MD", so this will cause problems if linked with "-MT" googletest.
-		# https://msdn.microsoft.com/en-us/library/2kzt1wy3.aspx
-		-Dgtest_force_shared_crt=ON
-		# Force the use of the same compiler as used to build the top-level
-		# project. Otherwise, the external project may pick up a different
-		# compiler, which may result in link errors.
-		"${CMAKE_C_COMPILER_OPTION}"
-		"${CMAKE_CXX_COMPILER_OPTION}"
-	# Disable the update step.
-	UPDATE_COMMAND ""
-	# Disable the install step.
-	INSTALL_COMMAND ""
-	LOG_DOWNLOAD ON
-	LOG_CONFIGURE ON
-	LOG_BUILD ON
+FetchContent_Declare(
+	absl
+	URL https://github.com/abseil/abseil-cpp/archive/54e1f14c6f9b1a764ffdf8c1aea7e823f95f3d01.zip
+	URL_HASH SHA256=00308ac343a598c3b71f5b14adace5b2d2c5b5aad7ff7bf296bb1f490420ccf5
 )
 
-# Set include directories.
-ExternalProject_Get_Property(googletest source_dir)
-set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
-set(GMOCK_INCLUDE_DIR ${source_dir}/googlemock/include)
+set(ABSL_ENABLE_INSTALL ON)
+FetchContent_MakeAvailable(absl)
 
-# Add libraries.
-ExternalProject_Get_Property(googletest binary_dir)
+FetchContent_Declare(
+	re2
+	URL https://github.com/google/re2/archive/b91097e3989a8c8b463c0b6d7ffe96dafa5d6fad.zip
+	URL_HASH SHA256=3c3bae9933862cd26b554649e585583469d40ce0fbba405ee03eafc387e10432
+)
 
-if(MSVC)
-	set(DEBUG_DIR "Debug/")
-	set(RELEASE_DIR "Release/")
-	set(DEBUG_LIB_SUFFIX "d")
-endif()
+FetchContent_MakeAvailable(re2)
 
-add_library(gtest INTERFACE)
-target_link_libraries(gtest INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gtest INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_include_directories(gtest SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
-add_dependencies(gtest googletest)
+FetchContent_Declare(
+	googletest
+	URL https://github.com/google/googletest/archive/a7f443b80b105f940225332ed3c31f2790092f47.zip
+	URL_HASH SHA256=ecb351335da20ab23ea5f14c107a10c475dfdd27d8a50d968757942280dffbe3
+)
 
-add_library(gtest_main INTERFACE)
-target_link_libraries(gtest_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gtest_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gtest_main INTERFACE gtest)
-target_include_directories(gtest_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
-add_dependencies(gtest_main googletest)
+# Without this, googletest's CMakeLists.txt replaces "/MD" (dynamic run-time) with "-MT" (static runtime).
+# Default config for most applications is "/MD", so this will cause problems if linked with "-MT" googletest.
+# https://msdn.microsoft.com/en-us/library/2kzt1wy3.aspx
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(GTEST_HAS_ABSL ON)
+FetchContent_MakeAvailable(googletest)
 
-add_library(gmock INTERFACE)
-target_link_libraries(gmock INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gmock INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gmock INTERFACE gtest)
-target_include_directories(gmock SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
-add_dependencies(gmock googletest)
-
-add_library(gmock_main INTERFACE)
-target_link_libraries(gmock_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gmock_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
-target_link_libraries(gmock_main INTERFACE gmock)
-target_include_directories(gmock_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
-add_dependencies(gmock_main googletest)
+#if(CMAKE_C_COMPILER)
+#	set(CMAKE_C_COMPILER_OPTION "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
+#endif()
+#if(CMAKE_CXX_COMPILER)
+#	set(CMAKE_CXX_COMPILER_OPTION "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+#endif()
+#
+#ExternalProject_Add(googletest
+#	URL https://github.com/google/googletest/archive/a7f443b80b105f940225332ed3c31f2790092f47.zip
+#	URL_HASH SHA256=ecb351335da20ab23ea5f14c107a10c475dfdd27d8a50d968757942280dffbe3
+#	CMAKE_ARGS
+#		# This does not work on MSVC, but is useful on Linux.
+#		-DCMAKE_BUILD_TYPE=Release
+#		# Without this, googletest's CMakeLists.txt replaces "/MD" (dynamic run-time) with "-MT" (static runtime).
+#		# Default config for most applications is "/MD", so this will cause problems if linked with "-MT" googletest.
+#		# https://msdn.microsoft.com/en-us/library/2kzt1wy3.aspx
+#		-Dgtest_force_shared_crt=ON
+#		# Force the use of the same compiler as used to build the top-level
+#		# project. Otherwise, the external project may pick up a different
+#		# compiler, which may result in link errors.
+#		"${CMAKE_C_COMPILER_OPTION}"
+#		"${CMAKE_CXX_COMPILER_OPTION}"
+#	# Disable the update step.
+#	UPDATE_COMMAND ""
+#	# Disable the install step.
+#	INSTALL_COMMAND ""
+#	LOG_DOWNLOAD ON
+#	LOG_CONFIGURE ON
+#	LOG_BUILD ON
+#)
+#
+## Set include directories.
+#ExternalProject_Get_Property(googletest source_dir)
+#set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
+#set(GMOCK_INCLUDE_DIR ${source_dir}/googlemock/include)
+#
+## Add libraries.
+#ExternalProject_Get_Property(googletest binary_dir)
+#
+#if(MSVC)
+#	set(DEBUG_DIR "Debug/")
+#	set(RELEASE_DIR "Release/")
+#	set(DEBUG_LIB_SUFFIX "d")
+#endif()
+#
+#add_library(gtest INTERFACE)
+#target_link_libraries(gtest INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gtest INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_include_directories(gtest SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
+#add_dependencies(gtest googletest)
+#
+#add_library(gtest_main INTERFACE)
+#target_link_libraries(gtest_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gtest_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gtest_main INTERFACE gtest)
+#target_include_directories(gtest_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR})
+#add_dependencies(gtest_main googletest)
+#
+#add_library(gmock INTERFACE)
+#target_link_libraries(gmock INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gmock INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gmock INTERFACE gtest)
+#target_include_directories(gmock SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
+#add_dependencies(gmock googletest)
+#
+#add_library(gmock_main INTERFACE)
+#target_link_libraries(gmock_main INTERFACE debug ${binary_dir}/lib/${DEBUG_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gmock_main INTERFACE optimized ${binary_dir}/lib/${RELEASE_DIR}${CMAKE_STATIC_LIBRARY_PREFIX}gmock_main${CMAKE_STATIC_LIBRARY_SUFFIX} Threads::Threads)
+#target_link_libraries(gmock_main INTERFACE gmock)
+#target_include_directories(gmock_main SYSTEM INTERFACE ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
+#add_dependencies(gmock_main googletest)

@@ -5,8 +5,8 @@ set(POG_BUNDLED_FMT @POG_BUNDLED_FMT@)
 
 if(POG_BUNDLED_RE2)
 	find_package(Threads REQUIRED)
-	add_library(re2::re2 STATIC IMPORTED)
-	set_target_properties(re2::re2 PROPERTIES
+	add_library(pog::re2 STATIC IMPORTED)
+	set_target_properties(pog::re2 PROPERTIES
 		INTERFACE_INCLUDE_DIRECTORIES @PACKAGE_RE2_INCLUDE_DIR@
 		IMPORTED_LOCATION @PACKAGE_RE2_LIBRARY@
 	)
