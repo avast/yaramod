@@ -1,5 +1,12 @@
 # Changelog
 
+# v3.22.0 (2024-06-06)
+
+* Added deferred includes parsing mode for not automatically following and parsing includes but storing just paths, letting caller to handle includes themselves ([#260](https://github.com/avast/yaramod/pull/260))
+* Performance improvements in construction of `Yaramod` object
+* Several memory issues & stability fixes
+* Update of `re2` to the latest non-abseil version
+
 # v3.21.0 (2024-01-04)
 
 * Python 3.12 compatibility - the package no longer relies on `distutils` but requires newer versions of `setuptools`
