@@ -102,28 +102,28 @@ void ModulePool::_processModuleContent(const ModuleContent& content)
 
 void ModulePool::_init(const std::string& directory)
 {
-	//if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE"))
-	//{
-	//	if (std::getenv("YARAMOD_MODULE_SPEC_PATH"))
-	//		throw ModuleError("Error: Both YARAMOD_MODULE_SPEC_PATH and YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE environment properties are set.");
-	//	std::stringstream paths{envProperty};
-	//	for (std::string path; std::getline(paths, path, ':'); )
-	//		_processPath(fs::path(path));
-	//}
-	//else
-	//{
+	if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE"))
+	{
+		if (std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+			throw ModuleError("Error: Both YARAMOD_MODULE_SPEC_PATH and YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE environment properties are set.");
+		std::stringstream paths{envProperty};
+		for (std::string path; std::getline(paths, path, ':'); )
+			_processPath(fs::path(path));
+	}
+	else
+	{
 		bool foundModules = false;
-		//if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
-		//{
-		//	std::stringstream paths{envProperty};
-		//	for (std::string path; std::getline(paths, path, ':'); )
-		//	{
-		//		bool result = _processPath(fs::path(path));
-		//		foundModules = foundModules || result;
-		//	}
-		//	if (!foundModules)
-		//		throw ModuleError("Could not find any valid module specified in environmental variable YARAMOD_MODULE_SPEC_PATH. Unset or change the variable.");
-		//}
+		if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH"))
+		{
+			std::stringstream paths{envProperty};
+			for (std::string path; std::getline(paths, path, ':'); )
+			{
+				bool result = _processPath(fs::path(path));
+				foundModules = foundModules || result;
+			}
+			if (!foundModules)
+				throw ModuleError("Could not find any valid module specified in environmental variable YARAMOD_MODULE_SPEC_PATH. Unset or change the variable.");
+		}
 		if (directory != "")
 		{
 			for (const auto& entry : fs::directory_iterator(directory))
@@ -136,7 +136,7 @@ void ModulePool::_init(const std::string& directory)
 		}
 		for (const auto& content : _moduleList.list)
 			_processModuleContent(content);
-	//}
+	}
 }
 
 }
