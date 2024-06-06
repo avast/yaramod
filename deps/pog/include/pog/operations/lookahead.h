@@ -58,7 +58,7 @@ public:
 				for (const auto& ss : *lookback_with)
 				{
 					if (auto itr = Parent::_operation.find(sr); itr == Parent::_operation.end())
-						Parent::_operation.emplace(std::move(sr), _follow_op[ss]);
+						Parent::_operation.emplace(sr, _follow_op[ss]);
 					else if (auto follow_res = _follow_op.find(ss); follow_res)
 						std::copy(follow_res->begin(), follow_res->end(), std::inserter(itr->second, itr->second.begin()));
 				}
