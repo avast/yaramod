@@ -1,5 +1,9 @@
 # Changelog
 
+# v3.23.0 (2024-06-18)
+
+* Added support for `vt` module
+
 # v3.22.0 (2024-06-06)
 
 * Added deferred includes parsing mode for not automatically following and parsing includes but storing just paths, letting caller to handle includes themselves ([#260](https://github.com/avast/yaramod/pull/260))
