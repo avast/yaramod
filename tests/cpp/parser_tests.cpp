@@ -8517,5 +8517,51 @@ rule module_rule
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+WithExpressionWorks) {
+	prepareInput(
+R"(
+rule with_expression
+{
+	condition:
+		with a = 1, b = 2, c = 3 + 5 : (
+			a + b > a + c
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(with a = 1, b = 2, c = 3 + 5 : (a + b > a + c))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+WithExpressionVariableOutOfScope) {
+	prepareInput(
+		R"(rule test_rule
+{
+	condition:
+		with a = 1 : (
+			a > 2
+		) and a < 1
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 6.9: Unrecognized identifier 'a' referenced", err.getErrorMessage());
+		EXPECT_EQ("<", driver.getParsedFile().getTokenStream()->back().getPureText());
+	}
+}
+
 }
 }

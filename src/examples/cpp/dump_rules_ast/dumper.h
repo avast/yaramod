@@ -587,6 +587,26 @@ public:
 		return {};
 	}
 
+	virtual yaramod::VisitResult visit(yaramod::VariableDefExpression* expr) override
+	{
+		dump("VariableDef", expr, " name=", expr->getName());
+		indentUp();
+		expr->getExpression()->accept(this);
+		indentDown();
+		return {};
+	}
+
+	virtual yaramod::VisitResult visit(yaramod::WithExpression* expr) override
+	{
+		dump("With", expr);
+		indentUp();
+		for (const auto& var : expr->getVariables())
+			var->accept(this);
+		expr->getBody()->accept(this);
+		indentDown();
+		return {};
+	}
+
 	// ==================== ObservingRegexVisitor ====================
 	yaramod::RegexpVisitResult observe(const std::shared_ptr<yaramod::RegexpUnit>& unit)
 	{

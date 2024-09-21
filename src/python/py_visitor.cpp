@@ -81,7 +81,9 @@ void addVisitorClasses(py::module& module)
 		.def("visit_ThemExpression", py::overload_cast<ThemExpression*>(&Visitor::visit))
 		.def("visit_ParenthesesExpression", py::overload_cast<ParenthesesExpression*>(&Visitor::visit))
 		.def("visit_IntFunctionExpression", py::overload_cast<IntFunctionExpression*>(&Visitor::visit))
-		.def("visit_RegexpExpression", py::overload_cast<RegexpExpression*>(&Visitor::visit));
+		.def("visit_RegexpExpression", py::overload_cast<RegexpExpression*>(&Visitor::visit))
+		.def("visit_VariableDefExpression", py::overload_cast<VariableDefExpression*>(&Visitor::visit))
+		.def("visit_WithExpression", py::overload_cast<WithExpression*>(&Visitor::visit));
 
 	py::class_<ObservingVisitor, PyObservingVisitor, Visitor>(module, "ObservingVisitor")
 		.def(py::init<>())
@@ -148,7 +150,9 @@ void addVisitorClasses(py::module& module)
 		.def("visit_ThemExpression", py::overload_cast<ThemExpression*>(&ObservingVisitor::visit))
 		.def("visit_ParenthesesExpression", py::overload_cast<ParenthesesExpression*>(&ObservingVisitor::visit))
 		.def("visit_IntFunctionExpression", py::overload_cast<IntFunctionExpression*>(&ObservingVisitor::visit))
-		.def("visit_RegexpExpression", py::overload_cast<RegexpExpression*>(&ObservingVisitor::visit));
+		.def("visit_RegexpExpression", py::overload_cast<RegexpExpression*>(&ObservingVisitor::visit))
+		.def("visit_VariableDefExpression", py::overload_cast<VariableDefExpression*>(&ObservingVisitor::visit))
+		.def("visit_WithExpression", py::overload_cast<WithExpression*>(&ObservingVisitor::visit));
 
 	py::class_<ModifyingVisitor, PyModifyingVisitor, Visitor>(module, "ModifyingVisitor")
 		.def(py::init<>())
@@ -217,6 +221,8 @@ void addVisitorClasses(py::module& module)
 		.def("visit_ParenthesesExpression", py::overload_cast<ParenthesesExpression*>(&ModifyingVisitor::visit))
 		.def("visit_IntFunctionExpression", py::overload_cast<IntFunctionExpression*>(&ModifyingVisitor::visit))
 		.def("visit_RegexpExpression", py::overload_cast<RegexpExpression*>(&ModifyingVisitor::visit))
+		.def("visit_VariableDefExpression", py::overload_cast<IntFunctionExpression*>(&ModifyingVisitor::visit))
+		.def("visit_WithExpression", py::overload_cast<RegexpExpression*>(&ModifyingVisitor::visit))
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, StringAtExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, StringInRangeExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, StringOffsetExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
@@ -263,7 +269,9 @@ void addVisitorClasses(py::module& module)
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, ArrayAccessExpression*, const VisitResult&, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, FunctionCallExpression*, const VisitResult&, const std::vector<VisitResult>&)>(&ModifyingVisitor::defaultHandler))
 		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, ParenthesesExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
-		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, IntFunctionExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler));
+		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, IntFunctionExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
+		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, VariableDefExpression*, const VisitResult&)>(&ModifyingVisitor::defaultHandler))
+		.def("default_handler", static_cast<VisitResult(ModifyingVisitor::*)(const TokenStreamContext&, WithExpression*, const std::vector<VisitResult>&, const VisitResult&)>(&ModifyingVisitor::defaultHandler));
 }
 
 void addRegexpVisitorClasses(py::module& module)

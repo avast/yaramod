@@ -1614,4 +1614,55 @@ YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixM
 	return YaraExpressionBuilder(std::move(ts), std::make_shared<RegexpExpression>(std::move(regexp)), Expression::Type::Regexp);
 }
 
+/**
+ * Creates variable definition for "with" expression.
+ *
+ * @param name Name of the token.
+ * @param expr Expression.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder var_def(const std::string& name, const YaraExpressionBuilder& expr)
+{
+	std::shared_ptr<TokenStream> ts = std::make_shared<TokenStream>();
+	auto name_token = ts->emplace_back(TokenType::ID, name);
+	ts->emplace_back(TokenType::ASSIGN, "=");
+	ts->moveAppend(expr.getTokenStream());
+	return YaraExpressionBuilder(std::move(ts), std::make_shared<VariableDefExpression>(name_token, expr.get()));
+}
+
+/**
+ * Creates the expression with "with" expression defining variables and body.
+ *
+ * @param vars Variable builders.
+ * @param body Body expression builder.
+ *
+ * @return Builder.
+ */
+YaraExpressionBuilder with(const std::vector<YaraExpressionBuilder>& vars, const YaraExpressionBuilder& body)
+{
+	std::shared_ptr<TokenStream> ts = std::make_shared<TokenStream>();
+	TokenIt with = ts->emplace_back(TokenType::WITH, "with");
+
+	std::vector<Expression::Ptr> varExprs;
+	varExprs.reserve(vars.size());
+
+	for (size_t i = 0; i < vars.size(); ++i)
+	{
+		ts->moveAppend(vars[i].getTokenStream());
+
+		if (i + 1 < vars.size())
+			ts->emplace_back(TokenType::COMMA, ",");
+		else
+			ts->emplace_back(TokenType::COLON, ":");
+
+		varExprs.push_back(vars[i].get());
+	}
+
+	ts->emplace_back(TokenType::LP_WITH_SPACE_AFTER, "(");
+	ts->moveAppend(body.getTokenStream());
+	auto right_bracket = ts->emplace_back(TokenType::RP_WITH_SPACE_BEFORE, ")");
+	return YaraExpressionBuilder(std::move(ts), std::make_shared<WithExpression>(with, std::move(varExprs), body.get(), right_bracket));
+}
+
 }

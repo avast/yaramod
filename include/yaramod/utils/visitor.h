@@ -75,6 +75,8 @@ class ThemExpression;
 class ParenthesesExpression;
 class IntFunctionExpression;
 class RegexpExpression;
+class VariableDefExpression;
+class WithExpression;
 
 /**
  * Abstract class representing visitor design pattern for visiting condition expressions
@@ -149,6 +151,8 @@ public:
 	virtual VisitResult visit(ParenthesesExpression* expr) = 0;
 	virtual VisitResult visit(IntFunctionExpression* expr) = 0;
 	virtual VisitResult visit(RegexpExpression* expr) = 0;
+	virtual VisitResult visit(VariableDefExpression* expr) = 0;
+	virtual VisitResult visit(WithExpression* expr) = 0;
 	/// @}
 	bool resultIsDelete(const VisitResult& result) const
 	{

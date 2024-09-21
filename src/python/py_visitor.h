@@ -91,6 +91,8 @@ public:
 	PURE_VISIT(ParenthesesExpression)
 	PURE_VISIT(IntFunctionExpression)
 	PURE_VISIT(RegexpExpression)
+	PURE_VISIT(VariableDefExpression)
+	PURE_VISIT(WithExpression)
 };
 
 #define VISIT(parent, type) \
@@ -172,6 +174,8 @@ public:
 	VISIT(ObservingVisitor, ParenthesesExpression)
 	VISIT(ObservingVisitor, IntFunctionExpression)
 	VISIT(ObservingVisitor, RegexpExpression)
+	VISIT(ObservingVisitor, VariableDefExpression)
+	VISIT(ObservingVisitor, WithExpression)
 };
 
 class PyModifyingVisitor : public yaramod::ModifyingVisitor
@@ -242,6 +246,8 @@ public:
 	VISIT(ModifyingVisitor, ParenthesesExpression)
 	VISIT(ModifyingVisitor, IntFunctionExpression)
 	VISIT(ModifyingVisitor, RegexpExpression)
+	VISIT(ModifyingVisitor, VariableDefExpression)
+	VISIT(ModifyingVisitor, WithExpression)
 };
 
 void addVisitorClasses(pybind11::module& module);
