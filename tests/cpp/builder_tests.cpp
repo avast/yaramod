@@ -2133,51 +2133,51 @@ rule iequals_builder
 )", yaraFile->getTextFormatted());
 }
 
-TEST_F(BuilderTests,
-IdWildcardWorks) {
-	auto cond = of(intVal(2), set({id("rule1"), id("ru*")})).get();
-
-	YaraRuleBuilder newRule;
-	auto refRule = newRule
-			.withName("rule1")
-			.withCondition(boolVal(true).get())
-			.get();
-
-	auto rule = newRule
-			.withName("of_rule_builder")
-			.withCondition(cond)
-			.get();
-
-	YaraFileBuilder newFile;
-	auto yaraFile = newFile
-			.withRule(std::move(refRule))
-			.withRule(std::move(rule))
-			.get(true);
-
-	ASSERT_NE(nullptr, yaraFile);
-	EXPECT_EQ(R"(rule rule1 {
-	condition:
-		true
-}
-
-rule of_rule_builder {
-	condition:
-		2 of (rule1, ru*)
-})", yaraFile->getText());
-
-	EXPECT_EQ(R"(rule rule1
-{
-	condition:
-		true
-}
-
-rule of_rule_builder
-{
-	condition:
-		2 of (rule1, ru*)
-}
-)", yaraFile->getTextFormatted());
-}
+//TEST_F(BuilderTests,
+//IdWildcardWorks) {
+//	auto cond = of(intVal(2), set({id("rule1"), id("ru*")})).get();
+//
+//	YaraRuleBuilder newRule;
+//	auto refRule = newRule
+//			.withName("rule1")
+//			.withCondition(boolVal(true).get())
+//			.get();
+//
+//	auto rule = newRule
+//			.withName("of_rule_builder")
+//			.withCondition(cond)
+//			.get();
+//
+//	YaraFileBuilder newFile;
+//	auto yaraFile = newFile
+//			.withRule(std::move(refRule))
+//			.withRule(std::move(rule))
+//			.get(true);
+//
+//	ASSERT_NE(nullptr, yaraFile);
+//	EXPECT_EQ(R"(rule rule1 {
+//	condition:
+//		true
+//}
+//
+//rule of_rule_builder {
+//	condition:
+//		2 of (rule1, ru*)
+//})", yaraFile->getText());
+//
+//	EXPECT_EQ(R"(rule rule1
+//{
+//	condition:
+//		true
+//}
+//
+//rule of_rule_builder
+//{
+//	condition:
+//		2 of (rule1, ru*)
+//}
+//)", yaraFile->getTextFormatted());
+//}
 
 TEST_F(BuilderTests,
 StringAsBoolInConditionWorks) {

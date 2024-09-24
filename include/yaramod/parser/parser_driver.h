@@ -201,6 +201,15 @@ protected:
 	void addDeferredInclude(std::string&& filePath);
 	/// @}
 
+	/// @name Expression arrays
+	/// @{
+	void enterExpressionArray();
+	void leaveExpressionArray();
+	bool isCurrentExpressionArrayStringSet() const;
+	void setCurrentExpressionArrayStringSet(bool set);
+	/// @}
+
+
 private:
 	std::string _strLiteral; ///< Currently processed string literal.
 	Location::Position _positionBegin; ///< Variable storing the position the currently processed token begins at.
@@ -236,7 +245,10 @@ private:
 	std::shared_ptr<TokenStream> _lastRuleTokenStream; ///< Holds token stream at the point of where last parsed rule starts
 	std::uint64_t _anonStringCounter; ///< Internal counter for generating pseudo identifiers of anonymous strings
 	Location _errorLocation; ///< Last known location before error in parsing happened.
-	std::vector<std::string> _deferredIncludes;
+
+	std::vector<std::string> _deferredIncludes; ///< Paths of included files when deferred includes are turned on.
+
+	std::vector<bool> _expressionArrayStack; ///< Indicates that expression array (..., ...) represents string set
 };
 
 } // namespace yaramod
