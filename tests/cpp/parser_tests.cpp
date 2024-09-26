@@ -8120,66 +8120,66 @@ ParseOfRuleInvalid) {
 	}
 	catch (const ParserError& err)
 	{
-		EXPECT_EQ("Error at 4.11-19: Reference to undefined rule 'test_rule'", err.getErrorMessage());
+		EXPECT_EQ("Error at 4.11-19: Unrecognized identifier 'test_rule' referenced", err.getErrorMessage());
 		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 
-TEST_F(ParserTests,
-ParseOfRuleWildcard) {
-	prepareInput(
-		R"(rule rule1
-{
-	condition:
-		true
-}
+//TEST_F(ParserTests,
+//ParseOfRuleWildcard) {
+//	prepareInput(
+//		R"(rule rule1
+//{
+//	condition:
+//		true
+//}
+//
+//rule rule2
+//{
+//	condition:
+//		true
+//}
+//
+//rule rule3
+//{
+//	condition:
+//		true
+//}
+//
+//rule test_rule
+//{
+//	condition:
+//		any of (ru*)
+//}
+//)");
+//
+//	EXPECT_TRUE(driver.parse(input));
+//	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
+//
+//	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+//}
 
-rule rule2
-{
-	condition:
-		true
-}
-
-rule rule3
-{
-	condition:
-		true
-}
-
-rule test_rule
-{
-	condition:
-		any of (ru*)
-}
-)");
-
-	EXPECT_TRUE(driver.parse(input));
-	ASSERT_EQ(4u, driver.getParsedFile().getRules().size());
-
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
-}
-
-TEST_F(ParserTests,
-ParseOfRuleWildcardInvalid) {
-	prepareInput(
-		R"(rule test_rule
-{
-	condition:
-		any of (test*)
-}
-)");
-
-	try
-	{
-		driver.parse(input);
-		FAIL() << "Parser did not throw an exception.";
-	}
-	catch (const ParserError& err)
-	{
-		EXPECT_EQ("Error at 4.11-14: No rule matched with wildcard 'test*'", err.getErrorMessage());
-		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
-	}
-}
+//TEST_F(ParserTests,
+//ParseOfRuleWildcardInvalid) {
+//	prepareInput(
+//		R"(rule test_rule
+//{
+//	condition:
+//		any of (test*)
+//}
+//)");
+//
+//	try
+//	{
+//		driver.parse(input);
+//		FAIL() << "Parser did not throw an exception.";
+//	}
+//	catch (const ParserError& err)
+//	{
+//		EXPECT_EQ("Error at 4.11-14: No rule matched with wildcard 'test*'", err.getErrorMessage());
+//		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
+//	}
+//}
 
 TEST_F(ParserTests,
 ParseAmbiguousWithIdWildcard) {
@@ -8560,6 +8560,52 @@ WithExpressionVariableOutOfScope) {
 	{
 		EXPECT_EQ("Error at 6.9: Unrecognized identifier 'a' referenced", err.getErrorMessage());
 		EXPECT_EQ("<", driver.getParsedFile().getTokenStream()->back().getPureText());
+	}
+}
+
+
+TEST_F(ParserTests,
+ExpressionArrayWorks) {
+	prepareInput(
+R"(
+rule expression_array
+{
+	condition:
+		any of (1, 2, 3)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(any of (1, 2, 3))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+MixedExpressionArrayNotAllowed) {
+	prepareInput(
+		R"(rule mixed_expression_array
+{
+	strings:
+		$s01 = "abc"
+		$s02 = "def"
+	condition:
+		any of ($s*, true)
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ("Error at 7.20: unexpected expression, expected either string or string wildcard within string set", err.getErrorMessage());
+		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
 }
 

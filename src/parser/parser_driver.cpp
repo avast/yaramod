@@ -1094,7 +1094,7 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	auto& expr = _parser.rule("expression") // Expression::Ptr
+	_parser.rule("expression") // Expression::Ptr
 		.production("boolean", [&](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
 			output->setType(Expression::Type::Bool);
@@ -1321,52 +1321,73 @@ void ParserDriver::defineGrammar()
 				return output;
 			}
 		)
-		.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt of = args[1].getTokenIt();
-			auto set = std::move(args[2].getExpression());
-			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
-			output->setType(Expression::Type::Bool);
-			output->setTokenStream(currentTokenStream());
-			output->setUid(_uidGen.next());
-			return output;
-		})
-		.production("for_expression", "OF", "rule_set", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt of = args[1].getTokenIt();
-			auto set = std::move(args[2].getExpression());
-			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
-			output->setType(Expression::Type::Bool);
-			output->setTokenStream(currentTokenStream());
-			output->setUid(_uidGen.next());
-			return output;
-		})
-		.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt of = args[1].getTokenIt();
-			auto set = std::move(args[2].getExpression());
-			TokenIt in = args[3].getTokenIt();
-			auto range = args[4].getExpression();
-			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
-			output->setType(Expression::Type::Bool);
-			output->setTokenStream(currentTokenStream());
-			output->setUid(_uidGen.next());
-			return output;
-		})
-		.production("for_expression", "OF", "string_set", "AT", "primary_expression", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt of = args[1].getTokenIt();
-			auto set = std::move(args[2].getExpression());
-			TokenIt at = args[3].getTokenIt();
-			Expression::Ptr offset = args[4].getExpression();
+		//.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
+		//	auto for_expr = std::move(args[0].getExpression());
+		//	TokenIt of = args[1].getTokenIt();
+		//	auto set = std::move(args[2].getExpression());
+		//	auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
+		//	output->setType(Expression::Type::Bool);
+		//	output->setTokenStream(currentTokenStream());
+		//	output->setUid(_uidGen.next());
+		//	return output;
+		//})
+		//.production("for_expression", "OF", "rule_set", [&](auto&& args) -> Value {
+		//	auto for_expr = std::move(args[0].getExpression());
+		//	TokenIt of = args[1].getTokenIt();
+		//	auto set = std::move(args[2].getExpression());
+		//	auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set));
+		//	output->setType(Expression::Type::Bool);
+		//	output->setTokenStream(currentTokenStream());
+		//	output->setUid(_uidGen.next());
+		//	return output;
+		//})
+		//.production("for_expression", "OF", "string_set", "IN", "range", [&](auto&& args) -> Value {
+		//	auto for_expr = std::move(args[0].getExpression());
+		//	TokenIt of = args[1].getTokenIt();
+		//	auto set = std::move(args[2].getExpression());
+		//	TokenIt in = args[3].getTokenIt();
+		//	auto range = args[4].getExpression();
+		//	auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), in, std::move(range));
+		//	output->setType(Expression::Type::Bool);
+		//	output->setTokenStream(currentTokenStream());
+		//	output->setUid(_uidGen.next());
+		//	return output;
+		//})
+		//.production("for_expression", "OF", "string_set", "AT", "primary_expression", [&](auto&& args) -> Value {
+		//	auto for_expr = std::move(args[0].getExpression());
+		//	TokenIt of = args[1].getTokenIt();
+		//	auto set = std::move(args[2].getExpression());
+		//	TokenIt at = args[3].getTokenIt();
+		//	Expression::Ptr offset = args[4].getExpression();
 
-			if (!offset->isInt()) {
-				std::stringstream ss;
-				ss << "Operator 'at' expects integer on the right-hand side of the expression. Got " << offset->getText() << ".";
-				error_handle(args[4].getTokenIt()->getLocation(), ss.str());
+		//	if (!offset->isInt()) {
+		//		std::stringstream ss;
+		//		ss << "Operator 'at' expects integer on the right-hand side of the expression. Got " << offset->getText() << ".";
+		//		error_handle(args[4].getTokenIt()->getLocation(), ss.str());
+		//	}
+
+		//	auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), at, offset);
+		//	output->setType(Expression::Type::Bool);
+		//	output->setTokenStream(currentTokenStream());
+		//	output->setUid(_uidGen.next());
+		//	return output;
+		//})
+		.production("for_expression", "OF", "expression_iterable", "of_location_spec", [this](auto&& args) -> Value {
+			auto for_expr = std::move(args[0].getExpression());
+			TokenIt of = args[1].getTokenIt();
+			auto array = std::move(args[2].getExpression());
+			auto of_location_spec = std::move(args[3].getOfLocationSpec());
+			Expression::Ptr output;
+			if (!of_location_spec)
+				output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
+			else
+			{
+				auto of_location_spec_val = std::move(of_location_spec).value();
+				auto of_location_spec_token = std::get<0>(of_location_spec_val);
+				auto of_location_spec_expr = std::get<1>(of_location_spec_val);
+				output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array), of_location_spec_token, std::move(of_location_spec_expr));
 			}
 
-			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(set), at, offset);
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
@@ -1630,22 +1651,28 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
-		;
-
-	if (_features & Features::AvastOnly)
-	{
-		expr.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt of = args[1].getTokenIt();
-			auto array = std::move(args[2].getExpression());
-			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
-			output->setType(Expression::Type::Bool);
+		.production("STRING_ID_WILDCARD", [&](auto&& args) -> Value {
+			TokenIt id = args[0].getTokenIt();
+			if (!stringExists(id->getPureText()))
+				error_handle(id->getLocation(), "No string matched with wildcard '" + id->getPureText() + "'");
+			auto output = std::make_shared<StringWildcardExpression>(id);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
 			return output;
 		})
 		;
-	}
+
+	_parser.rule("of_location_spec")
+		.production([](auto&&) -> Value { return OfLocationSpec{}; })
+		.production("IN", "range", [](auto&& args) -> Value {
+			auto range = std::move(args[1].getExpression());
+			return std::make_tuple(args[0].getTokenIt(), range);
+		})
+		.production("AT", "primary_expression", [](auto&& args) -> Value {
+			auto expr = std::move(args[1].getExpression());
+			return std::make_tuple(args[0].getTokenIt(), expr);
+		})
+		;
 
 	_parser.rule("with_variables")
 		.production("with_variable", [](auto&& args) -> Value {
@@ -2313,99 +2340,150 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
-	_parser.rule("rule_set") // Expression::Ptr
-		.production("LP", "rule_enumeration", "RP", [&](auto&& args) -> Value {
-			TokenIt lp = args[0].getTokenIt();
-			lp->setType(TokenType::LP_ENUMERATION);
-			TokenIt rp = args[2].getTokenIt();
-			rp->setType(TokenType::RP_ENUMERATION);
-			auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
+	//_parser.rule("rule_set") // Expression::Ptr
+	//	.production("LP", "rule_enumeration", "RP", [&](auto&& args) -> Value {
+	//		TokenIt lp = args[0].getTokenIt();
+	//		lp->setType(TokenType::LP_ENUMERATION);
+	//		TokenIt rp = args[2].getTokenIt();
+	//		rp->setType(TokenType::RP_ENUMERATION);
+	//		auto output = std::make_shared<SetExpression>(lp, std::move(args[1].getMultipleExpressions()), rp);
+	//		output->setTokenStream(currentTokenStream());
+	//		output->setUid(_uidGen.next());
+	//		return output;
+	//	})
+	//	;
+
+	//_parser.rule("rule_enumeration") // vector<Expression::Ptr>
+	//	.production("rule_enumeration_item", [&](auto&& args) -> Value {
+	//		return std::vector<Expression::Ptr>{std::move(args[0].getExpression())};
+	//	})
+	//	.production("rule_enumeration", "COMMA", "rule_enumeration_item", [&](auto&& args) -> Value {
+	//		auto output = std::move(args[0].getMultipleExpressions());
+	//		output.push_back(std::move(args[2].getExpression()));
+	//		return output;
+	//	})
+	//	;
+
+	//_parser.rule("rule_enumeration_item") // Expression::Ptr
+	//	.production("ID", [&](auto&& args) -> Value {
+	//		TokenIt id = args[0].getTokenIt();
+	//		if (!ruleExists(id->getPureText()))
+	//			error_handle(id->getLocation(), "Reference to undefined rule '" + id->getPureText() + "'");
+
+	//		auto symbol = findSymbol(id->getString());
+	//		if (!symbol)
+	//		{
+	//			if (!incompleteMode())
+	//				error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
+	//			else
+	//				symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, id->getString(), ExpressionType::Undefined);
+	//		}
+
+	//		id->setValue(symbol);
+	//		auto output = std::make_shared<IdExpression>(id);
+	//		output->setType(symbol->getDataType());
+	//		output->setTokenStream(currentTokenStream());
+	//		output->setUid(_uidGen.next());
+	//		return output;
+	//	})
+	//	.production("ID", "MULTIPLY", [&](auto&& args) -> Value {
+	//		TokenIt id = args[0].getTokenIt();
+	//		TokenIt wildcard = args[1].getTokenIt();
+	//		id->setType(TokenType::ID_WILDCARD);
+	//		wildcard->setType(TokenType::ID_WILDCARD);
+
+	//		if (!incompleteMode() && !ruleWithPrefixExists(id->getPureText()))
+	//			error_handle(id->getLocation(), "No rule matched with wildcard '" + id->getPureText() + "*'");
+
+	//		auto output = std::make_shared<IdWildcardExpression>(id, wildcard);
+	//		output->setTokenStream(currentTokenStream());
+	//		output->setUid(_uidGen.next());
+	//		return output;
+	//	})
+	//	;
+
+	_parser.rule("expression_iterable") // shared_ptr<IterableExpression>
+		.production("THEM", [&](auto&& args) -> Value {
+			auto output = std::make_shared<ThemExpression>(args[0].getTokenIt());
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
 			return output;
 		})
-		;
-
-	_parser.rule("rule_enumeration") // vector<Expression::Ptr>
-		.production("rule_enumeration_item", [&](auto&& args) -> Value {
-			return std::vector<Expression::Ptr>{std::move(args[0].getExpression())};
+		.production("LSQB", [&](auto&&) -> Value {
+				enterExpressionArray();
+				return {};
+			},
+			"expression_enumeration", "RSQB", [&](auto&& args) -> Value {
+			TokenIt lsqb = args[0].getTokenIt();
+			lsqb->setType(TokenType::LSQB_ENUMERATION);
+			TokenIt rsqb = args[3].getTokenIt();
+			rsqb->setType(TokenType::RSQB_ENUMERATION);
+			std::shared_ptr<Expression> output;
+			if (isCurrentExpressionArrayStringSet())
+				output = std::make_shared<SetExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			else
+				output = std::make_shared<IterableExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			leaveExpressionArray();
+			return output;
 		})
-		.production("rule_enumeration", "COMMA", "rule_enumeration_item", [&](auto&& args) -> Value {
-			auto output = std::move(args[0].getMultipleExpressions());
-			output.push_back(std::move(args[2].getExpression()));
+		.production("LP", [&](auto&&) -> Value {
+				enterExpressionArray();
+				return {};
+			},
+			"expression_enumeration", "RP", [&](auto&& args) -> Value {
+			TokenIt lsqb = args[0].getTokenIt();
+			lsqb->setType(TokenType::LP_ENUMERATION);
+			TokenIt rsqb = args[3].getTokenIt();
+			rsqb->setType(TokenType::RP_ENUMERATION);
+			std::shared_ptr<Expression> output;
+			if (isCurrentExpressionArrayStringSet())
+				output = std::make_shared<SetExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			else
+				output = std::make_shared<IterableExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			leaveExpressionArray();
 			return output;
 		})
 		;
 
-	_parser.rule("rule_enumeration_item") // Expression::Ptr
-		.production("ID", [&](auto&& args) -> Value {
-			TokenIt id = args[0].getTokenIt();
-			if (!ruleExists(id->getPureText()))
-				error_handle(id->getLocation(), "Reference to undefined rule '" + id->getPureText() + "'");
-
-			auto symbol = findSymbol(id->getString());
-			if (!symbol)
+	_parser.rule("expression_enumeration") // vector<Expression::Ptr>
+		.production("expression", [&](auto&& args) -> Value {
+			auto expression = args[0].getExpression();
+			if (!isCurrentExpressionArrayStringSet())
 			{
-				if (!incompleteMode())
-					error_handle(args[0].getTokenIt()->getLocation(), "Unrecognized identifier '" + args[0].getTokenIt()->getPureText() + "' referenced");
-				else
-					symbol = std::make_shared<Symbol>(Symbol::Type::Undefined, id->getString(), ExpressionType::Undefined);
+				if (expression->template as<StringExpression>() || expression->template as<StringWildcardExpression>())
+					setCurrentExpressionArrayStringSet(true);
 			}
-
-			id->setValue(symbol);
-			auto output = std::make_shared<IdExpression>(id);
-			output->setType(symbol->getDataType());
-			output->setTokenStream(currentTokenStream());
-			output->setUid(_uidGen.next());
+			else
+			{
+				if (!expression->template as<StringExpression>() && !expression->template as<StringWildcardExpression>())
+					error_handle(currentFileContext()->getLocation(), "unexpected expression, expected either string or string wildcard within string set");
+			}
+			auto output = std::vector<Expression::Ptr>{std::move(expression)};
+			output.front()->setTokenStream(currentTokenStream());
 			return output;
 		})
-		.production("ID", "MULTIPLY", [&](auto&& args) -> Value {
-			TokenIt id = args[0].getTokenIt();
-			TokenIt wildcard = args[1].getTokenIt();
-			id->setType(TokenType::ID_WILDCARD);
-			wildcard->setType(TokenType::ID_WILDCARD);
-
-			if (!incompleteMode() && !ruleWithPrefixExists(id->getPureText()))
-				error_handle(id->getLocation(), "No rule matched with wildcard '" + id->getPureText() + "*'");
-
-			auto output = std::make_shared<IdWildcardExpression>(id, wildcard);
-			output->setTokenStream(currentTokenStream());
-			output->setUid(_uidGen.next());
+		.production("expression_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
+			auto expression = args[2].getExpression();
+			if (!isCurrentExpressionArrayStringSet())
+			{
+				if (expression->template as<StringExpression>() || expression->template as<StringWildcardExpression>())
+					setCurrentExpressionArrayStringSet(true);
+			}
+			else
+			{
+				if (!expression->template as<StringExpression>() && !expression->template as<StringWildcardExpression>())
+					error_handle(currentFileContext()->getLocation(), "unexpected expression, expected either string or string wildcard within string set");
+			}
+			auto output = std::move(args[0].getMultipleExpressions());
+			output.push_back(std::move(expression));
+			output.back()->setTokenStream(currentTokenStream());
 			return output;
 		})
 		;
-
-	if (_features & Features::AvastOnly)
-	{
-		_parser.rule("expression_iterable") // shared_ptr<IterableExpression>
-			.production("LSQB", "expression_enumeration", "RSQB", [&](auto&& args) -> Value {
-				TokenIt lsqb = args[0].getTokenIt();
-				lsqb->setType(TokenType::LSQB_ENUMERATION);
-				TokenIt rsqb = args[2].getTokenIt();
-				rsqb->setType(TokenType::RSQB_ENUMERATION);
-				auto output = std::make_shared<IterableExpression>(lsqb, std::move(args[1].getMultipleExpressions()), rsqb);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			})
-			;
-
-		_parser.rule("expression_enumeration") // vector<Expression::Ptr>
-			.production("expression", [&](auto&& args) -> Value {
-				auto expression = args[0].getExpression();
-				auto output = std::vector<Expression::Ptr>{std::move(expression)};
-				output.front()->setTokenStream(currentTokenStream());
-				return output;
-			})
-			.production("expression_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
-				auto expression = args[2].getExpression();
-				auto output = std::move(args[0].getMultipleExpressions());
-				output.push_back(std::move(expression));
-				output.back()->setTokenStream(currentTokenStream());
-				return output;
-			})
-			;
-	}
 }
 
 void ParserDriver::enter_state(const std::string& state)
@@ -2445,7 +2523,8 @@ ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory
 	_modules(std::make_shared<ModulePool>(features, moduleDirectory)),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
-	_lastRuleTokenStream(), _anonStringCounter(0)
+	_lastRuleTokenStream(), _anonStringCounter(0), _errorLocation(), _deferredIncludes(),
+	_expressionArrayStack()
 {
 	initialize();
 }
@@ -2455,7 +2534,8 @@ ParserDriver::ParserDriver(Features features, const std::shared_ptr<ModulePool>&
 	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(modulePool),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
-	_lastRuleTokenStream(), _anonStringCounter(0)
+	_lastRuleTokenStream(), _anonStringCounter(0), _errorLocation(), _deferredIncludes(),
+	_expressionArrayStack()
 {
 	initialize();
 }
@@ -2924,6 +3004,26 @@ Rule ParserDriver::createCommonRule(std::vector<yaramod::Value>& args)
 void ParserDriver::addDeferredInclude(std::string&& filePath)
 {
 	_file.addDeferredInclude(std::move(filePath));
+}
+
+void ParserDriver::enterExpressionArray()
+{
+	_expressionArrayStack.push_back(false);
+}
+
+void ParserDriver::leaveExpressionArray()
+{
+	_expressionArrayStack.pop_back();
+}
+
+bool ParserDriver::isCurrentExpressionArrayStringSet() const
+{
+	return _expressionArrayStack.back();
+}
+
+void ParserDriver::setCurrentExpressionArrayStringSet(bool set)
+{
+	_expressionArrayStack.back() = set;
 }
 
 } //namespace yaramod

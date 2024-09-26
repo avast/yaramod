@@ -23,6 +23,7 @@ namespace yaramod {
 using RegexpRangePair = std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>>;
 using StringModifiers = std::vector<std::shared_ptr<StringModifier>>;
 using RegexpClassRecord = std::pair<bool, std::string>;
+using OfLocationSpec = std::optional<std::tuple<TokenIt, Expression::Ptr>>;
 
 /**
  * Value is the type of all tokens produced by POG parser. Both token and rule actions return Value. The rule action parameters are also Values.
@@ -54,7 +55,8 @@ public:
 		RegexpRangePair, //20
 		RegexpClassRecord,
 		std::vector<Variable>, //22
-		std::shared_ptr<SectionsSummary>
+		std::shared_ptr<SectionsSummary>,
+		OfLocationSpec
 	>;
 
 	/// @name Constructors
@@ -187,6 +189,11 @@ public:
 	RegexpClassRecord&& getRegexpClassRecord()
 	{
 		return std::move(moveValue<RegexpClassRecord>());
+	}
+
+	OfLocationSpec&& getOfLocationSpec()
+	{
+		return std::move(moveValue<OfLocationSpec>());
 	}
 	/// @}
 
