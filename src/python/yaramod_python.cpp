@@ -263,7 +263,8 @@ void addEnums(py::module& module)
 		.value("IncludePath", TokenType::INCLUDE_PATH)
 		.value("FunctionCallLp", TokenType::FUNCTION_CALL_LP)
 		.value("FunctionCallRp", TokenType::FUNCTION_CALL_RP)
-		.value("Invalid", TokenType::INVALID);
+		.value("Invalid", TokenType::INVALID)
+		.value("With", TokenType::WITH);
 }
 
 void addBasicClasses(py::module& module)
@@ -792,6 +793,14 @@ void addExpressionClasses(py::module& module)
 		.def_property("regexp_string",
 				&RegexpExpression::getRegexpString,
 				py::overload_cast<const std::shared_ptr<String>&>(&RegexpExpression::setRegexpString));
+
+	exprClass<WithExpression>(module, "WithExpression")
+		.def_property("variables",
+				&WithExpression::getVariables,
+				py::overload_cast<const std::vector<Expression::Ptr>&>(&WithExpression::setVariables))
+		.def_property("body",
+				&WithExpression::getBody,
+				py::overload_cast<const Expression::Ptr&>(&WithExpression::setBody));
 }
 
 void addBuilderClasses(py::module& module)
@@ -974,6 +983,9 @@ void addBuilderClasses(py::module& module)
 	module.def("them", &them);
 
 	module.def("regexp", &regexp);
+
+	module.def("var_def", &var_def);
+	module.def("with_", &with);
 
 	py::class_<YaraHexStringBuilder>(module, "YaraHexStringBuilder")
 		.def(py::init<>())

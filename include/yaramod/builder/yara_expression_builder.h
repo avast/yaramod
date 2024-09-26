@@ -280,6 +280,9 @@ YaraExpressionBuilder none();
 YaraExpressionBuilder them();
 
 YaraExpressionBuilder regexp(const std::string& text, const std::string& suffixMods = std::string{});
+
+YaraExpressionBuilder var_def(const std::string& name, const YaraExpressionBuilder& expr);
+YaraExpressionBuilder with(const std::vector<YaraExpressionBuilder>& vars, const YaraExpressionBuilder& body);
 /// @}
 
 }

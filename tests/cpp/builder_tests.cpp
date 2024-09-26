@@ -2379,5 +2379,39 @@ rule endswith_builder
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+WithWorks) {
+	auto cond = with({
+			var_def("a", intVal(5)),
+			var_def("b", id("a") + intVal(10)),
+		},
+		id("a") < id("b")
+	).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("with_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule with_builder {
+	condition:
+		with a = 5, b = a + 10 : (a < b)
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule with_builder
+{
+	condition:
+		with a = 5, b = a + 10 : ( a < b )
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }

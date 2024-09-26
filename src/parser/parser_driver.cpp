@@ -164,6 +164,7 @@ void ParserDriver::defineTokens()
 	_parser.token("endswith").symbol("ENDSWITH").description("endswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ENDSWITH, std::string{str}); });
 	_parser.token("iendswith").symbol("IENDSWITH").description("iendswith").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IENDSWITH, std::string{str}); });
 	_parser.token("iequals").symbol("IEQUALS").description("iequals").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IEQUALS, std::string{str}); });
+	_parser.token("with").symbol("WITH").description("with").action([&](std::string_view str) -> Value { return emplace_back(TokenType::WITH, std::string{str}); });
 
 	// $include
 	_parser.token("include").symbol("INCLUDE_DIRECTIVE").description("include").enter_state("$include").action([&](std::string_view str) -> Value {
@@ -1615,9 +1616,24 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
+		.production("WITH", "with_variables", "COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
+			auto vars = std::move(args[1].getMultipleExpressions());
+			auto body = std::move(args[4].getExpression());
+			auto type = body->getType();
+			for (const auto& var : vars)
+			{
+				removeLocalSymbol(std::static_pointer_cast<const VariableDefExpression>(var)->getName());
+			}
+			auto output = std::make_shared<WithExpression>(args[0].getTokenIt(), std::move(vars), std::move(body), args[5].getTokenIt());
+			output->setType(type);
+			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
 		;
 
 	if (_features & Features::AvastOnly)
+	{
 		expr.production("for_expression", "OF", "expression_iterable", [this](auto&& args) -> Value {
 			auto for_expr = std::move(args[0].getExpression());
 			TokenIt of = args[1].getTokenIt();
@@ -1625,6 +1641,42 @@ void ParserDriver::defineGrammar()
 			auto output = std::make_shared<OfExpression>(std::move(for_expr), of, std::move(array));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
+			output->setUid(_uidGen.next());
+			return output;
+		})
+		;
+	}
+
+	_parser.rule("with_variables")
+		.production("with_variable", [](auto&& args) -> Value {
+			std::vector<Expression::Ptr> vars;
+			vars.push_back(std::move(args[0].getExpression()));
+			return vars;
+		})
+		.production("with_variables", "COMMA", "with_variable", [](auto&& args) -> Value {
+			auto vars = std::move(args[0].getMultipleExpressions());
+			vars.push_back(std::move(args[2].getExpression()));
+			return vars;
+		})
+		;
+
+	_parser.rule("with_variable")
+		.production("ID", "ASSIGN", "expression", [&](auto&& args) -> Value {
+			TokenIt name = args[0].getTokenIt();
+			auto expr = args[2].getExpression();
+
+			std::shared_ptr<Symbol> symbol;
+			if (expr->isObject())
+				symbol = std::make_shared<ReferenceSymbol>(name->getString(), std::static_pointer_cast<const IdExpression>(expr)->getSymbol());
+			else
+				symbol = std::make_shared<ValueSymbol>(name->getString(), expr->getType());
+
+			if (!addLocalSymbol(symbol))
+			{
+				error_handle(currentFileContext()->getLocation(), "Redefinition of identifier " + name->getString());
+			}
+
+			auto output = std::make_shared<VariableDefExpression>(std::move(name), std::move(expr));
 			output->setUid(_uidGen.next());
 			return output;
 		})

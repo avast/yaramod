@@ -2407,4 +2407,110 @@ private:
 	std::shared_ptr<String> _regexp; ///< Regular expression string
 };
 
+
+/**
+ * Class representing variable definition within with expression.
+ *
+ * For example:
+ * @code
+ * with last_section = pe.sections[pe.number_of_sections - 1] : ( ... )
+ *      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ * @endcode
+ */
+class VariableDefExpression : public Expression
+{
+public:
+	template <typename ExpPtr>
+	VariableDefExpression(TokenIt name, ExpPtr&& expr)
+		: _name(name),
+		  _expr(std::forward<ExpPtr>(expr))
+	{
+	}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _name; }
+	virtual TokenIt getLastTokenIt() const override { return _expr->getLastTokenIt(); }
+
+	const std::string& getName() const { return _name->getString(); }
+	const Expression::Ptr& getExpression() const { return _expr; }
+
+	virtual std::string getText(const std::string& indent = std::string{}) const override
+	{
+		return getName() + " = " + _expr->getText(indent);
+	}
+
+	void setExpression(const Expression::Ptr& expr) { _expr = expr; }
+	void setExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
+
+private:
+	TokenIt _name;
+	Expression::Ptr _expr;
+};
+
+/**
+ * Class representing with variable expression.
+ *
+ * For example:
+ * @code
+ * with last_section = pe.sections[pe.number_of_sections - 1] : ( ... )
+ * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ * @endcode
+ */
+class WithExpression : public Expression
+{
+public:
+	template <typename VarVector, typename ExpPtr>
+	WithExpression(TokenIt with, VarVector&& vars, ExpPtr&& body, TokenIt right_bracket)
+		: _with(with),
+		  _vars(std::forward<VarVector>(vars)),
+		  _body(std::forward<ExpPtr>(body)),
+		  _right_bracket(right_bracket)
+	{
+	}
+
+	virtual VisitResult accept(Visitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual TokenIt getFirstTokenIt() const override { return _with; }
+	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
+	const std::vector<Expression::Ptr>& getVariables() const { return _vars; }
+	const Expression::Ptr& getBody() const { return _body; }
+
+	virtual std::string getText(const std::string& indent = std::string{}) const override
+	{
+		std::ostringstream ss;
+		ss << "with ";
+		for (auto itr = _vars.begin(), end = _vars.end(); itr != end; ++itr)
+		{
+			auto& expr = *itr;
+			ss << expr->getText(indent);
+			if (itr + 1 != end)
+				ss << ", ";
+			else
+				ss << " : ";
+		}
+		ss << "(" << _body->getText(indent) << ")";
+		return ss.str();
+	}
+
+	void setVariables(const std::vector<Expression::Ptr>& vars) { _vars = vars; }
+	void setVariables(std::vector<Expression::Ptr>&& vars) { _vars = std::move(vars); }
+
+	void setBody(const Expression::Ptr& body) { _body = body; }
+	void setBody(Expression::Ptr&& body) { _body = std::move(body); }
+
+private:
+	TokenIt _with;
+	std::vector<Expression::Ptr> _vars;
+	Expression::Ptr _body;
+	TokenIt _right_bracket;
+};
+
 }

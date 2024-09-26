@@ -380,6 +380,23 @@ public:
 	}
 
 	virtual VisitResult visit(RegexpExpression*) override { return {}; }
+
+	virtual VisitResult visit(VariableDefExpression* expr) override
+	{
+		expr->getExpression()->accept(this);
+		return {};
+	}
+
+	virtual VisitResult visit(WithExpression* expr) override
+	{
+		for (const auto& var : expr->getVariables())
+		{
+			var->accept(this);
+		}
+
+		expr->getBody()->accept(this);
+		return {};
+	}
 	/// @}
 
 protected:

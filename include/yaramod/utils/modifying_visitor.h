@@ -427,6 +427,27 @@ public:
 	}
 
 	virtual VisitResult visit(RegexpExpression*) override { return {}; }
+
+	virtual VisitResult visit(VariableDefExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+		auto varExpr = expr->getExpression()->accept(this);
+		return defaultHandler(context, expr, varExpr);
+	}
+
+	virtual VisitResult visit(WithExpression* expr) override
+	{
+		TokenStreamContext context{expr};
+
+		std::vector<VisitResult> variables;
+		for (auto& var : expr->getVariables())
+		{
+			variables.push_back(var->accept(this));
+		}
+
+		auto body = expr->getBody()->accept(this);
+		return defaultHandler(context, expr, variables, body);
+	}
 	/// @}
 
 	/// @name Default handlers
@@ -802,6 +823,60 @@ public:
 		if (!expr->getArgument())
 			return VisitAction::Delete;
 
+		return {};
+	}
+
+	VisitResult defaultHandler(const TokenStreamContext& context, VariableDefExpression* expr, const VisitResult& exprRet)
+	{
+		if (auto newExpr = std::get_if<Expression::Ptr>(&exprRet))
+		{
+			if (*newExpr)
+				expr->setExpression(*newExpr);
+		}
+		else
+			expr->setExpression(nullptr);
+
+		if (!expr->getExpression())
+			return VisitAction::Delete;
+
+		return {};
+	}
+
+	VisitResult defaultHandler(const TokenStreamContext& context, WithExpression* expr, const std::vector<VisitResult>& varsRet, const VisitResult& bodyRet)
+	{
+		if (auto body = std::get_if<Expression::Ptr>(&bodyRet))
+		{
+			if (*body)
+				expr->setBody(*body);
+		}
+		else
+			expr->setBody(nullptr);
+
+		if (!expr->getBody())
+			return VisitAction::Delete;
+
+		if (std::all_of(varsRet.begin(), varsRet.end(),
+				[](const auto& var) {
+					auto a = std::get_if<Expression::Ptr>(&var);
+					return a && (*a == nullptr);
+				}))
+		{
+			return {};
+		}
+
+		std::vector<Expression::Ptr> newVariables;
+		for (std::size_t i = 0, end = varsRet.size(); i < end; ++i)
+		{
+			if (auto var = std::get_if<Expression::Ptr>(&varsRet[i]))
+			{
+				if (*var)
+					newVariables.push_back(*var);
+				else
+					newVariables.push_back(expr->getVariables()[i]);
+			}
+		}
+
+		expr->setVariables(newVariables);
 		return {};
 	}
 	/// @}

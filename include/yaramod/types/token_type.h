@@ -156,6 +156,7 @@ enum class TokenType
 	INCLUDE_PATH,
 	FUNCTION_CALL_LP,
 	FUNCTION_CALL_RP,
+	WITH,
 	INVALID,
 };
 
