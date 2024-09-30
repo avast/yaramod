@@ -1,7 +1,5 @@
 # yaramod
 
-[![Travis CI build status](https://travis-ci.org/avast/yaramod.svg?branch=master)](https://travis-ci.org/avast/yaramod)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/avast/yaramod?branch=master&svg=true)](https://ci.appveyor.com/project/avast/yaramod?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/yaramod/badge/?version=latest)](https://yaramod.readthedocs.io/en/latest/?badge=latest)
 
 > :warning: Since version 4.x.x, yaramod is now focus on keeping compatibility with [YARA-X](https://github.com/VirusTotal/yara-x) and may not parse all YARA compatible rules anymore. It is planned to eventually decommission whole yaramod project in favor of YARA-X native parser. If you are interested in just YARA compatibility then still use yaramod 3.x.x. :warning:
