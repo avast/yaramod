@@ -4,6 +4,8 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/avast/yaramod?branch=master&svg=true)](https://ci.appveyor.com/project/avast/yaramod?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/yaramod/badge/?version=latest)](https://yaramod.readthedocs.io/en/latest/?badge=latest)
 
+> :warning: Since version 4.x.x, yaramod is now focus on keeping compatibility with [YARA-X](https://github.com/VirusTotal/yara-x) and may not parse all YARA compatible rules anymore. It is planned to eventually decommission whole yaramod project in favor of YARA-X native parser. If you are interested in just YARA compatibility then still use yaramod 3.x.x. :warning:
+
 `yaramod` is a library that provides parsing of [YARA](https://github.com/VirusTotal/yara) rules into AST and a C++ programming interface to build new YARA rulesets. This project is not associated with the YARA project.
 
 `yaramod` also comes with Python bindings and this repository should be fully compatible with installation using `pip`.
