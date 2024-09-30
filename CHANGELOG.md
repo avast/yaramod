@@ -1,5 +1,9 @@
 # Changelog
 
+# v4.0.0 (2024-09-30)
+
+* Started doing YARA-X compatibility with adding `with` expression and expression arrays `(..., ...)` ([#264](https://github.com/avast/yaramod/pull/264), [#265](https://github.com/avast/yaramod/pull/265))
+
 # v3.23.0 (2024-06-18)
 
 * Added support for `vt` module
