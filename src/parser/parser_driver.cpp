@@ -2418,11 +2418,7 @@ void ParserDriver::defineGrammar()
 			lsqb->setType(TokenType::LSQB_ENUMERATION);
 			TokenIt rsqb = args[3].getTokenIt();
 			rsqb->setType(TokenType::RSQB_ENUMERATION);
-			std::shared_ptr<Expression> output;
-			if (isCurrentExpressionArrayStringSet())
-				output = std::make_shared<SetExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
-			else
-				output = std::make_shared<IterableExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			std::shared_ptr<Expression> output = handleExpressionArrayEnd(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
 			leaveExpressionArray();
@@ -2437,11 +2433,7 @@ void ParserDriver::defineGrammar()
 			lsqb->setType(TokenType::LP_ENUMERATION);
 			TokenIt rsqb = args[3].getTokenIt();
 			rsqb->setType(TokenType::RP_ENUMERATION);
-			std::shared_ptr<Expression> output;
-			if (isCurrentExpressionArrayStringSet())
-				output = std::make_shared<SetExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
-			else
-				output = std::make_shared<IterableExpression>(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
+			std::shared_ptr<Expression> output = handleExpressionArrayEnd(lsqb, std::move(args[2].getMultipleExpressions()), rsqb);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
 			leaveExpressionArray();
@@ -2452,32 +2444,14 @@ void ParserDriver::defineGrammar()
 	_parser.rule("expression_enumeration") // vector<Expression::Ptr>
 		.production("expression", [&](auto&& args) -> Value {
 			auto expression = args[0].getExpression();
-			if (!isCurrentExpressionArrayStringSet())
-			{
-				if (expression->template as<StringExpression>() || expression->template as<StringWildcardExpression>())
-					setCurrentExpressionArrayStringSet(true);
-			}
-			else
-			{
-				if (!expression->template as<StringExpression>() && !expression->template as<StringWildcardExpression>())
-					error_handle(currentFileContext()->getLocation(), "unexpected expression, expected either string or string wildcard within string set");
-			}
+			handleExpressionArrayItem(expression);
 			auto output = std::vector<Expression::Ptr>{std::move(expression)};
 			output.front()->setTokenStream(currentTokenStream());
 			return output;
 		})
 		.production("expression_enumeration", "COMMA", "expression", [&](auto&& args) -> Value {
 			auto expression = args[2].getExpression();
-			if (!isCurrentExpressionArrayStringSet())
-			{
-				if (expression->template as<StringExpression>() || expression->template as<StringWildcardExpression>())
-					setCurrentExpressionArrayStringSet(true);
-			}
-			else
-			{
-				if (!expression->template as<StringExpression>() && !expression->template as<StringWildcardExpression>())
-					error_handle(currentFileContext()->getLocation(), "unexpected expression, expected either string or string wildcard within string set");
-			}
+			handleExpressionArrayItem(expression);
 			auto output = std::move(args[0].getMultipleExpressions());
 			output.push_back(std::move(expression));
 			output.back()->setTokenStream(currentTokenStream());
@@ -3006,9 +2980,47 @@ void ParserDriver::addDeferredInclude(std::string&& filePath)
 	_file.addDeferredInclude(std::move(filePath));
 }
 
+void ParserDriver::handleExpressionArrayItem(const Expression::Ptr& expr)
+{
+	if (isCurrentExpressionArrayUndetermined())
+	{
+		if (expr->template as<StringWildcardExpression>())
+		{
+			// Only string wildcard can turn the current iterable into definitive string set
+			setCurrentExpressionArrayStringSet();
+		}
+		else if (expr->template as<StringExpression>())
+		{
+			; // Do nothing, still undetermined
+		}
+		else
+		{
+			setCurrentExpressionArrayMixedArray();
+		}
+	}
+	else if (isCurrentExpressionArrayStringSet())
+	{
+		if (!expr->template as<StringExpression>() && !expr->template as<StringWildcardExpression>())
+			error_handle(currentFileContext()->getLocation(), "unexpected expression, expected either string or string wildcard within string set");
+	}
+	else if (isCurrentExpressionArrayMixedArray())
+	{
+		if (expr->template as<StringWildcardExpression>())
+			error_handle(currentFileContext()->getLocation(), "unexpected string wildcard, expected expression within mixed expression array");
+	}
+}
+
+Expression::Ptr ParserDriver::handleExpressionArrayEnd(TokenIt lb, std::vector<Expression::Ptr>&& exprs, TokenIt rb)
+{
+	if (isCurrentExpressionArrayUndetermined() || isCurrentExpressionArrayStringSet())
+		return std::make_shared<SetExpression>(lb, std::move(exprs), rb);
+	else
+		return std::make_shared<IterableExpression>(lb, std::move(exprs), rb);
+}
+
 void ParserDriver::enterExpressionArray()
 {
-	_expressionArrayStack.push_back(false);
+	_expressionArrayStack.push_back(ExpressionArrayType::Undetermined);
 }
 
 void ParserDriver::leaveExpressionArray()
@@ -3016,14 +3028,29 @@ void ParserDriver::leaveExpressionArray()
 	_expressionArrayStack.pop_back();
 }
 
-bool ParserDriver::isCurrentExpressionArrayStringSet() const
+bool ParserDriver::isCurrentExpressionArrayUndetermined() const
 {
-	return _expressionArrayStack.back();
+	return _expressionArrayStack.back() == ExpressionArrayType::Undetermined;
 }
 
-void ParserDriver::setCurrentExpressionArrayStringSet(bool set)
+bool ParserDriver::isCurrentExpressionArrayStringSet() const
 {
-	_expressionArrayStack.back() = set;
+	return _expressionArrayStack.back() == ExpressionArrayType::StringSet;
+}
+
+bool ParserDriver::isCurrentExpressionArrayMixedArray() const
+{
+	return _expressionArrayStack.back() == ExpressionArrayType::MixedArray;
+}
+
+void ParserDriver::setCurrentExpressionArrayStringSet()
+{
+	_expressionArrayStack.back() = ExpressionArrayType::StringSet;
+}
+
+void ParserDriver::setCurrentExpressionArrayMixedArray()
+{
+	_expressionArrayStack.back() = ExpressionArrayType::MixedArray;
 }
 
 } //namespace yaramod
