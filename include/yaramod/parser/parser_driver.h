@@ -54,6 +54,13 @@ enum IncludeResult
 	Included ///< File was successfully included
 };
 
+enum class ExpressionArrayType
+{
+	Undetermined, // If the array is just ($s0, $s1) - it's undetermined but we turn it into string set in the end
+	MixedArray, // For arrays like ($s0, true)
+	StringSet, // For arrays like ($s0, $r*)
+};
+
 /**
  * Represents error during parsing.
  */
@@ -203,10 +210,15 @@ protected:
 
 	/// @name Expression arrays
 	/// @{
+	void handleExpressionArrayItem(const Expression::Ptr& expr);
+	Expression::Ptr handleExpressionArrayEnd(TokenIt lb, std::vector<Expression::Ptr>&& exprs, TokenIt rb);
 	void enterExpressionArray();
 	void leaveExpressionArray();
+	bool isCurrentExpressionArrayUndetermined() const;
 	bool isCurrentExpressionArrayStringSet() const;
-	void setCurrentExpressionArrayStringSet(bool set);
+	bool isCurrentExpressionArrayMixedArray() const;
+	void setCurrentExpressionArrayStringSet();
+	void setCurrentExpressionArrayMixedArray();
 	/// @}
 
 
@@ -248,7 +260,7 @@ private:
 
 	std::vector<std::string> _deferredIncludes; ///< Paths of included files when deferred includes are turned on.
 
-	std::vector<bool> _expressionArrayStack; ///< Indicates that expression array (..., ...) represents string set
+	std::vector<ExpressionArrayType> _expressionArrayStack; ///< Indicates type of currently parsed expression array (..., ...)
 };
 
 } // namespace yaramod
