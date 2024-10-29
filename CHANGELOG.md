@@ -1,5 +1,9 @@
 # Changelog
 
+# v4.0.1 (2024-10-29)
+
+* Fixed detection of expression array types
+
 # v4.0.0 (2024-09-30)
 
 * Started doing YARA-X compatibility with adding `with` expression and expression arrays `(..., ...)` ([#264](https://github.com/avast/yaramod/pull/264), [#265](https://github.com/avast/yaramod/pull/265))
