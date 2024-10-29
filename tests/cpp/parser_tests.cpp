@@ -8585,7 +8585,7 @@ rule expression_array
 }
 
 TEST_F(ParserTests,
-MixedExpressionArrayNotAllowed) {
+MixedWildcardExpressionArrayNotAllowed) {
 	prepareInput(
 		R"(rule mixed_expression_array
 {
@@ -8607,6 +8607,119 @@ MixedExpressionArrayNotAllowed) {
 		EXPECT_EQ("Error at 7.20: unexpected expression, expected either string or string wildcard within string set", err.getErrorMessage());
 		EXPECT_EQ(")", driver.getParsedFile().getTokenStream()->back().getPureText());
 	}
+}
+
+TEST_F(ParserTests,
+ExpressionArrayResultsInIterableExpressionWithStringFirst) {
+	prepareInput(
+R"(
+rule expression_array
+{
+	strings:
+		$hello = "Hello"
+	condition:
+		any of ($hello, true)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(any of ($hello, true))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	ASSERT_NE(rule->getCondition()->as<OfExpression>(), nullptr);
+	ASSERT_NE(rule->getCondition()->as<OfExpression>()->getIterable()->as<IterableExpression>(), nullptr);
+}
+
+TEST_F(ParserTests,
+ExpressionArrayResultsInIterableExpressionWithStringLast) {
+	prepareInput(
+R"(
+rule expression_array
+{
+	strings:
+		$hello = "Hello"
+	condition:
+		any of (true, $hello)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(any of (true, $hello))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	ASSERT_NE(rule->getCondition()->as<OfExpression>(), nullptr);
+	ASSERT_NE(rule->getCondition()->as<OfExpression>()->getIterable()->as<IterableExpression>(), nullptr);
+}
+
+TEST_F(ParserTests,
+ExpressionArrayResultsInStringSet) {
+	prepareInput(
+R"(
+rule expression_array
+{
+	strings:
+		$hello1 = "Hello"
+		$hello2 = "Ahoj"
+	condition:
+		any of ($hello1, $hello2)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(any of ($hello1, $hello2))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	ASSERT_NE(rule->getCondition()->as<OfExpression>(), nullptr);
+	ASSERT_NE(rule->getCondition()->as<OfExpression>()->getIterable()->as<SetExpression>(), nullptr);
+}
+
+TEST_F(ParserTests,
+ExpressionArrayNestedTypes) {
+	prepareInput(
+R"(
+rule expression_array
+{
+	strings:
+		$hello1 = "Hello"
+		$hello2 = "Ahoj"
+	condition:
+		any of (
+			any of ($hello*),
+			any of ($hello1, $hello2),
+			true
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(any of (any of ($hello*), any of ($hello1, $hello2), true))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+
+	ASSERT_NE(rule->getCondition()->as<OfExpression>(), nullptr);
+	ASSERT_NE(rule->getCondition()->as<OfExpression>()->getIterable()->as<IterableExpression>(), nullptr);
+
+	auto parent_itr = rule->getCondition()->as<OfExpression>()->getIterable()->as<IterableExpression>();
+	ASSERT_NE(parent_itr->getElements()[0]->as<OfExpression>(), nullptr);
+	ASSERT_NE(parent_itr->getElements()[0]->as<OfExpression>()->getIterable()->as<SetExpression>(), nullptr);
+	ASSERT_NE(parent_itr->getElements()[1]->as<OfExpression>(), nullptr);
+	ASSERT_NE(parent_itr->getElements()[1]->as<OfExpression>()->getIterable()->as<SetExpression>(), nullptr);
+	ASSERT_NE(parent_itr->getElements()[2]->as<BoolLiteralExpression>(), nullptr);
 }
 
 }
