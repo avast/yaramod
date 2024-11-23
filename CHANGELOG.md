@@ -1,5 +1,10 @@
 # Changelog
 
+# v4.0.2 (2024-11-23)
+
+* Fixed missing Python bindings for `VariableDefExpression` and `WithExpression`
+* Added `setName` to `VariableDefExpression`
+
 # v4.0.1 (2024-10-29)
 
 * Fixed detection of expression array types
