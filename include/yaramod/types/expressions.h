@@ -2443,6 +2443,8 @@ public:
 		return getName() + " = " + _expr->getText(indent);
 	}
 
+	void setName(const std::string& name) { _name->setValue(name); }
+	void setName(std::string&& name) { _name->setValue(std::move(name)); }
 	void setExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 

@@ -794,6 +794,13 @@ void addExpressionClasses(py::module& module)
 				&RegexpExpression::getRegexpString,
 				py::overload_cast<const std::shared_ptr<String>&>(&RegexpExpression::setRegexpString));
 
+	exprClass<VariableDefExpression>(module, "VariableDefExpression")
+		.def_property("name",
+				&VariableDefExpression::getName,
+				py::overload_cast<const std::string&>(&VariableDefExpression::setName))
+		.def_property("expression",
+				&VariableDefExpression::getExpression,
+				py::overload_cast<const Expression::Ptr&>(&VariableDefExpression::setExpression));
 	exprClass<WithExpression>(module, "WithExpression")
 		.def_property("variables",
 				&WithExpression::getVariables,
