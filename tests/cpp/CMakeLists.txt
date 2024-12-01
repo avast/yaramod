@@ -4,6 +4,7 @@
 
 # Source files.
 set(SOURCES
+	clone_tests.cpp
 	tokenstream_tests.cpp
 	representation_tests.cpp
 	builder_tests.cpp
