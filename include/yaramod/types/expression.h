@@ -83,6 +83,7 @@ public:
 	}
 	virtual TokenIt getFirstTokenIt() const = 0;
 	virtual TokenIt getLastTokenIt() const = 0;
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& /*target*/) const = 0;
 	/// @}
 	
 

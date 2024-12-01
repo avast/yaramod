@@ -1406,7 +1406,7 @@ void ParserDriver::defineGrammar()
 					error_handle(percent->getLocation(), ss.str());
 				}
 			}
-			auto percentual_expr = std::make_shared<PercentualExpression>(std::move(for_expr), percent);
+			auto percentual_expr = std::make_shared<PercentualExpression>(percent, std::move(for_expr));
 			percentual_expr->setUid(_uidGen.next());
 			TokenIt of = args[2].getTokenIt();
 			auto set = std::move(args[3].getExpression());
@@ -1645,7 +1645,7 @@ void ParserDriver::defineGrammar()
 			{
 				removeLocalSymbol(std::static_pointer_cast<const VariableDefExpression>(var)->getName());
 			}
-			auto output = std::make_shared<WithExpression>(args[0].getTokenIt(), std::move(vars), std::move(body), args[5].getTokenIt());
+			auto output = std::make_shared<WithExpression>(args[0].getTokenIt(), std::move(vars), args[3].getTokenIt(), std::move(body), args[5].getTokenIt());
 			output->setType(type);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
@@ -1808,7 +1808,7 @@ void ParserDriver::defineGrammar()
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 			if (stringId.size() > 1)
 				id->setValue(findStringDefinition(stringId));
-			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
+			auto output = std::make_shared<StringOffsetExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()), args[3].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
@@ -1840,7 +1840,7 @@ void ParserDriver::defineGrammar()
 				error_handle(args[0].getTokenIt()->getLocation(), "Reference to undefined string '" + args[0].getTokenIt()->getString() + "'");
 			if (stringId.size() > 1)
 				id->setValue(findStringDefinition(stringId));
-			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()));
+			auto output = std::make_shared<StringLengthExpression>(args[0].getTokenIt(), std::move(args[2].getExpression()), args[3].getTokenIt());
 			output->setType(Expression::Type::Int);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());

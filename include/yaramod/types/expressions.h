@@ -31,6 +31,7 @@ public:
 	StringExpression(const std::string& id) { _id = _tokenStream->emplace_back(TokenType::STRING_ID, id); }
 	StringExpression(std::string&& id) { _id = _tokenStream->emplace_back(TokenType::STRING_ID, std::move(id)); }
 	StringExpression(TokenIt id) : _id(id) {}
+	StringExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id) : Expression(ts), _id(id) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -48,6 +49,14 @@ public:
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), std::next(getLastTokenIt()));
+		return std::make_shared<StringExpression>(target, newId);
 	}
 
 private:
@@ -73,6 +82,7 @@ public:
 		_id = _tokenStream->emplace_back(TokenType::STRING_ID, std::forward<Str>(id));
 	}
 	StringWildcardExpression(TokenIt it) : _id(it) {}
+	StringWildcardExpression(const std::shared_ptr<TokenStream>& ts, TokenIt it) : Expression(ts), _id(it) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
@@ -90,6 +100,14 @@ public:
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override
 	{
 		return getId();
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), std::next(getLastTokenIt()));
+		return std::make_shared<StringWildcardExpression>(target, newId);
 	}
 
 private:
@@ -124,6 +142,15 @@ public:
 	{
 	}
 
+	template <typename ExpPtr>
+	StringAtExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt at_symbol, ExpPtr&& at)
+		: Expression(ts)
+		, _id(id)
+		, _at_symbol(at_symbol)
+		, _at(std::forward<ExpPtr>(at))
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -143,6 +170,18 @@ public:
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
 		return getId() + " " + _at_symbol->getString() + " " + _at->getText(indent);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), _at_symbol);
+		auto newAtSymbol = _at_symbol->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_at_symbol), _at->getFirstTokenIt());
+		auto newAt = _at->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_at->getLastTokenIt()), std::next(getLastTokenIt()));
+		return std::make_shared<StringAtExpression>(target, newId, newAtSymbol, std::move(newAt));
 	}
 
 private:
@@ -179,6 +218,15 @@ public:
 	{
 	}
 
+	template <typename ExpPtr>
+	StringInRangeExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt in_symbol, ExpPtr&& range)
+		: Expression(ts)
+		, _id(id)
+		, _in_symbol(in_symbol)
+		, _range(std::forward<ExpPtr>(range))
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -200,6 +248,18 @@ public:
 		return getId() + " " + _in_symbol->getString() + " " + _range->getText(indent);
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), _in_symbol);
+		auto newIn = _in_symbol->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_in_symbol), _range->getFirstTokenIt());
+		auto newRange = _range->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_range->getLastTokenIt()), std::next(getLastTokenIt()));
+		return std::make_shared<StringInRangeExpression>(target, newId, newIn, std::move(newRange));
+	}
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	TokenIt _in_symbol; ///< Token holding "in"
@@ -219,6 +279,7 @@ class StringCountExpression : public Expression
 {
 public:
 	StringCountExpression(TokenIt id) : _id(id) {}
+	StringCountExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id) : Expression(ts), _id(id) {}
 
 	template <typename Str>
 	StringCountExpression(Str&& id)
@@ -247,6 +308,14 @@ public:
 		return output;
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), std::next(getLastTokenIt()));
+		return std::make_shared<StringCountExpression>(target, newId);
+	}
+
 private:
 	TokenIt _id; ///< Identifier of the string
 };
@@ -266,24 +335,36 @@ class StringOffsetExpression : public Expression
 public:
 	StringOffsetExpression(TokenIt id)
 		: _id(id)
+		, _right_bracket()
 	{
 	}
 	template <typename ExpPtr>
-	StringOffsetExpression(TokenIt id, ExpPtr&& expr)
+	StringOffsetExpression(TokenIt id, ExpPtr&& expr, TokenIt right_bracket)
 		: _id(id)
 		, _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
 	{
 	}
 	template <typename Str>
 	StringOffsetExpression(Str&& id)
 	{
 		_id = _tokenStream->emplace_back(TokenType::STRING_OFFSET, std::forward<Str>(id));
+		_right_bracket.reset();
 	}
 	template <typename Str, typename ExpPtr>
-	StringOffsetExpression(Str&& id, ExpPtr&& expr)
+	StringOffsetExpression(Str&& id, ExpPtr&& expr, TokenIt right_bracket)
 		: _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
 	{
 		_id = _tokenStream->emplace_back(TokenType::STRING_OFFSET, std::forward<Str>(id));
+	}
+	template <typename ExpPtr>
+	StringOffsetExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id, ExpPtr&& expr, const std::optional<TokenIt>& right_bracket)
+		: Expression(ts)
+		, _id(id)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
+	{
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -308,11 +389,35 @@ public:
 	}
 
 	virtual TokenIt getFirstTokenIt() const override { return _id; }
-	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr && _right_bracket.has_value() ? _right_bracket.value() : _id; }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		Expression::Ptr newExpr;
+		std::optional<TokenIt> newRb;
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		if (_expr && _right_bracket.has_value())
+		{
+			auto rb = _right_bracket.value();
+			target->cloneAppend(getTokenStream(), std::next(_id), _expr->getFirstTokenIt());
+			newExpr = _expr->clone(target);
+			target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), rb);
+			newRb = rb->clone(target.get());
+			target->cloneAppend(getTokenStream(), std::next(rb), std::next(getLastTokenIt()));
+		}
+		else
+		{
+			target->cloneAppend(getTokenStream(), std::next(_id), std::next(getLastTokenIt()));
+		}
+		return std::make_shared<StringOffsetExpression>(target, newId, std::move(newExpr), newRb);
+	}
 
 private:
 	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
+	std::optional<TokenIt> _right_bracket; ///< Right bracket of index expression (if any)
 };
 
 /**
@@ -330,25 +435,37 @@ class StringLengthExpression : public Expression
 public:
 	StringLengthExpression(TokenIt id)
 		: _id(id)
+		, _right_bracket()
 	{
 	}
 	template <typename ExpPtr>
-	StringLengthExpression(TokenIt id, ExpPtr&& expr)
+	StringLengthExpression(TokenIt id, ExpPtr&& expr, TokenIt right_bracket)
 		: _id(id)
 		, _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
 	{
 	}
 	template <typename Str>
 	StringLengthExpression(Str&& id)
 	{
 		_id = _tokenStream->emplace_back(TokenType::STRING_LENGTH, std::forward<Str>(id));
+		_right_bracket.reset();
 	}
 	template <typename Str, typename ExpPtr>
-	StringLengthExpression(Str&& id, ExpPtr&& expr)
+	StringLengthExpression(Str&& id, ExpPtr&& expr, TokenIt right_bracket)
 		: _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
 	{
 		_id = _tokenStream->emplace_back(TokenType::STRING_LENGTH, std::forward<Str>(id));
 		_tokenStream->moveAppend(_expr->getTokenStream());
+	}
+	template <typename ExpPtr>
+	StringLengthExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id, ExpPtr&& expr, const std::optional<TokenIt>& right_bracket)
+		: Expression(ts)
+		, _id(id)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _right_bracket(right_bracket)
+	{
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -365,7 +482,7 @@ public:
 	void setIndexExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
 	virtual TokenIt getFirstTokenIt() const override { return _id; }
-	virtual TokenIt getLastTokenIt() const override { return _expr ? _expr->getLastTokenIt() : _id; }
+	virtual TokenIt getLastTokenIt() const override { return _expr && _right_bracket.has_value() ? _right_bracket.value() : _id; }
 
 	virtual std::string getText(const std::string& indent = std::string{}) const override
 	{
@@ -375,9 +492,33 @@ public:
 		return _expr ? getId() + '[' + _expr->getText(indent) + ']' : getId();
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		Expression::Ptr newExpr;
+		std::optional<TokenIt> newRb;
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		if (_expr)
+		{
+			auto rb = _right_bracket.value();
+			target->cloneAppend(getTokenStream(), std::next(_id), _expr->getFirstTokenIt());
+			newExpr = _expr->clone(target);
+			target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), rb);
+			newRb = rb->clone(target.get());
+			target->cloneAppend(getTokenStream(), std::next(rb), std::next(getLastTokenIt()));
+		}
+		else
+		{
+			target->cloneAppend(getTokenStream(), std::next(_id), std::next(getLastTokenIt()));
+		}
+		return std::make_shared<StringLengthExpression>(target, newId, std::move(newExpr), newRb);
+	}
+
 private:
 	TokenIt _id; ///< Identifier of the string
 	Expression::Ptr _expr; ///< Index expression if any
+	std::optional<TokenIt> _right_bracket; ///< Right bracket of index expression (if any)
 };
 
 enum class UnaryOperatorPlacement
@@ -408,6 +549,7 @@ public:
 		}
 	}
 
+	TokenIt getOperator() const { return _op; }
 	const Expression::Ptr& getOperand() const { return _expr; }
 
 	void setOperand(const Expression::Ptr& expr) { _expr = expr; }
@@ -421,6 +563,7 @@ protected:
 		, _operatorPlacement(operatorPlacement)
 	{
 	}
+
 	template <typename ExpPtr>
 	UnaryOpExpression(const std::string& op, TokenType type, ExpPtr&& expr, UnaryOperatorPlacement operatorPlacement)
 		: _expr(std::forward<ExpPtr>(expr))
@@ -428,17 +571,54 @@ protected:
 	{
 		_op = _tokenStream->emplace_back(type, op);
 	}
+
+	template <typename ExpPtr>
+	UnaryOpExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr&& expr, UnaryOperatorPlacement operatorPlacement)
+		: Expression(ts)
+		, _op(op)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _operatorPlacement(operatorPlacement)
+	{
+	}
+
 	virtual TokenIt getFirstTokenIt() const override {
 		if (_operatorPlacement == UnaryOperatorPlacement::Left)
 			return _op;
 		else
 			return _expr->getFirstTokenIt();
 	}
+
 	virtual TokenIt getLastTokenIt() const override {
 		if (_operatorPlacement == UnaryOperatorPlacement::Left)
 			return _expr->getLastTokenIt();
 		else
 			return _op;
+	}
+
+	template <typename ExpT>
+	Expression::Ptr cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		TokenIt newOp;
+		Expression::Ptr newOperand;
+
+		if (_operatorPlacement == UnaryOperatorPlacement::Left)
+		{
+			target->cloneAppend(getTokenStream(), getFirstTokenIt(), getOperator());
+			newOp = getOperator()->clone(target.get());
+			target->cloneAppend(getTokenStream(), std::next(getOperator()), getOperand()->getFirstTokenIt());
+			newOperand = getOperand()->clone(target);
+			target->cloneAppend(getTokenStream(), std::next(getOperand()->getLastTokenIt()), std::next(getLastTokenIt()));
+		}
+		else
+		{
+			target->cloneAppend(getTokenStream(), getFirstTokenIt(), getOperand()->getFirstTokenIt());
+			newOperand = getOperand()->clone(target);
+			target->cloneAppend(getTokenStream(), std::next(getOperand()->getLastTokenIt()), getOperator());
+			newOp = getOperator()->clone(target.get());
+			target->cloneAppend(getTokenStream(), std::next(getOperator()), std::next(getLastTokenIt()));
+		}
+
+		return std::make_shared<ExpT>(target, newOp, std::move(newOperand));
 	}
 
 private:
@@ -461,9 +641,17 @@ public:
 	template <typename ExpPtr>
 	NotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
+	template <typename ExpPtr>
+	NotExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr&& expr) : UnaryOpExpression(ts, op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<NotExpression>(target);
 	}
 };
 
@@ -479,11 +667,19 @@ class PercentualExpression : public UnaryOpExpression
 {
 public:
 	template <typename ExpPtr>
-	PercentualExpression(ExpPtr&& expr, TokenIt op) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Right) {}
+	PercentualExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Right) {}
+
+	template <typename ExpPtr>
+	PercentualExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr&& expr) : UnaryOpExpression(ts, op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Right) {}
 
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<PercentualExpression>(target);
 	}
 };
 
@@ -501,9 +697,17 @@ public:
 	template<typename ExpPtr>
 	DefinedExpression(TokenIt op, ExpPtr &&expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
+	template<typename ExpPtr>
+	DefinedExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr &&expr) : UnaryOpExpression(ts, op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
+
 	virtual VisitResult accept(Visitor *v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<DefinedExpression>(target);
 	}
 };
 
@@ -522,9 +726,17 @@ public:
 	template <typename ExpPtr>
 	UnaryMinusExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
+	template <typename ExpPtr>
+	UnaryMinusExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr&& expr) : UnaryOpExpression(ts, op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<UnaryMinusExpression>(target);
 	}
 };
 
@@ -543,9 +755,17 @@ public:
 	template <typename ExpPtr>
 	BitwiseNotExpression(TokenIt op, ExpPtr&& expr) : UnaryOpExpression(op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
 
+	template <typename ExpPtr>
+	BitwiseNotExpression(const std::shared_ptr<TokenStream>& ts, TokenIt op, ExpPtr&& expr) : UnaryOpExpression(ts, op, std::forward<ExpPtr>(expr), UnaryOperatorPlacement::Left) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<BitwiseNotExpression>(target);
 	}
 };
 
@@ -581,6 +801,7 @@ protected:
 		, _linebreak(linebreak)
 	{
 	}
+
 	template <typename ExpPtr1, typename ExpPtr2>
 	BinaryOpExpression(ExpPtr1&& left, const std::string& op, TokenType type, ExpPtr2&& right, bool linebreak = false)
 		: _left(std::forward<ExpPtr1>(left))
@@ -588,6 +809,33 @@ protected:
 		, _linebreak(linebreak)
 	{
 		_op = _tokenStream->emplace_back(type, op);
+	}
+
+	template <typename ExpPtr1, typename ExpPtr2>
+	BinaryOpExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right, bool linebreak = false)
+		: Expression(ts)
+		, _op(op)
+		, _left(std::forward<ExpPtr1>(left))
+		, _right(std::forward<ExpPtr2>(right))
+		, _linebreak(linebreak)
+	{
+	}
+
+	template <typename ExpT>
+	Expression::Ptr cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), getLeftOperand()->getFirstTokenIt());
+		auto newLeftOperand = getLeftOperand()->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(getLeftOperand()->getLastTokenIt()), getOperator());
+		auto newOp = getOperator()->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(getOperator()), getRightOperand()->getFirstTokenIt());
+		auto newRightOperand = getRightOperand()->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(getRightOperand()->getLastTokenIt()), std::next(getLastTokenIt()));
+
+		// Not all expressions expose linebreak
+		auto result = std::make_shared<ExpT>(target, std::move(newLeftOperand), newOp, std::move(newRightOperand));
+		result->_linebreak = _linebreak;
+		return result;
 	}
 
 private:
@@ -610,9 +858,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	AndExpression(ExpPtr1&& left, TokenIt and_op, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), and_op, std::forward<ExpPtr2>(right), linebreak) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	AndExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<AndExpression>(target);
 	}
 };
 
@@ -630,9 +886,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	OrExpression(ExpPtr1&& left, TokenIt op_or, ExpPtr2&& right, bool linebreak = false) : BinaryOpExpression(std::forward<ExpPtr1>(left), op_or, std::forward<ExpPtr2>(right), linebreak) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	OrExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<OrExpression>(target);
 	}
 };
 
@@ -650,9 +914,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	LtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	LtExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<LtExpression>(target);
 	}
 };
 
@@ -670,9 +942,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	GtExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	GtExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<GtExpression>(target);
 	}
 };
 
@@ -690,9 +970,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	LeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	LeExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<LeExpression>(target);
 	}
 };
 
@@ -710,9 +998,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	GeExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	GeExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<GeExpression>(target);
 	}
 };
 
@@ -730,9 +1026,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	EqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	EqExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<EqExpression>(target);
 	}
 };
 
@@ -750,9 +1054,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	NeqExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	NeqExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<NeqExpression>(target);
 	}
 };
 
@@ -770,9 +1082,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ContainsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	ContainsExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<ContainsExpression>(target);
 	}
 };
 
@@ -790,9 +1110,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	IcontainsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	IcontainsExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<IcontainsExpression>(target);
 	}
 };
 
@@ -810,9 +1138,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MatchesExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	MatchesExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<MatchesExpression>(target);
 	}
 };
 
@@ -830,9 +1166,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	StartsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	StartsWithExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<StartsWithExpression>(target);
 	}
 };
 
@@ -850,9 +1194,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	IstartsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	IstartsWithExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<IstartsWithExpression>(target);
 	}
 };
 
@@ -870,9 +1222,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	EndsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	EndsWithExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<EndsWithExpression>(target);
 	}
 };
 
@@ -890,9 +1250,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	IendsWithExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	IendsWithExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<IendsWithExpression>(target);
 	}
 };
 
@@ -910,9 +1278,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	IequalsExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	IequalsExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<IequalsExpression>(target);
 	}
 };
 
@@ -931,9 +1307,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	PlusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	PlusExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<PlusExpression>(target);
 	}
 };
 
@@ -952,9 +1336,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MinusExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	MinusExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<MinusExpression>(target);
 	}
 };
 
@@ -973,9 +1365,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	MultiplyExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	MultiplyExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<MultiplyExpression>(target);
 	}
 };
 
@@ -994,9 +1394,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	DivideExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	DivideExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<DivideExpression>(target);
 	}
 };
 
@@ -1015,9 +1423,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ModuloExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	ModuloExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<ModuloExpression>(target);
 	}
 };
 
@@ -1036,9 +1452,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseXorExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	BitwiseXorExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<BitwiseXorExpression>(target);
 	}
 };
 
@@ -1056,9 +1480,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseAndExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	BitwiseAndExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<BitwiseAndExpression>(target);
 	}
 };
 
@@ -1076,9 +1508,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	BitwiseOrExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	BitwiseOrExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<BitwiseOrExpression>(target);
 	}
 };
 
@@ -1096,9 +1536,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ShiftLeftExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	ShiftLeftExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<ShiftLeftExpression>(target);
 	}
 };
 
@@ -1116,9 +1564,17 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2>
 	ShiftRightExpression(ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
 
+	template <typename ExpPtr1, typename ExpPtr2>
+	ShiftRightExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& left, TokenIt op, ExpPtr2&& right) : BinaryOpExpression(ts, std::forward<ExpPtr1>(left), op, std::forward<ExpPtr2>(right)) {}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<ShiftRightExpression>(target);
 	}
 };
 
@@ -1164,6 +1620,26 @@ protected:
 	{
 	}
 
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	ForExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& iterable, ExpPtr3&& expr)
+		: Expression(ts)
+		, _forExpr(std::forward<ExpPtr1>(forExpr))
+		, _iterable(std::forward<ExpPtr2>(iterable))
+		, _expr(std::forward<ExpPtr3>(expr))
+		, _of_in(of_in)
+	{
+	}
+
+	template <typename ExpPtr1, typename ExpPtr2>
+	ForExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& forExpr, TokenIt of_in, ExpPtr2&& iterable)
+		: Expression(ts)
+		, _forExpr(std::forward<ExpPtr1>(forExpr))
+		, _iterable(std::forward<ExpPtr2>(iterable))
+		, _expr(nullptr)
+		, _of_in(of_in)
+	{
+	}
+
 	Expression::Ptr _forExpr, _iterable, _expr;
 	TokenIt _of_in;
 };
@@ -1182,6 +1658,18 @@ public:
 	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
 	ForDictExpression(TokenIt for_token, ExpPtr1&& forExpr, TokenIt id1, TokenIt comma, TokenIt id2, TokenIt in, ExpPtr2&& dict, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
 		: ForExpression(std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(dict), std::forward<ExpPtr3>(expr))
+		, _id1(id1)
+		, _comma(comma)
+		, _id2(id2)
+		, _for (for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	ForDictExpression(const std::shared_ptr<TokenStream>& ts, TokenIt for_token, ExpPtr1&& forExpr, TokenIt id1, TokenIt comma, TokenIt id2, TokenIt in, ExpPtr2&& dict, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(ts, std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(dict), std::forward<ExpPtr3>(expr))
 		, _id1(id1)
 		, _comma(comma)
 		, _id2(id2)
@@ -1217,6 +1705,43 @@ public:
 	virtual TokenIt getFirstTokenIt() const override { return _for; }
 	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _for);
+		auto newFor = _for->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_for), _forExpr->getFirstTokenIt());
+		auto newForExpr = _forExpr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_forExpr->getLastTokenIt()), _id1);
+		auto newId1 = _id1->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id1), _comma);
+		auto newComma = _comma->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_comma), _id2);
+		auto newId2 = _id2->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id2), _of_in);
+		auto newOfIn = _of_in->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_of_in), _iterable->getFirstTokenIt());
+		auto newIterable = _iterable->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_iterable->getLastTokenIt()), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _expr->getFirstTokenIt());
+		auto newBody = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		return std::make_shared<ForDictExpression>(
+			target,
+			newFor,
+			std::move(newForExpr),
+			newId1,
+			newComma,
+			newId2,
+			newOfIn,
+			std::move(newIterable),
+			newLb,
+			std::move(newBody),
+			newRb
+		);
+	}
+
 private:
 	TokenIt _id1; ///< Iterating identifier 1
 	TokenIt _comma; ///< TokenIt of ','
@@ -1247,6 +1772,16 @@ public:
 	{
 	}
 
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	ForArrayExpression(const std::shared_ptr<TokenStream>& ts, TokenIt for_token, ExpPtr1&& forExpr, TokenIt id, TokenIt in, ExpPtr2&& iterable, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(ts, std::forward<ExpPtr1>(forExpr), in, std::forward<ExpPtr2>(iterable), std::forward<ExpPtr3>(expr))
+		, _id(id)
+		, _for (for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	const std::string& getId() const { return _id->getString(); }
 
 	void setId(const std::string& id) { _id->setValue(id); }
@@ -1269,6 +1804,37 @@ public:
 
 	virtual TokenIt getFirstTokenIt() const override { return _for; }
 	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _for);
+		auto newFor = _for->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_for), _forExpr->getFirstTokenIt());
+		auto newForExpr = _forExpr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_forExpr->getLastTokenIt()), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), _of_in);
+		auto newOfIn = _of_in->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_of_in), _iterable->getFirstTokenIt());
+		auto newIterable = _iterable->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_iterable->getLastTokenIt()), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _expr->getFirstTokenIt());
+		auto newBody = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		return std::make_shared<ForArrayExpression>(
+			target,
+			newFor,
+			std::move(newForExpr),
+			newId,
+			newOfIn,
+			std::move(newIterable),
+			newLb,
+			std::move(newBody),
+			newRb
+		);
+	}
 
 private:
 	TokenIt _id; ///< Iterating identifier
@@ -1300,6 +1866,15 @@ public:
 	{
 	}
 
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	ForStringExpression(const std::shared_ptr<TokenStream>& ts, TokenIt for_token, ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, TokenIt left_bracket, ExpPtr3&& expr, TokenIt right_bracket)
+		: ForExpression(ts, std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set), std::forward<ExpPtr3>(expr))
+		, _for (for_token)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1316,6 +1891,36 @@ public:
 
 	virtual TokenIt getFirstTokenIt() const override { return _for; }
 	virtual TokenIt getLastTokenIt() const override { return _right_bracket; }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _for);
+		auto newFor = _for->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_for), _forExpr->getFirstTokenIt());
+		auto newForExpr = _forExpr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_forExpr->getLastTokenIt()), _of_in);
+		auto newOfIn = _of_in->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_of_in), _iterable->getFirstTokenIt());
+		auto newIterable = _iterable->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_iterable->getLastTokenIt()), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _expr->getFirstTokenIt());
+		auto newBody = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<ForStringExpression>(
+			target,
+			newFor,
+			std::move(newForExpr),
+			newOfIn,
+			std::move(newIterable),
+			newLb,
+			std::move(newBody),
+			newRb
+		);
+	}
+
 private:
 	TokenIt _for;
 	TokenIt _left_bracket;
@@ -1365,6 +1970,14 @@ public:
 	{
 	}
 
+	template <typename ExpPtr1, typename ExpPtr2, typename ExpPtr3>
+	OfExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& forExpr, TokenIt of, ExpPtr2&& set, const std::optional<TokenIt>& location_symbol, ExpPtr3&& location)
+		: ForExpression(ts, std::forward<ExpPtr1>(forExpr), of, std::forward<ExpPtr2>(set))
+		, _location_symbol(location_symbol)
+		, _location(std::forward<ExpPtr3>(location))
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1397,6 +2010,41 @@ public:
 	virtual TokenIt getFirstTokenIt() const override { return _forExpr->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _location ? _location->getLastTokenIt() : _iterable->getLastTokenIt(); }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _forExpr->getFirstTokenIt());
+		auto newForExpr = _forExpr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_forExpr->getLastTokenIt()), _of_in);
+		auto newOfIn = _of_in->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_of_in), _iterable->getFirstTokenIt());
+		auto newIterable = _iterable->clone(target);
+
+		std::optional<TokenIt> newLocationSymbol;
+		Expression::Ptr newLocation;
+		if (_location && _location_symbol.has_value())
+		{
+			auto loc = _location_symbol.value();
+			target->cloneAppend(getTokenStream(), std::next(_iterable->getLastTokenIt()), loc);
+			newLocationSymbol = loc->clone(target.get());
+			target->cloneAppend(getTokenStream(), std::next(loc), _location->getFirstTokenIt());
+			newLocation = _location->clone(target);
+			target->cloneAppend(getTokenStream(), std::next(_location->getLastTokenIt()), std::next(getLastTokenIt()));
+		}
+		else
+		{
+			target->cloneAppend(getTokenStream(), std::next(_iterable->getLastTokenIt()), std::next(getLastTokenIt()));
+		}
+
+		return std::make_shared<OfExpression>(
+			target,
+			std::move(newForExpr),
+			newOfIn,
+			std::move(newIterable),
+			newLocationSymbol,
+			std::move(newLocation)
+		);
+	}
+
 private:
 	// Range and offset expression is stored in the same member _location, there cannot be offset and range at the same time
 	std::optional<TokenIt> _location_symbol; ///< Token holding "in" or "at"
@@ -1422,6 +2070,15 @@ public:
 	template <typename ExpPtrVector>
 	IterableExpression(TokenIt left_square_bracket, ExpPtrVector&& elements, TokenIt right_square_bracket)
 		: _left_square_bracket(left_square_bracket)
+		, _elements(std::forward<ExpPtrVector>(elements))
+		, _right_square_bracket(right_square_bracket)
+	{
+	}
+
+	template <typename ExpPtrVector>
+	IterableExpression(const std::shared_ptr<TokenStream>& ts, TokenIt left_square_bracket, ExpPtrVector&& elements, TokenIt right_square_bracket)
+		: Expression(ts)
+		, _left_square_bracket(left_square_bracket)
 		, _elements(std::forward<ExpPtrVector>(elements))
 		, _right_square_bracket(right_square_bracket)
 	{
@@ -1461,6 +2118,35 @@ public:
 		_elements = std::move(elements);
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<Expression::Ptr> newElements;
+		newElements.reserve(_elements.size());
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _left_square_bracket);
+		auto newLsb = _left_square_bracket->clone(target.get());
+
+		TokenIt previousEnd = std::next(_left_square_bracket);
+		for (const auto& elem : _elements)
+		{
+			target->cloneAppend(getTokenStream(), previousEnd, elem->getFirstTokenIt());
+			auto newElem = elem->clone(target);
+			newElements.push_back(std::move(newElem));
+			previousEnd = std::next(elem->getLastTokenIt());
+		}
+
+		target->cloneAppend(getTokenStream(), previousEnd, _right_square_bracket);
+		auto newRsb = _right_square_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(newRsb), std::next(getLastTokenIt()));
+
+		return std::make_shared<IterableExpression>(
+			target,
+			newLsb,
+			std::move(newElements),
+			newRsb
+		);
+	}
+
 private:
 	TokenIt _left_square_bracket;
 	std::vector<Expression::Ptr> _elements; ///< Elements of the set
@@ -1488,6 +2174,15 @@ public:
 	template <typename ExpPtrVector>
 	SetExpression(TokenIt left_bracket, ExpPtrVector&& elements, TokenIt right_bracket)
 		: _left_bracket(left_bracket)
+		, _elements(std::forward<ExpPtrVector>(elements))
+		, _right_bracket(right_bracket)
+	{
+	}
+
+	template <typename ExpPtrVector>
+	SetExpression(const std::shared_ptr<TokenStream>& ts, TokenIt left_bracket, ExpPtrVector&& elements, TokenIt right_bracket)
+		: Expression(ts)
+		, _left_bracket(left_bracket)
 		, _elements(std::forward<ExpPtrVector>(elements))
 		, _right_bracket(right_bracket)
 	{
@@ -1527,6 +2222,35 @@ public:
 		_elements = std::move(elements);
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<Expression::Ptr> newElements;
+		newElements.reserve(_elements.size());
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+
+		TokenIt previousEnd = std::next(_left_bracket);
+		for (const auto& elem : _elements)
+		{
+			target->cloneAppend(getTokenStream(), previousEnd, elem->getFirstTokenIt());
+			auto newElem = elem->clone(target);
+			newElements.push_back(std::move(newElem));
+			previousEnd = std::next(elem->getLastTokenIt());
+		}
+
+		target->cloneAppend(getTokenStream(), previousEnd, _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+
+		return std::make_shared<SetExpression>(
+			target,
+			newLb,
+			std::move(newElements),
+			newRb
+		);
+	}
+
 private:
 	TokenIt _left_bracket;
 	std::vector<Expression::Ptr> _elements; ///< Elements of the set
@@ -1557,6 +2281,18 @@ public:
 		, _right_bracket(right_bracket)
 	{
 	}
+
+	template <typename ExpPtr1, typename ExpPtr2>
+	RangeExpression(const std::shared_ptr<TokenStream>& ts, TokenIt left_bracket, ExpPtr1&& low, TokenIt double_dot, ExpPtr2&& high, TokenIt right_bracket)
+		: Expression(ts)
+		, _left_bracket(left_bracket)
+		, _low(std::forward<ExpPtr1>(low))
+		, _double_dot(double_dot)
+		, _high(std::forward<ExpPtr2>(high))
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1577,6 +2313,22 @@ public:
 	void setLow(Expression::Ptr&& low) { _low = std::move(low); }
 	void setHigh(const Expression::Ptr& high) { _high = high; }
 	void setHigh(Expression::Ptr&& high) { _high = std::move(high); }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _low->getFirstTokenIt());
+		auto newLow = _low->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_low->getLastTokenIt()), _double_dot);
+		auto newDoubleDot = _double_dot->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_double_dot), _high->getFirstTokenIt());
+		auto newHigh = _high->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_high->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<RangeExpression>(target, newLb, std::move(newLow), newDoubleDot, std::move(newHigh), newRb);
+	}
 
 private:
 	TokenIt _left_bracket; ///< '('
@@ -1604,6 +2356,13 @@ public:
 	 */
 	IdExpression(TokenIt symbolToken)
 		: _symbol(symbolToken->getSymbol())
+		, _symbolToken(symbolToken)
+	{
+	}
+
+	IdExpression(const std::shared_ptr<TokenStream>& ts, TokenIt symbolToken)
+		: Expression(ts)
+		, _symbol(symbolToken->getSymbol())
 		, _symbolToken(symbolToken)
 	{
 	}
@@ -1638,6 +2397,14 @@ public:
 		_symbolToken->setValue(_symbol);
 	}
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _symbolToken);
+		auto newSymbol = _symbolToken->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_symbolToken), std::next(getLastTokenIt()));
+		return std::make_shared<IdExpression>(target, newSymbol);
+	}
+
 protected:
 	IdExpression(const std::shared_ptr<Symbol>& symbol)
 		: _symbol(symbol)
@@ -1668,6 +2435,10 @@ public:
 	{
 	}
 
+	IdWildcardExpression(const std::shared_ptr<TokenStream>& ts, TokenIt id, TokenIt wildcard) : Expression(ts), _id(id), _wildcard(wildcard)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1685,6 +2456,16 @@ public:
 
 	virtual TokenIt getFirstTokenIt() const override { return _id; }
 	virtual TokenIt getLastTokenIt() const override { return _wildcard; }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _id);
+		auto newId = _id->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_id), _wildcard);
+		auto newWildcard = _wildcard->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_wildcard), std::next(getLastTokenIt()));
+		return std::make_shared<IdWildcardExpression>(target, newId, newWildcard);
+	}
 
 protected:
 	TokenIt _id; ///< Token of the identifier wildcard
@@ -1712,6 +2493,14 @@ public:
 	{
 	}
 
+	template <typename ExpPtr>
+	StructAccessExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr&& structure, TokenIt dot, TokenIt symbol)
+		: IdExpression(ts, symbol)
+		, _structure(std::forward<ExpPtr>(structure))
+		, _dot(dot)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -1731,6 +2520,18 @@ public:
 
 	void setStructure(const Expression::Ptr& structure) { _structure = structure; }
 	void setStructure(Expression::Ptr&& structure) { _structure = std::move(structure); }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _structure->getFirstTokenIt());
+		auto newStruct = _structure->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_structure->getLastTokenIt()), _dot);
+		auto newDot = _dot->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_dot), _symbolToken);
+		auto newSymbol = _symbolToken->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_symbolToken), std::next(getLastTokenIt()));
+		return std::make_shared<StructAccessExpression>(target, std::move(newStruct), newDot, newSymbol);
+	}
 
 private:
 	Expression::Ptr _structure; ///< Structure identifier expression
@@ -1760,6 +2561,7 @@ public:
 	{
 		_symbolToken = std::static_pointer_cast<const IdExpression>(_array)->getSymbolToken();
 	}
+
 	template <typename ExpPtr1, typename ExpPtr2>
 	ArrayAccessExpression(ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
 		: IdExpression(std::static_pointer_cast<const IdExpression>(array)->getSymbolToken())
@@ -1768,6 +2570,17 @@ public:
 		, _accessor(std::forward<ExpPtr2>(accessor))
 		, _right_bracket(right_bracket)
 	{
+	}
+
+	template <typename ExpPtr1, typename ExpPtr2>
+	ArrayAccessExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr1&& array, TokenIt left_bracket, ExpPtr2&& accessor, TokenIt right_bracket)
+		: IdExpression(ts, std::static_pointer_cast<const IdExpression>(array)->getSymbolToken())
+		, _array(std::forward<ExpPtr1>(array))
+		, _left_bracket(left_bracket)
+		, _accessor(std::forward<ExpPtr2>(accessor))
+		, _right_bracket(right_bracket)
+	{
+		_symbolToken = std::static_pointer_cast<const IdExpression>(_array)->getSymbolToken();
 	}
 
 	virtual VisitResult accept(Visitor* v) override
@@ -1791,6 +2604,20 @@ public:
 	void setAccessor(const Expression::Ptr& accessor) { _accessor = accessor; }
 	void setAccessor(Expression::Ptr&& accessor) { _accessor = std::move(accessor); }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _array->getFirstTokenIt());
+		auto newArray = _array->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_array->getLastTokenIt()), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _accessor->getFirstTokenIt());
+		auto newAccessor = _accessor->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_accessor->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<ArrayAccessExpression>(target, std::move(newArray), newLb, std::move(newAccessor), newRb);
+	}
+
 private:
 	Expression::Ptr _array; ///< Array identifier expression
 	TokenIt _left_bracket; ///< '['
@@ -1813,6 +2640,16 @@ public:
 	template <typename ExpPtr, typename ExpPtrVector>
 	FunctionCallExpression(ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
 		: IdExpression(std::static_pointer_cast<const IdExpression>(func)->getSymbolToken())
+		, _func(std::forward<ExpPtr>(func))
+		, _left_bracket(left_bracket)
+		, _args(std::forward<ExpPtrVector>(args))
+		, _right_bracket(right_bracket)
+	{
+	}
+
+	template <typename ExpPtr, typename ExpPtrVector>
+	FunctionCallExpression(const std::shared_ptr<TokenStream>& ts, ExpPtr&& func, TokenIt left_bracket, ExpPtrVector&& args, TokenIt right_bracket)
+		: IdExpression(ts, std::static_pointer_cast<const IdExpression>(func)->getSymbolToken())
 		, _func(std::forward<ExpPtr>(func))
 		, _left_bracket(left_bracket)
 		, _args(std::forward<ExpPtrVector>(args))
@@ -1855,6 +2692,31 @@ public:
 	void setFunction(Expression::Ptr&& func) { _func = std::move(func); }
 	void setArguments(const std::vector<Expression::Ptr>& args) { _args = args; }
 	void setArguments(std::vector<Expression::Ptr>&& args) { _args = std::move(args); }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<Expression::Ptr> newArgs;
+		newArgs.reserve(_args.size());
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _func->getFirstTokenIt());
+		auto newFunc = _func->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_func->getLastTokenIt()), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+
+		TokenIt previousEnd = std::next(_left_bracket);
+		for (const auto& arg : _args)
+		{
+			target->cloneAppend(getTokenStream(), previousEnd, arg->getFirstTokenIt());
+			auto newArg = arg->clone(target);
+			newArgs.push_back(std::move(newArg));
+			previousEnd = std::next(arg->getLastTokenIt());
+		}
+
+		target->cloneAppend(getTokenStream(), previousEnd, _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<FunctionCallExpression>(target, std::move(newFunc), newLb, std::move(newArgs), newRb);
+	}
 
 private:
 	Expression::Ptr _func; ///< Function identifier expression
@@ -1901,6 +2763,15 @@ public:
 	}
 
 protected:
+	template <typename ExpT>
+	Expression::Ptr cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _value);
+		auto newValue = _value->clone(target.get());
+		target->cloneAppend(getTokenStream(), _value, std::move(getLastTokenIt()));
+		return std::make_shared<ExpT>(target, newValue);
+	}
+
 	bool _valid = true; ///< Set if _value is valid
 	TokenIt _value; ///< Value of the literal
 };
@@ -1946,6 +2817,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<BoolLiteralExpression>(target);
+	}
 };
 
 /**
@@ -1977,6 +2853,11 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<StringLiteralExpression>(target);
 	}
 };
 
@@ -2012,6 +2893,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<IntLiteralExpression>(target);
+	}
 };
 
 /**
@@ -2046,6 +2932,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<DoubleLiteralExpression>(target);
+	}
 };
 
 /**
@@ -2069,12 +2960,23 @@ protected:
 	{
 		assert(keyword->isString());
 	}
+
 	KeywordExpression(const std::shared_ptr<TokenStream>& ts, TokenIt keyword)
 		: Expression(ts)
 		, _keyword(keyword)
 	{
 		assert(keyword->isString());
 	}
+
+	template <typename ExpT>
+	Expression::Ptr cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _keyword);
+		auto newKeyword = _keyword->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_keyword), std::next(getLastTokenIt()));
+		return std::make_shared<ExpT>(target, newKeyword);
+	}
+
 	TokenIt _keyword; ///< Keyword
 };
 
@@ -2103,6 +3005,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<FilesizeExpression>(target);
+	}
 };
 
 /**
@@ -2129,6 +3036,11 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<EntrypointExpression>(target);
 	}
 };
 
@@ -2158,6 +3070,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<AllExpression>(target);
+	}
 };
 
 /**
@@ -2185,6 +3102,11 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<AnyExpression>(target);
 	}
 };
 
@@ -2214,6 +3136,11 @@ public:
 	{
 		return v->visit(this);
 	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<NoneExpression>(target);
+	}
 };
 
 /**
@@ -2241,6 +3168,11 @@ public:
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<ThemExpression>(target);
 	}
 };
 
@@ -2274,6 +3206,16 @@ public:
 	{
 	}
 
+	template <typename ExpPtr>
+	ParenthesesExpression(const std::shared_ptr<TokenStream>& ts, TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket, bool linebreak = false)
+		: Expression(ts)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _linebreak(linebreak)
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -2297,6 +3239,18 @@ public:
 
 	void setEnclosedExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setEnclosedExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _expr->getFirstTokenIt());
+		auto newExpr = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<ParenthesesExpression>(target, newLb, std::move(newExpr), newRb, _linebreak);
+	}
 
 private:
 	Expression::Ptr _expr; ///< Enclosed expression
@@ -2336,6 +3290,16 @@ public:
 	{
 	}
 
+	template <typename ExpPtr>
+	IntFunctionExpression(const std::shared_ptr<TokenStream>& ts, TokenIt func, TokenIt left_bracket, ExpPtr&& expr, TokenIt right_bracket)
+		: Expression(ts)
+		, _func(func)
+		, _expr(std::forward<ExpPtr>(expr))
+		, _left_bracket(left_bracket)
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	virtual VisitResult accept(Visitor* v) override
 	{
 		return v->visit(this);
@@ -2356,6 +3320,20 @@ public:
 	void setFunction(std::string&& func) { _func->setValue(std::move(func)); }
 	void setArgument(const Expression::Ptr& expr) { _expr = expr; }
 	void setArgument(Expression::Ptr&& expr) { _expr = std::move(expr); }
+
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _func);
+		auto newFunc = _func->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_func), _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _expr->getFirstTokenIt());
+		auto newExpr = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+		return std::make_shared<IntFunctionExpression>(target, newFunc, newLb, std::move(newExpr), newRb);
+	}
 
 private:
 	TokenIt _func; ///< Function identifier
@@ -2403,6 +3381,11 @@ public:
 	void setRegexpString(const std::shared_ptr<String>& regexp) { _regexp = regexp; }
 	void setRegexpString(std::shared_ptr<String>&& regexp) { _regexp = std::move(regexp); }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return nullptr;
+	}
+
 private:
 	std::shared_ptr<String> _regexp; ///< Regular expression string
 };
@@ -2422,8 +3405,16 @@ class VariableDefExpression : public Expression
 public:
 	template <typename ExpPtr>
 	VariableDefExpression(TokenIt name, ExpPtr&& expr)
-		: _name(name),
-		  _expr(std::forward<ExpPtr>(expr))
+		: _name(name)
+		, _expr(std::forward<ExpPtr>(expr))
+	{
+	}
+
+	template <typename ExpPtr>
+	VariableDefExpression(const std::shared_ptr<TokenStream>& ts, TokenIt name, ExpPtr&& expr)
+		: Expression(ts)
+		, _name(name)
+		, _expr(std::forward<ExpPtr>(expr))
 	{
 	}
 
@@ -2448,6 +3439,16 @@ public:
 	void setExpression(const Expression::Ptr& expr) { _expr = expr; }
 	void setExpression(Expression::Ptr&& expr) { _expr = std::move(expr); }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _name);
+		auto newName = _name->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_name), _expr->getFirstTokenIt());
+		auto newExpr = _expr->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_expr->getLastTokenIt()), std::next(getLastTokenIt()));
+		return std::make_shared<VariableDefExpression>(target, newName, std::move(newExpr));
+	}
+
 private:
 	TokenIt _name;
 	Expression::Ptr _expr;
@@ -2466,11 +3467,23 @@ class WithExpression : public Expression
 {
 public:
 	template <typename VarVector, typename ExpPtr>
-	WithExpression(TokenIt with, VarVector&& vars, ExpPtr&& body, TokenIt right_bracket)
-		: _with(with),
-		  _vars(std::forward<VarVector>(vars)),
-		  _body(std::forward<ExpPtr>(body)),
-		  _right_bracket(right_bracket)
+	WithExpression(TokenIt with, VarVector&& vars, TokenIt left_bracket, ExpPtr&& body, TokenIt right_bracket)
+		: _with(with)
+		, _vars(std::forward<VarVector>(vars))
+		, _left_bracket(left_bracket)
+		, _body(std::forward<ExpPtr>(body))
+		, _right_bracket(right_bracket)
+	{
+	}
+
+	template <typename VarVector, typename ExpPtr>
+	WithExpression(const std::shared_ptr<TokenStream>& ts, TokenIt with, VarVector&& vars, TokenIt left_bracket, ExpPtr&& body, TokenIt right_bracket)
+		: Expression(ts)
+		, _with(with)
+		, _vars(std::forward<VarVector>(vars))
+		, _left_bracket(left_bracket)
+		, _body(std::forward<ExpPtr>(body))
+		, _right_bracket(right_bracket)
 	{
 	}
 
@@ -2508,9 +3521,45 @@ public:
 	void setBody(const Expression::Ptr& body) { _body = body; }
 	void setBody(Expression::Ptr&& body) { _body = std::move(body); }
 
+	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<Expression::Ptr> newVars;
+		newVars.reserve(_vars.size());
+
+		target->cloneAppend(getTokenStream(), getFirstTokenIt(), _with);
+		auto newWith = _with->clone(target.get());
+
+		TokenIt previousEnd = std::next(_with);
+		for (const auto& var : _vars)
+		{
+			target->cloneAppend(getTokenStream(), previousEnd, var->getFirstTokenIt());
+			auto newVar = var->clone(target);
+			newVars.push_back(std::move(newVar));
+			previousEnd = std::next(var->getLastTokenIt());
+		}
+
+		target->cloneAppend(getTokenStream(), previousEnd, _left_bracket);
+		auto newLb = _left_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_left_bracket), _body->getFirstTokenIt());
+		auto newBody = _body->clone(target);
+		target->cloneAppend(getTokenStream(), std::next(_body->getLastTokenIt()), _right_bracket);
+		auto newRb = _right_bracket->clone(target.get());
+		target->cloneAppend(getTokenStream(), std::next(_right_bracket), std::next(getLastTokenIt()));
+
+		return std::make_shared<WithExpression>(
+			target,
+			newWith,
+			std::move(newVars),
+			newLb,
+			std::move(newBody),
+			newRb
+		);
+	}
+
 private:
 	TokenIt _with;
 	std::vector<Expression::Ptr> _vars;
+	TokenIt _left_bracket;
 	Expression::Ptr _body;
 	TokenIt _right_bracket;
 };
