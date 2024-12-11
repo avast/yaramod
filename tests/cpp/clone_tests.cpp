@@ -66,6 +66,11 @@ public:
 		EXPECT_PRED_FORMAT1(expectTokensPred, tokens);
 	}
 
+	void clearTokens()
+	{
+		new_ts->clear();
+	}
+
 	std::stringstream input;
 	std::string input_text;
 	ParserDriver driver;
@@ -699,11 +704,9 @@ rule test
 	EXPECT_NE(rule->getCondition().get(), cloned.get());
 	EXPECT_NE(rule->getCondition()->getTokenStream(), new_ts.get());
 
-	ASSERT_TRUE(false) << "matches still needs support in regexes";
-
 	EXPECT_EQ(cloned->getText(), "\"abc\" matches /abc/");
 	expectTokens({
-		"\"abc\"", "matches", "/abc/"
+		"abc", "matches", "/", "a", "b", "c", "/"
 	});
 }
 
@@ -1660,6 +1663,765 @@ rule test
 		")", "\n",
 		")"
 	});
+}
+
+TEST_F(CloneTests,
+RegexpClass) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /[123]/
+		$r02 = /[^123]/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "[", "", "1", "2", "3", "]", "/"
+	});
+
+	clearTokens();
+
+	const auto& regexp2 = static_cast<const Regexp*>(rule->getStrings()[1]);
+	auto cloned2 = regexp2->clone(new_ts);
+	expectTokens({
+		"/", "[", "^", "1", "2", "3", "]", "/"
+	});
+}
+
+TEST_F(CloneTests,
+RegexpText) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /hello/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "h", "e", "l", "l", "o", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	EXPECT_NE(std::dynamic_pointer_cast<RegexpText>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpAnyChar) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /./
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", ".", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpAnyChar>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpWordChar) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\w/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\w", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpWordChar>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpNonWordChar) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\W/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\W", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpNonWordChar>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpSpace) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\s/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\s", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpSpace>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpNonSpace) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\S/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\S", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpNonSpace>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpDigit) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\d/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\d", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpDigit>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpNonDigit) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\D/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\D", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpNonDigit>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpWordBoundary) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\b/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\b", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpWordBoundary>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpNonWordBoundary) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /\B/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "\\B", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpNonWordBoundary>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpEndOfLine) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /$/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "$", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpEndOfLine>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpStartOfLine) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /^/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "^", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpStartOfLine>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpIteration) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a*/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "*", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpIteration>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpIterationNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a*?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "*", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpIteration>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpPositiveIteration) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a+/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "+", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpPositiveIteration>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpPositiveIterationNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a+?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "+", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpPositiveIteration>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpOptional) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "?", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpOptional>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpOptionalNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a??/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "?", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpOptional>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeLowHigh) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{1,3}/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", "1", ",", "3", "}", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeLow) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{1,}/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", "1", ",", "}", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeHigh) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{,3}/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", ",", "3", "}", "", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeLowHighNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{1,3}?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", "1", ",", "3", "}", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeLowNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{1,}?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", "1", ",", "}", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpRangeHighNonGreedy) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a{,3}?/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "{", ",", "3", "}", "?", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpRange>(regexp_content->getUnits()[0]), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpOr) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /a|b|c/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "a", "|", "b", "|", "c", "/"
+	});
+
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpOr>(cloned1->getUnit()), nullptr);
+}
+
+TEST_F(CloneTests,
+RegexpGroup) {
+	prepareInput(
+R"(
+rule test
+{
+	strings:
+		$r01 = /(abc)def/
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& regexp1 = static_cast<const Regexp*>(rule->getStrings()[0]);
+
+	auto cloned1 = regexp1->clone(new_ts);
+	expectTokens({
+		"/", "(", "a", "b", "c", ")", "d", "e", "f", "/"
+	});
+
+	auto regexp_content = std::dynamic_pointer_cast<RegexpConcat>(cloned1->getUnit());
+	ASSERT_NE(regexp_content, nullptr);
+	ASSERT_NE(std::dynamic_pointer_cast<RegexpGroup>(regexp_content->getUnits()[0]), nullptr);
 }
 
 }

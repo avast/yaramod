@@ -410,7 +410,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([](std::string_view str) -> Value {
+	_parser.token(R"(\\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
 	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value { _regexpClass = "^]"; return {}; });
@@ -1548,7 +1548,7 @@ void ParserDriver::defineGrammar()
 			auto right = std::move(args[2].getYaramodString());
 			if (!left->isString())
 				error_handle(op_token->getLocation(), "operator 'matches' expects string on the left-hand side of the expression");
-			auto regexp_expression = std::make_shared<RegexpExpression>(std::move(right));
+			auto regexp_expression = std::make_shared<RegexpExpression>(std::static_pointer_cast<Regexp>(right));
 			auto output = std::make_shared<MatchesExpression>(std::move(left), op_token, std::move(regexp_expression));
 			output->setType(Expression::Type::Bool);
 			output->setTokenStream(currentTokenStream());
@@ -2017,7 +2017,8 @@ void ParserDriver::defineGrammar()
 			return std::move(args[0]);
 		})
 		.production("regexp", [&](auto&& args) -> Value {
-			auto output = std::make_shared<RegexpExpression>(std::move(args[0].getYaramodString()));
+			auto regexp_string = std::move(args[0].getYaramodString());
+			auto output = std::make_shared<RegexpExpression>(std::static_pointer_cast<Regexp>(regexp_string));
 			output->setType(Expression::Type::Regexp);
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());

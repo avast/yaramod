@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "yaramod/types/expression.h"
+#include "yaramod/types/regexp.h"
 #include "yaramod/types/string.h"
 #include "yaramod/types/symbol.h"
 #include "yaramod/utils/utils.h"
@@ -3373,21 +3374,22 @@ public:
 
 	virtual std::string getText(const std::string& /*indent*/ = std::string{}) const override { return _regexp->getText(); }
 
-	const std::shared_ptr<String>& getRegexpString() const { return _regexp; }
+	const std::shared_ptr<Regexp>& getRegexpString() const { return _regexp; }
 
 	virtual TokenIt getFirstTokenIt() const override { return _regexp->getFirstTokenIt(); }
 	virtual TokenIt getLastTokenIt() const override { return _regexp->getLastTokenIt(); }
 
-	void setRegexpString(const std::shared_ptr<String>& regexp) { _regexp = regexp; }
-	void setRegexpString(std::shared_ptr<String>&& regexp) { _regexp = std::move(regexp); }
+	void setRegexpString(const std::shared_ptr<Regexp>& regexp) { _regexp = regexp; }
+	void setRegexpString(std::shared_ptr<Regexp>&& regexp) { _regexp = std::move(regexp); }
 
 	virtual Expression::Ptr clone(const std::shared_ptr<TokenStream>& target) const override
 	{
-		return nullptr;
+		auto newRegexp = _regexp->clone(target);
+		return std::make_shared<RegexpExpression>(std::move(newRegexp));
 	}
 
 private:
-	std::shared_ptr<String> _regexp; ///< Regular expression string
+	std::shared_ptr<Regexp> _regexp; ///< Regular expression string
 };
 
 

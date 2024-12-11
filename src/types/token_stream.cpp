@@ -225,7 +225,7 @@ void TokenStream::swapTokens(TokenIt local_first, TokenIt local_last, TokenStrea
 	_formatted = false;
 }
 
-void TokenStream::cloneAppend(TokenStream* donor, TokenIt first, TokenIt last)
+void TokenStream::cloneAppend(TokenStream* /*donor*/, TokenIt first, TokenIt last)
 {
 	auto itr = first;
 	while (itr != last)
