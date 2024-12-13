@@ -403,6 +403,7 @@ void addBasicClasses(py::module& module)
 	py::class_<PlainString, String, std::shared_ptr<PlainString>>(module, "PlainString");
 	py::class_<HexString, String, std::shared_ptr<HexString>>(module, "HexString");
 	py::class_<Regexp, String, std::shared_ptr<Regexp>>(module, "Regexp")
+		.def("clone", &Regexp::clone)
 		.def_property("unit",
 				&Regexp::getUnit,
 				py::overload_cast<const std::shared_ptr<RegexpUnit>&>(&Regexp::setUnit))
@@ -584,6 +585,7 @@ void addExpressionClasses(py::module& module)
 		.def("accept", &Expression::accept)
 		.def("get_text", &Expression::getText, py::arg("indent") = std::string{})
 		.def("exchange_tokens", py::overload_cast<Expression*>(&Expression::exchangeTokens))
+		.def("clone", &Expression::clone)
 		.def_property_readonly("uid", &Expression::getUid)
 		.def_property_readonly("text",
 				// getText() has default parameter and Python can't deal with it
@@ -792,7 +794,7 @@ void addExpressionClasses(py::module& module)
 	exprClass<RegexpExpression>(module, "RegexpExpression")
 		.def_property("regexp_string",
 				&RegexpExpression::getRegexpString,
-				py::overload_cast<const std::shared_ptr<String>&>(&RegexpExpression::setRegexpString));
+				py::overload_cast<const std::shared_ptr<Regexp>&>(&RegexpExpression::setRegexpString));
 
 	exprClass<VariableDefExpression>(module, "VariableDefExpression")
 		.def_property("name",
