@@ -402,9 +402,6 @@ void ParserDriver::defineTokens()
 	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
-	_parser.token(R"(\\\/)").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
-		return std::string{str};
-	});
 	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([](std::string_view) -> Value { return {};});
@@ -413,7 +410,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\D)").states("$regexp").symbol("REGEXP_NON_DIGIT").description("regexp \\D").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\b)").states("$regexp").symbol("REGEXP_WORD_BOUNDARY").description("regexp \\b").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\B)").states("$regexp").symbol("REGEXP_NON_WORD_BOUNDARY").description("regexp \\B").action([](std::string_view) -> Value { return {};});
-	_parser.token(R"(\\\.)").states("$regexp").symbol("REGEXP_CHAR").description("regexp .").action([](std::string_view str) -> Value {
+	_parser.token(R"(\\[^wWsSdDbB])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
 	_parser.token(R"(\[\^\])").states("$regexp").enter_state("$regexp_class").action([&](std::string_view) -> Value { _regexpClass = "^]"; return {}; });
