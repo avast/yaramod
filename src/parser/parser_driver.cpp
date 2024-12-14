@@ -402,6 +402,9 @@ void ParserDriver::defineTokens()
 	_parser.token(R"([^\\\[\(\)\|\$\.\^\+\+*\?])").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
 		return std::string{str};
 	});
+	_parser.token(R"(\\\/)").states("$regexp").symbol("REGEXP_CHAR").description("regexp character").action([](std::string_view str) -> Value {
+		return std::string{str};
+	});
 	_parser.token(R"(\\w)").states("$regexp").symbol("REGEXP_WORD_CHAR").description("regexp \\w").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\W)").states("$regexp").symbol("REGEXP_NON_WORD_CHAR").description("regexp \\W").action([](std::string_view) -> Value { return {};});
 	_parser.token(R"(\\s)").states("$regexp").symbol("REGEXP_SPACE").description("regexp \\s").action([](std::string_view) -> Value { return {};});
