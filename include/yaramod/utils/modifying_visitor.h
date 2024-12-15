@@ -23,7 +23,7 @@ public:
 };
 
 /**
- * Class capturing current TokenStream and first and last TokenIi of the expression which it is given
+ * Class capturing current TokenStream and first and last TokenIt of the expression which it is given
  * in it's constructor. This data can be very useful at the end of the visit method of ModifyingVisitors
  * by the cleanUpTokenStreams function.
  */
@@ -862,6 +862,17 @@ public:
 				}))
 		{
 			return {};
+		}
+
+		if (std::all_of(varsRet.begin(), varsRet.end(),
+				[](const auto& var) {
+					auto a = std::get_if<VisitAction>(&var);
+					return a && *a == VisitAction::Delete;
+				}))
+		{
+			auto output = YaraExpressionBuilder{expr->getBody()}.get();
+			cleanUpTokenStreams(context, output.get());
+			return output;
 		}
 
 		std::vector<Expression::Ptr> newVariables;

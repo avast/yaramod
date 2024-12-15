@@ -106,6 +106,8 @@ public:
 	// Exchanges data in [local_first, local_last) for data in [other_first,other_last)
 	// When other == this and [local_first, local_last) > [other_first,other_last), deletion occurs
 	void swapTokens(TokenIt local_first, TokenIt local_last, TokenStream* other, TokenIt other_first, TokenIt other_last);
+	// Clone only data in [first, last) from donor and append it at the end.
+	void cloneAppend(TokenStream* donor, TokenIt first, TokenIt last);
 	/// @}
 
 	/// @name Element access

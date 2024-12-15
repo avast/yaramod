@@ -166,6 +166,8 @@ public:
 	const std::shared_ptr<TokenStream>& initializeSubTokenStream();
 	/// @}
 
+	TokenIt clone(TokenStream* target) const;
+
 private:
 	bool _flag = false; // used for '(' to determine it's sector and whether to put newlines
 	TokenType _type;

@@ -622,7 +622,7 @@ public:
 
 	virtual yaramod::RegexpVisitResult visit(yaramod::RegexpText* expr) override
 	{
-		dump("RegexpClass", expr, " text=", expr->getText());
+		dump("RegexpText", expr, " text=", expr->getText());
 		return {};
 	}
 

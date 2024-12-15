@@ -660,7 +660,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::defined() {
  */
 YaraExpressionBuilder& YaraExpressionBuilder::percent() {
 	auto token = _tokenStream->emplace_back(TokenType::PERCENT, "%");
-	_expr = std::make_shared<PercentualExpression>(std::move(_expr), token);
+	_expr = std::make_shared<PercentualExpression>(token, std::move(_expr));
 	setType(Expression::Type::Int);
 	return *this;
 }
@@ -1039,8 +1039,8 @@ YaraExpressionBuilder matchLength(const std::string& id, const YaraExpressionBui
 	auto other_expression = other.get();
 	ts->emplace_back(TokenType::LSQB, "[");
 	ts->moveAppend(other_expression->getTokenStream());
-	ts->emplace_back(TokenType::RSQB, "]");
-	auto expression = std::make_shared<StringLengthExpression>(token, std::move(other_expression));
+	auto rb = ts->emplace_back(TokenType::RSQB, "]");
+	auto expression = std::make_shared<StringLengthExpression>(token, std::move(other_expression), rb);
 
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Int);
 }
@@ -1066,8 +1066,8 @@ YaraExpressionBuilder matchOffset(const std::string& id, const YaraExpressionBui
 	auto other_expression = other.get();
 	ts->emplace_back(TokenType::LSQB, "[");
 	ts->moveAppend(other_expression->getTokenStream());
-	ts->emplace_back(TokenType::RSQB, "]");
-	auto expression = std::make_shared<StringOffsetExpression>(token, std::move(other_expression));
+	auto rb = ts->emplace_back(TokenType::RSQB, "]");
+	auto expression = std::make_shared<StringOffsetExpression>(token, std::move(other_expression), rb);
 
 	return YaraExpressionBuilder(std::move(ts), std::move(expression), Expression::Type::Int);
 }
@@ -1659,10 +1659,10 @@ YaraExpressionBuilder with(const std::vector<YaraExpressionBuilder>& vars, const
 		varExprs.push_back(vars[i].get());
 	}
 
-	ts->emplace_back(TokenType::LP_WITH_SPACE_AFTER, "(");
+	auto left_bracket = ts->emplace_back(TokenType::LP_WITH_SPACE_AFTER, "(");
 	ts->moveAppend(body.getTokenStream());
 	auto right_bracket = ts->emplace_back(TokenType::RP_WITH_SPACE_BEFORE, ")");
-	return YaraExpressionBuilder(std::move(ts), std::make_shared<WithExpression>(with, std::move(varExprs), body.get(), right_bracket));
+	return YaraExpressionBuilder(std::move(ts), std::make_shared<WithExpression>(with, std::move(varExprs), left_bracket, body.get(), right_bracket));
 }
 
 }
