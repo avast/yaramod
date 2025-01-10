@@ -95,4 +95,9 @@ const std::shared_ptr<TokenStream>& Token::initializeSubTokenStream()
 	return getSubTokenStream();
 }
 
+TokenIt Token::clone(TokenStream* target) const
+{
+	return target->push_back(Token{*this});
+}
+
 } //namespace yaramod

@@ -1139,13 +1139,44 @@ rule regexp_with_just_chars
 	EXPECT_EQ("regexp_with_just_chars", rule->getName());
 	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
 
-	auto strings = rule->getStrings()
-;	ASSERT_EQ(1u, strings.size());
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
 
 	auto regexp0 = strings[0];
 	EXPECT_TRUE(regexp0->isRegexp());
 	EXPECT_EQ("$1", regexp0->getIdentifier());
 	EXPECT_EQ("/ab/", regexp0->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RegexpWithEscapeSequences) {
+	prepareInput(
+R"(
+rule regexp_with_escape_sequences
+{
+	strings:
+		$1 = /http:\/\/someone\.doingevil\.com/
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_with_escape_sequences", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto regexp0 = strings[0];
+	EXPECT_TRUE(regexp0->isRegexp());
+	EXPECT_EQ("$1", regexp0->getIdentifier());
+	EXPECT_EQ("/http:\\/\\/someone\\.doingevil\\.com/", regexp0->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }

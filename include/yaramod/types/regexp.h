@@ -30,9 +30,16 @@ public:
 		: _tokenStream(std::make_shared<TokenStream>())
 	{
 	}
+	
+	explicit RegexpUnit(const std::shared_ptr<TokenStream>& ts)
+		: _tokenStream(ts)
+	{
+	}
+
 	virtual ~RegexpUnit() {}
 
 	virtual std::string getText() const = 0;
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& /*target*/) const { return nullptr; };
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) = 0;
 	std::shared_ptr<TokenStream>&& getTokenStream() { return std::move(_tokenStream); }
@@ -56,6 +63,15 @@ public:
 		_rightRectBracket = _tokenStream->emplace_back(TokenType::RSQB, "]");
 	}
 
+	RegexpClass(const std::shared_ptr<TokenStream>& ts, TokenIt leftRectBracket, TokenIt negative, std::vector<TokenIt>&& characters, TokenIt rightRectBracket)
+		: RegexpUnit(ts)
+		, _leftRectBracket(leftRectBracket)
+		, _characters(std::move(characters))
+		, _negative(negative)
+		, _rightRectBracket(rightRectBracket)
+	{
+	}
+
 	virtual std::string getText() const override
 	{
 		std::ostringstream ss;
@@ -66,6 +82,19 @@ public:
 		ss << _rightRectBracket->getPureText();
 
 		return ss.str();
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<TokenIt> newCharacters;
+		newCharacters.reserve(_characters.size());
+
+		auto newLeftRectBracket = _leftRectBracket->clone(target.get());
+		auto newNegative = _negative->clone(target.get());
+		for (const auto& ch : _characters)
+			newCharacters.push_back(ch->clone(target.get()));
+		auto newRightRectBracket = _rightRectBracket->clone(target.get());
+		return std::make_shared<RegexpClass>(target, newLeftRectBracket, newNegative, std::move(newCharacters), newRightRectBracket);
 	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
@@ -117,6 +146,10 @@ public:
 			addCharacters(text);
 	}
 
+	RegexpText(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpUnit(ts), _characters(std::move(characters))
+	{
+	}
+
 	virtual ~RegexpText() override {}
 
 	virtual std::string getText() const override
@@ -125,6 +158,11 @@ public:
 		for (const auto& it : _characters)
 			output += it->getPureText();
 		return output;
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpText>(target);
 	}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
@@ -136,6 +174,19 @@ public:
 	{
 		for (char c : text)
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
+	}
+
+protected:
+	template <typename ExpT>
+	std::shared_ptr<RegexpUnit> cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		std::vector<TokenIt> newCharacters;
+		newCharacters.reserve(_characters.size());
+
+		for (const auto& ch : _characters)
+			newCharacters.push_back(ch->clone(target.get()));
+
+		return std::make_shared<ExpT>(target, std::move(newCharacters));
 	}
 
 private:
@@ -150,10 +201,16 @@ class RegexpAnyChar : public RegexpText
 {
 public:
 	RegexpAnyChar() : RegexpText(".", true) {}
+	RegexpAnyChar(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpAnyChar>(target);
 	}
 };
 
@@ -165,10 +222,16 @@ class RegexpWordChar : public RegexpText
 {
 public:
 	RegexpWordChar() : RegexpText("\\w", true) {}
+	RegexpWordChar(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpWordChar>(target);
 	}
 };
 
@@ -180,10 +243,16 @@ class RegexpNonWordChar : public RegexpText
 {
 public:
 	RegexpNonWordChar() : RegexpText("\\W", true) {}
+	RegexpNonWordChar(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpNonWordChar>(target);
 	}
 };
 
@@ -195,10 +264,16 @@ class RegexpSpace : public RegexpText
 {
 public:
 	RegexpSpace() : RegexpText("\\s", true) {}
+	RegexpSpace(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpSpace>(target);
 	}
 };
 
@@ -210,10 +285,16 @@ class RegexpNonSpace : public RegexpText
 {
 public:
 	RegexpNonSpace() : RegexpText("\\S", true) {}
+	RegexpNonSpace(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpNonSpace>(target);
 	}
 };
 
@@ -225,10 +306,16 @@ class RegexpDigit : public RegexpText
 {
 public:
 	RegexpDigit() : RegexpText("\\d", true) {}
+	RegexpDigit(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpDigit>(target);
 	}
 };
 
@@ -240,10 +327,16 @@ class RegexpNonDigit : public RegexpText
 {
 public:
 	RegexpNonDigit() : RegexpText("\\D", true) {}
+	RegexpNonDigit(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpNonDigit>(target);
 	}
 };
 
@@ -255,10 +348,16 @@ class RegexpWordBoundary : public RegexpText
 {
 public:
 	RegexpWordBoundary() : RegexpText("\\b", true) {}
+	RegexpWordBoundary(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpWordBoundary>(target);
 	}
 };
 
@@ -270,10 +369,16 @@ class RegexpNonWordBoundary : public RegexpText
 {
 public:
 	RegexpNonWordBoundary() : RegexpText("\\B", true) {}
+	RegexpNonWordBoundary(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpNonWordBoundary>(target);
 	}
 };
 
@@ -285,6 +390,17 @@ class RegexpStartOfLine : public RegexpText
 {
 public:
 	RegexpStartOfLine() : RegexpText("^", true) {}
+	RegexpStartOfLine(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
+
+	virtual RegexpVisitResult accept(RegexpVisitor* v) override
+	{
+		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpStartOfLine>(target);
+	}
 };
 
 /**
@@ -295,10 +411,16 @@ class RegexpEndOfLine : public RegexpText
 {
 public:
 	RegexpEndOfLine() : RegexpText("$", true) {}
+	RegexpEndOfLine(const std::shared_ptr<TokenStream>& ts, std::vector<TokenIt>&& characters) : RegexpText(ts, std::move(characters)) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpEndOfLine>(target);
 	}
 };
 
@@ -336,7 +458,24 @@ protected:
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
 
+	RegexpOperation(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& operand, TokenIt operation, TokenIt greedy)
+		: RegexpUnit(ts)
+		, _operation(operation)
+		, _operand(std::move(operand))
+		, _greedy(greedy)
+	{
+	}
+
 	RegexpOperation() = default;
+
+	template <typename ExpT>
+	std::shared_ptr<RegexpUnit> cloneAs(const std::shared_ptr<TokenStream>& target) const
+	{
+		auto newOperand = _operand->clone(target);
+		auto newOperation = _operation->clone(target.get());
+		auto newGreedy = _greedy->clone(target.get());
+		return std::make_shared<ExpT>(target, std::move(newOperand), newOperation, newGreedy);
+	}
 
 protected:
 	TokenIt _operation; ///< Operation character, char
@@ -352,10 +491,16 @@ class RegexpIteration : public RegexpOperation
 {
 public:
 	RegexpIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_ITER, '*', std::move(operand), greedy) {}
+	RegexpIteration(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& operand, TokenIt operation, TokenIt greedy) : RegexpOperation(ts, std::move(operand), operation, greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpIteration>(target);
 	}
 };
 
@@ -367,10 +512,16 @@ class RegexpPositiveIteration : public RegexpOperation
 {
 public:
 	RegexpPositiveIteration(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_PITER, '+', std::move(operand), greedy) {}
+	RegexpPositiveIteration(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& operand, TokenIt operation, TokenIt greedy) : RegexpOperation(ts, std::move(operand), operation, greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpPositiveIteration>(target);
 	}
 };
 
@@ -382,10 +533,16 @@ class RegexpOptional : public RegexpOperation
 {
 public:
 	RegexpOptional(std::shared_ptr<RegexpUnit>&& operand, bool greedy) : RegexpOperation(TokenType::REGEXP_OPTIONAL, '?', std::move(operand), greedy) {}
+	RegexpOptional(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& operand, TokenIt operation, TokenIt greedy) : RegexpOperation(ts, std::move(operand), operation, greedy) {}
 
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		return cloneAs<RegexpOptional>(target);
 	}
 };
 
@@ -425,6 +582,23 @@ public:
 		_greedy = _tokenStream->emplace_back(TokenType::REGEXP_GREEDY, greedy, greedy ? std::string() : "?");
 	}
 
+	RegexpRange(
+		const std::shared_ptr<TokenStream>& ts,
+		std::shared_ptr<RegexpUnit>&& operand,
+		TokenIt operation,
+		TokenIt greedy,
+		TokenIt leftBracket,
+		const std::optional<TokenIt>& first,
+		const std::optional<TokenIt>& second,
+		TokenIt rightBracket
+	)
+		: RegexpOperation(ts, std::move(operand), operation, greedy)
+		, _leftBracket(leftBracket)
+		, _first(first)
+		, _second(second)
+		, _rightBracket(rightBracket)
+	{}
+
 	virtual char getOperation() const override { return ' '; }
 
 	virtual std::string getText() const override
@@ -452,6 +626,29 @@ public:
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		TokenIt newFirst, newSecond, newOperation;
+		auto newOperand = _operand->clone(target);
+		auto newLb = _leftBracket->clone(target.get());
+		if (_first && _first == _second)
+		{
+			newFirst = _first.value()->clone(target.get());
+			newSecond = newFirst;
+		}
+		else
+		{
+			if (_first)
+				newFirst = _first.value()->clone(target.get());
+			newOperation = _operation->clone(target.get());
+			if (_second)
+				newSecond = _second.value()->clone(target.get());
+		}
+		auto newRb = _rightBracket->clone(target.get());
+		auto newGreedy = _greedy->clone(target.get());
+		return std::make_shared<RegexpRange>(target, std::move(newOperand), newOperation, newGreedy, newLb, newFirst, newSecond, newRb);
 	}
 
 	std::pair<std::optional<std::uint64_t>, std::optional<std::uint64_t>> getRange() const
@@ -489,6 +686,14 @@ public:
 		_tokenStream->moveAppend(_right->getTokenStream().get());
 	}
 
+	RegexpOr(const std::shared_ptr<TokenStream>& ts, std::shared_ptr<RegexpUnit>&& left, TokenIt or_symbol, std::shared_ptr<RegexpUnit>&& right)
+		: RegexpUnit(ts)
+		, _or(or_symbol)
+		, _left(std::move(left))
+		, _right(std::move(right))
+	{
+	}
+
 	virtual std::string getText() const override
 	{
 		return _left->getText() + _or->getPureText() + _right->getText();
@@ -497,6 +702,14 @@ public:
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		auto newLeft = _left->clone(target);
+		auto newOr = _or->clone(target.get());
+		auto newRight = _right->clone(target);
+		return std::make_shared<RegexpOr>(target, std::move(newLeft), newOr, std::move(newRight));
 	}
 
 	const std::shared_ptr<RegexpUnit>& getLeft() const { return _left; }
@@ -522,6 +735,14 @@ public:
 		_right_bracket = _tokenStream->emplace_back(TokenType::RP, ")");
 	}
 
+	RegexpGroup(const std::shared_ptr<TokenStream>& ts, TokenIt left_bracket, std::shared_ptr<RegexpUnit>&& unit, TokenIt right_bracket)
+		: RegexpUnit(ts)
+		, _left_bracket(left_bracket)
+		, _unit(std::move(unit))
+		, _right_bracket(right_bracket)
+	{
+	}
+
 	virtual std::string getText() const override
 	{
 		return _left_bracket->getPureText() + _unit->getText() + _right_bracket->getPureText();
@@ -533,6 +754,14 @@ public:
 	}
 
 	const std::shared_ptr<RegexpUnit>& getUnit() const { return _unit; }
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		auto newLb = _left_bracket->clone(target.get());
+		auto newUnit = _unit->clone(target);
+		auto newRb = _right_bracket->clone(target.get());
+		return std::make_shared<RegexpGroup>(target, newLb, std::move(newUnit), newRb);
+	}
 
 private:
 	TokenIt _left_bracket; ///< '(' token
@@ -555,6 +784,12 @@ public:
 			_tokenStream->moveAppend(unit->getTokenStream().get());
 	}
 
+	RegexpConcat(const std::shared_ptr<TokenStream>& ts, std::vector<std::shared_ptr<RegexpUnit>>&& units)
+		: RegexpUnit(ts)
+		, _units(std::move(units))
+	{
+	}
+
 	virtual std::string getText() const override
 	{
 		std::string result;
@@ -566,6 +801,17 @@ public:
 	virtual RegexpVisitResult accept(RegexpVisitor* v) override
 	{
 		return v->visit(this);
+	}
+
+	virtual std::shared_ptr<RegexpUnit> clone(const std::shared_ptr<TokenStream>& target) const override
+	{
+		std::vector<std::shared_ptr<RegexpUnit>> newUnits;
+		newUnits.reserve(_units.size());
+
+		for (const auto& unit : _units)
+			newUnits.push_back(unit->clone(target));
+
+		return std::make_shared<RegexpConcat>(target, std::move(newUnits));
 	}
 
 	const std::vector<std::shared_ptr<RegexpUnit>>& getUnits() const { return _units; }
@@ -614,6 +860,20 @@ public:
 		_tokenStream->moveAppend(_unit->getTokenStream().get());
 		_rightSlash = _tokenStream->emplace_back(TokenType::REGEXP_END_SLASH, "/");
 	}
+
+	Regexp(
+		const std::shared_ptr<TokenStream>& ts,
+		TokenIt leftSlash,
+		std::shared_ptr<RegexpUnit>&& unit,
+		TokenIt rightSlash,
+		const std::optional<TokenIt>& suffixMods
+	)
+		: String(ts, String::Type::Regexp)
+		, _leftSlash(leftSlash)
+		, _unit(std::move(unit))
+		, _rightSlash(rightSlash)
+		, _suffixMods(suffixMods)
+	{}
 
 	virtual std::string getText() const override
 	{
@@ -685,6 +945,17 @@ public:
 	std::shared_ptr<TokenStream>&& getTokenStream()
 	{
 		return std::move(_unit->getTokenStream());
+	}
+
+	std::shared_ptr<Regexp> clone(const std::shared_ptr<TokenStream>& target) const
+	{
+		auto newLeftSlash = _leftSlash->clone(target.get());
+		auto newUnit = _unit->clone(target);
+		auto newRightSlash = _rightSlash->clone(target.get());
+		std::optional<TokenIt> newSuffixMods;
+		if (_suffixMods.has_value())
+			newSuffixMods = _suffixMods.value()->clone(target.get());
+		return std::make_shared<Regexp>(target, newLeftSlash, std::move(newUnit), newRightSlash, newSuffixMods);
 	}
 
 private:
