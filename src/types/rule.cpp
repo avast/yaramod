@@ -637,4 +637,24 @@ void Rule::removeTags(TokenType type)
 	}
 }
 
+/**
+ * Removes all variables from a rule.
+ */
+void Rule::removeVariables()
+{
+	auto firstToken = getFirstTokenIt();
+	auto lastToken = getLastTokenIt();
+
+	auto varBegin = _tokenStream->find(TokenType::VARIABLES, firstToken, lastToken);
+	if (varBegin == lastToken)
+		return;
+
+	auto varEnd = _tokenStream->find(TokenType::CONDITION, varBegin, lastToken);
+	if (varEnd == lastToken)
+		return;
+
+	setVariables({});
+	_tokenStream->erase(varBegin, varEnd);
+}
+
 }
