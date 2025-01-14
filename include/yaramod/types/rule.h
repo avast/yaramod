@@ -110,6 +110,7 @@ public:
 	void removeString(const std::string& id);
 	void addTag(const std::string& tag);
 	void removeTags(const std::string& tag);
+	void removeVariables();
 	/// @}
 
 private:

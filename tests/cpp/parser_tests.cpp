@@ -8753,5 +8753,75 @@ rule expression_array
 	ASSERT_NE(parent_itr->getElements()[2]->as<BoolLiteralExpression>(), nullptr);
 }
 
+TEST_F(ParserTests,
+RemoveVariablesNone) {
+	prepareInput(
+R"(
+rule remove_variables
+{
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	rule->removeVariables();
+
+	EXPECT_EQ(0u, rule->getVariables().size());
+	EXPECT_EQ(R"(rule remove_variables {
+	condition:
+		false
+})", rule->getText());
+
+	EXPECT_EQ(R"(
+rule remove_variables
+{
+	condition:
+		false
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RemoveVariables) {
+	prepareInput(
+R"(
+rule remove_variables
+{
+	variables:
+		a = 1
+		b = 2
+		c = a + b
+	condition:
+		false
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	rule->removeVariables();
+
+	EXPECT_EQ(0u, rule->getVariables().size());
+	EXPECT_EQ(R"(rule remove_variables {
+	condition:
+		false
+})", rule->getText());
+
+	EXPECT_EQ(R"(
+rule remove_variables
+{
+	condition:
+		false
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
