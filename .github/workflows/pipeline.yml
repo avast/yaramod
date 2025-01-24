@@ -135,7 +135,7 @@ jobs:
         uses: actions/setup-python@v5
       - name: Install twine
         run: |
-          python -m pip install twine
+          python -m pip install -U twine packaging setuptools
       - name: Upload to PyPI
         run: |
           twine upload --skip-existing -u __token__ -p ${{ secrets.pypi_token }} ./package/*.{whl,tar.gz}
