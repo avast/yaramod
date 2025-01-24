@@ -1,5 +1,13 @@
 # Changelog
 
+# v4.2.0 (2025-01-24)
+
+* Added `Rule::removeVariables()` method ([#270](https://github.com/avast/yaramod/pull/270))
+
+# v4.1.0 (2025-01-10)
+
+* Added possibility to clone all expression types (both AST & token stream) ([#268](https://github.com/avast/yaramod/pull/268))
+
 # v4.0.2 (2024-11-23)
 
 * Fixed missing Python bindings for `VariableDefExpression` and `WithExpression`
