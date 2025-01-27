@@ -8792,12 +8792,14 @@ RemoveVariables) {
 R"(
 rule remove_variables
 {
+	strings:
+		$s01 = "abc"
 	variables:
 		a = 1
 		b = 2
 		c = a + b
 	condition:
-		false
+		$s01
 }
 )");
 
@@ -8810,15 +8812,62 @@ rule remove_variables
 
 	EXPECT_EQ(0u, rule->getVariables().size());
 	EXPECT_EQ(R"(rule remove_variables {
+	strings:
+		$s01 = "abc"
 	condition:
-		false
+		$s01
 })", rule->getText());
 
 	EXPECT_EQ(R"(
 rule remove_variables
 {
+	strings:
+		$s01 = "abc"
 	condition:
-		false
+		$s01
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RemoveVariablesWithStringsInterleaved) {
+	prepareInput(
+R"(
+rule remove_variables
+{
+	variables:
+		a = 1
+		b = 2
+		c = a + b
+	strings:
+		$s01 = "abc"
+	condition:
+		$s01
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+
+	rule->removeVariables();
+
+	EXPECT_EQ(0u, rule->getVariables().size());
+	EXPECT_EQ(R"(rule remove_variables {
+	strings:
+		$s01 = "abc"
+	condition:
+		$s01
+})", rule->getText());
+
+	EXPECT_EQ(R"(
+rule remove_variables
+{
+	strings:
+		$s01 = "abc"
+	condition:
+		$s01
 }
 )", driver.getParsedFile().getTextFormatted());
 }

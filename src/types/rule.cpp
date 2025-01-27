@@ -653,6 +653,11 @@ void Rule::removeVariables()
 	if (varEnd == lastToken)
 		return;
 
+	// It is possible strings section is precedeing condition after variables
+	// Since the last iterator is varEnd, even if we don't find TokenType::STRINGS, the code works
+	// If we find it, it gets overwritten with correct iterator
+	varEnd = _tokenStream->find(TokenType::STRINGS, varBegin, varEnd);
+
 	setVariables({});
 	_tokenStream->erase(varBegin, varEnd);
 }
