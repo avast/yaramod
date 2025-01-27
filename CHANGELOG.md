@@ -1,5 +1,10 @@
 # Changelog
 
+# v4.2.1 (2025-01-27)
+
+* Fixed `Rule::removeVariables` for interleaved strings section
+* Fixed missing Python type hints for `var_def` and `with_` in builder
+
 # v4.2.0 (2025-01-24)
 
 * Added `Rule::removeVariables()` method ([#270](https://github.com/avast/yaramod/pull/270))
