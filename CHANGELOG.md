@@ -1,5 +1,9 @@
 # Changelog
 
+# v4.3.0 (2025-01-29)
+
+* Builder `iterable()` now creates parentheses iterables instead of square brackets one ([#271](https://github.com/avast/yaramod/pull/271))
+
 # v4.2.1 (2025-01-27)
 
 * Fixed `Rule::removeVariables` for interleaved strings section
