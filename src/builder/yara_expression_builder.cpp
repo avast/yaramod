@@ -1271,19 +1271,19 @@ YaraExpressionBuilder ofAt(const YaraExpressionBuilder& quantifier, const YaraEx
 YaraExpressionBuilder iterable(const std::vector<YaraExpressionBuilder>& elements)
 {
 	auto ts = std::make_shared<TokenStream>();
-	TokenIt lsqb = ts->emplace_back(TokenType::LSQB_ENUMERATION, "[");
+	TokenIt lb = ts->emplace_back(TokenType::LP_ENUMERATION, "(");
 	for (std::size_t i = 0; i < elements.size(); ++i)
 	{
 		ts->moveAppend(elements[i].getTokenStream());
 		if (i < elements.size() - 1)
 			ts->emplace_back(TokenType::COMMA, ",");
 	}
-	TokenIt rsqb = ts->emplace_back(TokenType::RSQB_ENUMERATION, "]");
+	TokenIt rb = ts->emplace_back(TokenType::RP_ENUMERATION, ")");
 
 	std::vector<Expression::Ptr> elementsExprs;
 	std::for_each(elements.begin(), elements.end(), [&elementsExprs](const YaraExpressionBuilder& expr) { elementsExprs.push_back(expr.get()); });
 
-	auto expression = std::make_shared<IterableExpression>(lsqb, std::move(elementsExprs), rsqb);
+	auto expression = std::make_shared<IterableExpression>(lb, std::move(elementsExprs), rb);
 	return YaraExpressionBuilder(std::move(ts), std::move(expression));
 }
 
