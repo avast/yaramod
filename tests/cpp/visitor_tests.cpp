@@ -816,7 +816,7 @@ rule rule_name {
 	variables:
 		var = 1.5
 	condition:
-		(true and all of ["string"=="strong" and var<3.0, true, time.now() < 1000]) or false
+		(true and all of ("string"=="strong" and var<3.0, true, time.now() < 1000)) or false
 }
 )");
 	EXPECT_TRUE(driver.parse(input));
@@ -828,7 +828,7 @@ rule rule_name {
 	visitor.process_rule(rule);
 
 	EXPECT_EQ("rule_name", rule->getName());
-	EXPECT_EQ("(true and all of [var > 5.5, time.now() > 500]) or false", rule->getCondition()->getText());
+	EXPECT_EQ("(true and all of (var > 5.5, time.now() > 500)) or false", rule->getCondition()->getText());
 
 	std::string expected = R"(import "time"
 
@@ -839,7 +839,7 @@ rule rule_name
 	condition:
 		(
 			true and
-			all of [ var > 5.5, time.now() > 500 ]
+			all of (var > 5.5, time.now() > 500)
 		) or
 		false
 }

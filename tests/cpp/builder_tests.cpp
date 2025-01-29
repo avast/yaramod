@@ -2413,5 +2413,40 @@ WithWorks) {
 )", yaraFile->getTextFormatted());
 }
 
+TEST_F(BuilderTests,
+IterableWorks) {
+	auto cond = of(
+		any(),
+		iterable({
+			intVal(1),
+			intVal(2)
+		})
+	).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+			.withName("iterable_builder")
+			.withCondition(cond)
+			.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+			.withRule(std::move(rule))
+			.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule iterable_builder {
+	condition:
+		any of (1, 2)
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule iterable_builder
+{
+	condition:
+		any of (1, 2)
+}
+)", yaraFile->getTextFormatted());
+}
+
 }
 }
