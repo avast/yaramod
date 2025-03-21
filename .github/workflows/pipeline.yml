@@ -63,7 +63,7 @@ jobs:
           python -m pip install .
       - name: Upload build directory
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
           path: build/
@@ -93,9 +93,9 @@ jobs:
           python-versions: "cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311 cp312-cp312 cp313-cp313"
       - name: Upload package
         if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: package-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
           path: |
             dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
             dist/*-manylinux*.whl
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Downloads wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: package
           path: package
