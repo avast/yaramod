@@ -14,11 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.12", "3.11", "3.10", "3.9", "3.8"]
+        python-version: ["3.13", "3.12", "3.11", "3.10", "3.9", "3.8"]
         config: [Release]
         include:
           - os: windows-latest
-            python-version: "3.12"
+            python-version: "3.13"
             config: Debug
         exclude:
           - os: ubuntu-latest
@@ -29,6 +29,8 @@ jobs:
             python-version: "3.10"
           - os: ubuntu-latest
             python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
           - os: macos-latest
             python-version: "3.8"
           - os: macos-latest
@@ -37,6 +39,8 @@ jobs:
             python-version: "3.10"
           - os: macos-latest
             python-version: "3.11"
+          - os: macos-latest
+            python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
 
@@ -59,7 +63,7 @@ jobs:
           python -m pip install .
       - name: Upload build directory
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
           path: build/
@@ -86,12 +90,12 @@ jobs:
         uses: RalfG/python-wheels-manylinux-build@ff8504699f7a33a08d3ff85b3c6d4e8f0e70462b
         with:
           pre-build-command: "rm -rf build"
-          python-versions: "cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311 cp312-cp312"
+          python-versions: "cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311 cp312-cp312 cp313-cp313"
       - name: Upload package
         if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: package-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
           path: |
             dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
             dist/*-manylinux*.whl
@@ -127,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Downloads wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: package
           path: package
