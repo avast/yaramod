@@ -139,7 +139,7 @@ jobs:
       - name: Downloads wheels
         uses: actions/download-artifact@v4
         with:
-          name: package-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
+          pattern: package-*
           path: package
       - name: Setup Python
         uses: actions/setup-python@v5
