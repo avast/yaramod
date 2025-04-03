@@ -8,6 +8,11 @@ on:
       - v*
   pull_request:
   workflow_dispatch:
+    inputs:
+      force_release:
+        description: "Force run also release step"
+        default: false
+        type: boolean
 
 jobs:
   tests:
@@ -125,7 +130,7 @@ jobs:
           ./build/tests/cpp/yaramod_tests
 
   release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || inputs.force_release }}
     needs:
       - tests
       - asan
