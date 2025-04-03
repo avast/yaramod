@@ -81,7 +81,7 @@ class BuildExtCommand(build_ext):
         os.makedirs(build_dir, exist_ok=True)
 
         with WorkingDirectory(build_dir):
-            configure_cmd = ['cmake', '-DCMAKE_POLICY_VERSION_MINIMUM=3.4', '-DYARAMOD_PYTHON=ON', '-DPYTHON_EXECUTABLE={}'.format(sys.executable)]
+            configure_cmd = ['cmake', '-DYARAMOD_PYTHON=ON', '-DPYTHON_EXECUTABLE={}'.format(sys.executable)]
             cmake_generator = os.environ.get('CMAKE_GENERATOR', get_default_cmake_generator())
             if cmake_generator is not None:
                 configure_cmd.append('-G{}'.format(cmake_generator))
