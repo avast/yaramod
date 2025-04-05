@@ -1,5 +1,9 @@
 # Changelog
 
+# v4.3.1 (2025-04-05)
+
+* Fix of build for systems with newer CMake (no need to update otherwise)
+
 # v4.3.0 (2025-01-29)
 
 * Builder `iterable()` now creates parentheses iterables instead of square brackets one ([#271](https://github.com/avast/yaramod/pull/271))
