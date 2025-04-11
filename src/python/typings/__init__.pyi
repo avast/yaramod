@@ -1,7 +1,7 @@
 # mypy: allow-untyped-defs, allow-incomplete-defs, allow-any-generics
 # fmt: off
 
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union, overload
+from typing import Callable, ClassVar, Dict, List, Optional, Tuple, Union, overload
 
 YARAMOD_VERSION: str
 YARAMOD_VERSION_MAJOR: int
