@@ -368,7 +368,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
+	_parser.token(R"(\{\s*[0-9]*\s*,\s*[0-9]*\s*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
 		std::string rangeStr = std::string{str};
 		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
 		std::string highStr = rangeStr.substr(rangeStr.find(',') + 1);
@@ -376,12 +376,12 @@ void ParserDriver::defineTokens()
 
 		std::uint64_t lowNum = 0;
 		std::optional<std::uint64_t> low;
-		if (strToNum(lowStr, lowNum, std::dec))
+		if (strToNum(trim(lowStr), lowNum, std::dec))
 			low = lowNum;
 
 		std::uint64_t highNum = 0;
 		std::optional<std::uint64_t> high;
-		if (strToNum(highStr, highNum, std::dec))
+		if (strToNum(trim(highStr), highNum, std::dec))
 			high = highNum;
 
 		return std::make_pair(low, high);
