@@ -8872,5 +8872,44 @@ rule remove_variables
 )", driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+RegexpRangeWithWhitespaces) {
+	prepareInput(
+R"(
+rule regexp_range_with_whitespaces
+{
+	strings:
+		$1 = /ab{  1  ,  2  }/
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_range_with_whitespaces", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto regexp0 = strings[0];
+	EXPECT_TRUE(regexp0->isRegexp());
+	EXPECT_EQ("$1", regexp0->getIdentifier());
+	EXPECT_EQ("/ab{1,2}/", regexp0->getText());
+
+	EXPECT_EQ(R"(
+rule regexp_range_with_whitespaces
+{
+	strings:
+		$1 = /ab{1,2}/
+	condition:
+		true
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
 }
 }
