@@ -1,5 +1,9 @@
 # Changelog
 
+# v4.3.2 (2025-05-16)
+
+* Fix parsing of regexp ranges with whitespaces
+
 # v4.3.1 (2025-04-05)
 
 * Fix of build for systems with newer CMake (no need to update otherwise)
