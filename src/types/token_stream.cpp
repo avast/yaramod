@@ -816,7 +816,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	bool inside_hex_string = false;
 	bool inside_hex_jump = false;
 	bool inside_regexp = false;
-	bool inside_enumeration_brackets = false;
+	uint32_t inside_enumeration_brackets = 0;
 	bool inside_string_modifiers = false;
 	bool inside_string_modifiers_arguments = false;
 	bool inside_condition_section = false;
@@ -875,9 +875,9 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		else if (current == TokenType::REGEXP_END_SLASH)
 			inside_regexp = false;
 		else if (current == TokenType::LP_ENUMERATION)
-			inside_enumeration_brackets = true;
+			inside_enumeration_brackets += 1;
 		else if (current == TokenType::RP_ENUMERATION)
-			inside_enumeration_brackets = false;
+			inside_enumeration_brackets -= 1;
 		else if (it->isStringModifier())
 			inside_string_modifiers = true;
 
@@ -948,7 +948,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					helper.insertIntoStream(os, ' ');
 			}
 		}
-		else if (!inside_regexp && !inside_enumeration_brackets && !inside_string_modifiers_arguments)
+		else if (!inside_regexp && inside_enumeration_brackets == 0 && !inside_string_modifiers_arguments)
 		{
 			switch(current)
 			{
@@ -994,7 +994,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					}
 			}
 		}
-		else if (inside_enumeration_brackets)
+		else if (inside_enumeration_brackets > 0)
 		{
 			if ((current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION) && (current != TokenType::LSQB_ENUMERATION && next != TokenType::RSQB_ENUMERATION) && current != TokenType::DOT && next != TokenType::COMMA && next != TokenType::DOT && next != TokenType::NEW_LINE)
 			{
