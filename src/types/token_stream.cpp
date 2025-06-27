@@ -994,13 +994,28 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 					}
 			}
 		}
-		else if (inside_enumeration_brackets > 0)
+		else if (inside_enumeration_brackets > 0 && !inside_regexp)
 		{
-			if ((current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION) && (current != TokenType::LSQB_ENUMERATION && next != TokenType::RSQB_ENUMERATION) && current != TokenType::DOT && next != TokenType::COMMA && next != TokenType::DOT && next != TokenType::NEW_LINE)
-			{
+			if (
+				(current != TokenType::LP_ENUMERATION && next != TokenType::RP_ENUMERATION)
+				&& (current != TokenType::LSQB_ENUMERATION && next != TokenType::RSQB_ENUMERATION)
+				&& current != TokenType::DOT
+				&& next != TokenType::COMMA
+				&& next != TokenType::DOT
+				&& next != TokenType::NEW_LINE
+				&& next != TokenType::LSQB
+				&& next != TokenType::RSQB
+				&& current != TokenType::LSQB
 				// we ran into <rule_id>* and we don't want space in between them
-				if (!(current == TokenType::ID_WILDCARD && next == TokenType::ID_WILDCARD))
-					helper.insertIntoStream(os, ' ');
+				&& !(current == TokenType::ID_WILDCARD && next == TokenType::ID_WILDCARD)
+				// Function followed by ( should not have space in between
+				&& !(current == TokenType::FUNCTION_SYMBOL && next == TokenType::FUNCTION_CALL_LP)
+				// Immediatelly after ( shoudl not be a space
+				&& current != TokenType::FUNCTION_CALL_LP
+				// Immediately before ) should not be a space
+				&& next != TokenType::FUNCTION_CALL_RP
+			) {
+				helper.insertIntoStream(os, ' ');
 			}
 		}
 		else if (current == TokenType::HEX_ALT_RIGHT_BRACKET || current == TokenType::HEX_ALT_LEFT_BRACKET)

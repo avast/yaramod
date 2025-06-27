@@ -3198,7 +3198,16 @@ rule for_string_literal_set_condition
 	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ(R"(
+import "pe"
+import "elf"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", elf.dynsym[0].name, pe.imphash()) : ( "abc123" == s )
+}
+)", driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -8909,6 +8918,53 @@ rule regexp_range_with_whitespaces
 		true
 }
 )", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+FormattingInExpressionArraysNotBroken) {
+	prepareInput(
+R"(
+import "cuckoo"
+import "math"
+import "pe"
+
+rule formatting_in_expression_arrays_not_broken
+{
+	condition:
+		2 of (
+			math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+			pe.imphash() contains "a",
+			any of (
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 ))
+			)
+		) or
+		for any i in (1 + 2, 2, 3, 4, 5) : ( true )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(driver.getParsedFile().getTextFormatted(), R"(
+import "cuckoo"
+import "math"
+import "pe"
+
+rule formatting_in_expression_arrays_not_broken
+{
+	condition:
+		2 of (
+			math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+			pe.imphash() contains "a",
+			any of (
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 ))
+			)
+		) or
+		for any i in (1 + 2, 2, 3, 4, 5) : ( true )
+}
+)");
 }
 
 }
