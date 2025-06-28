@@ -816,7 +816,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 	bool inside_hex_string = false;
 	bool inside_hex_jump = false;
 	bool inside_regexp = false;
-	uint32_t inside_enumeration_brackets = 0;
+	int inside_enumeration_brackets = 0;
 	bool inside_string_modifiers = false;
 	bool inside_string_modifiers_arguments = false;
 	bool inside_condition_section = false;
@@ -877,7 +877,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 		else if (current == TokenType::LP_ENUMERATION)
 			inside_enumeration_brackets += 1;
 		else if (current == TokenType::RP_ENUMERATION)
-			inside_enumeration_brackets -= 1;
+			inside_enumeration_brackets = std::max(inside_enumeration_brackets - 1, 0);
 		else if (it->isStringModifier())
 			inside_string_modifiers = true;
 
