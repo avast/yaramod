@@ -2196,7 +2196,11 @@ void ParserDriver::defineGrammar()
 				}
 			}
 
-			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
+			auto lp = args[1].getTokenIt();
+			auto rp = args[3].getTokenIt();
+			lp->setType(TokenType::FUNCTION_CALL_LP);
+			rp->setType(TokenType::FUNCTION_CALL_RP);
+			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), std::move(lp), std::move(arguments), std::move(rp));
 			output->setType(funcParentSymbol->getReturnType());
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
