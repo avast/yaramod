@@ -1,5 +1,11 @@
 # Changelog
 
+# v4.4.0 (2025-06-30)
+
+* Formatting changes to the formatted tokenstream (less spacing around function calls and array accesses)
+* Fixed production of invalid rulesets with expression arrays
+* Tokens for function call parentheses are now getting their proper types `FUNCTION_CALL_LP` and `FUNCTION_CALL_RP`
+
 # v4.3.2 (2025-05-16)
 
 * Fix parsing of regexp ranges with whitespaces
