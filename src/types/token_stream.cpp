@@ -872,7 +872,10 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 			inside_hex_jump = false;
 		else if (current == TokenType::REGEXP_START_SLASH)
 			inside_regexp = true;
-		else if (current == TokenType::REGEXP_END_SLASH)
+		else if (
+			current == TokenType::REGEXP_MODIFIERS
+			|| (current == TokenType::REGEXP_END_SLASH && next != TokenType::REGEXP_MODIFIERS)
+		)
 			inside_regexp = false;
 		else if (current == TokenType::LP_ENUMERATION)
 			inside_enumeration_brackets += 1;
