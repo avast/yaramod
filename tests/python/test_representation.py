@@ -490,3 +490,46 @@ rule dummy_rule {
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+
+def test_text_formatted_regression1():
+    ruleset = r"""import "cuckoo"
+
+rule test_formatted
+{
+    condition:
+        42 of (
+            cuckoo.sync.mutex(/test/i)
+        ) or
+        cuckoo.sync.mutex(/test/i)
+}
+"""
+    ymod = yaramod.Yaramod()
+    yara_file = ymod.parse_string(ruleset)
+    # print(yara_file.text_formatted)
+    #
+    # import "cuckoo"
+    #
+    # rule test_formatted
+    # {
+    #         condition:
+    #                 42 of (
+    #                         cuckoo.sync.mutex(/test/ i) <--------------
+    #                 ) or
+    #                 cuckoo.sync.mutex(/test/i)
+    # }
+
+    assert (
+        yara_file.text_formatted
+        == r"""import "cuckoo"
+
+rule test_formatted
+{
+	condition:
+		42 of (
+			cuckoo.sync.mutex(/test/i)
+		) or
+		cuckoo.sync.mutex(/test/i)
+}
+"""
+    )
