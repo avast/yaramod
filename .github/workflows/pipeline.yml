@@ -118,6 +118,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Build sdist
         run: |
           pip install -U setuptools
@@ -160,6 +162,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel==3.1.4
@@ -194,6 +198,8 @@ jobs:
           merge-multiple: true
       - name: Setup Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Install twine
         run: |
           python -m pip install -U twine packaging setuptools
