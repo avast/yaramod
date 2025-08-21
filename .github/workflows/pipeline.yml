@@ -139,7 +139,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - runs-on: ubuntu-latest
             platform: linux
             arch: manylinux_x86_64
           - runs-on: windows-latest
