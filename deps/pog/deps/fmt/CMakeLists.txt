@@ -37,6 +37,7 @@ ExternalProject_Add(
 		-DCMAKE_POSITION_INDEPENDENT_CODE=${POG_PIC}
 		-DFMT_TEST=OFF
 		-DFMT_DOC=OFF
+		-DFMT_UNICODE=OFF
 	BUILD_COMMAND
 		${FMT_BUILD_COMMAND}
 	INSTALL_COMMAND
@@ -54,6 +55,9 @@ set_target_properties(fmt::fmt PROPERTIES
 	INTERFACE_INCLUDE_DIRECTORIES "${FMT_INCLUDE_DIR}"
 	IMPORTED_LOCATION "${FMT_LIBRARY}"
 )
+if(MSVC)
+	target_compile_definitions(fmt::fmt INTERFACE FMT_UNICODE=0)
+endif()
 add_dependencies(fmt::fmt fmt-dep)
 
 install(
