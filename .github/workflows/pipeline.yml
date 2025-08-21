@@ -30,19 +30,25 @@ jobs:
           - runs-on: macos-latest
             platform: macos
           - runs-on: windows-latest
-            python-version: "3.13"
-            config: Release
-          - runs-on: windows-latest
+            platform: windows
             python-version: "3.13"
             config: Debug
           - runs-on: windows-latest
+            platform: windows
             python-version: "3.12"
+            config: Release
           - runs-on: windows-latest
+            platform: windows
             python-version: "3.11"
+            config: Release
           - runs-on: windows-latest
+            platform: windows
             python-version: "3.10"
+            config: Release
           - runs-on: windows-latest
+            platform: windows
             python-version: "3.9"
+            config: Release
 
     name: |
       Tests - Python ${{ matrix.python-version }} (${{ matrix.platform }})${{ matrix.config == 'Debug' && ' (Debug)' || '' }}
@@ -60,7 +66,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Build
         env:
-          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config }}
+          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config || 'Release' }}
           YARAMOD_BUILD_WITH_UNIT_TESTS: 1
         run: |
           python -m pip install .
@@ -68,7 +74,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.platform }}-py${{ matrix.python-version }}-${{ matrix.config }}-${{ strategy.job-index }}
+          name: build-${{ matrix.platform }}-py${{ matrix.python-version }}-${{ matrix.config || 'Release' }}-${{ strategy.job-index }}
           path: build/
       - name: C++ Tests
         run: |
