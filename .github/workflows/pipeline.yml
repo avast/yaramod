@@ -171,7 +171,7 @@ jobs:
         env:
           CIBW_PLATFORM: ${{ matrix.platform }}
           CIBW_BUILD: "cp3*-${{ matrix.arch }}"
-          CIBW_SKIP: "cp3?t-* cp3??t-*"
+          CIBW_SKIP: "cp3?t-* cp3??t-* cp38*"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
       - name: Upload wheels
