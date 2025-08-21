@@ -1,8 +1,5 @@
 include(GNUInstallDirs)
 include(ExternalProject)
-include(ProcessorCount)
-
-ProcessorCount(CPUS)
 
 set(FMT_INSTALL_DIR             ${CMAKE_CURRENT_BINARY_DIR}/fmt)
 # CMake 3.23+ puts CMAKE_LIBRARY_ARCHITECTURE into CMAKE_INSTALL_LIBDIR only if /usr/ is in CMAKE_INSTALL_PREFIX so we need to manually fix it
@@ -20,7 +17,7 @@ if(MSVC)
 	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
-	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j${CPUS})
+	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
 endif()
 
