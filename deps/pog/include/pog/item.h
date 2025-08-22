@@ -1,7 +1,8 @@
 #pragma once
 
-#include <functional>
-#include <unordered_set>
+#include <cassert>
+
+#include <fmt/ranges.h>
 
 #include <pog/rule.h>
 #include <pog/utils.h>

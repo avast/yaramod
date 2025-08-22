@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 
 #include <pog/symbol.h>
 #include <pog/token.h>

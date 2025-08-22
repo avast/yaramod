@@ -1,7 +1,7 @@
 #pragma once
 
+#include <cassert>
 #include <deque>
-#include <unordered_map>
 
 #include <fmt/format.h>
 

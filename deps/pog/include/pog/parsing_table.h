@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <unordered_map>
 
 #include <pog/action.h>

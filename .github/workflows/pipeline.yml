@@ -19,37 +19,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.13", "3.12", "3.11", "3.10", "3.9", "3.8"]
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.13"]
         config: [Release]
         include:
-          - os: windows-latest
+          - runs-on: windows-latest
+            platform: windows
+          - runs-on: ubuntu-latest
+            platform: linux
+          - runs-on: macos-latest
+            platform: macos
+          - runs-on: windows-latest
+            platform: windows
             python-version: "3.13"
             config: Debug
-        exclude:
-          - os: ubuntu-latest
-            python-version: "3.8"
-          - os: ubuntu-latest
-            python-version: "3.9"
-          - os: ubuntu-latest
-            python-version: "3.10"
-          - os: ubuntu-latest
-            python-version: "3.11"
-          - os: ubuntu-latest
+          - runs-on: windows-latest
+            platform: windows
             python-version: "3.12"
-          - os: macos-latest
-            python-version: "3.8"
-          - os: macos-latest
-            python-version: "3.9"
-          - os: macos-latest
-            python-version: "3.10"
-          - os: macos-latest
+            config: Release
+          - runs-on: windows-latest
+            platform: windows
             python-version: "3.11"
-          - os: macos-latest
-            python-version: "3.12"
+            config: Release
+          - runs-on: windows-latest
+            platform: windows
+            python-version: "3.10"
+            config: Release
+          - runs-on: windows-latest
+            platform: windows
+            python-version: "3.9"
+            config: Release
 
-    runs-on: ${{ matrix.os }}
-
+    name: |
+      Tests - Python ${{ matrix.python-version }} (${{ matrix.platform }})${{ matrix.config == 'Debug' && ' (Debug)' || '' }}
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Setup Git
         run: |
@@ -63,7 +66,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Build
         env:
-          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config }}
+          YARAMOD_BUILD_CONFIGURATION: ${{ matrix.config || 'Release' }}
           YARAMOD_BUILD_WITH_UNIT_TESTS: 1
         run: |
           python -m pip install .
@@ -71,44 +74,25 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
+          name: build-${{ matrix.platform }}-py${{ matrix.python-version }}-${{ matrix.config || 'Release' }}-${{ strategy.job-index }}
           path: build/
       - name: C++ Tests
         run: |
-          ${{ startsWith(matrix.os, 'windows') && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
+          ${{ matrix.platform == 'windows' && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
       - name: Python Tests
         run: |
           python -m pip install pytest mypy==0.991
           pytest -v tests/python
       - name: Documentation
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        if: ${{ matrix.platform == 'linux' }}
         run: |
           cd docs/rtd
           pip install -r requirements.txt
           make clean && make html SPHINXOPTS="-W --keep-going -n"
-      - name: Build package
-        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
-        run: |
-          pip install -U wheel setuptools
-          python setup.py ${{ startsWith(matrix.os, 'windows') && 'bdist_wheel' || 'sdist' }}
-      - name: Build manylinux binary wheel
-        if: ${{ matrix.config == 'Release' && startsWith(matrix.os, 'ubuntu') }}
-        uses: RalfG/python-wheels-manylinux-build@ff8504699f7a33a08d3ff85b3c6d4e8f0e70462b
-        with:
-          pre-build-command: "rm -rf build"
-          python-versions: "cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311 cp312-cp312 cp313-cp313"
-      - name: Upload package
-        if: ${{ matrix.config == 'Release' && (startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'ubuntu')) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.config }}
-          path: |
-            dist/*.${{ startsWith(matrix.os, 'windows') && 'whl' || 'tar.gz' }}
-            dist/*-manylinux*.whl
-          if-no-files-found: error
-          retention-days: 7
 
   asan:
+    name: |
+      Tests (Address Sanitizer)
     runs-on: ubuntu-latest
     steps:
       - name: Setup Git
@@ -129,21 +113,107 @@ jobs:
           echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
           ./build/tests/cpp/yaramod_tests
 
-  release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') || inputs.force_release }}
+  build_sdist:
     needs:
       - tests
       - asan
+    name: |
+      Build Python sdist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build sdist
+        run: |
+          pip install -U setuptools
+          python setup.py sdist
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-sdist
+          path: |
+            ./dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  build_wheel:
+    needs:
+      - tests
+      - asan
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            platform: linux
+            arch: manylinux_x86_64
+          - runs-on: windows-latest
+            platform: windows
+            arch: win_amd64
+          - runs-on: macos-latest
+            platform: macos
+            arch: macosx_arm64
+
+    name: |
+      Build Python wheel (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Setup Git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install cibuildwheel
+        run: |
+          python -m pip install cibuildwheel==3.1.4
+      - name: Build wheels
+        env:
+          CIBW_PLATFORM: ${{ matrix.platform }}
+          CIBW_BUILD: "cp3*-${{ matrix.arch }}"
+          CIBW_SKIP: "cp3??t-* cp38*"
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-wheel-${{ matrix.platform }}-${{ matrix.arch }}-${{ strategy.job-index }}
+          path: |
+            ./wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || inputs.force_release }}
+    name: |
+      Release
+    needs:
+      - build_sdist
+      - build_wheel
     runs-on: ubuntu-latest
     steps:
       - name: Downloads wheels
         uses: actions/download-artifact@v4
         with:
-          pattern: package-*
+          pattern: python-*
           path: package
           merge-multiple: true
       - name: Setup Python
         uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Install twine
         run: |
           python -m pip install -U twine packaging setuptools

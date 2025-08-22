@@ -1,8 +1,5 @@
 include(ExternalProject)
 include(GNUInstallDirs)
-include(ProcessorCount)
-
-ProcessorCount(CPUS)
 
 set(RE2_INSTALL_DIR       ${CMAKE_CURRENT_BINARY_DIR}/re2)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23.0" AND CMAKE_INSTALL_LIBDIR MATCHES "/${CMAKE_LIBRARY_ARCHITECTURE}$")
@@ -18,7 +15,7 @@ if(MSVC)
 	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
-	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j${CPUS})
+	set(RE2_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
 	set(RE2_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
 endif()
 
