@@ -3236,6 +3236,44 @@ rule for_string_literal_set_condition
 }
 
 TEST_F(ParserTests,
+NegativeMetaValuesWorks) {
+	prepareInput(
+R"(
+rule rule_with_negative_meta
+{
+	meta:
+		negative_value = -123
+		positive_value = 456
+		string_value = "test"
+		bool_value = true
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& metas = rule->getMetas();
+	ASSERT_EQ(4u, metas.size());
+
+	EXPECT_EQ("negative_value", metas[0].getKey());
+	EXPECT_EQ("-123", metas[0].getValue().getPureText());
+
+	EXPECT_EQ("positive_value", metas[1].getKey());
+	EXPECT_EQ("456", metas[1].getValue().getPureText());
+
+	EXPECT_EQ("string_value", metas[2].getKey());
+	EXPECT_EQ("test", metas[2].getValue().getPureText());
+
+	EXPECT_EQ("bool_value", metas[3].getKey());
+	EXPECT_EQ("true", metas[3].getValue().getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 NoneOfThemConditionWorks) {
 	prepareInput(
 R"(
