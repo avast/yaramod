@@ -1,5 +1,14 @@
 # Changelog
 
+# v4.5.0 (2025-08-29)
+
+* Upgraded major versions of dependencies
+* Added binary wheels for macOS
+
+# v4.4.1 (2025-07-02)
+
+* Fixed formatting of regexp modifiers ([#281](https://github.com/avast/yaramod/pull/281))
+
 # v4.4.0 (2025-06-30)
 
 * Formatting changes to the formatted tokenstream (less spacing around function calls and array accesses)
