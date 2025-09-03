@@ -40,21 +40,21 @@ void ParserDriver::defineTokens()
 		currentFileContext()->getLocation().addColumn(str.length());
 	});
 
-	_parser.token("\r\n").action([&](std::string_view) -> Value {
+	_parser.token("\r\n").states("@default", "$meta").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\r\n");
 		TokenIt t = emplace_back(TokenType::NEW_LINE, "\r\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
 	});
-	_parser.token("\n").action([&](std::string_view) -> Value {
+	_parser.token("\n").states("@default", "$meta").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\n");
 		TokenIt t = emplace_back(TokenType::NEW_LINE, "\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
 	});
-	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
+	_parser.token("[ \t]+").states("@default", "$meta", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
 		_indent += std::string{str};
 		return {};
 	});
@@ -107,8 +107,8 @@ void ParserDriver::defineTokens()
 	_parser.token("\\}").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RCB, std::string{str}); });
 	_parser.token("\\[").symbol("LSQB").description("[").action([&](std::string_view str) -> Value { return emplace_back(TokenType::LSQB, std::string{str}); });
 	_parser.token("\\]").symbol("RSQB").description("]").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RSQB, std::string{str}); });
-	_parser.token("=").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASSIGN, std::string{str}); });
-	_parser.token(":").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COLON, std::string{str}); });
+	_parser.token("=").states("@default", "$meta").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASSIGN, std::string{str}); });
+	_parser.token(":").states("@default", "$meta").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COLON, std::string{str}); });
 	_parser.token(",").symbol("COMMA").description(",").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COMMA, std::string{str}); })
 		.precedence(1, pog::Associativity::Left);
 	_parser.token("/").states("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
@@ -118,7 +118,7 @@ void ParserDriver::defineTokens()
 	_parser.token("global").symbol("GLOBAL").description("global").action([&](std::string_view str) -> Value { return emplace_back(TokenType::GLOBAL, std::string{str}); });
 	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PRIVATE, std::string{str}); });
 	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RULE, std::string{str}); });
-	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
+	_parser.token("meta").symbol("META").description("meta").enter_state("$meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
 	if (_features & Features::AvastOnly)
 		_parser.token("variables").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
 	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
@@ -130,8 +130,8 @@ void ParserDriver::defineTokens()
 	_parser.token("xor").symbol("XOR").description("xor").action([&](std::string_view str) -> Value { return emplace_back(TokenType::XOR, std::string{str}); });
 	_parser.token("base64").symbol("BASE64").description("base64").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64, std::string{str}); });
 	_parser.token("base64wide").symbol("BASE64WIDE").description("base64wide").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64WIDE, std::string{str}); });
-	_parser.token("true").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_TRUE, true); });
-	_parser.token("false").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_FALSE, false); });
+	_parser.token("true").states("@default", "$meta").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_TRUE, true); });
+	_parser.token("false").states("@default", "$meta").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_FALSE, false); });
 	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IMPORT_KEYWORD, std::string{str}); });
 	_parser.token("not").symbol("NOT").description("not").action([&](std::string_view str) -> Value { return emplace_back(TokenType::NOT, std::string{str}); })
 		.precedence(14, pog::Associativity::Right);
@@ -199,40 +199,53 @@ void ParserDriver::defineTokens()
 	});
 	//$include_file end
 
-	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"(0x[0-9a-fA-F]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}, n, std::hex);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"(0o[0-7]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"(0o[0-7]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(2, str.size()-2), n, std::oct);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+KB)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(TokenType::INTEGER, 1000 * n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+MB)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(TokenType::INTEGER, 1000000 * n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}, n);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
 
-	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
+	// Meta state tokens - handle negative integers directly
+	_parser.token(R"(-[0-9]+)").states("$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		int64_t n = 0;
+		strToNum(std::string{str}, n);
+		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
+	});
+
+	// Exit meta state when encountering section keywords or rule end
+	_parser.token("strings").states("$meta").enter_state("@default").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRINGS, std::string{str}); });
+	_parser.token("condition").states("$meta").enter_state("@default").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { return emplace_back(TokenType::CONDITION, std::string{str}); });
+	_parser.token("variables").states("$meta").enter_state("@default").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
+	_parser.token("\\}").states("$meta").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RCB, std::string{str}); });
+
+	_parser.token(R"(\/\/[^\n]*)").states("@default", "$meta", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
 		auto it = emplace_back(TokenType::ONELINE_COMMENT, std::string{str}, _indent);
 		addComment(it);
 		return {};
 	});
 	// $multiline_comment
 	// Comment tokens are not delegated with return Value but stored in _comment
-	_parser.token(R"(/\*)").states("@default").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
+	_parser.token(R"(/\*)").states("@default", "$meta").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -261,7 +274,7 @@ void ParserDriver::defineTokens()
 
 	// $str
 	// $str tokens are not delegated with return Value but stored in _strLiteral
-	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
+	_parser.token(R"(\")").states("@default", "$meta").enter_state("$str").action([&](std::string_view) -> Value {
 		_strLiteral.clear();
 		_positionBegin = currentFileContext()->getLocation().begin();
 		_escapedContent = false;
@@ -294,7 +307,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").description("string count").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_COUNT, std::string{str}); });
 	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").description("string offset").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_OFFSET, std::string{str}); });
 	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").description("string length").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_LENGTH, std::string{str}); });
-	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").description("identifier").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ID, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").states("@default", "$meta").symbol("ID").description("identifier").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ID, std::string{str}); });
 
 	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").description("float").action([&](std::string_view str) -> Value { return emplace_back(TokenType::DOUBLE, std::stod(std::string(str))); });
 
