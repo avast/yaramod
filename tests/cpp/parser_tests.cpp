@@ -3236,6 +3236,49 @@ rule for_string_literal_set_condition
 }
 
 TEST_F(ParserTests,
+ForExpressionInOverStringSet) {
+	prepareInput(
+R"(
+rule expression_in_over_string_set
+{
+	condition:
+		for any i in ("abc", "def") : ( i contains "string" )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(for any i in ("abc", "def") : ( i contains "string" ))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForOfWithStringLiteralsForbidden) {
+	prepareInput(
+R"(
+rule for_of_with_string_literals_forbidden
+{
+	condition:
+		for any of ("hash1", "hash2", "hash3") : ( true )
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.15-21: Syntax error: Unexpected \", expected one of string identifier, string wildcard", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
 NoneOfThemConditionWorks) {
 	prepareInput(
 R"(
