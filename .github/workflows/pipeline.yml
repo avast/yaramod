@@ -81,7 +81,7 @@ jobs:
           ${{ matrix.platform == 'windows' && format('build\tests\cpp\{0}\yaramod_tests.exe', matrix.config) || 'build/tests/cpp/yaramod_tests' }}
       - name: Python Tests
         run: |
-          python -m pip install pytest mypy==0.991
+          python -m pip install pytest mypy
           pytest -v tests/python
       - name: Documentation
         if: ${{ matrix.platform == 'linux' }}
