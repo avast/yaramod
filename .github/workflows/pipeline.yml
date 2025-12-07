@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.13"]
+        python-version: ["3.14"]
         config: [Release]
         include:
           - runs-on: windows-latest
@@ -31,8 +31,12 @@ jobs:
             platform: macos
           - runs-on: windows-latest
             platform: windows
-            python-version: "3.13"
+            python-version: "3.14"
             config: Debug
+          - runs-on: windows-latest
+            platform: windows
+            python-version: "3.13"
+            config: Release
           - runs-on: windows-latest
             platform: windows
             python-version: "3.12"
@@ -44,10 +48,6 @@ jobs:
           - runs-on: windows-latest
             platform: windows
             python-version: "3.10"
-            config: Release
-          - runs-on: windows-latest
-            platform: windows
-            python-version: "3.9"
             config: Release
 
     name: |
