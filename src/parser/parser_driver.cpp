@@ -1163,8 +1163,15 @@ void ParserDriver::defineGrammar()
 		.production(
 			"FOR", "for_expression", "ID", "IN", "for_expression_set", [&](auto&& args) -> Value {
 				// Determine the type of the symbol based on the type of the first element in the set with fallback to int
-				auto iterSet = std::static_pointer_cast<const SetExpression>(args[4].getExpression());
-				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), !iterSet->getElements().empty() ? iterSet->getElements()[0]->getType() : Expression::Type::Int);
+				// for_expression_set can be either SetExpression (enumeration) or RangeExpression (range)
+				auto iterType = Expression::Type::Int;
+				if (auto iterSet = std::dynamic_pointer_cast<const SetExpression>(args[4].getExpression()))
+				{
+					if (!iterSet->getElements().empty())
+						iterType = iterSet->getElements()[0]->getType();
+				}
+				// RangeExpression is always over integers, so we keep the default Int type
+				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterType);
 				if (!addLocalSymbol(symbol))
 					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
 				return {};

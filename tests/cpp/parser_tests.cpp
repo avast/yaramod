@@ -3294,6 +3294,26 @@ rule expression_in_over_string_set
 }
 
 TEST_F(ParserTests,
+ForExpressionInOverIntegerRange) {
+	prepareInput(
+R"(
+rule expression_in_over_integer_range
+{
+	condition:
+		for any i in (0 .. 0x1500) : ( uint32(i) == 0x00004550 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(for any i in (0 .. 0x1500) : ( uint32(i) == 0x00004550 ))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ForOfWithStringLiteralsForbidden) {
 	prepareInput(
 R"(
