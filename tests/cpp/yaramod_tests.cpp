@@ -5,9 +5,11 @@
 */
 
 #include <gtest/gtest.h>
+#include <fstream>
 #include <iostream>
 
 #include "yaramod/types/plain_string.h"
+#include "yaramod/utils/filesystem.h"
 #include "yaramod/yaramod.h"
 
 using namespace ::testing;
@@ -212,6 +214,61 @@ rule rule_with_added_metas
 		true
 }
 )", yarafile->getTextFormatted());
+}
+
+TEST_F(YaramodTests,
+ExclusiveModulePathsLoadsOnlySpecifiedModules) {
+	auto tmpDir = fs::temp_directory_path() / "yaramod_test_exclusive";
+	fs::create_directories(tmpDir);
+	auto moduleFile = tmpDir / "my_time.json";
+
+	{
+		std::ofstream ofs(moduleFile);
+		ofs << R"({
+  "kind": "struct",
+  "name": "time",
+  "attributes": [
+    {
+      "kind": "function",
+      "name": "now",
+      "return_type": "i",
+      "overloads": [
+        {
+          "arguments": [],
+          "documentation": "Returns current time"
+        }
+      ]
+    }
+  ]
+})";
+	}
+
+	yaramod::Yaramod ymod(yaramod::Features::AllCurrent, std::vector<std::string>{moduleFile.string()});
+	auto modules = ymod.getModules();
+
+	EXPECT_EQ(1u, modules.size());
+	EXPECT_TRUE(modules.count("time"));
+	EXPECT_FALSE(modules.count("pe"));
+
+	std::stringstream input;
+	input << R"(import "time"
+rule test {
+	condition:
+		time.now() > 0
+}
+)";
+	auto yarafile = ymod.parseStream(input);
+	ASSERT_NE(nullptr, yarafile);
+	ASSERT_EQ(1u, yarafile->getRules().size());
+
+	fs::remove_all(tmpDir);
+}
+
+TEST_F(YaramodTests,
+ExclusiveModulePathsEmptyListLoadsNoModules) {
+	yaramod::Yaramod ymod(yaramod::Features::AllCurrent, std::vector<std::string>{});
+	auto modules = ymod.getModules();
+	EXPECT_EQ(0u, modules.size());
 }
 
 }

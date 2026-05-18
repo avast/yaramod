@@ -2530,6 +2530,18 @@ ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory
 	initialize();
 }
 
+ParserDriver::ParserDriver(Features features, const std::vector<std::string>& exclusiveModulePaths)
+	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features),
+	_modules(std::make_shared<ModulePool>(features, exclusiveModulePaths)),
+	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
+	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
+	_lastRuleTokenStream(), _anonStringCounter(0), _errorLocation(), _deferredIncludes(),
+	_expressionArrayStack()
+{
+	initialize();
+}
+
 ParserDriver::ParserDriver(Features features, const std::shared_ptr<ModulePool>& modulePool)
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
 	_escapedContent(false), _mode(ParserMode::Regular), _features(features), _modules(modulePool),

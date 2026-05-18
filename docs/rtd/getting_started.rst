@@ -67,3 +67,28 @@ you to create one instance per thread or process.
 * *VirusTotal* - You are interested in basic and VirusTotal-specific symbols.
 
 The second option enables you to supply custom modules other than YARA upstream modules. Simply enter the path to the directory where your modules are stored as `json` files.
+
+Exclusive module paths
+----------------------
+
+If you want to use **only** your own module definitions and skip all built-in modules, you can pass a list of JSON file paths via the *module_paths* parameter (Python) or a ``std::vector<std::string>`` (C++). When this parameter is used, built-in modules are not loaded at all.
+
+.. code-block:: python
+
+    import yaramod
+
+    # Only the time module is available — no pe, hash, etc.
+    ym = yaramod.Yaramod(
+        yaramod.Features.AllCurrent,
+        module_paths=["/path/to/module_time.json"],
+    )
+
+.. code-block:: cpp
+
+    // C++ equivalent
+    yaramod::Yaramod ym(
+        yaramod::Features::AllCurrent,
+        std::vector<std::string>{"/path/to/module_time.json"}
+    );
+
+Passing an empty list creates a ``Yaramod`` instance with no modules at all. This is the programmatic equivalent of setting the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environment variable.

@@ -24,6 +24,18 @@ ModulePool::ModulePool(Features features, const std::string& directory)
 		itr->second->initialize();
 }
 
+ModulePool::ModulePool(Features features, const std::vector<std::string>& exclusiveModulePaths)
+	: _features(features)
+{
+	for (const auto& path : exclusiveModulePaths)
+		_processPath(fs::path(path));
+
+	_init("", false);
+
+	for (auto itr = _knownModules.begin(); itr != _knownModules.end(); ++itr)
+		itr->second->initialize();
+}
+
 std::shared_ptr<Module> ModulePool::load(const std::string& name)
 {
 	auto itr = _knownModules.find(name);
@@ -100,7 +112,7 @@ void ModulePool::_processModuleContent(const ModuleContent& content)
 		itr->second->addJson(std::move(json));
 }
 
-void ModulePool::_init(const std::string& directory)
+void ModulePool::_init(const std::string& directory, bool loadBuiltinModules)
 {
 	if (const char* envProperty = std::getenv("YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE"))
 	{
@@ -134,8 +146,11 @@ void ModulePool::_init(const std::string& directory)
 			if (!foundModules)
 				throw ModuleError("Directory '" + directory + "' does not contain single valid module. If you want to use public modules, set directory=\"\".");
 		}
-		for (const auto& content : _moduleList.list)
-			_processModuleContent(content);
+		if (loadBuiltinModules)
+		{
+			for (const auto& content : _moduleList.list)
+				_processModuleContent(content);
+		}
 	}
 }
 

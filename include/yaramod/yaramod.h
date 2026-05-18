@@ -19,6 +19,7 @@
 #define YARA_SYNTAX_VERSION "x-0.12.0"
 
 #include <memory>
+#include <vector>
 
 #include "yaramod/builder/yara_file_builder.h"
 #include "yaramod/parser/parser_driver.h"
@@ -29,13 +30,22 @@ namespace yaramod {
 class Yaramod
 {
 public:
-	/*
+	/**
 	 * Constructor
 	 *
-	 * @param features determines iff we want to use aditional Avast-specific symbols or VirusTotal-specific symbols in the imported modules
+	 * @param features determines which symbols to import from modules
 	 * @param moduleDirectory determines a directory for additional YARA modules to be added
 	 */
-	Yaramod(Features features = Features::AllCurrent, const std::string& moduleDirectory = "") : _driver(features, moduleDirectory)	{}
+	Yaramod(Features features = Features::AllCurrent, const std::string& moduleDirectory = "") : _driver(features, moduleDirectory) {}
+	/**
+	 * Constructor with exclusive module paths.
+	 *
+	 * Only modules from the provided file paths are loaded. Built-in modules are skipped.
+	 *
+	 * @param features determines which symbols to import from modules
+	 * @param exclusiveModulePaths paths to JSON files defining modules exclusively
+	 */
+	Yaramod(Features features, const std::vector<std::string>& exclusiveModulePaths) : _driver(features, exclusiveModulePaths) {}
 	/**
 	 * Parses file at given path.
 	 *

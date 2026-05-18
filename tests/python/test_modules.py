@@ -1,4 +1,6 @@
+import pytest
 import yaramod
+
 
 def test_modules_that_are_readonly(tmp_path):
     modules_directory = tmp_path
@@ -35,3 +37,100 @@ rule test {
 }
 ''')
     assert yfile is not None
+
+
+def _write_time_module(path):
+    path.write_text('''{
+  "kind": "struct",
+  "name": "time",
+  "attributes": [
+    {
+      "kind": "function",
+      "name": "now",
+      "return_type": "i",
+      "overloads": [
+        {
+          "arguments": [],
+          "documentation": "Returns current time as epoch"
+        }
+      ]
+    }
+  ]
+}
+''')
+    return path
+
+
+def test_exclusive_module_paths_loads_only_specified_modules(tmp_path):
+    module_file = _write_time_module(tmp_path / "my_time.json")
+    ymod = yaramod.Yaramod(yaramod.Features.AllCurrent, module_paths=[str(module_file)])
+
+    assert "time" in ymod.modules
+    assert "pe" not in ymod.modules
+    assert "hash" not in ymod.modules
+
+
+def test_exclusive_module_paths_can_parse_rules_with_specified_module(tmp_path):
+    module_file = _write_time_module(tmp_path / "my_time.json")
+    ymod = yaramod.Yaramod(yaramod.Features.AllCurrent, module_paths=[str(module_file)])
+
+    yfile = ymod.parse_string('''import "time"
+rule test {
+    condition:
+        time.now() > 0
+}
+''')
+    assert yfile is not None
+    assert len(yfile.rules) == 1
+
+
+def test_exclusive_module_paths_rejects_unloaded_builtin_module(tmp_path):
+    module_file = _write_time_module(tmp_path / "my_time.json")
+    ymod = yaramod.Yaramod(yaramod.Features.AllCurrent, module_paths=[str(module_file)])
+
+    with pytest.raises(yaramod.ParserError):
+        ymod.parse_string('''import "pe"
+rule test {
+    condition:
+        pe.is_dll()
+}
+''')
+
+
+def test_exclusive_module_paths_empty_list_loads_no_modules():
+    ymod = yaramod.Yaramod(yaramod.Features.AllCurrent, module_paths=[])
+    assert len(ymod.modules) == 0
+
+
+def test_exclusive_module_paths_multiple_modules(tmp_path):
+    time_file = _write_time_module(tmp_path / "my_time.json")
+
+    math_file = tmp_path / "my_math.json"
+    math_file.write_text('''{
+  "kind": "struct",
+  "name": "math",
+  "attributes": [
+    {
+      "kind": "function",
+      "name": "entropy",
+      "return_type": "f",
+      "overloads": [
+        {
+          "arguments": [
+            {"type": "i", "name": "offset"},
+            {"type": "i", "name": "size"}
+          ],
+          "documentation": "Returns entropy"
+        }
+      ]
+    }
+  ]
+}
+''')
+
+    ymod = yaramod.Yaramod(
+        yaramod.Features.AllCurrent,
+        module_paths=[str(time_file), str(math_file)],
+    )
+
+    assert set(ymod.modules.keys()) == {"time", "math"}

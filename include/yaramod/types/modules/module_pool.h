@@ -12,6 +12,7 @@
 #include "yaramod/types/modules/module.h"
 
 #include <map>
+#include <vector>
 
 namespace yaramod {
 
@@ -31,6 +32,17 @@ public:
 	 */
 	ModulePool(Features features, const std::string& directory);
 	/**
+	 * Constructor with exclusive module paths.
+	 *
+	 * When exclusiveModulePaths is non-empty, only modules from those paths are loaded.
+	 * Built-in modules are skipped entirely. Environment variables are still respected
+	 * and take precedence.
+	 *
+	 * @param features Determines which symbols to import
+	 * @param exclusiveModulePaths Paths to JSON files defining modules exclusively
+	 */
+	ModulePool(Features features, const std::vector<std::string>& exclusiveModulePaths);
+	/**
 	 * Loads the module based on its name from the table of known modules.
 	 *
 	 * @param name Name of the module to load
@@ -48,7 +60,7 @@ public:
 	std::map<std::string, Module*> getModules() const;
 
 private:
-	void _init(const std::string& directory);
+	void _init(const std::string& directory, bool loadBuiltinModules = true);
 	bool _processPath(fs::path path);
 	void _processModuleContent(const ModuleContent& content);
 	Features _features;
