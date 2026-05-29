@@ -92,3 +92,22 @@ If you want to use **only** your own module definitions and skip all built-in mo
     );
 
 Passing an empty list creates a ``Yaramod`` instance with no modules at all. This is the programmatic equivalent of setting the ``YARAMOD_MODULE_SPEC_PATH_EXCLUSIVE`` environment variable.
+
+The same API is available on ``YaraFileBuilder`` for programmatic rule construction:
+
+.. code-block:: python
+
+    import yaramod
+
+    builder = yaramod.YaraFileBuilder(
+        yaramod.Features.AllCurrent,
+        module_paths=["/path/to/module_time.json"],
+    )
+
+.. code-block:: cpp
+
+    // C++ equivalent
+    yaramod::YaraFileBuilder builder(
+        yaramod::Features::AllCurrent,
+        std::vector<std::string>{"/path/to/module_time.json"}
+    );

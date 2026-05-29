@@ -271,5 +271,39 @@ ExclusiveModulePathsEmptyListLoadsNoModules) {
 	EXPECT_EQ(0u, modules.size());
 }
 
+TEST_F(YaramodTests,
+YaraFileBuilderExclusiveModulePathsLoadsOnlySpecifiedModules) {
+	auto tmpDir = fs::temp_directory_path() / "yaramod_test_builder_exclusive";
+	fs::create_directories(tmpDir);
+	auto moduleFile = tmpDir / "my_time.json";
+
+	{
+		std::ofstream ofs(moduleFile);
+		ofs << R"({
+  "kind": "struct",
+  "name": "time",
+  "attributes": [
+    {
+      "kind": "function",
+      "name": "now",
+      "return_type": "i",
+      "overloads": [
+        {
+          "arguments": [],
+          "documentation": "Returns current time"
+        }
+      ]
+    }
+  ]
+})";
+	}
+
+	yaramod::YaraFileBuilder builder(yaramod::Features::AllCurrent, std::vector<std::string>{moduleFile.string()});
+	auto yarafile = builder.withModule("time").get(true);
+	ASSERT_NE(nullptr, yarafile);
+
+	fs::remove_all(tmpDir);
+}
+
 }
 }

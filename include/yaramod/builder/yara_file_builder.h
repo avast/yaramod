@@ -43,6 +43,20 @@ public:
 		, _features(features)
 	{
 	}
+	/**
+	 * Constructor with exclusive module paths.
+	 *
+	 * Only modules from the provided file paths are loaded. Built-in modules are skipped.
+	 *
+	 * @param features determines which symbols to import from modules
+	 * @param exclusiveModulePaths paths to JSON files defining modules exclusively
+	 */
+	YaraFileBuilder(Features features, const std::vector<std::string>& exclusiveModulePaths)
+		: _tokenStream(std::make_shared<TokenStream>())
+		, _module_pool(std::make_shared<ModulePool>(features, exclusiveModulePaths))
+		, _features(features)
+	{
+	}
 	/// @}
 
 	/// @name Build method

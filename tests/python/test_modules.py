@@ -134,3 +134,51 @@ def test_exclusive_module_paths_multiple_modules(tmp_path):
     )
 
     assert set(ymod.modules.keys()) == {"time", "math"}
+
+
+def test_yara_file_builder_exclusive_module_paths(tmp_path):
+    module_file = _write_time_module(tmp_path / "my_time.json")
+    builder = yaramod.YaraFileBuilder(
+        yaramod.Features.AllCurrent,
+        module_paths=[str(module_file)],
+    )
+
+    cond = yaramod.bool_val(True)
+    rule = yaramod.YaraRuleBuilder() \
+        .with_name("test") \
+        .with_plain_string("$a", "hello") \
+        .with_condition(cond.get()) \
+        .get()
+
+    file = builder \
+        .with_module("time") \
+        .with_rule(rule) \
+        .get(recheck=True)
+
+    assert file is not None
+    assert len(file.rules) == 1
+
+
+def test_yara_file_builder_exclusive_module_paths_ignores_unloaded(tmp_path):
+    """When using exclusive module_paths, adding a module that isn't loaded
+    silently drops it — the import does not appear in the output."""
+    module_file = _write_time_module(tmp_path / "my_time.json")
+    builder = yaramod.YaraFileBuilder(
+        yaramod.Features.AllCurrent,
+        module_paths=[str(module_file)],
+    )
+
+    cond = yaramod.bool_val(True)
+    rule = yaramod.YaraRuleBuilder() \
+        .with_name("test") \
+        .with_plain_string("$a", "hello") \
+        .with_condition(cond.get()) \
+        .get()
+
+    file = builder \
+        .with_module("pe") \
+        .with_rule(rule) \
+        .get(recheck=True)
+
+    assert file is not None
+    assert 'import "pe"' not in file.text
