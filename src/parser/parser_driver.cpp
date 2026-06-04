@@ -2074,7 +2074,8 @@ void ParserDriver::defineGrammar()
 		})
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
-			if (!expr->isObject())
+			// Objects and Strings (only `.len()` though) can have attributes.
+			if (!expr->isObject() && !expr->isString())
 			{
 				if (!incompleteMode() || !expr->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
@@ -2089,25 +2090,43 @@ void ParserDriver::defineGrammar()
 			auto parentSymbol = std::static_pointer_cast<IdExpression>(expr)->getSymbol();
 			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
-			if (!parentSymbol->isStructure())
-			{
-				assert(!incompleteMode() || !expr->isUndefined());
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
-			}
-			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
 
 			TokenIt symbol_token = args[2].getTokenIt();
-			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
-			if (!attr)
+			std::optional<std::shared_ptr<Symbol>> attr;
+			if (parentSymbol->isStructure())
 			{
-				if (!incompleteMode())
-					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
-				else
+				auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
+				attr = structParentSymbol->getAttribute(symbol_token->getString());
+				if (!attr)
 				{
-					bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
-					attr = structParentSymbol->getAttribute(symbol_token->getString());
-					assert(inserted && attr);
+					if (!incompleteMode())
+						error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+					else
+					{
+						bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
+						attr = structParentSymbol->getAttribute(symbol_token->getString());
+						assert(inserted && attr);
+					}
 				}
+			}
+			else if (parentSymbol->isArray() || parentSymbol->isDictionary())
+			{
+				auto iterParentSymbol = std::static_pointer_cast<IterableSymbol>(parentSymbol);
+				attr = iterParentSymbol->getAttribute(symbol_token->getString());
+				if (!attr)
+					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced on array/dictionary");
+			}
+			else if (parentSymbol->isValue())
+			{
+				auto valueParentSymbol = std::static_pointer_cast<ValueSymbol>(parentSymbol);
+				attr = valueParentSymbol->getAttribute(symbol_token->getString());
+				if (!attr)
+					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced on value");
+			}
+			else
+			{
+				assert(!incompleteMode() || !expr->isUndefined());
+				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure, array, dictionary, or string");
 			}
 
 			auto symbol = attr.value();

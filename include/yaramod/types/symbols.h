@@ -21,6 +21,8 @@ class ValueSymbol : public Symbol
 {
 public:
 	ValueSymbol(const std::string& name, ExpressionType dataType, const std::string& documentation = "") : Symbol(Symbol::Type::Value, name, dataType, documentation) {}
+
+	std::optional<std::shared_ptr<Symbol>> getAttribute(const std::string& name) const;
 };
 
 /**
@@ -38,6 +40,8 @@ public:
 	bool isStructured() const { return _elementType == ExpressionType::Object && _structuredType; }
 
 	void setStructuredElementType(std::shared_ptr<Symbol> structure) { _structuredType = std::move(structure); }
+
+	std::optional<std::shared_ptr<Symbol>> getAttribute(const std::string& name) const;
 
 protected:
 	IterableSymbol(Symbol::Type type, const std::string& name, ExpressionType elementType, const std::string& documentation)
@@ -196,6 +200,20 @@ private:
 	std::vector<std::string> _overloadDocumentations; ///< Documentation of all known overloads
 	std::vector<std::vector<std::string>> _overloadArgumentsNames; ///< Names of arguments of all known overloads
 };
+
+inline std::optional<std::shared_ptr<Symbol>> ValueSymbol::getAttribute(const std::string& name) const
+{
+	if (_dataType == ExpressionType::String && name == "len")
+		return std::make_shared<FunctionSymbol>("len", ExpressionType::Int);
+	return std::nullopt;
+}
+
+inline std::optional<std::shared_ptr<Symbol>> IterableSymbol::getAttribute(const std::string& name) const
+{
+	if (name == "len")
+		return std::make_shared<FunctionSymbol>("len", ExpressionType::Int);
+	return std::nullopt;
+}
 
 /**
  * Class representing structure symbol. Structure symbol carries name of the structure and its attributes.
