@@ -9180,5 +9180,71 @@ rule len_on_array_element_string
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnArrayForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_array
+{
+	condition:
+		pe.sections.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnStringForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_string
+{
+	condition:
+		pe.pdb_path.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayInIncompleteModeWorks) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule len_on_unknown_module_array
+{
+	condition:
+		dummy.some_array.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

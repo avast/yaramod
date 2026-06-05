@@ -2092,41 +2092,21 @@ void ParserDriver::defineGrammar()
 				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
 
 			TokenIt symbol_token = args[2].getTokenIt();
-			std::optional<std::shared_ptr<Symbol>> attr;
-			if (parentSymbol->isStructure())
+			auto attr = parentSymbol->getAttribute(symbol_token->getString());
+			if (!attr)
 			{
-				auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
-				attr = structParentSymbol->getAttribute(symbol_token->getString());
-				if (!attr)
+				// For structures in incomplete mode, synthesize an Undefined placeholder rather than erroring.
+				if (incompleteMode() && parentSymbol->isStructure())
 				{
-					if (!incompleteMode())
-						error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
-					else
-					{
-						bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
-						attr = structParentSymbol->getAttribute(symbol_token->getString());
-						assert(inserted && attr);
-					}
+					auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
+					[[maybe_unused]] bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
+					attr = structParentSymbol->getAttribute(symbol_token->getString());
+					assert(inserted && attr);
 				}
-			}
-			else if (parentSymbol->isArray() || parentSymbol->isDictionary())
-			{
-				auto iterParentSymbol = std::static_pointer_cast<IterableSymbol>(parentSymbol);
-				attr = iterParentSymbol->getAttribute(symbol_token->getString());
-				if (!attr)
-					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced on array/dictionary");
-			}
-			else if (parentSymbol->isValue())
-			{
-				auto valueParentSymbol = std::static_pointer_cast<ValueSymbol>(parentSymbol);
-				attr = valueParentSymbol->getAttribute(symbol_token->getString());
-				if (!attr)
-					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced on value");
-			}
-			else
-			{
-				assert(!incompleteMode() || !expr->isUndefined());
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure, array, dictionary, or string");
+				else
+				{
+					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
+				}
 			}
 
 			auto symbol = attr.value();
