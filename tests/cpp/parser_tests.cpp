@@ -9068,5 +9068,183 @@ rule formatting_in_expression_arrays_not_broken
 )");
 }
 
+TEST_F(ParserTests,
+LenMethodOnArrayWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_array
+{
+	condition:
+		pe.sections.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.sections.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnDictionaryWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_dictionary
+{
+	condition:
+		pe.version_info.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.version_info.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnStringWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_string
+{
+	condition:
+		pe.pdb_path.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.pdb_path.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnNonStringValueForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_integer
+{
+	condition:
+		pe.number_of_sections.len() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("is not an object"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayElementStringWorks) {
+	prepareInput(
+R"(
+import "dotnet"
+
+rule len_on_array_element_string
+{
+	condition:
+		dotnet.user_strings[0].len() >= 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("dotnet.user_strings[0].len() >= 3", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnArrayForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_array
+{
+	condition:
+		pe.sections.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnStringForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_string
+{
+	condition:
+		pe.pdb_path.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayInIncompleteModeWorks) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule len_on_unknown_module_array
+{
+	condition:
+		dummy.some_array.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
 }
 }

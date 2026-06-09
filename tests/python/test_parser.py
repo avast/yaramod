@@ -2312,3 +2312,27 @@ rule test_rule
 ''')
 
         self.assertEqual(yara_file.rules[0].condition.uid, 21)
+
+    def test_len_method(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "pe"
+
+rule r {
+    condition:
+        pe.signatures.len() > 0 and
+        pe.version_info.len() > 0 and
+        pe.version_info["abc"].len() > 0 and
+        pe.pdb_path.len() > 0
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'r')
+
+        expected_text = (
+            'pe.signatures.len() > 0 and pe.version_info.len() > 0 and '
+            'pe.version_info["abc"].len() > 0 and pe.pdb_path.len() > 0'
+        )
+        self.assertEqual(rule.condition.text, expected_text)

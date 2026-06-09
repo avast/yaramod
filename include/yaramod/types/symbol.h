@@ -8,6 +8,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -57,6 +59,7 @@ public:
 	const std::string& getDocumentation() const { return _documentation; }
 	ExpressionType getDataType() const { return _dataType; }
 	Symbol::Type getType() const { return _type; }
+	virtual std::optional<std::shared_ptr<Symbol>> getAttribute(const std::string& /*name*/) const { return std::nullopt; }
 	TokenType getTokenType() const
 	{
 		switch(_type)

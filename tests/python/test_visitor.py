@@ -804,3 +804,29 @@ rule rule_1
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_len_method_visitor_detects_len_calls_on_array(self):
+        class LenCallCollector(yaramod.ModifyingVisitor):
+            def __init__(self):
+                super().__init__()
+                self.called_functions = []
+
+            def collect(self, yara_file):
+                for rule in yara_file.rules:
+                    self.modify(rule.condition)
+
+            def visit_FunctionCallExpression(self, expr):
+                self.called_functions.append(expr.function.text)
+
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "pe"
+rule rule_name {
+	condition:
+		pe.sections.len() > 0
+}''')
+
+        visitor = LenCallCollector()
+        visitor.collect(yara_file)
+
+        self.assertEqual(len(visitor.called_functions), 1)
+        self.assertEqual(visitor.called_functions[0], 'pe.sections.len')
