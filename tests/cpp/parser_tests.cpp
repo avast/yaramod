@@ -247,6 +247,47 @@ rule hex_and_decimal_integers_are_preserved
 }
 
 TEST_F(ParserTests,
+HexStringAfterNonStringMetaWorks) {
+	// Regression: when a meta section ends with a non-string value (integer
+	// or boolean), the lexer must still switch to the hex string state for a
+	// following strings section. Otherwise the leading hex nibbles are lexed
+	// as an integer and parsing fails.
+	prepareInput(
+R"(
+rule hex_string_after_non_string_meta
+{
+	meta:
+		third_party = false
+		rule_version = 1
+	strings:
+		$h = { 48 81 04 24 ?? ?? 00 00 E9 }
+	condition:
+		$h
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("hex_string_after_non_string_meta", rule->getName());
+
+	ASSERT_EQ(2u, rule->getMetas().size());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isBool());
+	EXPECT_TRUE(rule->getMetas()[1].getValue().isInt());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h", hexString->getIdentifier());
+	EXPECT_EQ("{ 48 81 04 24 ?? ?? 00 00 E9 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 RuleWithVariablesWorks) {
 	prepareInput(
 R"(

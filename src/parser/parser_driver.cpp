@@ -233,8 +233,8 @@ void ParserDriver::defineTokens()
 	});
 
 	// Exit meta state when encountering section keywords or rule end
-	_parser.token("strings").states("$meta").enter_state("@default").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRINGS, std::string{str}); });
-	_parser.token("condition").states("$meta").enter_state("@default").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { return emplace_back(TokenType::CONDITION, std::string{str}); });
+	_parser.token("strings").states("$meta").enter_state("@default").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
+	_parser.token("condition").states("$meta").enter_state("@default").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(TokenType::CONDITION, std::string{str}); });
 	_parser.token("variables").states("$meta").enter_state("@default").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
 	_parser.token("\\}").states("$meta").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RCB, std::string{str}); });
 

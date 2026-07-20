@@ -73,6 +73,34 @@ rule rule_with_metas {
         self.assertTrue(rule.metas[2].value.is_bool)
         self.assertEqual(rule.metas[2].value.text, 'true')
 
+    def test_hex_string_after_non_string_meta(self):
+        # Regression: a meta section ending with a non-string value (integer
+        # or boolean) must not prevent a following hex string from being
+        # lexed correctly.
+        yara_file = yaramod.Yaramod().parse_string('''
+rule hex_string_after_non_string_meta {
+    meta:
+        third_party = false
+        rule_version = 1
+    strings:
+        $h = { 48 81 04 24 ?? ?? 00 00 E9 }
+    condition:
+        $h
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'hex_string_after_non_string_meta')
+        self.assertEqual(len(rule.metas), 2)
+        self.assertTrue(rule.metas[0].value.is_bool)
+        self.assertTrue(rule.metas[1].value.is_int)
+
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(rule.strings[0].identifier, '$h')
+        self.assertTrue(rule.strings[0].is_hex)
+        self.assertEqual(rule.strings[0].text, '{ 48 81 04 24 ?? ?? 00 00 E9 }')
+
     def test_add_meta(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_added_metas {
