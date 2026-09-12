@@ -184,6 +184,12 @@ public:
 					}
 				}
 
+				if (longest_match <= 0 && current_input.stream.size() != 0)
+				{
+					debug_tokenizer("Zero-length match in the middle of the input");
+					return std::nullopt;
+				}
+
 				if (current_input.stream.size() == 0)
 				{
 					debug_tokenizer("Reached end of input");

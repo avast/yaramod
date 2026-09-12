@@ -262,7 +262,7 @@ void ParserDriver::defineTokens()
 		_comment.append(std::string{str});
 		return {};
 	});
-	_parser.token(R"([^\n*]*)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+	_parser.token(R"([^\n*]+)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
