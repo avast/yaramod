@@ -445,6 +445,15 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
 	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
 	_parser.token(R"(\\\\)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\\\"; return {};});
+	_parser.token(R"(\\/)").states("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass += "\\/";
+		return {};
+	});
+	_parser.token(R"(/)").states("$regexp_class").action([&](std::string_view) -> Value {
+		error_handle(currentFileContext()->getLocation(),
+			"Syntax error: Unescaped delimiter in regexp class");
+		return {};
+	});
 	_parser.token(R"(\\\])").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\]"; return {};});
 	_parser.token(R"(\\\[)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\["; return {};});
 	_parser.token(R"(\[)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "["; return {}; });

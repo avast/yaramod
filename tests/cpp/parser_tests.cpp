@@ -1331,6 +1331,33 @@ rule regexp_with_predefined_classes
 }
 
 TEST_F(ParserTests,
+RegexpClassRejectsUnescapedDelimiters) {
+	for (const auto* regexp : {R"(/[/]/)", R"(/[/][/]/)", R"(/[/a][/b]/)",
+		R"(/[^/]/)", R"(/[\\/]/)"})
+	{
+		SCOPED_TRACE(regexp);
+		prepareInput(std::string("rule test { strings: $a = ") + regexp
+			+ " condition: $a }");
+		EXPECT_THROW(driver.parse(input), ParserError);
+	}
+}
+
+TEST_F(ParserTests,
+RegexpClassPreservesEscapedDelimiters) {
+	for (const auto* regexp : {R"(/[\/]/)", R"(/[^\/]/)", R"(/[a\/b]/)",
+		R"(/[\\\/]/)"})
+	{
+		SCOPED_TRACE(regexp);
+		prepareInput(std::string("rule test { strings: $a = ") + regexp
+			+ " condition: $a }");
+		ASSERT_TRUE(driver.parse(input));
+		const auto& rules = driver.getParsedFile().getRules();
+		ASSERT_EQ(1u, rules.size());
+		EXPECT_EQ(regexp, rules[0]->getStrings()[0]->getText());
+	}
+}
+
+TEST_F(ParserTests,
 RegexpWithCustomClassWorks) {
 	prepareInput(
 R"(
