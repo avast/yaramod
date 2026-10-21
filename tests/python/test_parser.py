@@ -1779,6 +1779,31 @@ rule nonutf_condition
 '''
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_multiline_comments_with_nonutf_bytes(self):
+        yara_file = yaramod.Yaramod().parse_string(b'''
+/* caf\xe9 */
+rule nonutf_multiline_comment
+{
+	/*\xff\xfe*/
+	strings:
+		$1 = { AB CD /* caf\xe9 */ 01 }
+	condition:
+		$1
+}
+''')
+        self.assertEqual(len(yara_file.rules), 1)
+        self.assertEqual(yara_file.rules[0].name, 'nonutf_multiline_comment')
+
+    def test_unterminated_multiline_comment_at_end_of_file(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule unterminated_comment
+{
+	condition:
+		true
+}
+/* unterminated comment''')
+        self.assertEqual(len(yara_file.rules), 1)
+
     def test_multiple_parse_phases_with_single_yaramod_instance(self):
         ymod = yaramod.Yaramod();
         yara_file = ymod.parse_string(r'''

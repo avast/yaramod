@@ -184,9 +184,10 @@ public:
 					}
 				}
 
-				if (longest_match <= 0 && current_input.stream.size() != 0)
+				if (!best_match || (longest_match <= 0 && current_input.stream.size() != 0))
 				{
-					debug_tokenizer("Zero-length match in the middle of the input");
+					// Zero-length match would not advance the input, we would get into endless loop
+					debug_tokenizer("No match or zero-length match in the middle of the input");
 					return std::nullopt;
 				}
 
