@@ -104,8 +104,19 @@ public:
 
 	void addCharacters(const std::string& text)
 	{
+		// Continue an escape sequence started by characters added earlier
+		bool escaped = false;
+		for (auto it = _characters.rbegin(); it != _characters.rend() && (*it)->getPureText() == "\\"; ++it)
+			escaped = !escaped;
+
 		for (char c : text)
+		{
+			// Unescaped '/' would terminate the regular expression
+			if (c == '/' && !escaped)
+				_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, '\\')));
 			_characters.push_back(_tokenStream->emplace_back(TokenType::REGEXP_CHAR, std::string(1, c)));
+			escaped = (c == '\\') && !escaped;
+		}
 	}
 
 	std::string getCharacters() const

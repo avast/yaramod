@@ -1469,6 +1469,27 @@ rule rule_with_complex_regexp {
         self.assertEqual(regexp_string.unit.units[5].operand.is_negative, False)
         self.assertEqual(regexp_string.unit.units[5].operand.characters, '0-9a-zA-Z')
 
+    def test_regular_expression_class_characters_escape_delimiter(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rule_with_regexp_class {
+    strings:
+        $1 = /x[a]y/
+    condition:
+        $1
+}''')
+        regexp_string = yara_file.rules[0].strings[0]
+        regexp_class = regexp_string.unit.units[1]
+        self.assertTrue(isinstance(regexp_class, yaramod.RegexpClass))
+
+        regexp_class.characters = 'a/b'
+        self.assertEqual(regexp_class.characters, r'a\/b')
+        self.assertEqual(regexp_string.text, r'/x[a\/b]y/')
+
+        regexp_class.characters = r'a\/b'
+        self.assertEqual(regexp_string.text, r'/x[a\/b]y/')
+
+        yaramod.Yaramod().parse_string('rule r { strings: $1 = ' + regexp_string.text + ' condition: $1 }')
+
     def test_regular_expression_meta_characters(self):
         yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_metachars {

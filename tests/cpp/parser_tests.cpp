@@ -1358,6 +1358,25 @@ RegexpClassPreservesEscapedDelimiters) {
 }
 
 TEST_F(ParserTests,
+RegexpClassBuiltWithDelimitersCanBeParsed) {
+	for (const auto& [characters, expected] : std::vector<std::pair<std::string, std::string>>{
+		{"/", R"([\/])"}, {"a/b", R"([a\/b])"}, {R"(a\/b)", R"([a\/b])"}, {R"(\\/)", R"([\\\/])"}})
+	{
+		SCOPED_TRACE(characters);
+		RegexpClass cls(characters);
+		EXPECT_EQ(expected, cls.getText());
+
+		prepareInput("rule test { strings: $a = /" + cls.getText() + "/ condition: $a }");
+		ASSERT_TRUE(driver.parse(input));
+		EXPECT_EQ("/" + expected + "/", driver.getParsedFile().getRules()[0]->getStrings()[0]->getText());
+	}
+
+	RegexpClass cls("a\\");
+	cls.addCharacters("/");
+	EXPECT_EQ(R"([a\/])", cls.getText());
+}
+
+TEST_F(ParserTests,
 RegexpWithCustomClassWorks) {
 	prepareInput(
 R"(
