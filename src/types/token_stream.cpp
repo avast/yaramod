@@ -16,6 +16,25 @@ namespace yaramod {
 
 constexpr unsigned tabulator_length = 8;
 
+/**
+ * Returns true if the PERCENT token is a part of percentual quantifier
+ * ('50% of ...', 'for 50% i in ...', 'for 50% k, v in ...'), false if it is modulo.
+ */
+static bool isPercentualQuantifier(TokenIt percent, TokenIt end)
+{
+	// Types of the tokens following PERCENT, INVALID past the end of the token stream
+	std::vector<TokenType> next;
+	for (auto it = std::next(percent); it != end && next.size() < 4; ++it)
+		next.push_back(it->getType());
+	next.resize(4, TokenType::INVALID);
+
+	if (next[0] == TokenType::OF)
+		return true;
+	// Loop variables of a for loop
+	return next[0] == TokenType::ID && (next[1] == TokenType::OP_IN
+		|| (next[1] == TokenType::COMMA && next[2] == TokenType::ID && next[3] == TokenType::OP_IN));
+}
+
 
 std::pair<TokenIt, TokenIt> TokenStream::findBounds(TokenIt embedded, TokenType leftType, TokenType rightType) const
 {
@@ -972,7 +991,6 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 						helper.insertIntoStream(os, ' ');
 					break;
 				default:
-					auto nextNextIt = std::next(nextIt);
 					switch(next)
 					{
 						case TokenType::RP:
@@ -991,7 +1009,7 @@ void TokenStream::getTextProcedure(PrintHelper& helper, std::stringstream* os, b
 						default:
 							if (next != TokenType::LSQB || (current != TokenType::STRING_OFFSET && current != TokenType::STRING_LENGTH))
 							{
-								if (next != TokenType::PERCENT || nextNextIt == end() || nextNextIt->getType() != TokenType::OF)
+								if (next != TokenType::PERCENT || !isPercentualQuantifier(nextIt, end()))
 									helper.insertIntoStream(os, ' ');
 							}
 					}
