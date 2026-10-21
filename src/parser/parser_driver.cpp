@@ -262,11 +262,16 @@ void ParserDriver::defineTokens()
 		_comment.append(std::string{str});
 		return {};
 	});
-	_parser.token(R"([^\n*]*)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+	_parser.token(R"([^\n*]+)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
 	_parser.token(R"(\*)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	// Any single byte, so that bytes which are not valid UTF-8 are part of the comment too
+	_parser.token(R"(\C)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -353,6 +358,11 @@ void ParserDriver::defineTokens()
 		return {};
 	});
 	_parser.token(R"(.)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
+	// Any single byte, so that bytes which are not valid UTF-8 are part of the comment too
+	_parser.token(R"(\C)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -460,7 +470,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"([^\]\[])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
-	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
+	_parser.end_token().states("@default", "$multiline_comment", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
 		_errorLocation = currentFileContext()->getLocation();
 		includeEnd();
 		return {};

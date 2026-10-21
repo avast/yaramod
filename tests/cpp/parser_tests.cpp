@@ -5505,6 +5505,54 @@ rule rule_name
 }
 
 TEST_F(ParserTests,
+MultilineCommentsWithNonUtf8BytesWork) {
+	std::string rule =
+R"(
+/* caf)" "\xE9" R"( */
+rule rule_name {
+	/*)" "\xFF\xFE" R"(*/
+	strings:
+		$1 = { AB CD /* caf)" "\xE9" R"( */ 01 }
+	condition:
+		$1
+}
+)";
+	prepareInput(rule);
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+/* caf)" "\xE9" R"( */
+rule rule_name
+{
+	/*)" "\xFF\xFE" R"(*/
+	strings:
+		$1 = { AB CD /* caf)" "\xE9" R"( */ 01 }
+	condition:
+		$1
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+UnterminatedMultilineCommentAtEndOfFileWorks) {
+	prepareInput(
+R"(
+rule rule_name {
+	condition:
+		true
+}
+/* unterminated comment)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+}
+
+TEST_F(ParserTests,
 CommentsInCondition) {
 	prepareInput(
 R"(
