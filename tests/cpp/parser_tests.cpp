@@ -8251,6 +8251,101 @@ rule test_rule
 }
 
 TEST_F(ParserTests,
+ParsePercentageInForLoops) {
+	prepareInput(
+		R"(import "pe"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$b = "time"
+	condition:
+		for 75% i in (1 .. #a) : ( @a[i] > 0 ) and
+		for 50% i in (1, 2, 3) : ( 50% of them ) and
+		for 50% section in pe.sections : ( section.name == ".text" ) and
+		for 50% k, v in pe.version_info : ( k == "CompanyName" ) and
+		for 50% of ($a, $b) : ( $ at 0 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentageInForLoopIsNotModulo) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+	condition:
+		for 75% i in (1 .. #a) : ( @a[i] > 0 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto forExpr = driver.getParsedFile().getRules()[0]->getCondition()->as<ForArrayExpression>();
+	ASSERT_NE(nullptr, forExpr);
+	EXPECT_NE(nullptr, forExpr->getVariable()->as<PercentualExpression>());
+	EXPECT_EQ("for 75% i in (1 .. #a) : ( @a[i] > 0 )", forExpr->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentageInForLoopError) {
+	prepareInput(
+		R"(rule test_rule
+{
+	condition:
+		for 101% i in (1..3) : ( i > 1 )
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.10: Percentage must be between 1 and 100 (inclusive). Got 101.", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParseModuloInForLoops) {
+	prepareInput(
+		R"(import "math"
+
+rule test_rule
+{
+	condition:
+		for 10 % 3 i in (1 .. 10) : (
+			i % 2 == 0 and
+			math.min(10 % i, 1) == 0
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto forExpr = driver.getParsedFile().getRules()[0]->getCondition()->as<ForArrayExpression>();
+	ASSERT_NE(nullptr, forExpr);
+	EXPECT_NE(nullptr, forExpr->getVariable()->as<ModuloExpression>());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ParseOfRule) {
 	prepareInput(
 		R"(rule rule1

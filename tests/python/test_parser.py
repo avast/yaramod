@@ -2322,6 +2322,27 @@ rule test_rule
 
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_parse_percentage_in_for_loop(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''rule test_rule {
+    strings:
+        $s1 = "atest"
+    condition:
+        for 75% i in (1..#s1) : (@s1[i] > 0)
+}
+''')
+
+        expected = r'''rule test_rule
+{
+	strings:
+		$s1 = "atest"
+	condition:
+		for 75% i in (1 .. #s1) : ( @s1[i] > 0 )
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)
+        self.assertTrue(isinstance(yara_file.rules[0].condition.variable, yaramod.PercentualExpression))
+
     def test_expression_uids(self):
         yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''rule ExampleRule1
 {

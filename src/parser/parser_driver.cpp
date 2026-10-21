@@ -1107,6 +1107,209 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
+	// Creates a percentual quantifier (e.g. '75%') of 'of' expressions and for loops.
+	auto makePercentual = [this](Expression::Ptr&& expr, TokenIt percent) -> Expression::Ptr {
+		std::uint64_t value = 0;
+		if (strToNum(expr->getText(), value))
+		{
+			if (value == 0 || value > 100)
+			{
+				std::stringstream ss;
+				ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
+				error_handle(percent->getLocation(), ss.str());
+			}
+		}
+		auto output = std::make_shared<PercentualExpression>(percent, std::move(expr));
+		output->setUid(_uidGen.next());
+		return output;
+	};
+
+	// Each for loop has two variants. The first one has a 'for_expression' quantifier (e.g. 'for any i in ...'),
+	// the second one has a percentual quantifier 'primary_expression PERCENT' (e.g. 'for 75% i in ...'). The percentual
+	// quantifier cannot be a part of 'for_expression' because the parser would have to decide between percentage
+	// and modulo (e.g. '75 % i') right after PERCENT, without seeing the loop variable. Both variants share
+	// the actions below, 'o' is the offset of the arguments following the quantifier (0 or 1 for PERCENT).
+	auto forQuantifier = [makePercentual](std::vector<Value>& args, std::size_t o) -> Expression::Ptr {
+		if (o == 0)
+			return std::move(args[1].getExpression());
+		return makePercentual(std::move(args[1].getExpression()), args[2].getTokenIt());
+	};
+	auto forInSetMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		// Determine the type of the symbol based on the type of the first element in the set with fallback to int
+		// for_expression_set can be either SetExpression (enumeration) or RangeExpression (range)
+		auto iterType = Expression::Type::Int;
+		if (auto iterSet = args[4 + o].getExpression()->template as<SetExpression>())
+		{
+			if (!iterSet->getElements().empty())
+				iterType = iterSet->getElements()[0]->getType();
+		}
+		// RangeExpression is always over integers, so we keep the default Int type
+		auto symbol = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), iterType);
+		if (!addLocalSymbol(symbol))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInSetEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id = args[2 + o].getTokenIt();
+
+		TokenIt op_in = args[3 + o].getTokenIt();
+		auto set = std::move(args[4 + o].getExpression());
+		TokenIt lp = args[7 + o].getTokenIt();
+		auto expr = args[8 + o].getExpression();
+		TokenIt rp = args[9 + o].getTokenIt();
+
+		removeLocalSymbol(id->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forInArrayMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		const auto& iterable = args[4 + o].getExpression();
+		std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+		assert(parentSymbol);
+		if (!parentSymbol->isArray())
+		{
+			if (!incompleteMode() || !parentSymbol->isUndefined())
+				error_handle((++args[3 + o].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
+			else
+			{
+				auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+				const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+				parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
+			}
+		}
+
+		std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+
+		std::shared_ptr<Symbol> symbol;
+		if (iterParentSymbol->isStructured())
+		{
+			auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+			symbol = std::make_shared<StructureSymbol>(*s);
+			symbol->setName(args[2 + o].getTokenIt()->getString());
+		}
+		else
+		{
+			symbol = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), iterParentSymbol->getElementType());
+		}
+
+		if (!addLocalSymbol(symbol))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInArrayEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id = args[2 + o].getTokenIt();
+		TokenIt op_in = args[3 + o].getTokenIt();
+		auto array = std::move(args[4 + o].getExpression());
+
+		TokenIt lp = args[7 + o].getTokenIt();
+		auto expr = args[8 + o].getExpression();
+		TokenIt rp = args[9 + o].getTokenIt();
+
+		removeLocalSymbol(id->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forInDictMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		const auto& iterable = args[6 + o].getExpression();
+		std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+		assert(parentSymbol);
+		if (!parentSymbol->isDictionary())
+		{
+			if (!incompleteMode() || !parentSymbol->isUndefined())
+				error_handle((++args[5 + o].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
+			else
+			{
+				auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+				const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+				parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
+			}
+		}
+
+		std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), ExpressionType::String);
+		if (!addLocalSymbol(symbol1))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+
+		std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
+
+		std::shared_ptr<Symbol> symbol2;
+		if (iterParentSymbol->isStructured())
+		{
+			auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+			symbol2 = std::make_shared<StructureSymbol>(*s);
+			symbol2->setName(args[4 + o].getTokenIt()->getString());
+		}
+		else
+		{
+			symbol2 = std::make_shared<ValueSymbol>(args[4 + o].getTokenIt()->getString(), iterParentSymbol->getElementType());
+		}
+
+		if (!addLocalSymbol(symbol2))
+			error_handle(args[4 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[4 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInDictEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id1 = args[2 + o].getTokenIt();
+		TokenIt comma = args[3 + o].getTokenIt();
+		TokenIt id2 = args[4 + o].getTokenIt();
+		TokenIt op_in = args[5 + o].getTokenIt();
+		auto dict = std::move(args[6 + o].getExpression());
+
+		TokenIt lp = args[9 + o].getTokenIt();
+		auto expr = args[10 + o].getExpression();
+		TokenIt rp = args[11 + o].getTokenIt();
+
+		removeLocalSymbol(id1->getString());
+		removeLocalSymbol(id2->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forOfStringsMid = [this](std::vector<Value>& args, std::size_t /*o*/) -> Value {
+		if (isInStringLoop())
+			error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
+		stringLoopEnter();
+		return {};
+	};
+	auto forOfStringsEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt of = args[2 + o].getTokenIt();
+		auto set = std::move(args[3 + o].getExpression());
+
+		TokenIt lp = args[6 + o].getTokenIt();
+		auto expr = args[7 + o].getExpression();
+		TokenIt rp = args[8 + o].getTokenIt();
+
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		stringLoopLeave();
+		return output;
+	};
+
 	_parser.rule("expression") // Expression::Ptr
 		.production("boolean", [&](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
@@ -1161,187 +1364,36 @@ void ParserDriver::defineGrammar()
 			return output;
 		})
 		.production(
-			"FOR", "for_expression", "ID", "IN", "for_expression_set", [&](auto&& args) -> Value {
-				// Determine the type of the symbol based on the type of the first element in the set with fallback to int
-				// for_expression_set can be either SetExpression (enumeration) or RangeExpression (range)
-				auto iterType = Expression::Type::Int;
-				if (auto iterSet = args[4].getExpression()->template as<SetExpression>())
-				{
-					if (!iterSet->getElements().empty())
-						iterType = iterSet->getElements()[0]->getType();
-				}
-				// RangeExpression is always over integers, so we keep the default Int type
-				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterType);
-				if (!addLocalSymbol(symbol))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id = args[2].getTokenIt();
-
-				TokenIt op_in = args[3].getTokenIt();
-				auto set = std::move(args[4].getExpression());
-				TokenIt lp = args[7].getTokenIt();
-				auto expr = args[8].getExpression();
-				TokenIt rp = args[9].getTokenIt();
-
-				removeLocalSymbol(id->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "for_expression", "ID", "IN", "for_expression_set", [=](auto&& args) -> Value { return forInSetMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInSetEnd(args, 0); }
 		)
 		.production(
-			"FOR", "for_expression", "ID", "IN", "identifier", [&](auto&& args) -> Value {
-				const auto& iterable = args[4].getExpression();
-				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
-				assert(parentSymbol);
-				if (!parentSymbol->isArray())
-				{
-					if (!incompleteMode() || !parentSymbol->isUndefined())
-						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
-					else
-					{
-						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
-						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
-						parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
-					}
-				}
-
-				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
-
-				std::shared_ptr<Symbol> symbol;
-				if (iterParentSymbol->isStructured())
-				{
-					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
-					symbol = std::make_shared<StructureSymbol>(*s);
-					symbol->setName(args[2].getTokenIt()->getString());
-				}
-				else
-				{
-					symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterParentSymbol->getElementType());
-				}
-
-				if (!addLocalSymbol(symbol))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id = args[2].getTokenIt();
-				TokenIt op_in = args[3].getTokenIt();
-				auto array = std::move(args[4].getExpression());
-
-				TokenIt lp = args[7].getTokenIt();
-				auto expr = args[8].getExpression();
-				TokenIt rp = args[9].getTokenIt();
-
-				removeLocalSymbol(id->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "primary_expression", "PERCENT", "ID", "IN", "for_expression_set", [=](auto&& args) -> Value { return forInSetMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInSetEnd(args, 1); }
 		)
 		.production(
-			"FOR", "for_expression", "ID", "COMMA", "ID", "IN", "identifier", [&](auto&& args) -> Value {
-				const auto& iterable = args[6].getExpression();
-				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
-				assert(parentSymbol);
-				if (!parentSymbol->isDictionary())
-				{
-					if (!incompleteMode() || !parentSymbol->isUndefined())
-						error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
-					else
-					{
-						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
-						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
-						parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
-					}
-				}
-
-				std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), ExpressionType::String);
-				if (!addLocalSymbol(symbol1))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-
-				std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
-
-				std::shared_ptr<Symbol> symbol2;
-				if (iterParentSymbol->isStructured())
-				{
-					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
-					symbol2 = std::make_shared<StructureSymbol>(*s);
-					symbol2->setName(args[4].getTokenIt()->getString());
-				}
-				else
-				{
-					symbol2 = std::make_shared<ValueSymbol>(args[4].getTokenIt()->getString(), iterParentSymbol->getElementType());
-				}
-
-				if (!addLocalSymbol(symbol2))
-					error_handle(args[4].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[4].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id1 = args[2].getTokenIt();
-				TokenIt comma = args[3].getTokenIt();
-				TokenIt id2 = args[4].getTokenIt();
-				TokenIt op_in = args[5].getTokenIt();
-				auto dict = std::move(args[6].getExpression());
-
-				TokenIt lp = args[9].getTokenIt();
-				auto expr = args[10].getExpression();
-				TokenIt rp = args[11].getTokenIt();
-
-				removeLocalSymbol(id1->getString());
-				removeLocalSymbol(id2->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "for_expression", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInArrayMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInArrayEnd(args, 0); }
 		)
 		.production(
-			"FOR", "for_expression", "OF", "string_set", [&](auto&& args) -> Value {
-				if (isInStringLoop())
-					error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
-				stringLoopEnter();
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt of = args[2].getTokenIt();
-				auto set = std::move(args[3].getExpression());
-
-				TokenIt lp = args[6].getTokenIt();
-				auto expr = args[7].getExpression();
-				TokenIt rp = args[8].getTokenIt();
-
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				stringLoopLeave();
-				return output;
-			}
+			"FOR", "primary_expression", "PERCENT", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInArrayMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInArrayEnd(args, 1); }
+		)
+		.production(
+			"FOR", "for_expression", "ID", "COMMA", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInDictMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInDictEnd(args, 0); }
+		)
+		.production(
+			"FOR", "primary_expression", "PERCENT", "ID", "COMMA", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInDictMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInDictEnd(args, 1); }
+		)
+		.production(
+			"FOR", "for_expression", "OF", "string_set", [=](auto&& args) -> Value { return forOfStringsMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forOfStringsEnd(args, 0); }
+		)
+		.production(
+			"FOR", "primary_expression", "PERCENT", "OF", "string_set", [=](auto&& args) -> Value { return forOfStringsMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forOfStringsEnd(args, 1); }
 		)
 		//.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
 		//	auto for_expr = std::move(args[0].getExpression());
@@ -1415,21 +1467,8 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
-		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt percent = args[1].getTokenIt();
-			std::uint64_t value = 0;
-			if (strToNum(for_expr->getText(), value))
-			{
-				if (value == 0 || value > 100)
-				{
-					std::stringstream ss;
-					ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
-					error_handle(percent->getLocation(), ss.str());
-				}
-			}
-			auto percentual_expr = std::make_shared<PercentualExpression>(percent, std::move(for_expr));
-			percentual_expr->setUid(_uidGen.next());
+		.production("primary_expression", "PERCENT", "OF", "string_set", [&, makePercentual](auto&& args) -> Value {
+			auto percentual_expr = makePercentual(std::move(args[0].getExpression()), args[1].getTokenIt());
 			TokenIt of = args[2].getTokenIt();
 			auto set = std::move(args[3].getExpression());
 			auto output = std::make_shared<OfExpression>(std::move(percentual_expr), of, std::move(set));

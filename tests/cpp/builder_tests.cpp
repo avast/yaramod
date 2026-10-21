@@ -2071,6 +2071,35 @@ PercentageOfStringSet) {
 }
 
 TEST_F(BuilderTests,
+PercentageInForLoop) {
+	auto cond = forLoop(intVal(50).percent(), "i", range(intVal(1), intVal(3)), id("i") > intVal(1)).get();
+
+	YaraRuleBuilder newRule;
+	auto rule = newRule
+		.withName("rule_with_percentage_in_for_loop")
+		.withCondition(cond)
+		.get();
+
+	YaraFileBuilder newFile;
+	auto yaraFile = newFile
+		.withRule(std::move(rule))
+		.get(true);
+
+	ASSERT_NE(nullptr, yaraFile);
+	EXPECT_EQ(R"(rule rule_with_percentage_in_for_loop {
+	condition:
+		for 50% i in (1 .. 3) : ( i > 1 )
+})", yaraFile->getText());
+
+	EXPECT_EQ(R"(rule rule_with_percentage_in_for_loop
+{
+	condition:
+		for 50% i in (1 .. 3) : ( i > 1 )
+}
+)", yaraFile->getTextFormatted());
+}
+
+TEST_F(BuilderTests,
 FloatValueWorks) {
 	auto cond = doubleVal(0.0).get();
 
