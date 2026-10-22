@@ -10,6 +10,7 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #define FMT_HEADER_ONLY 1
 
@@ -89,6 +90,7 @@ public:
 	/// @name Constructors
 	/// @{
 	ParserDriver(Features features = Features::AllCurrent, const std::string& moduleDirectory = "");
+	ParserDriver(Features features, const std::vector<std::string>& exclusiveModulePaths);
 	ParserDriver(Features features, const std::shared_ptr<ModulePool>& modulePool);
 	/// @}
 

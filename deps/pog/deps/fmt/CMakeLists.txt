@@ -1,8 +1,5 @@
 include(GNUInstallDirs)
 include(ExternalProject)
-include(ProcessorCount)
-
-ProcessorCount(CPUS)
 
 set(FMT_INSTALL_DIR             ${CMAKE_CURRENT_BINARY_DIR}/fmt)
 # CMake 3.23+ puts CMAKE_LIBRARY_ARCHITECTURE into CMAKE_INSTALL_LIBDIR only if /usr/ is in CMAKE_INSTALL_PREFIX so we need to manually fix it
@@ -20,7 +17,7 @@ if(MSVC)
 	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . --config $<CONFIG> -- -m)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config $<CONFIG>)
 else()
-	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j${CPUS})
+	set(FMT_BUILD_COMMAND ${CMAKE_COMMAND} --build . -- -j)
 	set(FMT_INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install)
 endif()
 
@@ -37,6 +34,7 @@ ExternalProject_Add(
 		-DCMAKE_POSITION_INDEPENDENT_CODE=${POG_PIC}
 		-DFMT_TEST=OFF
 		-DFMT_DOC=OFF
+		-DFMT_UNICODE=OFF
 	BUILD_COMMAND
 		${FMT_BUILD_COMMAND}
 	INSTALL_COMMAND
@@ -54,6 +52,9 @@ set_target_properties(fmt::fmt PROPERTIES
 	INTERFACE_INCLUDE_DIRECTORIES "${FMT_INCLUDE_DIR}"
 	IMPORTED_LOCATION "${FMT_LIBRARY}"
 )
+if(MSVC)
+	target_compile_definitions(fmt::fmt INTERFACE FMT_UNICODE=0)
+endif()
 add_dependencies(fmt::fmt fmt-dep)
 
 install(

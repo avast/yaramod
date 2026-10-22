@@ -40,21 +40,21 @@ void ParserDriver::defineTokens()
 		currentFileContext()->getLocation().addColumn(str.length());
 	});
 
-	_parser.token("\r\n").action([&](std::string_view) -> Value {
+	_parser.token("\r\n").states("@default", "$meta").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\r\n");
 		TokenIt t = emplace_back(TokenType::NEW_LINE, "\r\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
 	});
-	_parser.token("\n").action([&](std::string_view) -> Value {
+	_parser.token("\n").states("@default", "$meta").action([&](std::string_view) -> Value {
 		currentFileContext()->getTokenStream()->setNewLineChar("\n");
 		TokenIt t = emplace_back(TokenType::NEW_LINE, "\n");
 		_indent.clear();
 		currentFileContext()->getLocation().addLine();
 		return t;
 	});
-	_parser.token("[ \t]+").states("@default", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
+	_parser.token("[ \t]+").states("@default", "$meta", "$hexstr_jump", "$hexstr").action([&](std::string_view str) -> Value { // spaces, tabulators
 		_indent += std::string{str};
 		return {};
 	});
@@ -107,8 +107,8 @@ void ParserDriver::defineTokens()
 	_parser.token("\\}").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RCB, std::string{str}); });
 	_parser.token("\\[").symbol("LSQB").description("[").action([&](std::string_view str) -> Value { return emplace_back(TokenType::LSQB, std::string{str}); });
 	_parser.token("\\]").symbol("RSQB").description("]").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RSQB, std::string{str}); });
-	_parser.token("=").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASSIGN, std::string{str}); });
-	_parser.token(":").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COLON, std::string{str}); });
+	_parser.token("=").states("@default", "$meta").symbol("ASSIGN").description("=").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ASSIGN, std::string{str}); });
+	_parser.token(":").states("@default", "$meta").symbol("COLON").description(":").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COLON, std::string{str}); });
 	_parser.token(",").symbol("COMMA").description(",").action([&](std::string_view str) -> Value { return emplace_back(TokenType::COMMA, std::string{str}); })
 		.precedence(1, pog::Associativity::Left);
 	_parser.token("/").states("@default").symbol("SLASH").description("/").action([&](std::string_view str) -> Value {
@@ -118,7 +118,7 @@ void ParserDriver::defineTokens()
 	_parser.token("global").symbol("GLOBAL").description("global").action([&](std::string_view str) -> Value { return emplace_back(TokenType::GLOBAL, std::string{str}); });
 	_parser.token("private").symbol("PRIVATE").description("private").action([&](std::string_view str) -> Value { return emplace_back(TokenType::PRIVATE, std::string{str}); });
 	_parser.token("rule").symbol("RULE").description("rule").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RULE, std::string{str}); });
-	_parser.token("meta").symbol("META").description("meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
+	_parser.token("meta").symbol("META").description("meta").enter_state("$meta").action([&](std::string_view str) -> Value { return emplace_back(TokenType::META, std::string{str}); });
 	if (_features & Features::AvastOnly)
 		_parser.token("variables").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
 	_parser.token("strings").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
@@ -130,8 +130,8 @@ void ParserDriver::defineTokens()
 	_parser.token("xor").symbol("XOR").description("xor").action([&](std::string_view str) -> Value { return emplace_back(TokenType::XOR, std::string{str}); });
 	_parser.token("base64").symbol("BASE64").description("base64").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64, std::string{str}); });
 	_parser.token("base64wide").symbol("BASE64WIDE").description("base64wide").action([&](std::string_view str) -> Value { return emplace_back(TokenType::BASE64WIDE, std::string{str}); });
-	_parser.token("true").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_TRUE, true); });
-	_parser.token("false").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_FALSE, false); });
+	_parser.token("true").states("@default", "$meta").symbol("BOOL_TRUE").description("true").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_TRUE, true); });
+	_parser.token("false").states("@default", "$meta").symbol("BOOL_FALSE").description("false").action([&](std::string_view) -> Value { return emplace_back(TokenType::BOOL_FALSE, false); });
 	_parser.token("import").symbol("IMPORT_KEYWORD").description("import").action([&](std::string_view str) -> Value { return emplace_back(TokenType::IMPORT_KEYWORD, std::string{str}); });
 	_parser.token("not").symbol("NOT").description("not").action([&](std::string_view str) -> Value { return emplace_back(TokenType::NOT, std::string{str}); })
 		.precedence(14, pog::Associativity::Right);
@@ -199,40 +199,53 @@ void ParserDriver::defineTokens()
 	});
 	//$include_file end
 
-	_parser.token(R"(0x[0-9a-fA-F]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"(0x[0-9a-fA-F]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}, n, std::hex);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"(0o[0-7]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"(0o[0-7]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(2, str.size()-2), n, std::oct);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+KB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+KB)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(TokenType::INTEGER, 1000 * n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+MB)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+MB)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}.substr(0, str.size()-2), n);
 		return emplace_back(TokenType::INTEGER, 1000000 * n, std::make_optional(std::string{str}));
 	});
-	_parser.token(R"([0-9]+)").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+	_parser.token(R"([0-9]+)").states("@default", "$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
 		int64_t n = 0;
 		strToNum(std::string{str}, n);
 		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
 	});
 
-	_parser.token(R"(\/\/[^\n]*)").states("@default", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
+	// Meta state tokens - handle negative integers directly
+	_parser.token(R"(-[0-9]+)").states("$meta").symbol("INTEGER").description("integer").action([&](std::string_view str) -> Value {
+		int64_t n = 0;
+		strToNum(std::string{str}, n);
+		return emplace_back(TokenType::INTEGER, n, std::make_optional(std::string{str}));
+	});
+
+	// Exit meta state when encountering section keywords or rule end
+	_parser.token("strings").states("$meta").enter_state("@default").symbol("STRINGS").description("strings").action([&](std::string_view str) -> Value { sectionStrings(true); return emplace_back(TokenType::STRINGS, std::string{str}); });
+	_parser.token("condition").states("$meta").enter_state("@default").symbol("CONDITION").description("condition").action([&](std::string_view str) -> Value { sectionStrings(false); return emplace_back(TokenType::CONDITION, std::string{str}); });
+	_parser.token("variables").states("$meta").enter_state("@default").symbol("VARIABLES").description("variables").action([&](std::string_view str) -> Value { return emplace_back(TokenType::VARIABLES, std::string{str}); });
+	_parser.token("\\}").states("$meta").enter_state("@default").symbol("RCB").description("}").action([&](std::string_view str) -> Value { return emplace_back(TokenType::RCB, std::string{str}); });
+
+	_parser.token(R"(\/\/[^\n]*)").states("@default", "$meta", "$hexstr", "@hexstr_jump").action([&](std::string_view str) -> Value {
 		auto it = emplace_back(TokenType::ONELINE_COMMENT, std::string{str}, _indent);
 		addComment(it);
 		return {};
 	});
 	// $multiline_comment
 	// Comment tokens are not delegated with return Value but stored in _comment
-	_parser.token(R"(/\*)").states("@default").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
+	_parser.token(R"(/\*)").states("@default", "$meta").enter_state("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -249,7 +262,7 @@ void ParserDriver::defineTokens()
 		_comment.append(std::string{str});
 		return {};
 	});
-	_parser.token(R"([^\n*]*)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+	_parser.token(R"([^\n*]+)").states("$multiline_comment").action([&](std::string_view str) -> Value {
 		_comment.append(std::string{str});
 		return {};
 	});
@@ -257,11 +270,16 @@ void ParserDriver::defineTokens()
 		_comment.append(std::string{str});
 		return {};
 	});
+	// Any single byte, so that bytes which are not valid UTF-8 are part of the comment too
+	_parser.token(R"(\C)").states("$multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
 	// $multiline_comment end
 
 	// $str
 	// $str tokens are not delegated with return Value but stored in _strLiteral
-	_parser.token(R"(\")").states("@default").enter_state("$str").action([&](std::string_view) -> Value {
+	_parser.token(R"(\")").states("@default", "$meta").enter_state("$str").action([&](std::string_view) -> Value {
 		_strLiteral.clear();
 		_positionBegin = currentFileContext()->getLocation().begin();
 		_escapedContent = false;
@@ -294,7 +312,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\#[0-9a-zA-Z_]*)").symbol("STRING_COUNT").description("string count").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_COUNT, std::string{str}); });
 	_parser.token(R"(\@[0-9a-zA-Z_]*)").symbol("STRING_OFFSET").description("string offset").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_OFFSET, std::string{str}); });
 	_parser.token(R"(\![0-9a-zA-Z_]*)").symbol("STRING_LENGTH").description("string length").action([&](std::string_view str) -> Value { return emplace_back(TokenType::STRING_LENGTH, std::string{str}); });
-	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").symbol("ID").description("identifier").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ID, std::string{str}); });
+	_parser.token("[a-zA-Z_][0-9a-zA-Z_]*").states("@default", "$meta").symbol("ID").description("identifier").action([&](std::string_view str) -> Value { return emplace_back(TokenType::ID, std::string{str}); });
 
 	_parser.token(R"([0-9]+\.[0-9]+)").symbol("DOUBLE").description("float").action([&](std::string_view str) -> Value { return emplace_back(TokenType::DOUBLE, std::stod(std::string(str))); });
 
@@ -343,6 +361,11 @@ void ParserDriver::defineTokens()
 		_comment.append(std::string{str});
 		return {};
 	});
+	// Any single byte, so that bytes which are not valid UTF-8 are part of the comment too
+	_parser.token(R"(\C)").states("$hexstr_multiline_comment").action([&](std::string_view str) -> Value {
+		_comment.append(std::string{str});
+		return {};
+	});
 	// $hexstr multiline comment end
 
 	_parser.token(R"({[ \v\t]}*)").states("$hexstr", "@hexstr_jump").action([](std::string_view) -> Value { return {}; });;
@@ -368,7 +391,7 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\^)").states("$regexp").symbol("REGEXP_START_OF_LINE").description("regexp ^").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\$)").states("$regexp").symbol("REGEXP_END_OF_LINE").description("regexp $").action([](std::string_view str) -> Value { return std::string{str}; });
 	_parser.token(R"(\.)").states("$regexp").symbol("REGEXP_ANY_CHAR").description("regexp .").action([](std::string_view str) -> Value { return std::string{str}; });
-	_parser.token(R"(\{[0-9]*,[0-9]*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
+	_parser.token(R"(\{\s*[0-9]*\s*,\s*[0-9]*\s*\})").states("$regexp").symbol("REGEXP_RANGE").description("regexp range").action([&](std::string_view str) -> Value {
 		std::string rangeStr = std::string{str};
 		std::string lowStr = rangeStr.substr(1, rangeStr.find(',') - 1);
 		std::string highStr = rangeStr.substr(rangeStr.find(',') + 1);
@@ -376,12 +399,12 @@ void ParserDriver::defineTokens()
 
 		std::uint64_t lowNum = 0;
 		std::optional<std::uint64_t> low;
-		if (strToNum(lowStr, lowNum, std::dec))
+		if (strToNum(trim(lowStr), lowNum, std::dec))
 			low = lowNum;
 
 		std::uint64_t highNum = 0;
 		std::optional<std::uint64_t> high;
-		if (strToNum(highStr, highNum, std::dec))
+		if (strToNum(trim(highStr), highNum, std::dec))
 			high = highNum;
 
 		return std::make_pair(low, high);
@@ -432,13 +455,22 @@ void ParserDriver::defineTokens()
 	_parser.token(R"(\\b)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\b"; return {};});
 	_parser.token(R"(\\B)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\B"; return {};});
 	_parser.token(R"(\\\\)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\\\"; return {};});
+	_parser.token(R"(\\/)").states("$regexp_class").action([&](std::string_view) -> Value {
+		_regexpClass += "\\/";
+		return {};
+	});
+	_parser.token(R"(/)").states("$regexp_class").action([&](std::string_view) -> Value {
+		error_handle(currentFileContext()->getLocation(),
+			"Syntax error: Unescaped delimiter in regexp class");
+		return {};
+	});
 	_parser.token(R"(\\\])").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\]"; return {};});
 	_parser.token(R"(\\\[)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "\\["; return {};});
 	_parser.token(R"(\[)").states("$regexp_class").action([&](std::string_view) -> Value { _regexpClass += "["; return {}; });
 	_parser.token(R"([^\]\[])").states("$regexp_class").action([&](std::string_view str) -> Value { _regexpClass += std::string{str}[0]; return {}; });
 	// $regexp end
 
-	_parser.end_token().states("@default", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
+	_parser.end_token().states("@default", "$multiline_comment", "$str", "$include", "$hexstr", "hexstr_jump", "$regexp", "$regexp_class").action([&](std::string_view) -> Value {
 		_errorLocation = currentFileContext()->getLocation();
 		includeEnd();
 		return {};
@@ -640,7 +672,7 @@ void ParserDriver::defineGrammar()
 	if (_features & Features::AvastOnly)
 	{
 		_parser.rule("variables") // vector<Variable>
-			.production("VARIABLES", "COLON", "variables_body", [this](auto&& args) -> Value {
+			.production("VARIABLES", "COLON", "variables_body", [](auto&& args) -> Value {
 				args[1].getTokenIt()->setType(TokenType::COLON_BEFORE_NEWLINE);
 				return std::move(args[2]);
 			})
@@ -1094,6 +1126,209 @@ void ParserDriver::defineGrammar()
 		})
 		;
 
+	// Creates a percentual quantifier (e.g. '75%') of 'of' expressions and for loops.
+	auto makePercentual = [this](Expression::Ptr&& expr, TokenIt percent) -> Expression::Ptr {
+		std::uint64_t value = 0;
+		if (strToNum(expr->getText(), value))
+		{
+			if (value == 0 || value > 100)
+			{
+				std::stringstream ss;
+				ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
+				error_handle(percent->getLocation(), ss.str());
+			}
+		}
+		auto output = std::make_shared<PercentualExpression>(percent, std::move(expr));
+		output->setUid(_uidGen.next());
+		return output;
+	};
+
+	// Each for loop has two variants. The first one has a 'for_expression' quantifier (e.g. 'for any i in ...'),
+	// the second one has a percentual quantifier 'primary_expression PERCENT' (e.g. 'for 75% i in ...'). The percentual
+	// quantifier cannot be a part of 'for_expression' because the parser would have to decide between percentage
+	// and modulo (e.g. '75 % i') right after PERCENT, without seeing the loop variable. Both variants share
+	// the actions below, 'o' is the offset of the arguments following the quantifier (0 or 1 for PERCENT).
+	auto forQuantifier = [makePercentual](std::vector<Value>& args, std::size_t o) -> Expression::Ptr {
+		if (o == 0)
+			return std::move(args[1].getExpression());
+		return makePercentual(std::move(args[1].getExpression()), args[2].getTokenIt());
+	};
+	auto forInSetMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		// Determine the type of the symbol based on the type of the first element in the set with fallback to int
+		// for_expression_set can be either SetExpression (enumeration) or RangeExpression (range)
+		auto iterType = Expression::Type::Int;
+		if (auto iterSet = args[4 + o].getExpression()->template as<SetExpression>())
+		{
+			if (!iterSet->getElements().empty())
+				iterType = iterSet->getElements()[0]->getType();
+		}
+		// RangeExpression is always over integers, so we keep the default Int type
+		auto symbol = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), iterType);
+		if (!addLocalSymbol(symbol))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInSetEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id = args[2 + o].getTokenIt();
+
+		TokenIt op_in = args[3 + o].getTokenIt();
+		auto set = std::move(args[4 + o].getExpression());
+		TokenIt lp = args[7 + o].getTokenIt();
+		auto expr = args[8 + o].getExpression();
+		TokenIt rp = args[9 + o].getTokenIt();
+
+		removeLocalSymbol(id->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forInArrayMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		const auto& iterable = args[4 + o].getExpression();
+		std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+		assert(parentSymbol);
+		if (!parentSymbol->isArray())
+		{
+			if (!incompleteMode() || !parentSymbol->isUndefined())
+				error_handle((++args[3 + o].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
+			else
+			{
+				auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+				const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+				parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
+			}
+		}
+
+		std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
+
+		std::shared_ptr<Symbol> symbol;
+		if (iterParentSymbol->isStructured())
+		{
+			auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+			symbol = std::make_shared<StructureSymbol>(*s);
+			symbol->setName(args[2 + o].getTokenIt()->getString());
+		}
+		else
+		{
+			symbol = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), iterParentSymbol->getElementType());
+		}
+
+		if (!addLocalSymbol(symbol))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInArrayEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id = args[2 + o].getTokenIt();
+		TokenIt op_in = args[3 + o].getTokenIt();
+		auto array = std::move(args[4 + o].getExpression());
+
+		TokenIt lp = args[7 + o].getTokenIt();
+		auto expr = args[8 + o].getExpression();
+		TokenIt rp = args[9 + o].getTokenIt();
+
+		removeLocalSymbol(id->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forInDictMid = [this](std::vector<Value>& args, std::size_t o) -> Value {
+		const auto& iterable = args[6 + o].getExpression();
+		std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
+		assert(parentSymbol);
+		if (!parentSymbol->isDictionary())
+		{
+			if (!incompleteMode() || !parentSymbol->isUndefined())
+				error_handle((++args[5 + o].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
+			else
+			{
+				auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
+				const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
+				parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
+			}
+		}
+
+		std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2 + o].getTokenIt()->getString(), ExpressionType::String);
+		if (!addLocalSymbol(symbol1))
+			error_handle(args[2 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2 + o].getTokenIt()->getString() + "'");
+
+		std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
+
+		std::shared_ptr<Symbol> symbol2;
+		if (iterParentSymbol->isStructured())
+		{
+			auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
+			symbol2 = std::make_shared<StructureSymbol>(*s);
+			symbol2->setName(args[4 + o].getTokenIt()->getString());
+		}
+		else
+		{
+			symbol2 = std::make_shared<ValueSymbol>(args[4 + o].getTokenIt()->getString(), iterParentSymbol->getElementType());
+		}
+
+		if (!addLocalSymbol(symbol2))
+			error_handle(args[4 + o].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[4 + o].getTokenIt()->getString() + "'");
+		return {};
+	};
+	auto forInDictEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt id1 = args[2 + o].getTokenIt();
+		TokenIt comma = args[3 + o].getTokenIt();
+		TokenIt id2 = args[4 + o].getTokenIt();
+		TokenIt op_in = args[5 + o].getTokenIt();
+		auto dict = std::move(args[6 + o].getExpression());
+
+		TokenIt lp = args[9 + o].getTokenIt();
+		auto expr = args[10 + o].getExpression();
+		TokenIt rp = args[11 + o].getTokenIt();
+
+		removeLocalSymbol(id1->getString());
+		removeLocalSymbol(id2->getString());
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		return output;
+	};
+	auto forOfStringsMid = [this](std::vector<Value>& args, std::size_t /*o*/) -> Value {
+		if (isInStringLoop())
+			error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
+		stringLoopEnter();
+		return {};
+	};
+	auto forOfStringsEnd = [this, forQuantifier](std::vector<Value>& args, std::size_t o) -> Value {
+		TokenIt for_token = args[0].getTokenIt();
+		auto for_expr = forQuantifier(args, o);
+		TokenIt of = args[2 + o].getTokenIt();
+		auto set = std::move(args[3 + o].getExpression());
+
+		TokenIt lp = args[6 + o].getTokenIt();
+		auto expr = args[7 + o].getExpression();
+		TokenIt rp = args[8 + o].getTokenIt();
+
+		lp->setType(TokenType::LP_WITH_SPACE_AFTER);
+		rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
+		auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
+		output->setType(Expression::Type::Bool);
+		output->setTokenStream(currentTokenStream());
+		output->setUid(_uidGen.next());
+		stringLoopLeave();
+		return output;
+	};
+
 	_parser.rule("expression") // Expression::Ptr
 		.production("boolean", [&](auto&& args) -> Value {
 			auto output = std::make_shared<BoolLiteralExpression>(currentTokenStream(), args[0].getTokenIt());
@@ -1148,178 +1383,36 @@ void ParserDriver::defineGrammar()
 			return output;
 		})
 		.production(
-			"FOR", "for_expression", "ID", "IN", "for_expression_set", [&](auto&& args) -> Value {
-				auto symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), Expression::Type::Int);
-				if (!addLocalSymbol(symbol))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id = args[2].getTokenIt();
-
-				TokenIt op_in = args[3].getTokenIt();
-				auto set = std::move(args[4].getExpression());
-				TokenIt lp = args[7].getTokenIt();
-				auto expr = args[8].getExpression();
-				TokenIt rp = args[9].getTokenIt();
-
-				removeLocalSymbol(id->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(set), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "for_expression", "ID", "IN", "for_expression_set", [=](auto&& args) -> Value { return forInSetMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInSetEnd(args, 0); }
 		)
 		.production(
-			"FOR", "for_expression", "ID", "IN", "identifier", [&](auto&& args) -> Value {
-				const auto& iterable = args[4].getExpression();
-				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
-				assert(parentSymbol);
-				if (!parentSymbol->isArray())
-				{
-					if (!incompleteMode() || !parentSymbol->isUndefined())
-						error_handle((++args[3].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an array");
-					else
-					{
-						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
-						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
-						parentExpr->setSymbol(std::make_shared<ArraySymbol>(parentTokenText, ExpressionType::Undefined));
-					}
-				}
-
-				std::shared_ptr<const ArraySymbol> iterParentSymbol = std::static_pointer_cast<const ArraySymbol>(parentSymbol);
-
-				std::shared_ptr<Symbol> symbol;
-				if (iterParentSymbol->isStructured())
-				{
-					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
-					symbol = std::make_shared<StructureSymbol>(*s);
-					symbol->setName(args[2].getTokenIt()->getString());
-				}
-				else
-				{
-					symbol = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), iterParentSymbol->getElementType());
-				}
-
-				if (!addLocalSymbol(symbol))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id = args[2].getTokenIt();
-				TokenIt op_in = args[3].getTokenIt();
-				auto array = std::move(args[4].getExpression());
-
-				TokenIt lp = args[7].getTokenIt();
-				auto expr = args[8].getExpression();
-				TokenIt rp = args[9].getTokenIt();
-
-				removeLocalSymbol(id->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForArrayExpression>(for_token, std::move(for_expr), id, op_in, std::move(array), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "primary_expression", "PERCENT", "ID", "IN", "for_expression_set", [=](auto&& args) -> Value { return forInSetMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInSetEnd(args, 1); }
 		)
 		.production(
-			"FOR", "for_expression", "ID", "COMMA", "ID", "IN", "identifier", [&](auto&& args) -> Value {
-				const auto& iterable = args[6].getExpression();
-				std::shared_ptr<Symbol> parentSymbol = std::static_pointer_cast<const IdExpression>(iterable)->getSymbol();
-				assert(parentSymbol);
-				if (!parentSymbol->isDictionary())
-				{
-					if (!incompleteMode() || !parentSymbol->isUndefined())
-						error_handle((++args[5].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not an dictionary");
-					else
-					{
-						auto parentExpr = std::static_pointer_cast<IdExpression>(iterable);
-						const auto& parentTokenText = parentExpr->getSymbolToken()->getText();
-						parentExpr->setSymbol(std::make_shared<DictionarySymbol>(parentTokenText, ExpressionType::Undefined));
-					}
-				}
-
-				std::shared_ptr<Symbol> symbol1 = std::make_shared<ValueSymbol>(args[2].getTokenIt()->getString(), ExpressionType::String);
-				if (!addLocalSymbol(symbol1))
-					error_handle(args[2].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[2].getTokenIt()->getString() + "'");
-
-				std::shared_ptr<const DictionarySymbol> iterParentSymbol = std::static_pointer_cast<const DictionarySymbol>(parentSymbol);
-
-				std::shared_ptr<Symbol> symbol2;
-				if (iterParentSymbol->isStructured())
-				{
-					auto s = std::static_pointer_cast<const StructureSymbol>(iterParentSymbol->getStructuredElementType());
-					symbol2 = std::make_shared<StructureSymbol>(*s);
-					symbol2->setName(args[4].getTokenIt()->getString());
-				}
-				else
-				{
-					symbol2 = std::make_shared<ValueSymbol>(args[4].getTokenIt()->getString(), iterParentSymbol->getElementType());
-				}
-
-				if (!addLocalSymbol(symbol2))
-					error_handle(args[4].getTokenIt()->getLocation(), "Redefinition of identifier '" + args[4].getTokenIt()->getString() + "'");
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt id1 = args[2].getTokenIt();
-				TokenIt comma = args[3].getTokenIt();
-				TokenIt id2 = args[4].getTokenIt();
-				TokenIt op_in = args[5].getTokenIt();
-				auto dict = std::move(args[6].getExpression());
-
-				TokenIt lp = args[9].getTokenIt();
-				auto expr = args[10].getExpression();
-				TokenIt rp = args[11].getTokenIt();
-
-				removeLocalSymbol(id1->getString());
-				removeLocalSymbol(id2->getString());
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForDictExpression>(for_token, std::move(for_expr), id1, comma, id2, op_in, std::move(dict), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				return output;
-			}
+			"FOR", "for_expression", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInArrayMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInArrayEnd(args, 0); }
 		)
 		.production(
-			"FOR", "for_expression", "OF", "string_set", [&](auto&& args) -> Value {
-				if (isInStringLoop())
-					error_handle(args[0].getTokenIt()->getLocation(), "Nesting of for-loop over strings is not allowed");
-				stringLoopEnter();
-				return {};
-			},
-			"COLON", "LP", "expression", "RP", [&](auto&& args) -> Value {
-				TokenIt for_token = args[0].getTokenIt();
-				auto for_expr = std::move(args[1].getExpression());
-				TokenIt of = args[2].getTokenIt();
-				auto set = std::move(args[3].getExpression());
-
-				TokenIt lp = args[6].getTokenIt();
-				auto expr = args[7].getExpression();
-				TokenIt rp = args[8].getTokenIt();
-
-				lp->setType(TokenType::LP_WITH_SPACE_AFTER);
-				rp->setType(TokenType::RP_WITH_SPACE_BEFORE);
-				auto output = std::make_shared<ForStringExpression>(for_token, std::move(for_expr), of, std::move(set), lp, std::move(expr), rp);
-				output->setType(Expression::Type::Bool);
-				output->setTokenStream(currentTokenStream());
-				output->setUid(_uidGen.next());
-				stringLoopLeave();
-				return output;
-			}
+			"FOR", "primary_expression", "PERCENT", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInArrayMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInArrayEnd(args, 1); }
+		)
+		.production(
+			"FOR", "for_expression", "ID", "COMMA", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInDictMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInDictEnd(args, 0); }
+		)
+		.production(
+			"FOR", "primary_expression", "PERCENT", "ID", "COMMA", "ID", "IN", "identifier", [=](auto&& args) -> Value { return forInDictMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forInDictEnd(args, 1); }
+		)
+		.production(
+			"FOR", "for_expression", "OF", "string_set", [=](auto&& args) -> Value { return forOfStringsMid(args, 0); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forOfStringsEnd(args, 0); }
+		)
+		.production(
+			"FOR", "primary_expression", "PERCENT", "OF", "string_set", [=](auto&& args) -> Value { return forOfStringsMid(args, 1); },
+			"COLON", "LP", "expression", "RP", [=](auto&& args) -> Value { return forOfStringsEnd(args, 1); }
 		)
 		//.production("for_expression", "OF", "string_set", [&](auto&& args) -> Value {
 		//	auto for_expr = std::move(args[0].getExpression());
@@ -1393,21 +1486,8 @@ void ParserDriver::defineGrammar()
 			output->setUid(_uidGen.next());
 			return output;
 		})
-		.production("primary_expression", "PERCENT", "OF", "string_set", [&](auto&& args) -> Value {
-			auto for_expr = std::move(args[0].getExpression());
-			TokenIt percent = args[1].getTokenIt();
-			std::uint64_t value = 0;
-			if (strToNum(for_expr->getText(), value))
-			{
-				if (value == 0 || value > 100)
-				{
-					std::stringstream ss;
-					ss << "Percentage must be between 1 and 100 (inclusive). Got " << value << ".";
-					error_handle(percent->getLocation(), ss.str());
-				}
-			}
-			auto percentual_expr = std::make_shared<PercentualExpression>(percent, std::move(for_expr));
-			percentual_expr->setUid(_uidGen.next());
+		.production("primary_expression", "PERCENT", "OF", "string_set", [&, makePercentual](auto&& args) -> Value {
+			auto percentual_expr = makePercentual(std::move(args[0].getExpression()), args[1].getTokenIt());
 			TokenIt of = args[2].getTokenIt();
 			auto set = std::move(args[3].getExpression());
 			auto output = std::make_shared<OfExpression>(std::move(percentual_expr), of, std::move(set));
@@ -2052,7 +2132,8 @@ void ParserDriver::defineGrammar()
 		})
 		.production("identifier", "DOT", "ID", [&](auto&& args) -> Value {
 			const auto& expr = args[0].getExpression();
-			if (!expr->isObject())
+			// Objects and Strings (only `.len()` though) can have attributes.
+			if (!expr->isObject() && !expr->isString())
 			{
 				if (!incompleteMode() || !expr->isUndefined())
 					error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + expr->getText() + "' is not an object");
@@ -2067,24 +2148,22 @@ void ParserDriver::defineGrammar()
 			auto parentSymbol = std::static_pointer_cast<IdExpression>(expr)->getSymbol();
 			while (parentSymbol->isReference())
 				parentSymbol = std::static_pointer_cast<ReferenceSymbol>(parentSymbol)->getSymbol();
-			if (!parentSymbol->isStructure())
-			{
-				assert(!incompleteMode() || !expr->isUndefined());
-				error_handle((--args[1].getTokenIt())->getLocation(), "Identifier '" + parentSymbol->getName() + "' is not a structure");
-			}
-			auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
 
 			TokenIt symbol_token = args[2].getTokenIt();
-			auto attr = structParentSymbol->getAttribute(symbol_token->getString());
+			auto attr = parentSymbol->getAttribute(symbol_token->getString());
 			if (!attr)
 			{
-				if (!incompleteMode())
-					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
-				else
+				// For structures in incomplete mode, synthesize an Undefined placeholder rather than erroring.
+				if (incompleteMode() && parentSymbol->isStructure())
 				{
-					bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
+					auto structParentSymbol = std::static_pointer_cast<StructureSymbol>(parentSymbol);
+					[[maybe_unused]] bool inserted = structParentSymbol->addAttribute(std::make_shared<Symbol>(Symbol::Type::Undefined, symbol_token->getString(), ExpressionType::Undefined));
 					attr = structParentSymbol->getAttribute(symbol_token->getString());
 					assert(inserted && attr);
+				}
+				else
+				{
+					error_handle(args[2].getTokenIt()->getLocation(), "Unrecognized identifier '" + symbol_token->getString() + "' referenced");
 				}
 			}
 
@@ -2196,7 +2275,11 @@ void ParserDriver::defineGrammar()
 				}
 			}
 
-			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), args[1].getTokenIt(), std::move(arguments), args[3].getTokenIt());
+			auto lp = args[1].getTokenIt();
+			auto rp = args[3].getTokenIt();
+			lp->setType(TokenType::FUNCTION_CALL_LP);
+			rp->setType(TokenType::FUNCTION_CALL_RP);
+			auto output = std::make_shared<FunctionCallExpression>(std::move(expr), std::move(lp), std::move(arguments), std::move(rp));
 			output->setType(funcParentSymbol->getReturnType());
 			output->setTokenStream(currentTokenStream());
 			output->setUid(_uidGen.next());
@@ -2496,6 +2579,18 @@ ParserDriver::ParserDriver(Features features, const std::string& moduleDirectory
 	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
 	_escapedContent(false), _mode(ParserMode::Regular), _features(features),
 	_modules(std::make_shared<ModulePool>(features, moduleDirectory)),
+	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
+	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
+	_lastRuleTokenStream(), _anonStringCounter(0), _errorLocation(), _deferredIncludes(),
+	_expressionArrayStack()
+{
+	initialize();
+}
+
+ParserDriver::ParserDriver(Features features, const std::vector<std::string>& exclusiveModulePaths)
+	: _strLiteral(), _indent(), _comment(), _regexpClass(), _parser(), _sectionStrings(false),
+	_escapedContent(false), _mode(ParserMode::Regular), _features(features),
+	_modules(std::make_shared<ModulePool>(features, exclusiveModulePaths)),
 	_fileContexts(), _comments(), _includedFiles(), _includedFilesCache(), _valid(false),
 	_file(), _currentStrings(), _stringLoop(false), _localSymbols(), _lastRuleLocation(),
 	_lastRuleTokenStream(), _anonStringCounter(0), _errorLocation(), _deferredIncludes(),

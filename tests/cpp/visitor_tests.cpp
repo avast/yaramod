@@ -1518,5 +1518,40 @@ rule rule_6
 	EXPECT_EQ(expected, yara_file.getTextFormatted());
 }
 
+TEST_F(VisitorTests,
+LenMethodFunctionCallVisitorDetectsLenCallsOnString) {
+	class LenCallCollector : public yaramod::ModifyingVisitor
+	{
+	public:
+		void process(const YaraFile& file)
+		{
+			for (const auto& rule : file.getRules())
+				modify(rule->getCondition());
+		}
+		virtual yaramod::VisitResult visit(FunctionCallExpression* expr) override
+		{
+			calledFunctions.push_back(expr->getFunction()->getText());
+			return {};
+		}
+		std::vector<std::string> calledFunctions;
+	};
+	prepareInput(
+R"(
+import "pe"
+rule rule_name {
+	condition:
+		pe.pdb_path.len() > 0
+}
+)");
+	EXPECT_TRUE(driver.parse(input));
+	auto yara_file = driver.getParsedFile();
+
+	LenCallCollector visitor;
+	visitor.process(yara_file);
+
+	ASSERT_EQ(1u, visitor.calledFunctions.size());
+	EXPECT_EQ("pe.pdb_path.len", visitor.calledFunctions[0]);
+}
+
 }
 }

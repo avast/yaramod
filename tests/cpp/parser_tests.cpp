@@ -247,6 +247,47 @@ rule hex_and_decimal_integers_are_preserved
 }
 
 TEST_F(ParserTests,
+HexStringAfterNonStringMetaWorks) {
+	// Regression: when a meta section ends with a non-string value (integer
+	// or boolean), the lexer must still switch to the hex string state for a
+	// following strings section. Otherwise the leading hex nibbles are lexed
+	// as an integer and parsing fails.
+	prepareInput(
+R"(
+rule hex_string_after_non_string_meta
+{
+	meta:
+		third_party = false
+		rule_version = 1
+	strings:
+		$h = { 48 81 04 24 ?? ?? 00 00 E9 }
+	condition:
+		$h
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("hex_string_after_non_string_meta", rule->getName());
+
+	ASSERT_EQ(2u, rule->getMetas().size());
+	EXPECT_TRUE(rule->getMetas()[0].getValue().isBool());
+	EXPECT_TRUE(rule->getMetas()[1].getValue().isInt());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto hexString = strings[0];
+	EXPECT_TRUE(hexString->isHex());
+	EXPECT_EQ("$h", hexString->getIdentifier());
+	EXPECT_EQ("{ 48 81 04 24 ?? ?? 00 00 E9 }", hexString->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 RuleWithVariablesWorks) {
 	prepareInput(
 R"(
@@ -1287,6 +1328,52 @@ rule regexp_with_predefined_classes
 	EXPECT_EQ(R"(/\w\W\s\S\d\D\babc\B/)", regexp->getText());
 
 	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RegexpClassRejectsUnescapedDelimiters) {
+	for (const auto* regexp : {R"(/[/]/)", R"(/[/][/]/)", R"(/[/a][/b]/)",
+		R"(/[^/]/)", R"(/[\\/]/)"})
+	{
+		SCOPED_TRACE(regexp);
+		prepareInput(std::string("rule test { strings: $a = ") + regexp
+			+ " condition: $a }");
+		EXPECT_THROW(driver.parse(input), ParserError);
+	}
+}
+
+TEST_F(ParserTests,
+RegexpClassPreservesEscapedDelimiters) {
+	for (const auto* regexp : {R"(/[\/]/)", R"(/[^\/]/)", R"(/[a\/b]/)",
+		R"(/[\\\/]/)"})
+	{
+		SCOPED_TRACE(regexp);
+		prepareInput(std::string("rule test { strings: $a = ") + regexp
+			+ " condition: $a }");
+		ASSERT_TRUE(driver.parse(input));
+		const auto& rules = driver.getParsedFile().getRules();
+		ASSERT_EQ(1u, rules.size());
+		EXPECT_EQ(regexp, rules[0]->getStrings()[0]->getText());
+	}
+}
+
+TEST_F(ParserTests,
+RegexpClassBuiltWithDelimitersCanBeParsed) {
+	for (const auto& [characters, expected] : std::vector<std::pair<std::string, std::string>>{
+		{"/", R"([\/])"}, {"a/b", R"([a\/b])"}, {R"(a\/b)", R"([a\/b])"}, {R"(\\/)", R"([\\\/])"}})
+	{
+		SCOPED_TRACE(characters);
+		RegexpClass cls(characters);
+		EXPECT_EQ(expected, cls.getText());
+
+		prepareInput("rule test { strings: $a = /" + cls.getText() + "/ condition: $a }");
+		ASSERT_TRUE(driver.parse(input));
+		EXPECT_EQ("/" + expected + "/", driver.getParsedFile().getRules()[0]->getStrings()[0]->getText());
+	}
+
+	RegexpClass cls("a\\");
+	cls.addCharacters("/");
+	EXPECT_EQ(R"([a\/])", cls.getText());
 }
 
 TEST_F(ParserTests,
@@ -3198,7 +3285,16 @@ rule for_string_literal_set_condition
 	EXPECT_EQ("for", rule->getCondition()->getFirstTokenIt()->getPureText());
 	EXPECT_EQ(")", rule->getCondition()->getLastTokenIt()->getPureText());
 
-	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+	EXPECT_EQ(R"(
+import "pe"
+import "elf"
+
+rule for_string_literal_set_condition
+{
+	condition:
+		for any s in ("hash1", elf.dynsym[0].name, pe.imphash()) : ( "abc123" == s )
+}
+)", driver.getParsedFile().getTextFormatted());
 }
 
 TEST_F(ParserTests,
@@ -3223,6 +3319,107 @@ rule for_string_literal_set_condition
 	{
 		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
 		EXPECT_EQ("Error at 7.27: all items in enumeration must be same type", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+NegativeMetaValuesWorks) {
+	prepareInput(
+R"(
+rule rule_with_negative_meta
+{
+	meta:
+		negative_value = -123
+		positive_value = 456
+		string_value = "test"
+		bool_value = true
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	const auto& metas = rule->getMetas();
+	ASSERT_EQ(4u, metas.size());
+
+	EXPECT_EQ("negative_value", metas[0].getKey());
+	EXPECT_EQ("-123", metas[0].getValue().getPureText());
+
+	EXPECT_EQ("positive_value", metas[1].getKey());
+	EXPECT_EQ("456", metas[1].getValue().getPureText());
+
+	EXPECT_EQ("string_value", metas[2].getKey());
+	EXPECT_EQ("test", metas[2].getValue().getPureText());
+
+	EXPECT_EQ("bool_value", metas[3].getKey());
+	EXPECT_EQ("true", metas[3].getValue().getPureText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForExpressionInOverStringSet) {
+	prepareInput(
+R"(
+rule expression_in_over_string_set
+{
+	condition:
+		for any i in ("abc", "def") : ( i contains "string" )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(for any i in ("abc", "def") : ( i contains "string" ))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForExpressionInOverIntegerRange) {
+	prepareInput(
+R"(
+rule expression_in_over_integer_range
+{
+	condition:
+		for any i in (0 .. 0x1500) : ( uint32(i) == 0x00004550 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(R"(for any i in (0 .. 0x1500) : ( uint32(i) == 0x00004550 ))", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ForOfWithStringLiteralsForbidden) {
+	prepareInput(
+R"(
+rule for_of_with_string_literals_forbidden
+{
+	condition:
+		for any of ("hash1", "hash2", "hash3") : ( true )
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 5.15-21: Syntax error: Unexpected \", expected one of string identifier, string wildcard", err.getErrorMessage());
 	}
 }
 
@@ -5305,6 +5502,54 @@ rule rule_name
 )";
 
 	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+MultilineCommentsWithNonUtf8BytesWork) {
+	std::string rule =
+R"(
+/* caf)" "\xE9" R"( */
+rule rule_name {
+	/*)" "\xFF\xFE" R"(*/
+	strings:
+		$1 = { AB CD /* caf)" "\xE9" R"( */ 01 }
+	condition:
+		$1
+}
+)";
+	prepareInput(rule);
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	std::string expected =
+R"(
+/* caf)" "\xE9" R"( */
+rule rule_name
+{
+	/*)" "\xFF\xFE" R"(*/
+	strings:
+		$1 = { AB CD /* caf)" "\xE9" R"( */ 01 }
+	condition:
+		$1
+}
+)";
+
+	EXPECT_EQ(expected, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+UnterminatedMultilineCommentAtEndOfFileWorks) {
+	prepareInput(
+R"(
+rule rule_name {
+	condition:
+		true
+}
+/* unterminated comment)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
 }
 
 TEST_F(ParserTests,
@@ -8100,6 +8345,101 @@ rule test_rule
 }
 
 TEST_F(ParserTests,
+ParsePercentageInForLoops) {
+	prepareInput(
+		R"(import "pe"
+
+rule test_rule
+{
+	strings:
+		$a = "no"
+		$b = "time"
+	condition:
+		for 75% i in (1 .. #a) : ( @a[i] > 0 ) and
+		for 50% i in (1, 2, 3) : ( 50% of them ) and
+		for 50% section in pe.sections : ( section.name == ".text" ) and
+		for 50% k, v in pe.version_info : ( k == "CompanyName" ) and
+		for 50% of ($a, $b) : ( $ at 0 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentageInForLoopIsNotModulo) {
+	prepareInput(
+		R"(rule test_rule
+{
+	strings:
+		$a = "no"
+	condition:
+		for 75% i in (1 .. #a) : ( @a[i] > 0 )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto forExpr = driver.getParsedFile().getRules()[0]->getCondition()->as<ForArrayExpression>();
+	ASSERT_NE(nullptr, forExpr);
+	EXPECT_NE(nullptr, forExpr->getVariable()->as<PercentualExpression>());
+	EXPECT_EQ("for 75% i in (1 .. #a) : ( @a[i] > 0 )", forExpr->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+ParsePercentageInForLoopError) {
+	prepareInput(
+		R"(rule test_rule
+{
+	condition:
+		for 101% i in (1..3) : ( i > 1 )
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_EQ(0u, driver.getParsedFile().getRules().size());
+		EXPECT_EQ("Error at 4.10: Percentage must be between 1 and 100 (inclusive). Got 101.", err.getErrorMessage());
+	}
+}
+
+TEST_F(ParserTests,
+ParseModuloInForLoops) {
+	prepareInput(
+		R"(import "math"
+
+rule test_rule
+{
+	condition:
+		for 10 % 3 i in (1 .. 10) : (
+			i % 2 == 0 and
+			math.min(10 % i, 1) == 0
+		)
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	auto forExpr = driver.getParsedFile().getRules()[0]->getCondition()->as<ForArrayExpression>();
+	ASSERT_NE(nullptr, forExpr);
+	EXPECT_NE(nullptr, forExpr->getVariable()->as<ModuloExpression>());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
 ParseOfRule) {
 	prepareInput(
 		R"(rule rule1
@@ -8870,6 +9210,270 @@ rule remove_variables
 		$s01
 }
 )", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+RegexpRangeWithWhitespaces) {
+	prepareInput(
+R"(
+rule regexp_range_with_whitespaces
+{
+	strings:
+		$1 = /ab{  1  ,  2  }/
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("regexp_range_with_whitespaces", rule->getName());
+	EXPECT_EQ(Rule::Modifier::None, rule->getModifier());
+
+	auto strings = rule->getStrings();
+	ASSERT_EQ(1u, strings.size());
+
+	auto regexp0 = strings[0];
+	EXPECT_TRUE(regexp0->isRegexp());
+	EXPECT_EQ("$1", regexp0->getIdentifier());
+	EXPECT_EQ("/ab{1,2}/", regexp0->getText());
+
+	EXPECT_EQ(R"(
+rule regexp_range_with_whitespaces
+{
+	strings:
+		$1 = /ab{1,2}/
+	condition:
+		true
+}
+)", driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+FormattingInExpressionArraysNotBroken) {
+	prepareInput(
+R"(
+import "cuckoo"
+import "math"
+import "pe"
+
+rule formatting_in_expression_arrays_not_broken
+{
+	condition:
+		2 of (
+			math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+			pe.imphash() contains "a",
+			any of (
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 ))
+			)
+		) or
+		for any i in (1 + 2, 2, 3, 4, 5) : ( true )
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	EXPECT_EQ(driver.getParsedFile().getTextFormatted(), R"(
+import "cuckoo"
+import "math"
+import "pe"
+
+rule formatting_in_expression_arrays_not_broken
+{
+	condition:
+		2 of (
+			math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+			pe.imphash() contains "a",
+			any of (
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 )),
+				math.min(cuckoo.sync.mutex(/abc/), 100 + ( 220 + 300 ))
+			)
+		) or
+		for any i in (1 + 2, 2, 3, 4, 5) : ( true )
+}
+)");
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_array
+{
+	condition:
+		pe.sections.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.sections.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnDictionaryWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_dictionary
+{
+	condition:
+		pe.version_info.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.version_info.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnStringWorks) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_string
+{
+	condition:
+		pe.pdb_path.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("pe.pdb_path.len() > 0", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodOnNonStringValueForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule len_on_integer
+{
+	condition:
+		pe.number_of_sections.len() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("is not an object"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayElementStringWorks) {
+	prepareInput(
+R"(
+import "dotnet"
+
+rule len_on_array_element_string
+{
+	condition:
+		dotnet.user_strings[0].len() >= 3
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ("dotnet.user_strings[0].len() >= 3", rule->getCondition()->getText());
+
+	EXPECT_EQ(input_text, driver.getParsedFile().getTextFormatted());
+}
+
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnArrayForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_array
+{
+	condition:
+		pe.sections.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodUnknownAttributeOnStringForbidden) {
+	prepareInput(
+R"(
+import "pe"
+
+rule unknown_attr_on_string
+{
+	condition:
+		pe.pdb_path.nonexistent() > 0
+}
+)");
+
+	try
+	{
+		driver.parse(input);
+		FAIL() << "Parser did not throw an exception.";
+	}
+	catch (const ParserError& err)
+	{
+		EXPECT_NE(std::string::npos, err.getErrorMessage().find("Unrecognized identifier 'nonexistent'"));
+	}
+}
+
+TEST_F(ParserTests,
+LenMethodOnArrayInIncompleteModeWorks) {
+	prepareInput(
+R"(
+import "dummy"
+
+rule len_on_unknown_module_array
+{
+	condition:
+		dummy.some_array.len() > 0
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input, ParserMode::Incomplete));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+	ASSERT_EQ(input_text, driver.getParsedFile().getTextFormatted());
 }
 
 }

@@ -697,7 +697,7 @@ YaraExpressionBuilder& YaraExpressionBuilder::operator[](const YaraExpressionBui
 	_tokenStream->moveAppend(other.getTokenStream());
 	TokenIt rsqb = _tokenStream->emplace_back(TokenType::RSQB, "]");
 
-	_expr = std::make_shared<ArrayAccessExpression>(std::move(_expr), lsqb, std::move(other.get()), rsqb);
+	_expr = std::make_shared<ArrayAccessExpression>(std::move(_expr), lsqb, std::move(other).get(), rsqb);
 	setType(Expression::Type::Undefined);
 	return *this;
 }

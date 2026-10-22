@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cassert>
+
+#include <fmt/ranges.h>
+
 #include <pog/relations/relation.h>
 #include <pog/types/state_and_symbol.h>
 

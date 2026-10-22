@@ -1,8 +1,12 @@
 #pragma once
 
+#include <cassert>
 #include <deque>
 #include <memory>
 #include <vector>
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include <pog/grammar.h>
 #include <pog/state.h>

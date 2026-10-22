@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -181,6 +182,13 @@ public:
 						if (!best_match || static_cast<int>(best_match->get_index()) > pattern_index)
 							best_match = _current_state->tokens[pattern_index];
 					}
+				}
+
+				if (!best_match || (longest_match <= 0 && current_input.stream.size() != 0))
+				{
+					// Zero-length match would not advance the input, we would get into endless loop
+					debug_tokenizer("No match or zero-length match in the middle of the input");
+					return std::nullopt;
 				}
 
 				if (current_input.stream.size() == 0)

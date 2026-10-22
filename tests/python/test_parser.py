@@ -73,6 +73,34 @@ rule rule_with_metas {
         self.assertTrue(rule.metas[2].value.is_bool)
         self.assertEqual(rule.metas[2].value.text, 'true')
 
+    def test_hex_string_after_non_string_meta(self):
+        # Regression: a meta section ending with a non-string value (integer
+        # or boolean) must not prevent a following hex string from being
+        # lexed correctly.
+        yara_file = yaramod.Yaramod().parse_string('''
+rule hex_string_after_non_string_meta {
+    meta:
+        third_party = false
+        rule_version = 1
+    strings:
+        $h = { 48 81 04 24 ?? ?? 00 00 E9 }
+    condition:
+        $h
+}''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'hex_string_after_non_string_meta')
+        self.assertEqual(len(rule.metas), 2)
+        self.assertTrue(rule.metas[0].value.is_bool)
+        self.assertTrue(rule.metas[1].value.is_int)
+
+        self.assertEqual(len(rule.strings), 1)
+        self.assertEqual(rule.strings[0].identifier, '$h')
+        self.assertTrue(rule.strings[0].is_hex)
+        self.assertEqual(rule.strings[0].text, '{ 48 81 04 24 ?? ?? 00 00 E9 }')
+
     def test_add_meta(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule rule_with_added_metas {
@@ -1441,6 +1469,27 @@ rule rule_with_complex_regexp {
         self.assertEqual(regexp_string.unit.units[5].operand.is_negative, False)
         self.assertEqual(regexp_string.unit.units[5].operand.characters, '0-9a-zA-Z')
 
+    def test_regular_expression_class_characters_escape_delimiter(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+rule rule_with_regexp_class {
+    strings:
+        $1 = /x[a]y/
+    condition:
+        $1
+}''')
+        regexp_string = yara_file.rules[0].strings[0]
+        regexp_class = regexp_string.unit.units[1]
+        self.assertTrue(isinstance(regexp_class, yaramod.RegexpClass))
+
+        regexp_class.characters = 'a/b'
+        self.assertEqual(regexp_class.characters, r'a\/b')
+        self.assertEqual(regexp_string.text, r'/x[a\/b]y/')
+
+        regexp_class.characters = r'a\/b'
+        self.assertEqual(regexp_string.text, r'/x[a\/b]y/')
+
+        yaramod.Yaramod().parse_string('rule r { strings: $1 = ' + regexp_string.text + ' condition: $1 }')
+
     def test_regular_expression_meta_characters(self):
         yara_file = yaramod.Yaramod().parse_string(r'''
 rule rule_with_regexp_metachars {
@@ -1750,6 +1799,31 @@ rule nonutf_condition
 }
 '''
         self.assertEqual(expected, yara_file.text_formatted)
+
+    def test_multiline_comments_with_nonutf_bytes(self):
+        yara_file = yaramod.Yaramod().parse_string(b'''
+/* caf\xe9 */
+rule nonutf_multiline_comment
+{
+	/*\xff\xfe*/
+	strings:
+		$1 = { AB CD /* caf\xe9 */ 01 }
+	condition:
+		$1
+}
+''')
+        self.assertEqual(len(yara_file.rules), 1)
+        self.assertEqual(yara_file.rules[0].name, 'nonutf_multiline_comment')
+
+    def test_unterminated_multiline_comment_at_end_of_file(self):
+        yara_file = yaramod.Yaramod().parse_string('''
+rule unterminated_comment
+{
+	condition:
+		true
+}
+/* unterminated comment''')
+        self.assertEqual(len(yara_file.rules), 1)
 
     def test_multiple_parse_phases_with_single_yaramod_instance(self):
         ymod = yaramod.Yaramod();
@@ -2294,6 +2368,27 @@ rule test_rule
 
         self.assertEqual(expected, yara_file.text_formatted)
 
+    def test_parse_percentage_in_for_loop(self):
+        yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''rule test_rule {
+    strings:
+        $s1 = "atest"
+    condition:
+        for 75% i in (1..#s1) : (@s1[i] > 0)
+}
+''')
+
+        expected = r'''rule test_rule
+{
+	strings:
+		$s1 = "atest"
+	condition:
+		for 75% i in (1 .. #s1) : ( @s1[i] > 0 )
+}
+'''
+
+        self.assertEqual(expected, yara_file.text_formatted)
+        self.assertTrue(isinstance(yara_file.rules[0].condition.variable, yaramod.PercentualExpression))
+
     def test_expression_uids(self):
         yara_file = yaramod.Yaramod().parse_string(parser_mode=yaramod.ParserMode.Regular, str=r'''rule ExampleRule1
 {
@@ -2312,3 +2407,27 @@ rule test_rule
 ''')
 
         self.assertEqual(yara_file.rules[0].condition.uid, 21)
+
+    def test_len_method(self):
+        yara_file = yaramod.Yaramod().parse_string(r'''
+import "pe"
+
+rule r {
+    condition:
+        pe.signatures.len() > 0 and
+        pe.version_info.len() > 0 and
+        pe.version_info["abc"].len() > 0 and
+        pe.pdb_path.len() > 0
+}
+''')
+
+        self.assertEqual(len(yara_file.rules), 1)
+
+        rule = yara_file.rules[0]
+        self.assertEqual(rule.name, 'r')
+
+        expected_text = (
+            'pe.signatures.len() > 0 and pe.version_info.len() > 0 and '
+            'pe.version_info["abc"].len() > 0 and pe.pdb_path.len() > 0'
+        )
+        self.assertEqual(rule.condition.text, expected_text)

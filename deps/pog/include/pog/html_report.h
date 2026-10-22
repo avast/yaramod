@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+#include <fmt/ranges.h>
+
 #include <pog/parser.h>
 
 namespace pog {

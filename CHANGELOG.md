@@ -1,5 +1,43 @@
 # Changelog
 
+> **Note:** Starting with v4.7.1, this file is no longer maintained. Release notes are auto-generated in [GitHub Releases](https://github.com/avast/yaramod/releases).
+
+# v4.7.0 (2026-05-29)
+
+* Added exclusive module paths API to `Yaramod`, `ParserDriver`, and `ModulePool` — pass a list of JSON file paths to load only those modules and skip all built-in ones ([#290](https://github.com/avast/yaramod/pull/290))
+
+# v4.6.0 (2026-01-25)
+
+* Added releases for `linux/arm64`
+* Improvements and fixes of type stubs
+
+# v4.5.2 (2026-01-14)
+
+* Fixed iterators to propagate integer type for range-based for loops
+
+# v4.5.1 (2026-01-12)
+
+* Fixed iterators to propagate string type if the iterated set is set of strings
+
+# v4.5.0 (2025-08-29)
+
+* Upgraded major versions of dependencies
+* Added binary wheels for macOS
+
+# v4.4.1 (2025-07-02)
+
+* Fixed formatting of regexp modifiers ([#281](https://github.com/avast/yaramod/pull/281))
+
+# v4.4.0 (2025-06-30)
+
+* Formatting changes to the formatted tokenstream (less spacing around function calls and array accesses)
+* Fixed production of invalid rulesets with expression arrays
+* Tokens for function call parentheses are now getting their proper types `FUNCTION_CALL_LP` and `FUNCTION_CALL_RP`
+
+# v4.3.2 (2025-05-16)
+
+* Fix parsing of regexp ranges with whitespaces
+
 # v4.3.1 (2025-04-05)
 
 * Fix of build for systems with newer CMake (no need to update otherwise)

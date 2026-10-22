@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include <pog/grammar.h>
 #include <pog/rule.h>
 
