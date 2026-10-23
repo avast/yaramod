@@ -179,8 +179,10 @@ public:
 					// In case of equal matches, index of tokens chooses which one is it (lower index has higher priority)
 					else if (longest_match == static_cast<int>(submatch.size()))
 					{
-						if (!best_match || static_cast<int>(best_match->get_index()) > pattern_index)
-							best_match = _current_state->tokens[pattern_index];
+						// pattern_index is local to the current state, so compare the global token indices
+						const auto* candidate = _current_state->tokens[pattern_index];
+						if (!best_match || best_match->get_index() > candidate->get_index())
+							best_match = candidate;
 					}
 				}
 
