@@ -5539,6 +5539,50 @@ rule rule_name
 }
 
 TEST_F(ParserTests,
+MultilineCommentKeepsLineNumbers) {
+	prepareInput(
+R"(/*
+rule commented_out {
+	condition:
+		false
+}
+*/
+rule rule_name {
+	condition:
+		true
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(7u, rule->getFirstTokenIt()->getLocation().begin().getLine());
+	EXPECT_EQ(10u, rule->getLastTokenIt()->getLocation().begin().getLine());
+}
+
+TEST_F(ParserTests,
+MultilineCommentInHexStringKeepsLineNumbers) {
+	prepareInput(
+R"(rule rule_name {
+	strings:
+		$1 = { AB /*
+		comment
+		*/ CD }
+	condition:
+		$1
+}
+)");
+
+	EXPECT_TRUE(driver.parse(input));
+	ASSERT_EQ(1u, driver.getParsedFile().getRules().size());
+
+	const auto& rule = driver.getParsedFile().getRules()[0];
+	EXPECT_EQ(1u, rule->getFirstTokenIt()->getLocation().begin().getLine());
+	EXPECT_EQ(8u, rule->getLastTokenIt()->getLocation().begin().getLine());
+}
+
+TEST_F(ParserTests,
 UnterminatedMultilineCommentAtEndOfFileWorks) {
 	prepareInput(
 R"(

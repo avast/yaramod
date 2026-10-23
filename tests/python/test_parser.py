@@ -1815,6 +1815,24 @@ rule nonutf_multiline_comment
         self.assertEqual(len(yara_file.rules), 1)
         self.assertEqual(yara_file.rules[0].name, 'nonutf_multiline_comment')
 
+    def test_multiline_comment_keeps_line_numbers(self):
+        yara_file = yaramod.Yaramod().parse_string('''/*
+rule commented_out
+{
+	condition:
+		false
+}
+*/
+rule rule_name
+{
+	condition:
+		true
+}
+''')
+        self.assertEqual(len(yara_file.rules), 1)
+        self.assertEqual(yara_file.rules[0].token_first.location.line_number, 8)
+        self.assertEqual(yara_file.rules[0].token_last.location.line_number, 12)
+
     def test_unterminated_multiline_comment_at_end_of_file(self):
         yara_file = yaramod.Yaramod().parse_string('''
 rule unterminated_comment
